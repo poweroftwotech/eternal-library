@@ -14,6 +14,7 @@ var max_tier_height: float = 0
 var profile_variation: float = 0
 var arch_mesh: Mesh
 var ledges: Array = []
+const Cavern = preload("res://scripts/cavern.gd")
 
 func _init(owner, factory) -> void:
 	world = owner
@@ -222,28 +223,6 @@ func mist(p: Vector3, size: Vector3, density: float, color: Color) -> void:
 	fog.material = material
 	world.add_child(fog)
 
-func crag(base: Vector3, radius: float, height: float, material: Material) -> void:
-	var surface = SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var rings: Array = []
-	for ring in range(6):
-		var row: Array = []
-		var t: float = ring/5.0
-		for i in range(11):
-			var a: float = TAU*i/10
-			var r: float = radius*(.025+pow(t,.63))*rng.randf_range(.72,1.23)
-			row.append(Vector3(cos(a)*r+sin(t*4)*radius*.16,t*height+rng.randf_range(-1,1)*t,sin(a)*r))
-		row[10] = row[0]
-		rings.append(row)
-	for ring in range(5):
-		for i in range(10):
-			for index in [Vector2i(i,ring),Vector2i(i+1,ring),Vector2i(i,ring+1),Vector2i(i+1,ring),Vector2i(i+1,ring+1),Vector2i(i,ring+1)]:
-				var p: Vector3 = rings[index.y][index.x]
-				surface.set_uv(Vector2(p.x+p.z,p.y)*.07)
-				surface.add_vertex(p)
-	surface.generate_normals()
-	art.mesh_node(surface.commit(),base,material)
-
 func waterfall(p: Vector3, size: Vector2) -> void:
 	waterfall_count += 1
 	# A bent ribbon splits into strands; its foot fades into a local spray volume.
@@ -294,6 +273,8 @@ func build() -> void:
 	waterfall(Vector3(40,-25.4,-114),Vector2(6,121))
 	waterfall(Vector3(8,-12.4,-228),Vector2(12,148))
 	waterfall(Vector3(-29,-57.4,-140),Vector2(4.5,101))
+	# The closed cavern needs every terrace in vista.ledges, so it comes last.
+	Cavern.new(self).build()
 	mist(Vector3(4,-151,-163),Vector3(90,55,218),.018,Color("9bbbc4"))
 	mist(Vector3(8,38,-258),Vector3(33,64,43),.007,Color("bdd8db"))
 	world.light(Vector3(0,35,-90),Color("9cbfc5"),3.5,100)
@@ -604,36 +585,4 @@ func build_enclosure() -> void:
 	# The cliff beneath the player's balcony is also occupied library.
 	block(Vector3(0,-88,-24),Vector3(300,180,9),"gorge_background")
 	prism(outline(Vector2(0,-180),150,150,.1,0),-184,8,art.mat("gorge_background"))
-	var material = art.mat("cave").duplicate()
-	material.cull_mode = BaseMaterial3D.CULL_DISABLED
-	art.materials["gorge_roof"] = material
-	var surface = SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	var points: Array = []
-	var noise = FastNoiseLite.new()
-	noise.seed = 31921
-	noise.frequency = .03
-	for z in range(25):
-		var row: Array = []
-		for x in range(25):
-			var px: float = -158+x*13.2
-			var pz: float = -26-z*13
-			row.append(Vector3(px,55+21*sqrt(maxf(0,1-pow(px/165,2)))+noise.get_noise_2d(px,pz)*11,pz))
-		points.append(row)
-	for z in range(24):
-		for x in range(24):
-			for ij in [Vector2i(x,z),Vector2i(x,z+1),Vector2i(x+1,z),Vector2i(x+1,z),Vector2i(x,z+1),Vector2i(x+1,z+1)]:
-				var p: Vector3 = points[ij.y][ij.x]
-				surface.set_uv(Vector2(p.x,p.z)*.03)
-				surface.add_vertex(p)
-	surface.generate_normals()
-	art.mesh_node(surface.commit(),Vector3.ZERO,material)
-	for i in range(32):
-		var x: float = rng.randf_range(-143,143)
-		var z: float = rng.randf_range(-70,-307)
-		var y: float = 55+21*sqrt(maxf(0,1-pow(x/165,2)))+noise.get_noise_2d(x,z)*11
-		var h: float = rng.randf_range(7,20)
-		crag(Vector3(x,y-h,z),rng.randf_range(3,7),h,material)
 	art.render_layer = 2
-	world.light(Vector3(-30,46,-105),Color("8aaab7"),4,82)
-	world.light(Vector3(38,49,-216),Color("9fc0cb"),4,100)

@@ -298,3 +298,113 @@ archive).
 - **Archive fungi:** no mushrooms on bare paving. `camp_composition.archive_fungi()` grows them from moss/soil mounds (glowing clusters, plain clusters, one mound under each mushroom gatherable) and a moss-backed rotting log with bracket fungi. The random scatter in `world.build_archive` is gone.
 - **Shadows and grounding:** small props cast shadows again (`asset_factory.box` only skips hairline trims under 0.08 m). AO is stronger and applied to direct light (`SSAO_INTENSITY` 2.2, `ssao_light_affect` 0.35). The positional shadow atlas is 8192 with high soft-shadow quality. The left fill now casts shadows.
 - **Fire drama:** small light source (0.05) with less blur (0.55), attenuation 1.6, `FIRE_ENERGY` 2.4. The unshadowed warm fill above the hearth went 1.25 → 0.45; the floor bounce went 0.5 → 1.0 to light the rug the way bounced firelight would. `ARCHIVE_FILL_ENERGY` 2.9. Gate: whole 1.08, hearth 1.06, rug 0.91, archive 0.88.
+
+## 8. Exterior plan (the overlook vista), started 2026-10-18
+
+**Target image:** `design/box concept art/image-gen-2(2).png` (box art). It is
+inspiration, not gameplay: copy how the space *reads* (a closed, organic
+cavern, buildings carved out of the rock, a sightline that ends), not the
+characters. The exterior stays a **view from the overlook** for now; nothing
+outside the balcony needs walkable collision.
+
+### Gaps (current render vs box art)
+
+| | Current overlook | Box art |
+|---|---|---|
+| Enclosure | One symmetric bowl. Smooth heightfield roof barely visible, so the top third reads as black sky; black void at the bottom. | Closed and irregular. Stalactites hang low into the frame, rock walls pinch in, the canyon ends at a glowing palace. |
+| Building shape | Eight elliptical banks of stacked prisms with even horizontal bands (reads as stacked cakes). | Square, stepped Persian towers, crenellated tops, tile bands, hanging carpets, cypress on terraces, varied heights. Many are half carved out of the rock. |
+| Connections | One heavy flat bridge across the middle, V-shaped spandrels. | Stacked round-arch aqueducts at several heights converging on the focal point; stairs; tunnel mouths into the rock; tiny people for scale. |
+| Water | Four thin, flat, bright-cyan ribbons. | Many stepped falls pouring out of arches under bridges and buildings into pale mist. |
+| Light and depth | Even contrast at every distance; uniform white lamp dots read as noise. | Warm near, cool and hazy far. Brightest spot is the cool far palace. Warm lights in clusters. |
+| Foreground | Flat tan parapet. | Diagonal rock-cut stair with lamassu reliefs and draped carpets; colossi frame both sides. |
+
+### Slices (each passes the headless gates and a GPU capture)
+
+0. **Measurement.** `vista_concept` capture mode and `tests/compare_vista.gd`
+   (box-art regions: empty-void fraction, vault, focal glow vs flanks, near vs
+   far warmth, mist floor).
+1. **Close the cavern.** Low ragged vault with stalactite clusters hanging into
+   the frame; rock walls that come down into the view and two throats that
+   pinch the gorge into near chamber → narrows → far hall; bank backs buried
+   in rock with overhangs; rock behind the sanctum so the view ends; lit mist
+   in place of the black floor.
+2. **Lighting for depth.** Warm-near to cool-far haze, a cool hero glow on the
+   sanctum, warm lamp *clusters* instead of uniform dots, varied window
+   brightness. Order: far glow > warm window clusters > mid stone > vault
+   (dark, never pure black).
+3. **Architecture language.** Rectilinear stepped footprints, stepped-merlon
+   parapets, faience bands, kilim carpets and banners, cypress, tower groups
+   of varied height. Keep the book-arcade niches.
+4. **Connections and water.** Two-tier round-arch aqueducts at staggered
+   heights converging on the sanctum; some bridges end in lantern-lit tunnel
+   portals; wider stepped falls out of arches; mist pools; tiny walkers.
+5. **Foreground framing.** Off-axis, diagonal overlook: rock-cut stair, carpets
+   over the parapet, lamassu reliefs/colossi at the edges (Blender meshes).
+
+### Keep from the interior
+
+Pixel materials at 32 texels/m with nearest filtering, the split-tone grade,
+pointed arches for windows and niches (`arch_specs`; round arches only on
+aqueducts) and the render-layer split (balcony layer 1, gorge 2,
+enclosure 4) so exterior lights never reach the camp. `tests/playtest.gd`
+lines 113–116 describe the old layout (8 banks, 6 bridges, 4 falls, extent
+260–350 m); rewrite them as the layout changes. Check fps at 1600×900 with
+SDFGI after every slice.
+
+### Progress
+
+**Slice 0 (done 2026-10-18).** `tests/compare_vista.gd` compares a capture
+with the box art. Each region has its own rect in each image, because the
+box art is portrait with a title and border. Luminance passes within ±25%,
+plus three structural checks: empty void at most the box art's +5 points,
+focal glow brighter than the near flanks, and a near-minus-far warmth split of
+at least half the box art's. New capture mode `vista_concept` (the balcony
+framing, FOV 68). `tools/capture_vista.bat` runs the import, the capture and
+the comparison.
+
+**Slice 1 (done 2026-10-18).** New `scripts/cavern.gd`, called at the end
+of `vista.build()` because it needs every terrace in `vista.ledges`. The old
+heightfield roof and the 32 crags in `build_enclosure()` are gone (the
+library walls and floor stay).
+- **Vault:** a 6 m grid whose crown runs near 44–47 m, throat 38 m,
+  far hall 74–76 m, then closes to 24 m behind the sanctum (`CROWN`). It drops
+  46 m toward the outer walls, has broad lumps plus sharper ridges, and never
+  comes closer than 8 m above a terrace (`floor_at`). The rock sits over the
+  banks instead of the banks standing in open air.
+- **Stalactites:** 170 curtain clusters, denser over the throat lip; tips stay
+  above 22 m and above terraces, and short in the sightline to the sanctum.
+  There are also throat-shoulder curtains, four rock spurs rising out of the
+  banks into the vault, and five apse columns behind the sanctum.
+- **Mist floor:** a pale ellipsoid fog volume (top near y −14). Its emission
+  leans slightly violet (`5b5c74`) to cancel the interior's teal grade, which
+  had turned neutral mist green.
+- **Light:** the rock is on layer 4 and doesn't cast shadows (it would black
+  out `ExteriorVaultBounce`). It gets a weak cool uplight and a warm
+  "city glow" light over each bank top (cull mask 4).
+  **Pitfall:** `world.light()` falls off as distance^-1.2, tuned for the
+  camp. At 10–60 m that leaves 1–6% of the energy, so cavern lights use
+  `big_light()` (attenuation 0.5). Most older vista lights still use the steep
+  falloff, which is a large part of why the exterior reads dark. This is
+  slice 2's job.
+- **Bug fixed during the work:** with `CULL_DISABLED`, Godot flips the normal
+  of back-facing (counter-clockwise) triangles, so hand-built rock rendered
+  black. `cavern.triangle()` winds every triangle to match its shading normal.
+- **Gate:** playtest 43/43, geometry 29/29, atmosphere 9/9, headless 3/3
+  clean, 79–108 fps. The interior concept gate is unchanged with or without
+  the cavern.
+
+| region | box art | baseline | slice 1 |
+|---|---|---|---|
+| vault | 49 | 23 | 31 |
+| focal glow | 144 | 33 | 56 |
+| far depth band | 91 | 36 | **69 ok** |
+| near flanks | 70 | 33 | 39 |
+| mist floor | 108 | 37 | 76 |
+| empty void | 6.9% | 0.3% ok | 0.1% ok |
+| focal > flanks | | 33 vs 33 MISS | **56 vs 39 ok** |
+| warm/cool split (need 29) | 58 | 9 | 10 |
+
+Previews: `previews/vista_v012_baseline.png`, `vista_v013.png`,
+`vista_roof_v013.png`. Still open, for slice 2: overall exposure (every region is about
+0.4–0.7 of the box art), the warm near flanks (warmth is −9, box art +49) and the
+hero glow on the sanctum.
