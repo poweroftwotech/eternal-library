@@ -30,7 +30,7 @@ func build() -> void:
 	clad(Vector3(-2.65,0,6.05),Vector3(1.4,.54,1.0))
 	bedroll()
 	pack()
-	archive_glow()
+	archive_fungi()
 
 func left_bookcase() -> void:
 	art.shelf(BOOKCASE,2.4,4.5,BOOKCASE_YAW)
@@ -91,17 +91,56 @@ func pack() -> void:
 	collider.shape = shape
 	body.add_child(collider)
 
-func archive_glow() -> void:
+func archive_fungi() -> void:
 	var glow: StandardMaterial3D = art.mat("glow")
 	glow.albedo_color = Color("3f9fbf")
 	glow.emission = Color("2fb8e0")
 	glow.emission_energy_multiplier = 1.1
-	for center in [Vector3(8.5,.02,-3.1),Vector3(9.3,.02,-4.4),Vector3(7.4,.02,-5.6)]:
-		for i in range(7):
-			var p: Vector3 = center+Vector3(rng.randf_range(-.35,.35),0,rng.randf_range(-.3,.3))
-			art.mushroom(p,rng.randf_range(.35,.85),true)
-		var light = world.light(center+Vector3(0,.35,0),Color("3fb6e6"),.7,2.6)
-		light.light_cull_mask = 1
+	# Damp moss mounds: glowing clusters (lit), plain clusters, and one under
+	# each mushroom gatherable so nothing sprouts from bare paving.
+	for data in [[Vector3(8.5,0,-3.1),.6,true],[Vector3(9.3,0,-4.4),.55,true],[Vector3(7.4,0,-5.6),.6,true],
+			[Vector3(7.0,0,-2.4),.5,false],[Vector3(10.7,0,-2.6),.45,false],[Vector3(8.6,0,-7.6),.55,false],[Vector3(11.0,0,-7.2),.5,false]]:
+		var center: Vector3 = data[0]
+		var radius: float = data[1]
+		mound(center,radius,.09)
+		for i in range(7 if data[2] else 5):
+			var a: float = rng.randf_range(0,TAU)
+			var d: float = sqrt(rng.randf())*radius*.7
+			var p: Vector3 = center+Vector3(cos(a)*d,.09*sqrt(maxf(0.0,1.0-pow(d/radius,2)))-.01,sin(a)*d*.8)
+			art.mushroom(p,rng.randf_range(.35,.85),data[2] and i<5)
+		if data[2]:
+			var light = world.light(center+Vector3(0,.35,0),Color("3fb6e6"),.7,2.6)
+			light.light_cull_mask = 1
+	for id in world.gatherables:
+		if world.gatherables[id].kind == "mushroom":
+			mound(world.gatherables[id].visual.position*Vector3(1,0,1),.55,.06)
+	rotting_log(Vector3(10.9,0,-4.6),.15)
+
+## Low, irregular moss cushion over a darker soil rim.
+func mound(center: Vector3, radius: float, height: float) -> void:
+	var sphere: SphereMesh = SphereMesh.new()
+	sphere.radial_segments = 16
+	sphere.rings = 6
+	var soil = art.mesh_node(sphere,center,art.mat("soil"))
+	soil.scale = Vector3(radius*1.15,height*.55,radius*.95)
+	var moss = art.mesh_node(sphere,center,art.mat("moss"))
+	moss.scale = Vector3(radius,height,radius*.8)
+	moss.rotation.y = rng.randf_range(0,TAU)
+
+## Fallen, moss-backed log with bracket fungi on its flank.
+func rotting_log(center: Vector3, yaw: float) -> void:
+	var log_node = art.cylinder(center+Vector3(0,.15,0),.15,1.7,art.mat("bark"))
+	log_node.rotation = Vector3(PI/2,yaw,0)
+	var moss = art.box(center+Vector3(0,.28,0),Vector3(.18,.05,1.4),art.mat("moss"))
+	moss.rotation.y = yaw
+	var along: Vector3 = Basis(Vector3.UP,yaw)*Vector3(0,0,1)
+	var side: Vector3 = Basis(Vector3.UP,yaw)*Vector3(1,0,0)
+	for i in range(9):
+		var p: Vector3 = center+along*rng.randf_range(-.7,.7)+side*(-.14 if i%2 else .14)+Vector3(0,rng.randf_range(.1,.24),0)
+		var bracket = art.cylinder(p,rng.randf_range(.05,.09),.022,art.mat("mushroom"))
+		bracket.rotation.z = (-.25 if i%2 else .25)
+		if i%3 == 0:
+			art.mushroom(center+along*rng.randf_range(-.6,.6)+Vector3(0,.27,0),rng.randf_range(.3,.5),true)
 
 func leather_material() -> StandardMaterial3D:
 	if art.materials.has("camp_leather"):

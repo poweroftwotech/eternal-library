@@ -294,3 +294,5 @@ archive).
   rug 0.95. Playtest 43/43, atmosphere 9/9, geometry 29/29, headless 3/3
   clean.
 - Added `.gitattributes` (LF text, binary assets).
+- **Lanterns dimmed** (`LANTERN_FLAME_GLOW` 2.5, new `LANTERN_LIGHT_SCALE` 0.6 on lamp lights).
+- **Archive fungi:** no mushrooms on bare paving. `camp_composition.archive_fungi()` grows them from moss/soil mounds (glowing clusters, plain clusters, one mound under each mushroom gatherable) and a moss-backed rotting log with bracket fungi. The random scatter in `world.build_archive` is gone.

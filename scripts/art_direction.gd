@@ -26,7 +26,8 @@ const LIGHTWELL_GLOW: float = 3.5           # emissive glass in the vault openin
 
 const FIRE_ENERGY: float = 1.6              # base; atmosphere.gd adds flicker
 const EMBER_GLOW: float = 1.8
-const LANTERN_FLAME_GLOW: float = 4.5
+const LANTERN_FLAME_GLOW: float = 2.5
+const LANTERN_LIGHT_SCALE: float = .6     # lamp OmniLights (world.lantern, 1.8 base)
 const ARCHIVE_FILL_ENERGY: float = 2.4       # cool teal fill on the right-hand shelves
 
 const GLOW_THRESHOLD: float = .95
@@ -134,6 +135,9 @@ func hearth() -> void:
 		var material = node.material_override
 		if material is StandardMaterial3D and material.emission_enabled and material.emission.is_equal_approx(Color("ffd27d")):
 			material.emission_energy_multiplier = LANTERN_FLAME_GLOW
+	for node in world.find_children("*","OmniLight3D",true,false):
+		if node.has_meta("lantern"):
+			node.light_energy *= LANTERN_LIGHT_SCALE
 	for data in world.effects:
 		if data.kind == "flame":
 			var material: StandardMaterial3D = data.material

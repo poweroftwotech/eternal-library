@@ -384,9 +384,7 @@ func build_archive() -> void:
 	art.shelf(Vector3(9.2,0,-9.3),5.5,6.5,PI)
 	art.ladder(Vector3(11.7,0,-5.2),5.6,PI/2)
 	box(Vector3(5.0,4,-6.5),Vector3(.35,8,13),"brick",true)
-	for i in range(20):
-		var p = Vector3(art.rng.randf_range(6.5,11.8),.02,art.rng.randf_range(-8.7,-1))
-		art.mushroom(p,art.rng.randf_range(.3,.8),i%4==0)
+	# Archive fungi grow from moss mounds and a rotting log (camp_composition.archive_fungi).
 	for i in range(10):
 		var book = box(Vector3(art.rng.randf_range(7,11),.08,art.rng.randf_range(-8,-3)),Vector3(.35,.10,.52),"book")
 		book.rotation.y = art.rng.randf_range(-PI,PI)
