@@ -262,16 +262,17 @@ func build_camp() -> void:
 	# Hearth ring: chipped masonry, split fuel and independently lit embers.
 	for i in range(12):
 		var a: float = i*TAU/12
+		if i == 3:
+			continue   # open front (concept): the fire faces the camp
 		var stone = art.worn_block(hearth+Vector3(cos(a)*.95,.16,sin(a)*.85),Vector3(art.rng.randf_range(.40,.49),art.rng.randf_range(.27,.33),art.rng.randf_range(.34,.42)),art.mat("hearth_stone"),.055,true)
 		stone.rotation.y = -a
-	for i in range(5):
-		var log_node = art.cylinder(hearth+Vector3(0,.15,0),.09,1.2,art.mat("bark"))
-		log_node.rotation = Vector3(PI/2,0,i*.62)
+	# v0.12: authored star-fire logs (tools/build_props.py) replace the box logs.
+	art.model("fire_logs",hearth)
 	for i in range(18):
 		art.sphere(hearth+Vector3(art.rng.randf_range(-.45,.45),.24,art.rng.randf_range(-.36,.36)),Vector3(.1,.07,.12),art.mat("ember"))
 	var profile = [Vector2(0,.3),Vector2(.43,.3),Vector2(.61,.44),Vector2(.66,.78),Vector2(.68,.98),Vector2(.72,1.02),Vector2(.70,1.08),Vector2(.65,1.08),Vector2(.62,.98),Vector2(.59,.48),Vector2(.4,.36),Vector2(0,.36)]
 	art.mesh_node(art.lathe(profile,32),hearth,art.mat("iron_cook"))
-	art.cylinder(hearth+Vector3(0,.92,0),.612,.025,art.mat("soup"))
+	art.model("stew",hearth+Vector3(0,.92,0))
 	for side in [-1,1]:
 		art.segment(hearth+Vector3(side*.55,.35,0),hearth+Vector3(side*.55,.02,0),.038,art.mat("iron"))
 		# Handles are open arcs, not solid discs.

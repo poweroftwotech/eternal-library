@@ -16,7 +16,7 @@ const EXPOSURE: float = 1.0
 const AMBIENT_ENERGY: float = .22
 const AMBIENT_COLOR: Color = Color("5a86a6")
 
-const GARDEN_KEY_ENERGY: float = 17.0      # SpotLight under the lightwell
+const GARDEN_KEY_ENERGY: float = 15.0      # SpotLight under the lightwell
 const GARDEN_KEY_COLOR: Color = Color("f2f5e2")
 const GARDEN_KEY_AIM: Vector3 = Vector3(-1.7,0,-3.4)  # tilted toward the arch/camera
 const GARDEN_FOG_ENERGY: float = 1.3        # how strongly the key paints the haze

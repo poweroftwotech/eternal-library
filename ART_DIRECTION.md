@@ -188,7 +188,19 @@ archive).
      the tuned `FIRE_ENERGY`. The old absolute `low > 1.5` assumed a base of
      2.75 and had been failing since the luminance pass cut it to 1.6. All
      9 checks pass (energy 1.26–1.97).
-4. **Hero props as authored meshes** (Blender → glTF in `assets/models/`,
+4. **In progress (2026-10-18): fire logs and stew done.** Blender 5.2.2 LTS
+   (portable: `C:\projects\blender-5.2.2-windows-x64\blender-5.2.2-windows-x64\blender.exe`)
+   runs `tools/build_props.py` headlessly →
+   `assets/models/{fire_logs,stew}.glb`. Surfaces carry material *names*
+   (`bark`, `log_end`, `char`, `stew`); `asset_factory.model()` splits the
+   surfaces and swaps in the px materials, so props stay world-triplanar at
+   32 texels/m and merge normally. Export must use `export_materials="EXPORT"`
+   (PLACEHOLDER drops the names) and needs a UV layer for tangents. The
+   hearth ring's front stone was removed so a log shows through, like the
+   concept. `GARDEN_KEY_ENERGY` went 17 → 15 to keep the whole frame inside
+   ±15%. Next: cauldron, ladle, lantern, bowls, bedroll/pack as meshes, and
+   particle flames.
+   Original brief: **Hero props as authored meshes** (Blender → glTF in `assets/models/`,
    textures painted at 32 texels/m): cauldron + stew surface, fire logs,
    lantern, three ingredient bowls (mushrooms, roots, herbs), bedroll,
    leather backpack, ladle, cup, book stacks, bookcase with ladder. Keep

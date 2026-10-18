@@ -218,6 +218,13 @@ func props() -> void:
 		1.0, .02, Color("f4e0a0"), .45, 0, true)
 	mottled("vine", pal(["#1c2412", "#2c3a1a", "#3e4e22", "#52632c", "#6a7838"]), 16, 3, 38,
 		1.1, .0, Color(0, 0, 0, 0), .9, 5)
+	# Hero props (tools/build_props.py): pale cut ends, charred tips, stew.
+	mottled("log_end", pal(["#6a4a2c", "#8c6a44", "#a8845a", "#c4a070", "#d8bc8c"]), 16, 3, 39,
+		.9, .0, Color(0, 0, 0, 0), .9, 3)
+	mottled("char", pal(["#0c0907", "#16100c", "#211812", "#2c2018", "#3a2a1e"]), 16, 3, 40,
+		1.2, .05, Color("c8501c"), .95)
+	mottled("stew", pal(["#5a1e0c", "#7a2c12", "#96401a", "#b05624", "#c46e30", "#d88a44"]), 16, 3, 43,
+		1.0, .08, Color("5a7a2c"), .25)
 
 func fabrics() -> void:
 	# Wool throw: oatmeal/olive ground, thin madder and ochre bands.

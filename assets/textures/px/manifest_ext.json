@@ -14,6 +14,13 @@
     16
    ]
   },
+  "char": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
   "cloth": {
    "mapping": "world",
    "size": [
@@ -77,6 +84,13 @@
     32
    ]
   },
+  "log_end": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
   "mushroom": {
    "mapping": "world",
    "size": [
@@ -110,6 +124,13 @@
    "size": [
     64,
     64
+   ]
+  },
+  "stew": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
    ]
   },
   "tree_leaf": {

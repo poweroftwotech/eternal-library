@@ -378,6 +378,26 @@ func mesh_node(mesh: Mesh, pose: Vector3, material: Material, parent: Node3D = n
 	node.position = pose
 	return node
 
+## Authored glTF prop (tools/build_props.py). Each surface becomes its own
+## node using the pixel material named by the Blender material, so props keep
+## 32 texels/m and merge with the rest of the static geometry.
+func model(model_name: String, pose: Vector3, yaw: float = 0.0, parent: Node3D = null) -> Node3D:
+	var group: Node3D = Node3D.new()
+	(root if parent == null else parent).add_child(group)
+	group.position = pose
+	group.rotation.y = yaw
+	var scene: Node = load("res://assets/models/%s.glb" % model_name).instantiate()
+	for source in scene.find_children("*","MeshInstance3D",true,false):
+		var mesh: Mesh = source.mesh
+		for i in range(mesh.get_surface_count()):
+			var single: ArrayMesh = ArrayMesh.new()
+			single.add_surface_from_arrays(Mesh.PRIMITIVE_TRIANGLES,mesh.surface_get_arrays(i))
+			var surface_material: Material = mesh.surface_get_material(i)
+			var node: MeshInstance3D = mesh_node(single,Vector3.ZERO,mat(surface_material.resource_name if surface_material else "wood"),group)
+			node.transform = source.transform
+	scene.free()
+	return group
+
 func sphere(pose: Vector3, size: Vector3, material: Material, parent: Node3D = null) -> MeshInstance3D:
 	var mesh = SphereMesh.new()
 	mesh.radial_segments = 24
