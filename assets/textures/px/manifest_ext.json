@@ -1,0 +1,131 @@
+{
+ "materials": {
+  "book_leather": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "brass": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "cloth": {
+   "mapping": "world",
+   "size": [
+    32,
+    32
+   ]
+  },
+  "copper": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "cut_fruit": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "exterior_faience": {
+   "mapping": "world",
+   "size": [
+    32,
+    32
+   ]
+  },
+  "fern": {
+   "mapping": "card",
+   "size": [
+    16,
+    32
+   ]
+  },
+  "fruit_skin": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "ivy_leaf": {
+   "mapping": "card",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "leaf": {
+   "mapping": "card",
+   "size": [
+    8,
+    16
+   ]
+  },
+  "linen": {
+   "mapping": "world",
+   "size": [
+    32,
+    32
+   ]
+  },
+  "mushroom": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "pages": {
+   "mapping": "world",
+   "size": [
+    8,
+    8
+   ]
+  },
+  "pomegranate": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "root": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "stack_atlas": {
+   "mapping": "world",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "tree_leaf": {
+   "mapping": "card",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "vine": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  }
+ },
+ "texel_density": 32
+}

@@ -1,0 +1,26 @@
+The Eternal Library — Reading Garden v0.10: moving light, water and music
+Godot 4.6.1, 2026-10-15 UTC.
+
+PASS: 43 gameplay integration checks.
+PASS: 29 geometry checks; 5072 nondegenerate triangles audited.
+PASS: 9 atmosphere/music integration checks. Over a 12-second sample, hearth
+energy spans 2.17..3.37 and the source moves 0.223m. Both hearth contributions
+cast shadows. Wind and water materials, lantern participation, 96-second Ogg
+loop loading, and music mute/restore are covered.
+
+Music: original synthesized tar-inspired composition, A Quiet Page. 124 plucked
+note events, stereo 44.1 kHz, 96 seconds. Master peak 0.79 and RMS 0.1053;
+loop endpoints are zero. Ogg and MP3 streams decode successfully. No sampled
+performance, existing melody or continuous drone layer is included. The music
+is an approximation of tar timbre, not an authentic recorded instrument.
+
+Viewport movie: offline frames at 12 fps, rendered in Godot Forward+ at 960x540.
+Interior lights use their own render layer. The video is not
+a target-GPU benchmark. Software Vulkan host; target performance is unmeasured.
+The inherited seven-texture-RID renderer shutdown warning remains unresolved.
+No gameplay script errors were reported by the completed integration suites.
+
+New water is a translucent, non-metallic shaded surface with procedural normal
+ripples over actual bed geometry. It uses the room reflection probe, not full
+ray-traced or screen-space refraction. Shadows and foliage deformation update
+in real time. The source package remains editable and includes asset generators.

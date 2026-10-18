@@ -1,0 +1,166 @@
+{
+ "texel_density": 32,
+ "materials": {
+  "sandstone": {
+   "size": [
+    64,
+    64
+   ],
+   "mapping": "world"
+  },
+  "brick": {
+   "size": [
+    64,
+    64
+   ],
+   "mapping": "world"
+  },
+  "arch_stone": {
+   "size": [
+    64,
+    64
+   ],
+   "mapping": "world"
+  },
+  "stone_surface": {
+   "size": [
+    64,
+    64
+   ],
+   "mapping": "world"
+  },
+  "limestone": {
+   "size": [
+    32,
+    32
+   ],
+   "mapping": "world"
+  },
+  "hearth_stone": {
+   "size": [
+    32,
+    32
+   ],
+   "mapping": "world"
+  },
+  "floor_stone": {
+   "size": [
+    64,
+    64
+   ],
+   "mapping": "world"
+  },
+  "paving": {
+   "size": [
+    64,
+    64
+   ],
+   "mapping": "world"
+  },
+  "floor_grout": {
+   "size": [
+    64,
+    64
+   ],
+   "mapping": "world"
+  },
+  "plaster": {
+   "size": [
+    64,
+    64
+   ],
+   "mapping": "world"
+  },
+  "vault_plaster": {
+   "size": [
+    64,
+    64
+   ],
+   "mapping": "world"
+  },
+  "mosaic": {
+   "size": [
+    32,
+    32
+   ],
+   "mapping": "world"
+  },
+  "tile": {
+   "size": [
+    32,
+    32
+   ],
+   "mapping": "world"
+  },
+  "iron_cook": {
+   "size": [
+    32,
+    32
+   ],
+   "mapping": "world"
+  },
+  "iron": {
+   "size": [
+    32,
+    32
+   ],
+   "mapping": "world"
+  },
+  "wood": {
+   "size": [
+    32,
+    64
+   ],
+   "mapping": "world"
+  },
+  "bark": {
+   "size": [
+    32,
+    64
+   ],
+   "mapping": "world"
+  },
+  "soil": {
+   "size": [
+    32,
+    32
+   ],
+   "mapping": "world"
+  },
+  "moss": {
+   "size": [
+    32,
+    32
+   ],
+   "mapping": "world"
+  },
+  "cave": {
+   "size": [
+    64,
+    64
+   ],
+   "mapping": "world"
+  },
+  "earthenware": {
+   "size": [
+    96,
+    48
+   ],
+   "mapping": "uv"
+  },
+  "glazed_ceramic": {
+   "size": [
+    64,
+    32
+   ],
+   "mapping": "uv"
+  },
+  "rug": {
+   "size": [
+    140,
+    102
+   ],
+   "mapping": "uv"
+  }
+ }
+}

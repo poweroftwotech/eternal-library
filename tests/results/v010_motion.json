@@ -1,0 +1,10 @@
+{
+  "camp": {
+    "mean_pixel_change": 3.8208,
+    "pixels_changed_over_3_percent": 35.04
+  },
+  "water": {
+    "mean_pixel_change": 3.8514,
+    "pixels_changed_over_3_percent": 41.19
+  }
+}
