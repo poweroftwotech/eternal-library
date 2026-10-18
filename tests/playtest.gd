@@ -112,7 +112,7 @@ func run() -> void:
 		check(not hit.is_empty(),"Upper garden walls close the roof seam in direction %s" % offset)
 	check(game.world.vista.extent>260 and game.world.vista.extent<350 and game.world.vista.bank_count==8,"Eight overlapping banks form a compact library gorge")
 	check(game.world.vista.shelf_bays>600,"Inhabited ledges carry dense three-dimensional book arcades")
-	check(game.world.vista.bridge_count==6 and game.world.vista.waterfall_count==4,"The exterior contains crossing bridges and four layered cascades")
+	check(game.world.vista.bridge_count==8 and game.world.vista.portal_count==2 and game.world.vista.waterfall_count==14,"The exterior has six aqueducts, two flying crossings to rock-cut portals, and stepped falls (four cascades of three drops plus two through aqueduct arches)")
 	check(game.world.vista.tier_count>100 and game.world.vista.max_tier_height<12 and game.world.vista.profile_variation>5,"Short tiers change their footprints instead of forming long straight shafts")
 	check(game.world.library_dressing.case_count>=15 and game.world.library_dressing.art_count>=6,"Interior walls carry high collections and framed art")
 	# Check movement cannot walk through the tree's visible trunk.

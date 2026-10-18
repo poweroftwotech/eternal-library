@@ -16,6 +16,11 @@ var arch_mesh: Mesh
 var ledges: Array = []
 var tower_count: int = 0
 var cypress_mesh: Mesh
+var portal_count: int = 0
+const AQUEDUCT_BAY: float = 11.0     # target span between pier centres
+const AQUEDUCT_PIER: float = 1.2     # half-pier width at each bay end
+const AQUEDUCT_UPPER: float = 11.0   # upper arcade height under the deck
+const AQUEDUCT_LOWER: float = 19.0   # taller lower arcade
 const Cavern = preload("res://scripts/cavern.gd")
 const VistaLight = preload("res://scripts/vista_light.gd")
 var lamp_points := PackedVector3Array()
@@ -250,7 +255,7 @@ func mist(p: Vector3, size: Vector3, density: float, color: Color) -> void:
 	fog.material = material
 	world.add_child(fog)
 
-func waterfall(p: Vector3, size: Vector2) -> void:
+func waterfall(p: Vector3, size: Vector2, lip: bool = true) -> void:
 	waterfall_count += 1
 	# A bent ribbon splits into strands; its foot fades into a local spray volume.
 	var material = ShaderMaterial.new()
@@ -269,9 +274,21 @@ func waterfall(p: Vector3, size: Vector2) -> void:
 					surface.set_normal(Vector3.FORWARD)
 					surface.add_vertex(point)
 		art.mesh_node(surface.commit(),p,material)
-	prism(outline(Vector2(p.x,p.z-1.5),size.x*.5+2.5,3,0.0,0.0),p.y-.5,.8,art.mat("exterior_faience"))
+	if lip:
+		prism(outline(Vector2(p.x,p.z-1.5),size.x*.5+2.5,3,0.0,0.0),p.y-.5,.8,art.mat("exterior_faience"))
 	mist(p-Vector3.UP*(size.y*.91)+Vector3(0,0,6),Vector3(size.x*3,size.y*.18,27),.018,Color("b9d5d9"))
 	world.light(p+Vector3(0,-size.y*.22,10),Color("9bc7db"),4,size.y*.55)
+
+## A stepped fall: three drops, each wider and a little forward of the last,
+## with its own basin lip and spray (box art), instead of one long ribbon.
+func cascade(p: Vector3, size: Vector2) -> void:
+	var top: Vector3 = p
+	var width: float = size.x*1.5
+	for fraction in [.3,.3,.4]:
+		var drop: float = size.y*fraction
+		waterfall(top,Vector2(width,drop))
+		top += Vector3(0,-drop-.6,3.2)
+		width *= 1.15
 
 func build() -> void:
 	exterior_materials()
@@ -290,16 +307,16 @@ func build() -> void:
 		[-39,-262,43,36,48,7],[60,-277,48,39,53,8]]:
 		bank(Vector2(data[0],data[1]),data[2],data[3],data[4],data[5])
 	sanctum(Vector3(8,-13,-252))
-	bridge(Vector3(-37,-19,-89),Vector3(41,-26,-116),4.2)
+	bridge(Vector3(-37,-19,-89),Vector3(41,-26,-116),4.2,[3])
 	bridge(Vector3(-29,-58,-141),Vector3(34,-63,-172),3.8)
 	bridge(Vector3(-37,-105,-91),Vector3(38,-100,-133),4.0)
-	bridge(Vector3(-26,-20,-211),Vector3(30,-12,-231),3.6)
+	bridge(Vector3(-26,-20,-211),Vector3(30,-12,-231),3.6,[2])
 	bridge(Vector3(-32,-132,-192),Vector3(36,-124,-222),3.5)
 	bridge(Vector3(-47,14,-205),Vector3(-11,8,-249),3.0)
-	waterfall(Vector3(-35,-18.4,-88),Vector2(4.8,94))
-	waterfall(Vector3(40,-25.4,-114),Vector2(6,121))
-	waterfall(Vector3(8,-12.4,-228),Vector2(12,148))
-	waterfall(Vector3(-29,-57.4,-140),Vector2(4.5,101))
+	cascade(Vector3(-35,-18.4,-88),Vector2(4.8,94))
+	cascade(Vector3(40,-25.4,-114),Vector2(6,121))
+	cascade(Vector3(8,-12.4,-228),Vector2(12,148))
+	cascade(Vector3(-29,-57.4,-140),Vector2(4.5,101))
 	# The closed cavern needs every terrace in vista.ledges, so it comes last.
 	Cavern.new(self).build()
 	VistaLight.new(self).build()
@@ -561,12 +578,15 @@ func sanctum(p: Vector3) -> void:
 		art.mesh_node(hanging,p+Vector3(side*12,5,20),art.mat("wing_relief"))
 	world.light(p+Vector3(0,9,28),Color("ffd397"),11,47)
 
-func bridge(a: Vector3, b: Vector3, width: float) -> void:
+## Two-tier aqueduct (box art): a walkway deck on a round-arched upper arcade,
+## a taller arcade below, then plain piers down into the mist. Bays stay
+## horizontal and step with the sloping deck, so the piers stay vertical.
+## `falls` bay indices pour a waterfall through the upper arch. With `tiers`
+## 0 it is a light flying crossing: the deck on a short arcaded fascia only.
+func bridge(a: Vector3, b: Vector3, width: float, falls: Array = [], tiers: int = 2) -> void:
 	bridge_count += 1
 	var forward = (b-a).normalized()
 	var across = forward.cross(Vector3.UP).normalized()
-	var up = across.cross(forward).normalized()
-	var basis = Basis(forward,up,across)
 	var length: float = a.distance_to(b)
 	beam(a,b,Vector2(.8,width),"sandstone")
 	beam(a-Vector3.UP*.7,b-Vector3.UP*.7,Vector2(.6,width+.2),"exterior_faience")
@@ -577,35 +597,64 @@ func bridge(a: Vector3, b: Vector3, width: float) -> void:
 			art.batch_box("gorge_balusters",p+Vector3.UP*.55,Vector3(.17,1.1,.17),art.mat("sandstone"))
 			if i%3==0:
 				lamp(p+Vector3.UP*1.38,.16,true)
-	for i in range(int(length/9)):
-		reader(a.lerp(b,(i+.5)/int(length/9))+Vector3.UP*.45,atan2(forward.x,forward.z))
-	var spans: int = maxi(2,int(length/24))
-	for i in range(spans):
-		var start: Vector3 = a.lerp(b,float(i)/spans)
-		var end: Vector3 = a.lerp(b,float(i+1)/spans)
-		for side in [-1,1]:
-			var spandrel = art.extrude(bridge_spandrel(start.distance_to(end)),.7,art.mat("sandstone"),start+across*side*(width*.5-.35))
-			spandrel.basis = basis
-		if i>0:
-			# Tapered, banded bridge support merges with the lower archive depths.
-			var bottom: float = -177
-			for part in range(4):
-				var h: float = (start.y-bottom)/4
-				var polygon = outline(Vector2(start.x,start.z),3.5-part*.45,width*.65-part*.2,i,0)
-				prism(polygon,bottom+part*h,h,art.mat("gorge_background"))
-				prism(outline(Vector2(start.x,start.z),4.0-part*.45,width*.7-part*.2,i,0),bottom+(part+1)*h-.6,.6,art.mat("exterior_faience"))
+	# Walkers in twos and threes give the crossing its scale.
+	for i in range(int(length/6)):
+		var at: Vector3 = a.lerp(b,(i+.5)/int(length/6))+Vector3.UP*.45
+		reader(at+across*(.6 if i%2==0 else -.6),atan2(forward.x,forward.z)+(PI if i%3==0 else 0.0))
+		if i%2==0:
+			reader(at+forward*.9,atan2(forward.x,forward.z))
+	var flat = Vector3(forward.x,0,forward.z).normalized()
+	var basis = Basis(flat,Vector3.UP,flat.cross(Vector3.UP))
+	var run: float = Vector2(b.x-a.x,b.z-a.z).length()
+	var bays: int = maxi(3,int(run/(AQUEDUCT_BAY if tiers>0 else 4.0)))
+	var span: float = run/bays
+	for i in range(bays):
+		var mid: Vector3 = a.lerp(b,(i+.5)/bays)
+		var top: float = mid.y-1.0
+		var start: Vector3 = Vector3(a.x,0,a.z)+flat*span*i
+		if tiers==0:
+			art.extrude(arch_bay(span,3.4,.5,false),width*.9,art.mat("sandstone"),Vector3(start.x,top+.3,start.z)).basis = basis
+			continue
+		var upper = art.extrude(arch_bay(span,AQUEDUCT_UPPER,AQUEDUCT_PIER,false),width*.8,art.mat("sandstone"),Vector3(start.x,top,start.z))
+		upper.basis = basis
+		var course = block(Vector3(mid.x,top-AQUEDUCT_UPPER-.3,mid.z),Vector3(span,.6,width*.95),"exterior_faience")
+		course.basis = basis
+		var lower = art.extrude(arch_bay(span,AQUEDUCT_LOWER,AQUEDUCT_PIER*1.25,false),width*.7,art.mat("sandstone"),Vector3(start.x,top-AQUEDUCT_UPPER-.6,start.z))
+		lower.basis = basis
+		# Every other pier continues down into the mist.
+		if i%2==0:
+			var foot: float = top-AQUEDUCT_UPPER-.6-AQUEDUCT_LOWER
+			var pier = block(Vector3(start.x,(foot-177)*.5,start.z),Vector3(AQUEDUCT_PIER*2.6,foot+177,width*.7),"gorge_background")
+			pier.basis = basis
+		if i in falls:
+			var spring: float = top-1.4-(span*.5-AQUEDUCT_PIER)
+			waterfall(Vector3(mid.x,spring,mid.z),Vector2(span*.5,spring+90),false)
 	for point in [a,b]:
 		var polygon = outline(Vector2(point.x,point.z),4.3,4.3,0,0)
 		prism(polygon,point.y-.6,.6,art.mat("exterior_faience"))
 		pavilion(point+Vector3(1.5,.15,-2),3.5)
 
-func bridge_spandrel(length: float) -> PackedVector2Array:
-	var polygon = PackedVector2Array()
-	for j in range(25):
-		var t: float = j/24.0
-		polygon.append(Vector2(t*length,-12+sin(PI*t)*10.4))
-	polygon.append(Vector2(length,-.42))
-	polygon.append(Vector2(0,-.42))
+## One bay of an arcade: an inverted-U frame `span` wide and `height` tall,
+## with half a pier (`pier` wide) at each end so neighbouring bays join into
+## whole piers. The opening is round, or two-centred pointed. Local x runs
+## 0..span, y runs -height..0 (top of the bay).
+func arch_bay(span: float, height: float, pier: float, pointed: bool) -> PackedVector2Array:
+	var r: float = span*.5-pier
+	var rise: float = r*(1.45 if pointed else 1.0)
+	var spring: float = -1.4-rise
+	var polygon = PackedVector2Array([Vector2(0,-height),Vector2(pier,-height),Vector2(pier,spring)])
+	for i in range(1,24):
+		var u: float = i/24.0
+		if pointed:
+			var p: Vector2 = pointed_top(r,rise,u)
+			polygon.append(Vector2(span*.5+p.x,spring+p.y-2.2))
+		else:
+			polygon.append(Vector2(span*.5-cos(PI*u)*r,spring+sin(PI*u)*r))
+	polygon.append(Vector2(span-pier,spring))
+	polygon.append(Vector2(span-pier,-height))
+	polygon.append(Vector2(span,-height))
+	polygon.append(Vector2(span,0))
+	polygon.append(Vector2(0,0))
 	return polygon
 
 func build_enclosure() -> void:

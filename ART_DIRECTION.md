@@ -495,3 +495,52 @@ the mist floor is cool (−24 vs +10). At gorge distance the carpets and
 cypress are small; they read in the vault view more than from the overlook.
 Slices 4 (aqueducts, tunnel portals, stepped falls, walkers) and 5
 (foreground framing) remain.
+
+**Slice 4 (done 2026-10-18), connections and water.**
+- **Aqueducts:** `vista.bridge()` is now a two-tier aqueduct: the deck (rails,
+  lamps, walkers in twos and threes every 6 m) on a round-arched upper
+  arcade (11 m) and a taller lower arcade (19 m) with a faience string course,
+  then every other pier runs down into the mist. Bays are built by the new
+  `arch_bay()` (an inverted-U frame with half-piers at each end, round or
+  two-centred pointed). They stay horizontal and step with the sloping deck,
+  so piers stay vertical. The old V-spandrels (`bridge_spandrel`) are gone.
+- **Arch-fed falls:** the central and far aqueducts pour a fall through one
+  upper arch (`falls` bay indices; `waterfall(..., lip=false)` so no basin slab
+  plugs the arch).
+- **Stepped cascades:** the four falls are `cascade()`s: three drops, each
+  1.15× wider and 3.2 m forward of the last, each with its basin lip and spray.
+- **Rock-cut portals** (`cavern.PORTALS`, `build_portals()`): two pointed
+  limestone iwans (after Naqsh-e Rostam) open off the top decks of banks 5 and
+  4. The banks bury the spurs below their tops, so the gates sit where the rock
+  rises clear. Each spur gets a flat **quarried face** (`column(..., cut)`,
+  finer rings and 40 sides there): with the spur's noisy bulge left as it was,
+  the gate was swallowed. A lamplit tunnel quad sits in the frame's reveal,
+  with a faience band, landing, lamps and a warm light (layers 2 and 4, fog
+  1.5). Each gate starts a **flying crossing** (`bridge(..., tiers=0)`: the
+  deck on a 3.4 m arcaded fascia, no piers) high across the throat. The vault
+  and stalactites keep 16 m clear of both crossings (`crossing_clearance`).
+- **Honest caveat:** both iwans are hidden from the overlook (bank 3's towers
+  and bank 2's crown are in the way). From the overlook, the tunnelling reads
+  as the two high crossings running into rock and building masses. The gate
+  itself is checked from a debug viewpoint, capture mode `vista_portal`
+  (`previews/vista_portal_v016.png`). It will matter when the foreground is
+  reframed (slice 5) or if the exterior becomes walkable.
+- **Mist:** emission `807c86` (near-neutral; warm grey turned olive under
+  the teal grade). Mist warmth +2 (box art +10), up from −24.
+- **Tests:** the playtest's exterior check now expects 8 crossings, 2 portals
+  and 14 fall segments. The geometry audit checks round and pointed
+  `arch_bay`s in place of the spandrel. Playtest 43/43, geometry 32/32,
+  atmosphere 9/9, headless 3/3 clean. Frame time 4.41–4.55 ms (slice 3: 4.51).
+  The interior gate is unchanged.
+
+| region | box art | slice 3 | slice 4 |
+|---|---|---|---|
+| vault | 49 | 41 | **43 ok** |
+| focal glow | 144 | 118 | **119 ok** |
+| far depth band | 91 | 94 | **97 ok** |
+| near flanks | 70 | 64 | **64 ok** |
+| mist floor | 108 | 105 | **108 ok** |
+| warmth near / far / mist | +49 / −9 / +10 | +45 / −3 / −24 | +46 / +10 / +2 |
+| warm/cool split (need 29) | 58 | 49 | **36 ok** |
+
+Preview: `previews/vista_v016.png`. Slice 5 (foreground framing) remains.

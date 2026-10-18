@@ -15,6 +15,15 @@ const CLEARANCE: float = 8.0         # rock never comes closer than this above a
 const MIN_TIP: float = 22.0          # bridges and their pavilions stay clear
 const SIGHTLINE_X: float = 20.0      # keep the throat centre open toward the sanctum
 const SANCTUM: Vector3 = Vector3(8, 0, -256)
+const PORTAL_WIDTH: float = 10.0
+const PORTAL_HEIGHT: float = 12.0
+const PORTAL_LIGHT_ENERGY: float = 6.0
+## Rock-cut portals open off bank top decks, where the spurs rise clear of the
+## buildings: [spur centre x, z, spur radius, sill y, facing (+1 = faces +x),
+## far end of its flying crossing].
+const PORTALS: Array = [
+	[-74.0, -175.0, 21.0, 29.15, 1.0, Vector3(38, 35.4, -181)],
+	[104.0, -150.0, 16.0, 35.15, -1.0, Vector3(-40, 39.4, -140)]]
 const UPLIGHT_ENERGY: float = .65     # cool fill on the rock from below
 const CITY_GLOW_ENERGY: float = 5.0   # warm window glow on the rock above each tower
 const MIST_LIGHT_ENERGY: float = 2.5  # under the mist floor
@@ -54,6 +63,7 @@ func build() -> void:
 	build_stalactites(rock)
 	shadowless(art.mesh_node(rock.commit(), Vector3.ZERO, material))
 	art.render_layer = previous
+	build_portals()
 	build_mist()
 	build_lights()
 
@@ -83,7 +93,7 @@ func floor_at(x: float, z: float) -> float:
 			y = maxf(y, ledge.height + CLEARANCE)
 	if Vector2(x - SANCTUM.x, z - SANCTUM.z).length() < 34.0:
 		y = maxf(y, 64.0)
-	return y
+	return maxf(y, crossing_clearance(x, z))
 
 func vault_height(x: float, z: float) -> float:
 	var raw: float = crown(z) - SIDE_DROP * pow(minf(absf(x) / 150.0, 1.0), 1.6)
@@ -142,10 +152,13 @@ func hang(surface: SurfaceTool, top: Vector3, radius: float, length: float, flat
 	emit_tube(surface, rings, centres, -.35)
 
 ## A rock pillar rising from deep below into the vault, with a noisy profile.
-func column(surface: SurfaceTool, base: Vector2, radius: float, bottom: float, top: float) -> void:
+## `cut` (optional: x, facing, z, half, y0, y1) dresses a flat quarried face
+## into the pillar where a rock-cut portal sits; the pillar is then built finer.
+func column(surface: SurfaceTool, base: Vector2, radius: float, bottom: float, top: float, cut: Dictionary = {}) -> void:
 	var rings: Array = []
 	var centres: Array = []
-	var count: int = maxi(4, int((top - bottom) / 9.0))
+	var count: int = maxi(4, int((top - bottom) / (3.0 if cut else 9.0)))
+	var sides: int = 40 if cut else 14
 	for ring in range(count + 1):
 		var t: float = float(ring) / count
 		var y: float = lerpf(bottom, top, t)
@@ -153,11 +166,14 @@ func column(surface: SurfaceTool, base: Vector2, radius: float, bottom: float, t
 		# Flares where it meets the vault, like a flowstone curtain.
 		var r: float = radius * (1.0 + .45 * pow(t, 4.0))
 		var row: Array = []
-		for i in range(15):
-			var a: float = TAU * i / 14.0
+		for i in range(sides + 1):
+			var a: float = TAU * i / sides
 			var bulge: float = 1.0 + .3 * noise.get_noise_2d(cos(a) * 40.0 + base.x, y * 1.5)
-			row.append(centre + Vector3(cos(a), 0, sin(a)) * r * bulge)
-		row[14] = row[0]
+			var v: Vector3 = centre + Vector3(cos(a), 0, sin(a)) * r * bulge
+			if cut and (v.x - cut.x) * cut.facing > 0.0 and y > cut.y0 and y < cut.y1 and absf(v.z - cut.z) < cut.half:
+				v.x = cut.x
+			row.append(v)
+		row[sides] = row[0]
 		rings.append(row)
 		centres.append(centre)
 	emit_tube(surface, rings, centres, 0.0)
@@ -196,7 +212,11 @@ func build_spurs(surface: SurfaceTool) -> void:
 	# into the vault: the gorge narrows into a throat before the far hall.
 	for data: Array in [[-74, -178, 21], [80, -199, 23], [-96, -120, 15], [104, -150, 16]]:
 		var top: float = vault_height(data[0], data[1]) + 6.0
-		column(surface, Vector2(data[0], data[1]), data[2], -176.0, top)
+		var cut: Dictionary = {}
+		for gate: Array in PORTALS:
+			if is_equal_approx(gate[0], data[0]):
+				cut = {"x": portal_sill(gate).x, "facing": gate[4], "z": gate[1], "half": PORTAL_WIDTH * .5 + 2.5, "y0": gate[3] - 3.0, "y1": gate[3] + PORTAL_HEIGHT + 3.0}
+		column(surface, Vector2(data[0], data[1]), data[2], -176.0, top, cut)
 	# Curtains hang across the throat's shoulders.
 	for i in range(10):
 		var side: float = -1.0 if i % 2 == 0 else 1.0
@@ -205,6 +225,58 @@ func build_spurs(surface: SurfaceTool) -> void:
 		var top: float = vault_height(x, z)
 		var tip: float = maxf(maxf(floor_at(x, z), MIN_TIP), top - rng.randf_range(16.0, 26.0))
 		hang(surface, Vector3(x, top, z), rng.randf_range(5.0, 9.0), top - tip, .55)
+
+## Rock-cut iwans (after Naqsh-e Rostam) in the two throat spurs, each the end
+## of a new aqueduct across the gorge: the city tunnels on through the rock.
+## One sits above the mist; the lower one glows inside it.
+func build_portals() -> void:
+	for data: Array in PORTALS:
+		portal(portal_sill(data), data[4])
+		vista.bridge(crossing_start(data), data[5], 3.4, [], 0)
+
+func portal_sill(data: Array) -> Vector3:
+	# The quarried face sits inside the pillar's typical radius, so rock is
+	# cut back to it across the whole gate.
+	return Vector3(data[0] + data[4] * data[2] * .85, data[3], data[1])
+
+func crossing_start(data: Array) -> Vector3:
+	return portal_sill(data) + Vector3(data[4] * 3.0, .4, 0)
+
+## Rock and stalactites keep this far above a portal crossing (deck,
+## lamps and end pavilions).
+func crossing_clearance(x: float, z: float) -> float:
+	var y: float = -INF
+	for data: Array in PORTALS:
+		var a: Vector3 = crossing_start(data)
+		var b: Vector3 = data[5]
+		var flat_a := Vector2(a.x, a.z)
+		var flat_b := Vector2(b.x, b.z)
+		var t: float = clampf((Vector2(x, z) - flat_a).dot(flat_b - flat_a) / flat_a.distance_squared_to(flat_b), 0.0, 1.0)
+		if Vector2(x, z).distance_to(flat_a.lerp(flat_b, t)) < 10.0:
+			y = maxf(y, lerpf(a.y, b.y, t) + 16.0)
+	return y
+
+func portal(sill: Vector3, facing: float) -> void:
+	vista.portal_count += 1
+	var along := Vector3(0, 0, -facing)
+	var basis := Basis(along, Vector3.UP, along.cross(Vector3.UP))
+	# Carved limestone iwan: a tall pointed opening in a frame set into the rock.
+	var frame: MeshInstance3D = art.extrude(vista.arch_bay(PORTAL_WIDTH, PORTAL_HEIGHT, 2.5, true), 4.0, art.mat("limestone"), sill + Vector3(0, PORTAL_HEIGHT, 0) - along * PORTAL_WIDTH * .5)
+	frame.basis = basis
+	# Warm lamplit tunnel: just in front of the quarried face, recessed 1.7 m
+	# inside the frame's reveal.
+	var glow := QuadMesh.new()
+	glow.size = Vector2(PORTAL_WIDTH - 5.0, PORTAL_HEIGHT - 1.6)
+	var inner: MeshInstance3D = art.mesh_node(glow, sill + Vector3(facing * .3, glow.size.y * .5, 0), art.mat("gorge_portal"))
+	inner.rotation.y = facing * PI * .5
+	# Faience band over the arch and a landing in front.
+	vista.block(sill + Vector3(facing * 2.1, PORTAL_HEIGHT + .4, 0), Vector3(.6, .8, PORTAL_WIDTH + 1.0), "exterior_faience")
+	vista.prism(vista.tower_outline(Vector2(sill.x + facing * 3.5, sill.z), 4.0, PORTAL_WIDTH * .55, 0.0), sill.y - .8, .8, art.mat("exterior_faience"))
+	for side: float in [-1.0, 1.0]:
+		vista.lamp(sill + Vector3(facing * 2.6, 3.2, side * (PORTAL_WIDTH * .5 - 1.0)), .35, true)
+	# Lights the landing, the rock around the opening (layer 4) and the mist.
+	var light: OmniLight3D = vista.big_light(sill + Vector3(facing * 6.0, 6.0, 0), Color("ffb066"), PORTAL_LIGHT_ENERGY, 30, 2 | 4)
+	light.light_volumetric_fog_energy = 1.5
 
 func build_apse(surface: SurfaceTool) -> void:
 	# Rock closes the far hall behind the sanctum so the sightline ends.
@@ -244,7 +316,7 @@ func build_mist() -> void:
 	var material := FogMaterial.new()
 	material.density = .02
 	material.albedo = Color("e4e9ea")
-	material.emission = Color("767892")
+	material.emission = Color("807c86")   # near-neutral: the teal grade turns warm grey olive
 	material.height_falloff = .02
 	fog.material = material
 	world.add_child(fog)

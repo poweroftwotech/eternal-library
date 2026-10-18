@@ -98,8 +98,10 @@ func audit() -> void:
 	var side_window: Transform3D = art.batches.vista_windows.instances.back().transform
 	check(absf(side_window.basis.x.length()-2)<.0001 and absf(side_window.basis.y.length()-5)<.0001 and absf(side_window.basis.z.length()-1)<.0001,"Side-facing exterior windows preserve local width, height and depth")
 	check(absf(side_window.basis.x.x)<.0001 and absf(side_window.basis.z.z)<.0001,"Exterior window orientation follows the facade rotation")
-	var spandrel = art.extrude(vista.bridge_spandrel(37),.85,art.mat("sandstone"),Vector3.ZERO)
-	check(facing_is_consistent(spandrel.mesh),"Bridge spandrel faces and concave arch reveals have outward normals")
+	for pointed in [false,true]:
+		var bay: PackedVector2Array = vista.arch_bay(11,19,1.2,pointed)
+		var ok: bool = Geometry2D.triangulate_polygon(bay).size()==(bay.size()-2)*3
+		check(ok and facing_is_consistent(art.extrude(bay,2.5,art.mat("sandstone"),Vector3.ZERO).mesh),"%s arch bays triangulate and keep outward faces and arch-reveal normals" % ("Pointed portal" if pointed else "Round aqueduct"))
 	var niche = art.extrude(vista.arcade_outline(),.43,art.mat("sandstone"),Vector3.ZERO)
 	check(facing_is_consistent(niche.mesh),"Book arcade frames have outward front, back and arch-reveal normals")
 	var footprint: PackedVector2Array = vista.outline(Vector2(2,-60),23,31,.7,.17)
