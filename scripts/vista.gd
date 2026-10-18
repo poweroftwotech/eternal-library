@@ -14,6 +14,8 @@ var max_tier_height: float = 0
 var profile_variation: float = 0
 var arch_mesh: Mesh
 var ledges: Array = []
+var tower_count: int = 0
+var cypress_mesh: Mesh
 const Cavern = preload("res://scripts/cavern.gd")
 const VistaLight = preload("res://scripts/vista_light.gd")
 var lamp_points := PackedVector3Array()
@@ -31,6 +33,12 @@ func block(p: Vector3, size: Vector3, material: String = "sandstone", solid: boo
 
 func exterior_materials() -> void:
 	# Exterior variants leave the v0.5 interior material/lighting calibration intact.
+	var cypress = art.mat("moss").duplicate()
+	cypress.albedo_color = Color("6f8a5c")
+	art.materials["vista_cypress"] = cypress
+	var carpet = art.mat("rug").duplicate()
+	carpet.cull_mode = BaseMaterial3D.CULL_DISABLED
+	art.materials["vista_carpet"] = carpet
 	var gold = art.mat("brass").duplicate()
 	gold.albedo_color = Color("c6a66b")
 	gold.metallic = .25
@@ -380,21 +388,27 @@ func bank(center: Vector2, rx: float, rz: float, top: float, seed_value: int) ->
 		var sz: float = rz*(1.02-.16*t+.12*cos(level*1.29+seed_value))
 		var offset = Vector2(sin(level*.87+seed_value)*rx*.10,cos(level*.72+seed_value)*rz*.09)
 		var turn: float = .13*sin(level*.69+seed_value)
-		var polygon = outline(center+offset,sx,sz,seed_value,turn)
+		# Stepped, notched rectangles (Persian massing), not ellipses: each
+		# setback reads as a ziggurat step.
+		# 0.88: a rectangle with the ellipse's radii would be ~27% larger in plan.
+		var polygon = tower_outline(center+offset,sx*.88,sz*.88,turn)
 		prism(polygon,bottom,h,art.mat("gorge_stone"))
 		profile_variation = maxf(profile_variation,absf(last_rx-sx))
 		max_tier_height = maxf(max_tier_height,h)
-		var deck = outline(center+offset,sx+2.2,sz+2.2,seed_value,turn)
+		var deck = tower_outline(center+offset,sx*.88+2.2,sz*.88+2.2,turn)
 		prism(deck,bottom+h-.5,.65,art.mat("exterior_faience"))
 		prism(deck,bottom+h-.83,.20,art.mat("vista_gold"))
 		var occupied: bool = level%3==seed_value%3
-		ledge_edges(deck,bottom+h,occupied,seed_value)
+		var crowned: bool = bottom+h>=top-.05
+		ledge_edges(deck,bottom+h,occupied,seed_value,crowned)
 		facades(polygon,bottom,h,seed_value+level)
 		ledges.append({"center":center+offset,"height":bottom+h,"rx":sx,"rz":sz})
 		tier_count += 1
 		last_rx = sx
 		bottom += h
 		level += 1
+		if crowned:
+			bank_towers(center+offset,sx*.88,sz*.88,top,seed_value,local)
 	# A few roof lanterns/pavilions interrupt the silhouette, rather than a dome
 	# capping every repeated vertical shaft.
 	if seed_value in [1,4,7]:
@@ -414,7 +428,8 @@ func facades(polygon: PackedVector2Array, bottom: float, height: float, style: i
 		if normal.dot(toward_gorge)<.05 and normal.z<.35:
 			continue
 		var length: float = a.distance_to(b)
-		var bays: int = maxi(1,int(length/4.2))
+		# Notch returns of the stepped footprint are too short for an arcade.
+		var bays: int = 0 if length<3.5 else maxi(1,int(length/4.2))
 		var yaw: float = atan2(normal.x,normal.z)
 		var row_count: int = 2 if height>8.5 else 1
 		for j in range(bays):
@@ -468,7 +483,7 @@ func pointed_top(radius: float, rise: float, u: float) -> Vector2:
 	var side: float = -1.0 if u<.5 else 1.0
 	return Vector2(side*(center+cr*cos(angle*t)),2.2+cr*sin(angle*t))
 
-func ledge_edges(polygon: PackedVector2Array, y: float, occupied: bool, style: int) -> void:
+func ledge_edges(polygon: PackedVector2Array, y: float, occupied: bool, style: int, crowned: bool = false) -> void:
 	for i in range(polygon.size()):
 		var a = Vector3(polygon[i].x,y,polygon[i].y)
 		var b = Vector3(polygon[(i+1)%polygon.size()].x,y,polygon[(i+1)%polygon.size()].y)
@@ -477,6 +492,12 @@ func ledge_edges(polygon: PackedVector2Array, y: float, occupied: bool, style: i
 		if normal.dot(Vector3(-center.x,0,0).normalized())<.05 and normal.z<.35:
 			continue
 		var count: int = maxi(2,int(a.distance_to(b)/2.2))
+		if crowned:
+			# Bank tops end in stepped merlons, not a balustrade.
+			merlons(a,b)
+			for j in range(0,count,3):
+				lamp(a.lerp(b,(j+.5)/count)+Vector3.UP*1.0,.14)
+			continue
 		beam(a+Vector3.UP*1.15,b+Vector3.UP*1.15,Vector2(.10,.11),"vista_gold")
 		beam(a-Vector3.UP*.20,b-Vector3.UP*.20,Vector2(.16,.18),"vista_gold")
 		for j in range(count):
@@ -486,6 +507,9 @@ func ledge_edges(polygon: PackedVector2Array, y: float, occupied: bool, style: i
 				lamp(p+Vector3.UP*1.37,.14)
 		if occupied and i%3==style%3:
 			reader(center-normal*.9+Vector3.UP*.45,atan2(normal.x,normal.z))
+			var along: Vector3 = (b-a).normalized()
+			for side in [-1,1]:
+				cypress(center-normal*1.6+along*side*2.6,5.0+float((style+i+side)%4)*1.3)
 			if i%2==0:
 				pavilion(center-normal*4+Vector3.UP*.2,4.3)
 		if style%4==i%4:
@@ -609,3 +633,80 @@ func build_enclosure() -> void:
 	block(Vector3(0,-88,-24),Vector3(300,180,9),"gorge_background")
 	prism(outline(Vector2(0,-180),150,150,.1,0),-184,8,art.mat("gorge_background"))
 	art.render_layer = 2
+
+## Rectangle with square-notched corners (twelve points, counter-clockwise like
+## outline()): the stepped plan of Persian towers and terraces.
+func tower_outline(center: Vector2, rx: float, rz: float, turn: float) -> PackedVector2Array:
+	var s: float = minf(rx,rz)*.18
+	var points = [
+		Vector2(rx,rz-s),Vector2(rx-s,rz-s),Vector2(rx-s,rz),
+		Vector2(-rx+s,rz),Vector2(-rx+s,rz-s),Vector2(-rx,rz-s),
+		Vector2(-rx,-rz+s),Vector2(-rx+s,-rz+s),Vector2(-rx+s,-rz),
+		Vector2(rx-s,-rz),Vector2(rx-s,-rz+s),Vector2(rx,-rz+s)]
+	var polygon = PackedVector2Array()
+	for v in points:
+		polygon.append(center+v.rotated(turn))
+	return polygon
+
+## Stepped Persepolis merlons along an edge (three stacked, narrowing blocks).
+func merlons(a: Vector3, b: Vector3) -> void:
+	var direction: Vector3 = b-a
+	var yaw: float = atan2(direction.x,direction.z)+PI*.5
+	var count: int = maxi(1,int(direction.length()/1.5))
+	for j in range(count):
+		var p: Vector3 = a.lerp(b,(j+.5)/count)
+		for step in range(3):
+			art.batch_box("gorge_merlons",p+Vector3.UP*(.2+step*.42),Vector3(.95-step*.3,.42,.42),art.mat("sandstone"),yaw)
+
+func cypress(p: Vector3, height: float) -> void:
+	if cypress_mesh==null:
+		cypress_mesh = art.lathe([Vector2(0,0),Vector2(.32,.15),Vector2(.62,1.2),Vector2(.6,2.6),Vector2(.42,3.9),Vector2(.18,4.8),Vector2(0,5.2)],7)
+	var scale: float = height/5.2
+	art.batch_mesh("vista_cypress",cypress_mesh,art.mat("vista_cypress"),Transform3D(Basis.from_scale(Vector3(scale,scale,scale)),p))
+
+## One or two tiled towers rise from each bank's crowned top deck on the gorge
+## side: vertical accents that break the stacked-ring silhouette.
+func bank_towers(center: Vector2, sx: float, sz: float, top: float, seed_value: int, local: RandomNumberGenerator) -> void:
+	var inward: float = -signf(center.x)
+	var count: int = 1+seed_value%2
+	for k in range(count):
+		var z: float = center.y+(0.0 if count==1 else (k*2-1)*sz*.42)
+		var half: float = local.randf_range(5.5,7.5)
+		var c = Vector2(center.x+inward*(sx-half-2.5),z)
+		persian_tower(c,half,top,top+local.randf_range(10,19),seed_value+k)
+
+func persian_tower(c: Vector2, half: float, bottom: float, top: float, style: int) -> void:
+	tower_count += 1
+	var polygon = tower_outline(c,half,half,0)
+	prism(polygon,bottom,top-bottom,art.mat("gorge_pier"))
+	# Gold-edged faience bands every storey.
+	var y: float = bottom+6.5
+	while y<top-2:
+		prism(tower_outline(c,half+.22,half+.22,0),y,.5,art.mat("exterior_faience"))
+		prism(tower_outline(c,half+.3,half+.3,0),y-.18,.16,art.mat("vista_gold"))
+		y += 6.5
+	# Lit windows on every face: two columns of tall pointed lights per storey.
+	for face in range(4):
+		var yaw: float = face*PI*.5
+		var normal = Vector3(sin(yaw),0,cos(yaw))
+		var across = Vector3(normal.z,0,-normal.x)
+		var row: float = bottom+2.6
+		while row<top-3:
+			for column in [-1,1]:
+				window(Vector3(c.x,row,c.y)+normal*(half+.06)+across*column*half*.42,Vector2(.9,2.3),yaw)
+			row += 3.25
+	# Crown: projecting deck, merlons, and a kilim hung toward the gorge.
+	var crown = tower_outline(c,half+1.1,half+1.1,0)
+	prism(crown,top,.6,art.mat("exterior_faience"))
+	for i in range(crown.size()):
+		var a: Vector2 = crown[i]
+		var b: Vector2 = crown[(i+1)%crown.size()]
+		if a.distance_to(b)>3:
+			merlons(Vector3(a.x,top+.6,a.y),Vector3(b.x,top+.6,b.y))
+	var out: float = -signf(c.x)
+	var carpet = QuadMesh.new()
+	carpet.size = Vector2(half*.75,minf(8.0,(top-bottom)*.55))
+	var hang = art.mesh_node(carpet,Vector3(c.x+out*(half+.12),top-1.0-carpet.size.y*.5,c.y),art.mat("vista_carpet"))
+	hang.rotation.y = out*PI*.5
+	lamp(Vector3(c.x+out*(half+1.0),top+1.2,c.y),.3,true)
+	ledges.append({"center":c,"height":top+.6,"rx":half+1.1,"rz":half+1.1})

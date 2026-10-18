@@ -107,6 +107,9 @@ func audit() -> void:
 	var tier = vista.prism(footprint,-10,9,art.mat("sandstone"))
 	check(facing_is_consistent(tier.mesh),"Faceted bank prisms retain outward cap and wall normals")
 	check(absf(tier.transform.basis.z.y+1)<.001,"Horizontal terrace caps are rotated onto the vertical building axis")
+	var stepped: PackedVector2Array = vista.tower_outline(Vector2(2,-60),23,31,.17)
+	check(Geometry2D.triangulate_polygon(stepped).size()==30 and Geometry2D.is_polygon_clockwise(stepped)==Geometry2D.is_polygon_clockwise(footprint),"Notched tower footprint triangulates and winds like the terrace outline")
+	check(facing_is_consistent(vista.prism(stepped,-10,9,art.mat("sandstone")).mesh),"Notched tower prisms keep outward cap and wall normals")
 	var builder = load("res://scripts/world.gd").new()
 	builder.art = art
 	for data in [[3.8,3.0,4.5,.45],[2.55,3.0,3.65,.42],[1.8,1.8,2.1,.22],[5.7,3.0,2.7,.26]]:

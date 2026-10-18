@@ -452,3 +452,46 @@ bands, lit windows, candle-lined parapets), which is slice 3. The mist floor is
 correct in brightness but too cool (−27 vs +10); warm lights reflected in it
 would come with the slice 4 waterfalls and walkers. Preview:
 `previews/vista_v014.png`.
+
+**Slice 3 (done 2026-10-18), architecture language.** All in `vista.gd`.
+- **Stepped massing:** bank tiers and decks use `tower_outline()` (a
+  rectangle with square-notched corners, 12 points, same winding as
+  `outline()`) instead of the elliptical `outline()`, so every setback reads
+  as a ziggurat step and the gorge becomes a straight-walled canyon. The radii
+  are scaled by 0.88: at the ellipse's radii a rectangle is about 27% larger and
+  closed both sides of the view into slabs (near flanks fell to 46).
+  Notch returns shorter than 3.5 m get no arcade.
+- **Crowns:** each bank's top deck has stepped Persepolis merlons
+  (`merlons()`: three narrowing blocks, batched as `gorge_merlons`) in place
+  of a balustrade, with sparse lamps.
+- **Towers:** `bank_towers()` raises one or two `persian_tower()`s from each
+  crowned top on the gorge side, 12 in all, 10–19 m tall. They are
+  `gorge_pier` faience shafts with gold-edged bands every storey, two columns
+  of lit windows per face, a projecting crown deck with merlons, a kilim
+  (`vista_carpet`, the `rug` px map) hung toward the gorge and a lamp. Each
+  tower top is added to `vista.ledges`, so the cavern vault keeps clear
+  (several now rise into the rock, as in the box art).
+- **Cypress:** 278 batched lathe spindles (`vista_cypress`, dark moss) flank
+  the readers on inhabited terraces.
+- **Gate:** every box-art check passes (table). Playtest 43/43, geometry
+  31/31 (new: the notched footprint triangulates, winds like `outline()` and
+  keeps outward normals), atmosphere 9/9, headless 3/3 clean. Overlook frame
+  time 4.51 ms (slice 2: 4.39). The interior concept gate is unchanged by the
+  exterior. Its hearth region now reads 1.29 because of the interior lantern
+  and lightwell tuning committed in ae34a9d.
+
+| region | box art | slice 2 | slice 3 |
+|---|---|---|---|
+| vault | 49 | 38 | **41 ok** |
+| focal glow | 144 | 120 | **118 ok** |
+| far depth band | 91 | 94 | **94 ok** |
+| near flanks | 70 | 50 (0.72) | **64 ok (0.92)** |
+| mist floor | 108 | 104 | **105 ok** |
+| warmth near / far | +49 / −9 | +22 / −4 | **+45 / −3** |
+| warm/cool split (need 29) | 58 | 27 | **49 ok** |
+
+Previews: `previews/vista_v015.png`, `vista_roof_v015.png`. Still open:
+the mist floor is cool (−24 vs +10). At gorge distance the carpets and
+cypress are small; they read in the vault view more than from the overlook.
+Slices 4 (aqueducts, tunnel portals, stepped falls, walkers) and 5
+(foreground framing) remain.
