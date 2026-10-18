@@ -204,7 +204,7 @@ archive).
    firelight and pushed the hearth region to 1.20. Hearth flames are now
    `world.fire_particles()`: additive GPU particles for flames (40, kept low)
    and turbulent embers, in place of the five flame cards. Gate: hearth
-   1.14, whole frame 1.15. Next: ladle, lantern, bowls, bedroll/pack as meshes.
+   1.14, whole frame 1.15. Ladle (`ladle.glb`, authored in hearth space) and leather pack (`pack.glb`: bulged body, flap, pockets, straps, buckles, blanket roll; box collision in `camp_composition.pack()`) done too. Remaining, lower value: lantern, bowls and bedroll as meshes (the procedural ones already read).
    Original brief: **Hero props as authored meshes** (Blender → glTF in `assets/models/`,
    textures painted at 32 texels/m): cauldron + stew surface, fire logs,
    lantern, three ingredient bowls (mushrooms, roots, herbs), bedroll,

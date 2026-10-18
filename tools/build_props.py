@@ -216,6 +216,96 @@ def cauldron():
     export("cauldron")
 
 
+def bevel_box(bm, centre, size, offset, mat_index, yaw=0.0):
+    """Soft bevelled box (leather panels, buckles) rotated about Z."""
+    before = set(bm.faces)
+    made = bmesh.ops.create_cube(bm, size=1.0)
+    c, s = math.cos(yaw), math.sin(yaw)
+    for v in made["verts"]:
+        x, y, z = v.co.x * size[0], v.co.y * size[1], v.co.z * size[2]
+        v.co = (centre[0] + x * c - y * s, centre[1] + x * s + y * c, centre[2] + z)
+    edges = list({e for v in made["verts"] for e in v.link_edges})
+    bmesh.ops.bevel(bm, geom=edges + made["verts"], offset=offset, segments=2, affect="EDGES", profile=.6)
+    for f in set(bm.faces) - before:
+        f.material_index = mat_index
+
+
+def ladle():
+    """Carved wooden ladle leaning on the pot rim, in hearth space."""
+    reset()
+    rng = random.Random(4404)
+    bm = bmesh.new()
+    start, end = (.9, -.9, .15), (.55, -.35, 1.2)
+    path = [tuple(start[i] + (end[i] - start[i]) * t / 5 for i in range(3)) for t in range(6)]
+    tube(bm, rng, path, lambda t: .026 - t * .008, 0)
+    d = [end[i] - start[i] for i in range(3)]
+    dl = math.sqrt(sum(a * a for a in d))
+    d = [a / dl for a in d]
+    up = (0, 0, 1)
+    dot = sum(d[i] * up[i] for i in range(3))
+    n = [up[i] - d[i] * dot for i in range(3)]
+    nl = math.sqrt(sum(a * a for a in n))
+    n = [a / nl for a in n]
+    u = d
+    v = (n[1] * u[2] - n[2] * u[1], n[2] * u[0] - n[0] * u[2], n[0] * u[1] - n[1] * u[0])
+    centre = [end[i] + d[i] * .1 for i in range(3)]
+    segs, lats = 16, 6
+    shells = []
+    for radius in (.11, .097):
+        rings = []
+        for la in range(lats + 1):
+            lat = la / lats * math.pi / 2
+            ring = []
+            for s in range(segs):
+                a = s / segs * math.tau
+                rr = radius * math.sin(lat)
+                p = [centre[i] + (u[i] * math.cos(a) * 1.25 + v[i] * math.sin(a)) * rr - n[i] * radius * math.cos(lat) * .8 for i in range(3)]
+                ring.append(bm.verts.new(p))
+            rings.append(ring)
+        shells.append(rings)
+    for k, rings in enumerate(shells):
+        for a, b in zip(rings, rings[1:]):
+            for s in range(segs):
+                quad = (a[s], a[(s + 1) % segs], b[(s + 1) % segs], b[s])
+                bm.faces.new(quad if k else quad[::-1])
+        bm.faces.new(rings[0] if k == 0 else rings[0][::-1])
+    outer, inner = shells[0][-1], shells[1][-1]
+    for s in range(segs):
+        bm.faces.new((outer[s], outer[(s + 1) % segs], inner[(s + 1) % segs], inner[s]))
+    bmesh.ops.remove_doubles(bm, verts=bm.verts, dist=.0005)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    new_object("Ladle", bm, ["wood"])
+    export("ladle")
+
+
+def pack():
+    """Leather travelling pack with flap, side pockets, straps, buckles and a
+    blanket roll on top. Origin on the floor at the pack centre, front = -Y
+    (Godot +Z, toward the camp)."""
+    reset()
+    rng = random.Random(4405)
+    bm = bmesh.new()
+    bevel_box(bm, (0, 0, .31), (.64, .38, .6), .07, 0)
+    for v in bm.verts:   # soft bulge so the body reads as stuffed leather
+        v.co.x *= 1 + .05 * math.sin(v.co.z * 5)
+        v.co.y *= 1 + .08 * math.sin(v.co.z * 4.5)
+    bevel_box(bm, (0, -.12, .55), (.66, .2, .16), .04, 0)
+    bevel_box(bm, (0, -.2, .44), (.6, .04, .22), .02, 0)
+    for side in (-1, 1):
+        bevel_box(bm, (side * .37, 0, .22), (.12, .28, .3), .03, 0)
+        bevel_box(bm, (side * .17, -.215, .36), (.05, .015, .44), .006, 1)
+        bevel_box(bm, (side * .17, -.226, .3), (.075, .012, .06), .006, 2)
+    roll = [(-.38, .02, .74), (0, .02, .76), (.38, .02, .74)]
+    tube(bm, rng, roll, .11, 3, 12)
+    for x in (-.2, .2):
+        tube(bm, rng, [(x - .025, .02, .74), (x + .025, .02, .74)], .118, 1, 12)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    new_object("Pack", bm, ["camp_leather", "wood", "brass", "cloth"])
+    export("pack")
+
+
 fire_logs()
 stew()
 cauldron()
+ladle()
+pack()

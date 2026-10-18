@@ -288,9 +288,7 @@ func build_camp() -> void:
 		art.mushroom(slab+Vector3(.08+i*.15,.49,.15),.5)
 	art.bowl(slab+Vector3(.55,.29,-.4),.7)
 	# Wooden ladle, mug and stacked travelling books.
-	art.segment(hearth+Vector3(.9,.15,.9),hearth+Vector3(.55,1.2,.35),.026,art.mat("wood"))
-	var spoon = art.sphere(hearth+Vector3(.53,1.24,.32),Vector3(.17,.06,.24),art.mat("wood"))
-	spoon.rotation.x = -.7
+	art.model("ladle",hearth)   # carved ladle leaning on the rim (build_props.py)
 	art.cylinder(Vector3(3.9,.14,4.3),.10,.26,art.mat("brass"))
 	for i in range(3):
 		var book = box(Vector3(-5.6,.08+i*.13,4.4),Vector3(.65,.12,.48),"book")

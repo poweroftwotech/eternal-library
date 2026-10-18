@@ -82,24 +82,19 @@ func bedroll() -> void:
 		cap.rotation = roll.rotation
 
 func pack() -> void:
-	var leather: StandardMaterial3D = leather_material()
+	leather_material()   # registers camp_leather before the model asks for it
 	var yaw: float = -.35
-	var basis: Basis = Basis(Vector3.UP,yaw)
 	var base: Vector3 = PACK+Vector3(0,world.rug_center.y,0)
-	var body = art.worn_block(base+Vector3(0,.32,0),Vector3(.66,.62,.4),leather,.07,true)
+	art.model("pack",base,yaw)
+	var body: StaticBody3D = StaticBody3D.new()
+	world.add_child(body)
+	body.position = base+Vector3(0,.4,0)
 	body.rotation.y = yaw
-	var flap = art.worn_block(base+basis*Vector3(0,.56,-.13),Vector3(.68,.16,.2),leather,.04)
-	flap.rotation.y = yaw
-	for side in [-1,1]:
-		var pocket = art.worn_block(base+basis*Vector3(side*.37,.22,0),Vector3(.12,.3,.28),leather,.03)
-		pocket.rotation.y = yaw
-		var strap = art.box(base+basis*Vector3(side*.17,.4,-.205),Vector3(.05,.42,.015),art.mat("wood"))
-		strap.rotation.y = yaw
-		var buckle = art.box(base+basis*Vector3(side*.17,.3,-.215),Vector3(.075,.06,.015),art.mat("brass"))
-		buckle.rotation.y = yaw
-	# Blanket roll strapped on top.
-	var roll = art.cylinder(base+basis*Vector3(0,.73,.02),.11,.72,art.mat("cloth"))
-	roll.rotation = Vector3(0,yaw,PI/2)
+	var collider: CollisionShape3D = CollisionShape3D.new()
+	var shape: BoxShape3D = BoxShape3D.new()
+	shape.size = Vector3(.7,.8,.45)
+	collider.shape = shape
+	body.add_child(collider)
 
 func archive_glow() -> void:
 	var glow: StandardMaterial3D = art.mat("glow")
