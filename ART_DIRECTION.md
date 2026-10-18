@@ -238,8 +238,13 @@ archive).
      garden from this camera. Left-foreground warmth is now 68 vs the
      concept's 47, mostly from the two lanterns; trim
      `LANTERN_FLAME_GLOW` if it reads too orange.
-6. **HUD polish:** a real OFL pixel font (VT323 or Silkscreen, about 100 KB)
-   at `assets/fonts/ui.ttf`, and pixel-art item icons in place of the SVGs.
+6. ~~HUD polish~~ **Done 2026-10-18.** VT323 (OFL 1.1, Google Fonts) at
+   `assets/fonts/ui.ttf` with its licence in `assets/fonts/OFL-VT323.txt`,
+   imported without antialiasing or hinting. `hud.px_size()` scales label
+   sizes by 1.3 and snaps them to multiples of 8 px so glyph pixels stay crisp.
+   16×16 pixel icons come from `tools/pixel_icons.gd` (character-grid sprites)
+   and go to `assets/ui/icon_*.png`, shown at 3× nearest with the SVGs as
+   fallback.
 
 ## 6. How-to
 

@@ -18,12 +18,23 @@ var modal_open: bool = false
 var dot: Label
 var theme = Theme.new()
 
+var pixel_font: bool = false
+
+## VT323 is drawn on an 8 px grid and runs smaller than Consolas: scale by
+## 1.3 and snap to multiples of 8 so every glyph pixel stays crisp.
+func px_size(size: int) -> int:
+	if not pixel_font:
+		return size
+	return maxi(16,int(size*1.3/8.0+.5)*8)
+
 func _ready() -> void:
 	theme.default_font_size = 18
 	# Crisp monospace without antialiasing reads as a pixel UI. Swap in an OFL
 	# pixel font file (e.g. VT323) at assets/fonts/ui.ttf to override.
 	if ResourceLoader.exists("res://assets/fonts/ui.ttf"):
 		theme.default_font = load("res://assets/fonts/ui.ttf")
+		pixel_font = true
+		theme.default_font_size = px_size(18)
 	else:
 		var font = SystemFont.new()
 		font.font_names = PackedStringArray(["Consolas","Cascadia Mono","Lucida Console","DejaVu Sans Mono","Liberation Mono","monospace"])
@@ -111,7 +122,13 @@ func _ready() -> void:
 		slot_style.set_border_width_all(2)
 		slot.add_theme_stylebox_override("panel",slot_style)
 		var icon = TextureRect.new()
-		icon.texture = load("res://assets/ui_%s.svg" % ["mushroom","root","herb","journal"][i])
+		var icon_name: String = ["mushroom","root","herb","journal"][i]
+		# Pixel-art icons (tools/pixel_icons.gd) at 3x, SVG fallback.
+		if ResourceLoader.exists("res://assets/ui/icon_%s.png" % icon_name):
+			icon.texture = load("res://assets/ui/icon_%s.png" % icon_name)
+			icon.texture_filter = CanvasItem.TEXTURE_FILTER_NEAREST
+		else:
+			icon.texture = load("res://assets/ui_%s.svg" % icon_name)
 		icon.expand_mode = TextureRect.EXPAND_IGNORE_SIZE
 		icon.stretch_mode = TextureRect.STRETCH_KEEP_ASPECT_CENTERED
 		icon.custom_minimum_size = Vector2(52,48)
@@ -190,7 +207,7 @@ func panel_style(background: Color, border: Color, margin: int) -> StyleBoxFlat:
 func label(text: String, font_size: int) -> Label:
 	var node = Label.new()
 	node.text = text
-	node.add_theme_font_size_override("font_size",font_size)
+	node.add_theme_font_size_override("font_size",px_size(font_size))
 	node.add_theme_color_override("font_shadow_color",Color(0,0,0,.9))
 	node.add_theme_constant_override("shadow_offset_x",1)
 	node.add_theme_constant_override("shadow_offset_y",2)
