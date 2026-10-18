@@ -24,6 +24,10 @@ func build() -> void:
 	left_bookcase()
 	lantern_stack()
 	planter(Vector3(-4.2,0,2.75))
+	# Concept lower-left: turquoise mosaic drum. Clad the provision slabs
+	# (world.build_camp, set_dressing) in mosaic under their limestone tops.
+	clad(Vector3(-3.45,0,5.4),Vector3(2.2,.54,1.4))
+	clad(Vector3(-2.65,0,6.05),Vector3(1.4,.54,1.0))
 	bedroll()
 	pack()
 	archive_glow()
@@ -69,17 +73,8 @@ func planter(pose: Vector3) -> void:
 			art.batch_mesh("camp_planter_leaves",leaf,art.mat("tree_leaf"),Transform3D(leaf_basis,p),Color(rng.randf_range(.7,.9),rng.randf_range(.85,1),.6))
 
 func bedroll() -> void:
-	var y: float = world.rug_center.y+.23
-	var roll = art.cylinder(BEDROLL+Vector3(0,y,0),.23,1.3,art.mat("linen"))
-	roll.rotation = Vector3(0,-.12,PI/2)
-	var leather: StandardMaterial3D = leather_material()
-	for x in [-.4,.4]:
-		var strap = art.cylinder(BEDROLL+Vector3(x*cos(.12),y,x*sin(.12)),.238,.07,leather)
-		strap.rotation = roll.rotation
-	# Rolled ends show the darker inner layers.
-	for side in [-1,1]:
-		var cap = art.cylinder(BEDROLL+Vector3(side*.655*cos(.12),y,side*.655*sin(.12)),.2,.012,art.mat("cloth"))
-		cap.rotation = roll.rotation
+	leather_material()   # registers camp_leather for the straps
+	art.model("bedroll",BEDROLL+Vector3(0,world.rug_center.y,0),-.12)
 
 func pack() -> void:
 	leather_material()   # registers camp_leather before the model asks for it
@@ -127,3 +122,9 @@ func solid_cylinder(pose: Vector3, radius: float, height: float) -> void:
 	shape.height = height
 	collider.shape = shape
 	body.add_child(collider)
+
+## Mosaic skin on a slab's four sides, leaving a limestone top course and plinth.
+func clad(base: Vector3, size: Vector3) -> void:
+	var band: float = size.y-.16
+	art.box(base+Vector3(0,.06+band*.5,0),Vector3(size.x+.03,band,size.z+.03),art.mat("mosaic"))
+	art.box(base+Vector3(0,.03,0),Vector3(size.x+.06,.06,size.z+.06),art.mat("hearth_stone"))

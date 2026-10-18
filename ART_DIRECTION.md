@@ -263,3 +263,34 @@ archive).
 - **Capture:** double-click `tools\capture_concept.bat`, or run
   `godot --path . --script res://tests/capture.gd -- <abs.png> concept 120`.
 - **Compare:** `python tools/compare_concept.py previews/concept_v011.png`.
+
+## 7. v0.12 extras (2026-10-18)
+
+- **Planting logic** (`scripts/planting_pass.gd`, after `organic`): nothing
+  grows straight from paving any more. The tree stands in a raised oval
+  planter (solid kerb, soil, roots over the rim). The six rock outcrops and
+  the garden earth patches got kerbed soil beds, and so did the herb/root
+  gatherables (low kerbs that don't block them). Loose clusters and leaf
+  piles became sparse grass tufts plus a moss line along paving joints.
+  Soil top is 0.08 m.
+- **Water** (`shaders/water.gdshader`): flowing normals snapped to 32
+  texels/m along +Z, refraction of the real bed via the screen texture,
+  depth-buffer murk tint, and foam contact lines.
+  `world.drifting_leaves()` adds GPU leaf particles riding the current. New
+  capture mode `water`; preview `previews/water_v012.png`.
+- **SDFGI on** (`USE_SDFGI = true`): real bounce lighting, 91 fps at
+  1600×900 on the RTX 5090.
+- **Tuning for the above:** `EXPOSURE` 0.97, `EMBER_GLOW` 1.8, flame
+  particles dimmer, `LANTERN_FLAME_GLOW` 4.5, cooler left fills
+  (left-foreground warmth 66 → 60 vs the concept's 47),
+  `ARCHIVE_FILL_ENERGY` 2.4.
+- **Lower-left mosaic:** both provision slabs are clad in `mosaic` under a
+  limestone top with a hearth-stone plinth (`camp_composition.clad()`). This
+  stands in for the concept's mosaic drum.
+- **Bedroll** is now `bedroll.glb`: a closed body with a raised spiral on the
+  end caps and leather straps. A spiral-section n-gon looked hollow and was
+  dropped. The lantern and bowls stay procedural; they already read well.
+- **Gate:** whole 1.13, garden 1.07, hearth 1.04, left 1.11, archive 0.87,
+  rug 0.95. Playtest 43/43, atmosphere 9/9, geometry 29/29, headless 3/3
+  clean.
+- Added `.gitattributes` (LF text, binary assets).

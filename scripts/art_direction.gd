@@ -12,7 +12,7 @@ extends RefCounted
 ## Every number that matters is a constant here so it can be tuned from captures.
 
 const TONEMAPPER: int = Environment.TONE_MAPPER_AGX
-const EXPOSURE: float = 1.0
+const EXPOSURE: float = .97
 const AMBIENT_ENERGY: float = .22
 const AMBIENT_COLOR: Color = Color("5a86a6")
 
@@ -25,9 +25,9 @@ const GLOBAL_HAZE: float = .0030
 const LIGHTWELL_GLOW: float = 3.5           # emissive glass in the vault opening
 
 const FIRE_ENERGY: float = 1.6              # base; atmosphere.gd adds flicker
-const EMBER_GLOW: float = 2.6
-const LANTERN_FLAME_GLOW: float = 6.0
-const ARCHIVE_FILL_ENERGY: float = 2.1       # cool teal fill on the right-hand shelves
+const EMBER_GLOW: float = 1.8
+const LANTERN_FLAME_GLOW: float = 4.5
+const ARCHIVE_FILL_ENERGY: float = 2.4       # cool teal fill on the right-hand shelves
 
 const GLOW_THRESHOLD: float = .95
 const GLOW_INTENSITY: float = .85
@@ -35,7 +35,7 @@ const GLOW_BLOOM: float = .04
 
 ## SDFGI gives real bounce light (warm fire bounce on the piers) but costs GPU
 ## time. Off by default; try it on the target machine.
-const USE_SDFGI: bool = false
+const USE_SDFGI: bool = true
 
 var world
 var art
@@ -144,9 +144,9 @@ func hearth() -> void:
 
 func foreground_fill() -> void:
 	# Concept's left edge is lantern-lit shelving, not black (measured 44 vs 13).
-	var left = world.light(Vector3(-5.6,1.7,6.2),Color("ffb878"),2.0,6.5)
+	var left = world.light(Vector3(-5.6,1.7,6.2),Color("ffd0a4"),2.0,6.5)
 	left.light_cull_mask = 1
-	var shelves = world.light(Vector3(-7.2,2.8,3.6),Color("e8a868"),1.25,5.0)
+	var shelves = world.light(Vector3(-7.2,2.8,3.6),Color("e8c098"),1.25,5.0)
 	shelves.light_cull_mask = 1
 
 ## Rule 1: one texel = 1/32 m everywhere. Duplicated materials that changed

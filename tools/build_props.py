@@ -304,8 +304,37 @@ def pack():
     export("pack")
 
 
+def bedroll():
+    """Rolled blanket: closed body, a raised spiral (the rolled layers) on each
+    end cap, and two leather straps. Axis along X, resting on the floor."""
+    reset()
+    rng = random.Random(4406)
+    bm = bmesh.new()
+    length, radius, segs = 1.3, .23, 28
+    ends = [[bm.verts.new((x, math.cos(s / segs * math.tau) * radius, radius + math.sin(s / segs * math.tau) * radius))
+             for s in range(segs)] for x in (-length / 2, length / 2)]
+    for s in range(segs):
+        bm.faces.new((ends[0][s], ends[0][(s + 1) % segs], ends[1][(s + 1) % segs], ends[1][s])).material_index = 0
+    bm.faces.new(ends[0][::-1]).material_index = 1
+    bm.faces.new(ends[1]).material_index = 1
+    for side in (-1, 1):
+        x = side * (length / 2 + .006)
+        path = []
+        for k in range(3 * 20 + 1):
+            th = k / 20 * math.tau
+            r = .03 + (radius - .045) * k / 60
+            path.append((x, math.cos(th) * r, radius + math.sin(th) * r))
+        tube(bm, rng, path, .011, 0, 5)
+    for x in (-.4, .4):
+        tube(bm, rng, [(x - .03, 0, radius), (x + .03, 0, radius)], radius + .012, 2, segs)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    new_object("Bedroll", bm, ["linen", "cloth", "camp_leather"])
+    export("bedroll")
+
+
 fire_logs()
 stew()
 cauldron()
 ladle()
 pack()
+bedroll()

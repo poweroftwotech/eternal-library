@@ -228,16 +228,14 @@ func rock_gardens() -> void:
 			var p = center+Vector3(cos(a)*rng.randf_range(.9,1.35),-.03,sin(a)*rng.randf_range(.8,1.15))
 			flagstone(p,Vector2(rng.randf_range(.12,.35),rng.randf_range(.10,.3)),false,false)
 			if i%3==0:
-				cluster(p+Vector3(0,.055,0),.25,8)
+				cluster(p+Vector3(0,.11,0),.25,8)   # on the bed soil (planting_pass)
 	# Root fingers visibly meet the planted outcrops.
 	for i in range(7):
 		var a: float = i*TAU/7
-		var start = Vector3(-4,.13,-6.2)
+		var start = Vector3(-4,.3,-6.2)   # emerges from the raised planter soil
 		var end = start+Vector3(cos(a)*rng.randf_range(1.6,2.4),-.10,sin(a)*rng.randf_range(1.3,1.9))
 		art.tube([start,start.lerp(end,.35)+Vector3(.1,.11,0),start.lerp(end,.75)+Vector3(-.1,.04,.1),end],[.12,.08,.04,.008],art.mat("bark"),8)
-	# Narrow tufts live in specific joints, keeping the central lane readable.
-	for p in [Vector3(-4.7,.07,.4),Vector3(-3.9,.07,1.25),Vector3(3.25,.07,.7),Vector3(-5.5,.07,2.1),Vector3(.35,.07,-1.8),Vector3(-2.2,.07,-2.5)]:
-		cluster(p,.30,17)
+	# Joint tufts moved to planting_pass.gd (thin crack growth, not clusters).
 
 func cluster(pose: Vector3, radius: float, count: int) -> void:
 	planting_count += 1

@@ -17,6 +17,11 @@ func capture() -> void:
 		game.player.camera.position.y = 1.45
 		game.player.camera.fov = 62
 		game.look_toward(Vector3(-1.1,1.25,-2.4))
+	elif mode == "water":
+		# v0.12: looking down the irrigation channel toward the garden.
+		game.player.teleport(Vector3(-.15,.08,.6))
+		game.player.camera.fov = 60
+		game.look_toward(Vector3(-.9,-.1,-4.0))
 	elif mode == "paving":
 		game.player.teleport(Vector3(1.2,.08,3.1))
 		game.player.camera.fov = 66

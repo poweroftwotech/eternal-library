@@ -41,6 +41,7 @@ func _ready() -> void:
 	preload("res://scripts/camp_composition.gd").new(self,art).build()
 	preload("res://scripts/arch_pass.gd").new(self,art).build()
 	organic.build()
+	preload("res://scripts/planting_pass.gd").new(self,art).build()
 	preload("res://scripts/art_direction.gd").new(self,art).build()
 	art.merge_static_geometry()
 	art.flush_batches()
@@ -187,6 +188,7 @@ func build_architecture() -> void:
 	var water_plane = PlaneMesh.new()
 	water_plane.size = Vector2(1.1,11.4)
 	art.mesh_node(water_plane,Vector3(-.9,-.04,-5.7),water_material)
+	drifting_leaves(Vector3(-.9,-.03,-11.1),11.0)
 	# Shallow channel: a player can step through it without a swim system.
 	box(Vector3(-.9,-.22,-5.7),Vector3(1.1,.1,11.4),"soil",true)
 	for z in [-3,-7]:
@@ -296,7 +298,7 @@ func build_camp() -> void:
 	lantern(Vector3(-3.35,.56,4.8))
 	# Sprite effects remain world-space objects, not a painted screenshot backdrop.
 	# v0.12: GPU particle flames and rising embers replace the flat flame cards.
-	fire_particles(hearth+Vector3(0,.14,-.05),Vector3(.55,.03,.3),40,.6,Vector2(.24,.36),Vector2(.3,.6),Color(.9,.6,.28),Color(.7,.2,.05,0))
+	fire_particles(hearth+Vector3(0,.14,-.05),Vector3(.55,.03,.3),40,.6,Vector2(.24,.36),Vector2(.3,.6),Color(.65,.42,.2),Color(.55,.15,.04,0))
 	fire_particles(hearth+Vector3(0,.3,0),Vector3(.35,.1,.3),26,2.4,Vector2(.03,.03),Vector2(.35,.8),Color(3.0,1.4,.4),Color(1.2,.25,.05,0),true)
 	for i in range(8):
 		effect("steam",hearth+Vector3(art.rng.randf_range(-.25,.25),1.15,art.rng.randf_range(-.2,.2)),Vector2(.42,.64),i*.71)
@@ -508,3 +510,40 @@ func fire_particles(pose: Vector3, extents: Vector3, amount: int, lifetime: floa
 	particles.set_meta("dynamic",true)
 	add_child(particles)
 	return particles
+
+## A few fallen leaves riding the channel current (matches the shader's flow).
+func drifting_leaves(source: Vector3, length: float) -> void:
+	var process: ParticleProcessMaterial = ParticleProcessMaterial.new()
+	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	process.emission_box_extents = Vector3(.32,0,.05)
+	process.direction = Vector3(0,0,1)
+	process.spread = 4.0
+	process.initial_velocity_min = .18
+	process.initial_velocity_max = .26
+	process.gravity = Vector3.ZERO
+	process.particle_flag_rotate_y = true
+	process.angle_min = -180.0
+	process.angle_max = 180.0
+	process.angular_velocity_min = -12.0
+	process.angular_velocity_max = 12.0
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.albedo_texture = load("res://assets/textures/px/ivy_leaf.png")
+	material.albedo_color = Color(.85,.58,.28)
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
+	material.cull_mode = BaseMaterial3D.CULL_DISABLED
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	var quad: QuadMesh = QuadMesh.new()
+	quad.size = Vector2(.13,.13)
+	quad.orientation = PlaneMesh.FACE_Y
+	quad.material = material
+	var particles: GPUParticles3D = GPUParticles3D.new()
+	particles.amount = 9
+	particles.lifetime = length/.22
+	particles.preprocess = particles.lifetime
+	particles.process_material = process
+	particles.draw_pass_1 = quad
+	particles.local_coords = false
+	particles.visibility_aabb = AABB(Vector3(-1,-.2,-.5),Vector3(2,.5,length+1))
+	particles.position = source
+	particles.set_meta("dynamic",true)
+	add_child(particles)

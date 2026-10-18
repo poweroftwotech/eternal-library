@@ -123,12 +123,7 @@ func camp_detail() -> void:
 func planting() -> void:
 	var leaf = QuadMesh.new()
 	leaf.size = Vector2(.10,.22)
-	# Plants follow joints and edges rather than uniformly carpeting the route.
-	for center in [Vector3(-4.8,.06,.4),Vector3(3.1,.06,.35),Vector3(-3.1,.06,-2),Vector3(-2.2,.06,-4.2),Vector3(-6.1,.06,-4.8),Vector3(4.3,.06,-1.0)]:
-		for i in range(75):
-			var p = center+Vector3(rng.randf_range(-.55,.55),rng.randf_range(.04,.21),rng.randf_range(-.4,.4))
-			var basis = Basis.from_euler(Vector3(rng.randf_range(-.6,.6),rng.randf_range(0,TAU),rng.randf_range(-.9,.9)))
-			art.batch_mesh("benchmark_ground_growth",leaf,art.mat("tree_leaf"),Transform3D(basis,p),Color(.72,.81,.46))
+	# Ground growth moved to planting_pass.gd joint tufts (no leaf piles on paving).
 	for i in range(85):
 		var p = Vector3(rng.randf_range(-6.5,4.0),.065,rng.randf_range(-3,6))
 		var basis = Basis.from_euler(Vector3(-PI/2,0,rng.randf_range(0,TAU))).scaled(Vector3.ONE*rng.randf_range(.3,.7))
