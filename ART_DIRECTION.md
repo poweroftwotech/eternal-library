@@ -408,3 +408,47 @@ Previews: `previews/vista_v012_baseline.png`, `vista_v013.png`,
 `vista_roof_v013.png`. Still open, for slice 2: overall exposure (every region is about
 0.4–0.7 of the box art), the warm near flanks (warmth is −9, box art +49) and the
 hero glow on the sanctum.
+
+**Slice 2 (done 2026-10-18), light for depth.** New `scripts/vista_light.gd`
+runs after the cavern; every tuning number is a constant at its top.
+- **Lamp clusters:** `vista.lamp()` keeps terrace and arcade lamps only where a
+  3D noise passes `LAMP_CLUSTER_CUTOFF` (inhabited stretches of about 30 m).
+  Bridge and pavilion lamps always burn. Lamps are amber (`ffb35c`, glow 3.2)
+  instead of white dots.
+- **Warm near:** each dense lamp cluster within 170 m of the overlook gets one
+  warm `big_light` (up to 56, exterior layer only, no fog scattering). Shelf
+  insets within 110 m use their own `gorge_shelves_near` material with warm
+  emission (`ffb867` × 0.9): candle-lit stacks.
+- **Bounce:** `ExteriorVaultBounce` is now warm stone (`cdb79a`, energy 0.8)
+  instead of cool `a6bac1`. With the vault closed, the fill reads as city light
+  off the stone, and the distance gets its coolness from the haze.
+- **Cool far:** a large soft `FarHaze` fog ellipsoid over the far half
+  (aerial perspective) and a luminous `SanctumHalo` with a cool key light
+  (12) on the sanctum, the hero of the view.
+- **Vault and mist:** uplight 0.65, city glow 5, mist emission `767892`.
+  `world.light()` → `vista.big_light()` (attenuation 0.5) for all new
+  exterior lights.
+- **Pitfall:** a light's `light_volumetric_fog_energy` is expensive when
+  multiplied across 56 lights (frame time tripled). Keep it 0 on cluster
+  lights.
+- **Gate:** playtest 43/43, geometry 29/29, atmosphere 9/9, headless 3/3
+  clean. Overlook frame time 4.39 ms (slice 1: 4.49) at 1600×900. Interior
+  concept gate within 0.02 of before. (`capture.gd` prints one instantaneous
+  fps sample, which is noise; measure frame time over 240 frames instead.)
+
+| region | box art | slice 1 | slice 2 |
+|---|---|---|---|
+| vault | 49 | 31 | **38 ok** |
+| focal glow | 144 | 56 | **120 ok** |
+| far depth band | 91 | 69 ok | **94 ok** |
+| near flanks | 70 | 39 | 50 (0.72, need 0.75) |
+| mist floor | 108 | 76 | **104 ok** |
+| warmth near / far | +49 / −9 | −9 / −19 | +22 / −4 |
+| warm/cool split (need 29) | 58 | 10 | 27 |
+
+The near flanks stop just short. More glow only oversaturates the orange.
+The box art's flanks are bright because of their architecture (carpets, tile
+bands, lit windows, candle-lined parapets), which is slice 3. The mist floor is
+correct in brightness but too cool (−27 vs +10); warm lights reflected in it
+would come with the slice 4 waterfalls and walkers. Preview:
+`previews/vista_v014.png`.

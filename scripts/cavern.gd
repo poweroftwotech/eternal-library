@@ -15,8 +15,8 @@ const CLEARANCE: float = 8.0         # rock never comes closer than this above a
 const MIN_TIP: float = 22.0          # bridges and their pavilions stay clear
 const SIGHTLINE_X: float = 20.0      # keep the throat centre open toward the sanctum
 const SANCTUM: Vector3 = Vector3(8, 0, -256)
-const UPLIGHT_ENERGY: float = .3     # cool fill on the rock from below
-const CITY_GLOW_ENERGY: float = 3.0   # warm window glow on the rock above each tower
+const UPLIGHT_ENERGY: float = .65     # cool fill on the rock from below
+const CITY_GLOW_ENERGY: float = 5.0   # warm window glow on the rock above each tower
 const MIST_LIGHT_ENERGY: float = 2.5  # under the mist floor
 const RIM_LIGHT_ENERGY: float = 2.0   # cool light along the vault
 const FAR_HALL_ENERGY: float = 5.0    # behind the sanctum: the end of the sightline
@@ -244,7 +244,7 @@ func build_mist() -> void:
 	var material := FogMaterial.new()
 	material.density = .02
 	material.albedo = Color("e4e9ea")
-	material.emission = Color("5b5c74")
+	material.emission = Color("767892")
 	material.height_falloff = .02
 	fog.material = material
 	world.add_child(fog)
@@ -252,10 +252,10 @@ func build_mist() -> void:
 func build_lights() -> void:
 	# Cool light under the mist and along the vault rims; the far hall glows.
 	for p: Vector3 in [Vector3(-20, -30, -90), Vector3(24, -34, -150), Vector3(-8, -32, -215)]:
-		big_light(p, Color("c9cdea"), MIST_LIGHT_ENERGY, 90)
-	big_light(Vector3(-30, 30, -110), Color("8aaab7"), RIM_LIGHT_ENERGY, 70)
-	big_light(Vector3(36, 28, -190), Color("9fc0cb"), RIM_LIGHT_ENERGY, 70)
-	big_light(Vector3(8, 46, -292), Color("b5dbea"), FAR_HALL_ENERGY, 95)
+		vista.big_light(p, Color("c9cdea"), MIST_LIGHT_ENERGY, 90)
+	vista.big_light(Vector3(-30, 30, -110), Color("8aaab7"), RIM_LIGHT_ENERGY, 70)
+	vista.big_light(Vector3(36, 28, -190), Color("9fc0cb"), RIM_LIGHT_ENERGY, 70)
+	vista.big_light(Vector3(8, 46, -292), Color("b5dbea"), FAR_HALL_ENERGY, 95)
 	# Light that reaches only the rock layer (4): a soft cool uplight bounced off
 	# the mist, and the warm glow of each tower top on the rock above it.
 	var uplight := DirectionalLight3D.new()
@@ -273,14 +273,6 @@ func build_lights() -> void:
 				top = false
 				break
 		if top:
-			var glow: OmniLight3D = big_light(Vector3(ledge.center.x, ledge.height + 3.0, ledge.center.y), Color("ffbf7a"), CITY_GLOW_ENERGY, 55)
+			var glow: OmniLight3D = vista.big_light(Vector3(ledge.center.x, ledge.height + 3.0, ledge.center.y), Color("ffbf7a"), CITY_GLOW_ENERGY, 55)
 			glow.light_cull_mask = 4
 			glow.light_volumetric_fog_energy = 0.0
-
-## world.light() falls off as distance^-1.2, tuned for the camp's few-metre
-## lights. At cavern scale (10-60 m) that leaves almost nothing, so these use
-## a gentler falloff.
-func big_light(p: Vector3, color: Color, energy: float, distance: float) -> OmniLight3D:
-	var node: OmniLight3D = world.light(p, color, energy, distance)
-	node.omni_attenuation = .5
-	return node

@@ -15,11 +15,16 @@ var profile_variation: float = 0
 var arch_mesh: Mesh
 var ledges: Array = []
 const Cavern = preload("res://scripts/cavern.gd")
+const VistaLight = preload("res://scripts/vista_light.gd")
+var lamp_points := PackedVector3Array()
+var lamp_noise := FastNoiseLite.new()
 
 func _init(owner, factory) -> void:
 	world = owner
 	art = factory
 	rng.seed = 728311
+	lamp_noise.seed = 4417
+	lamp_noise.frequency = VistaLight.LAMP_CLUSTER_FREQUENCY
 
 func block(p: Vector3, size: Vector3, material: String = "sandstone", solid: bool = false) -> Node3D:
 	return art.box(p,size,art.mat(material),solid)
@@ -191,7 +196,7 @@ func pavilion(p: Vector3, size: float) -> void:
 			art.cylinder(p+Vector3(side*size*.45,1.8,depth*size*.45),.12,3.6,art.mat("vista_gold"))
 	var roof = [Vector2(0,3.2),Vector2(size*.72,3.2),Vector2(size*.62,3.5),Vector2(size*.3,3.9),Vector2(0,5.0)]
 	art.mesh_node(art.lathe(roof,4),p,art.mat("tapestry_0")).rotation.y = PI*.25
-	lamp(p+Vector3(0,3.0,0),.3)
+	lamp(p+Vector3(0,3.0,0),.3,true)
 
 func reader(p: Vector3, yaw: float) -> void:
 	# Tiny static robed silhouettes are scale markers, not a new NPC system.
@@ -208,8 +213,22 @@ func reader(p: Vector3, yaw: float) -> void:
 	head.rings = 4
 	art.batch_mesh("vista_reader_heads",head,art.mat("sandstone"),Transform3D(Basis.IDENTITY,p+Vector3.UP*1.5))
 
-func lamp(p: Vector3, size: float) -> void:
+func lamp(p: Vector3, size: float, always: bool = false) -> void:
+	# Terrace lamps gather in clusters (inhabited stretches) instead of an even
+	# sprinkle of dots; bridge and pavilion lamps always burn.
+	if not always and lamp_noise.get_noise_3dv(p)<VistaLight.LAMP_CLUSTER_CUTOFF:
+		return
 	art.batch_box("vista_lamps",p,Vector3(size,size*1.6,size),art.mat("vista_lamp"))
+	lamp_points.append(p)
+
+## world.light() falls off as distance^-1.2, tuned for the camp's few-metre
+## lights. At gorge scale (10-90 m) that leaves almost nothing, so exterior
+## lights use a gentler falloff.
+func big_light(p: Vector3, color: Color, energy: float, distance: float, mask: int = 1048575) -> OmniLight3D:
+	var node: OmniLight3D = world.light(p,color,energy,distance)
+	node.omni_attenuation = .5
+	node.light_cull_mask = mask
+	return node
 
 func mist(p: Vector3, size: Vector3, density: float, color: Color) -> void:
 	var fog = FogVolume.new()
@@ -275,6 +294,7 @@ func build() -> void:
 	waterfall(Vector3(-29,-57.4,-140),Vector2(4.5,101))
 	# The closed cavern needs every terrace in vista.ledges, so it comes last.
 	Cavern.new(self).build()
+	VistaLight.new(self).build()
 	mist(Vector3(4,-151,-163),Vector3(90,55,218),.018,Color("9bbbc4"))
 	mist(Vector3(8,38,-258),Vector3(33,64,43),.007,Color("bdd8db"))
 	world.light(Vector3(0,35,-90),Color("9cbfc5"),3.5,100)
@@ -282,8 +302,8 @@ func build() -> void:
 	var bounce = DirectionalLight3D.new()
 	bounce.name = "ExteriorVaultBounce"
 	bounce.rotation_degrees = Vector3(-39,-28,0)
-	bounce.light_color = Color("a6bac1")
-	bounce.light_energy = .9
+	bounce.light_color = VistaLight.VAULT_BOUNCE_COLOR
+	bounce.light_energy = VistaLight.VAULT_BOUNCE_ENERGY
 	bounce.shadow_enabled = true
 	bounce.directional_shadow_max_distance = 330
 	bounce.light_angular_distance = 1.0
@@ -309,6 +329,8 @@ func gorge_materials() -> void:
 	shelves.emission = Color("d3b488")
 	shelves.emission_energy_multiplier = .15
 	art.materials["gorge_shelves"] = shelves
+	# Near stacks are candle-lit from inside (tuned in vista_light.gd).
+	art.materials["gorge_shelves_near"] = shelves.duplicate()
 	var stone = art.mat("sandstone").duplicate()
 	stone.albedo_color = Color("8b9c9c")
 	stone.uv1_scale = Vector3.ONE*.21
@@ -418,7 +440,8 @@ func arcade(base: Vector3, yaw: float, style: int) -> void:
 	var quad = QuadMesh.new()
 	quad.size = Vector2.ONE
 	var shelf_pose: Vector3 = base+Vector3.UP*2.1-basis.z*.04
-	art.batch_mesh("gorge_shelf_insets",quad,art.mat("gorge_shelves"),Transform3D(basis*Basis.from_scale(Vector3(2.75,4.2,1)),shelf_pose))
+	var near: bool = base.distance_to(VistaLight.EYE)<VistaLight.NEAR_SHELF_REACH
+	art.batch_mesh("gorge_shelf_insets_near" if near else "gorge_shelf_insets",quad,art.mat("gorge_shelves_near" if near else "gorge_shelves"),Transform3D(basis*Basis.from_scale(Vector3(2.75,4.2,1)),shelf_pose))
 	if style%7==0:
 		window(base+Vector3.UP*2.3+basis.z*.04,Vector2(.86,2.65),yaw)
 	lamp(base+basis.x*1.62+Vector3.UP*2.56+basis.z*.42,.12)
@@ -529,7 +552,7 @@ func bridge(a: Vector3, b: Vector3, width: float) -> void:
 			var p: Vector3 = a.lerp(b,(i+.5)/int(length/2.5))+across*side*width*.5
 			art.batch_box("gorge_balusters",p+Vector3.UP*.55,Vector3(.17,1.1,.17),art.mat("sandstone"))
 			if i%3==0:
-				lamp(p+Vector3.UP*1.38,.16)
+				lamp(p+Vector3.UP*1.38,.16,true)
 	for i in range(int(length/9)):
 		reader(a.lerp(b,(i+.5)/int(length/9))+Vector3.UP*.45,atan2(forward.x,forward.z))
 	var spans: int = maxi(2,int(length/24))
