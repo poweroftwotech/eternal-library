@@ -98,7 +98,7 @@ func build_lighting() -> void:
 	fire_light = light(hearth+Vector3(0,.24,0),Color("ffad55"),3.0,10,true)
 	# Low-energy fills suggest reflected light without flattening the room.
 	light(Vector3(-3,1.0,6.0),Color("d09b63"),1.1,7)
-	light(hearth+Vector3(0,1.5,1.0),Color("f3bb78"),1.25,4.5)
+	light(hearth+Vector3(0,1.5,1.0),Color("f3bb78"),.45,4.5)   # weak: unshadowed fill washed out fire shadows
 	light(Vector3(1,4.4,2.0),Color("a4b4aa"),.7,10)
 	light(Vector3(-2,4.0,-7),Color("dfdfbd"),2.8,14)
 	light(Vector3(-6,3.5,-7.8),Color("d5c9a0"),1.6,10)

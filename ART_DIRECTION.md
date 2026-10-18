@@ -296,3 +296,5 @@ archive).
 - Added `.gitattributes` (LF text, binary assets).
 - **Lanterns dimmed** (`LANTERN_FLAME_GLOW` 2.5, new `LANTERN_LIGHT_SCALE` 0.6 on lamp lights).
 - **Archive fungi:** no mushrooms on bare paving. `camp_composition.archive_fungi()` grows them from moss/soil mounds (glowing clusters, plain clusters, one mound under each mushroom gatherable) and a moss-backed rotting log with bracket fungi. The random scatter in `world.build_archive` is gone.
+- **Shadows and grounding:** small props cast shadows again (`asset_factory.box` only skips hairline trims under 0.08 m). AO is stronger and applied to direct light (`SSAO_INTENSITY` 2.2, `ssao_light_affect` 0.35). The positional shadow atlas is 8192 with high soft-shadow quality. The left fill now casts shadows.
+- **Fire drama:** small light source (0.05) with less blur (0.55), attenuation 1.6, `FIRE_ENERGY` 2.4. The unshadowed warm fill above the hearth went 1.25 → 0.45; the floor bounce went 0.5 → 1.0 to light the rug the way bounced firelight would. `ARCHIVE_FILL_ENERGY` 2.9. Gate: whole 1.08, hearth 1.06, rug 0.91, archive 0.88.

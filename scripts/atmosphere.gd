@@ -54,8 +54,9 @@ func build() -> void:
 		if node is OmniLight3D and node.has_meta("hearth_bounce"):
 			hearth_bounce = node
 	fire_energy = world.fire_light.get_meta("base_energy",fire_energy)
-	world.fire_light.light_size = .12
-	world.fire_light.shadow_blur = 1.1
+	world.fire_light.light_size = .05   # small source: crisp, dancing shadows
+	world.fire_light.shadow_blur = .55
+	world.fire_light.omni_attenuation = 1.6   # bright near the hearth, falls off fast
 	world.fire_light.omni_range = 9.0
 	streambed()
 	tick(0)

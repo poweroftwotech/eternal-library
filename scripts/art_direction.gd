@@ -24,12 +24,13 @@ const GARDEN_HAZE_SCALE: float = 2.0        # multiplies existing garden FogVolu
 const GLOBAL_HAZE: float = .0030
 const LIGHTWELL_GLOW: float = 3.5           # emissive glass in the vault opening
 
-const FIRE_ENERGY: float = 1.6              # base; atmosphere.gd adds flicker
+const FIRE_ENERGY: float = 2.4              # base; atmosphere.gd adds flicker
 const EMBER_GLOW: float = 1.8
 const LANTERN_FLAME_GLOW: float = 2.5
 const LANTERN_LIGHT_SCALE: float = .6     # lamp OmniLights (world.lantern, 1.8 base)
-const ARCHIVE_FILL_ENERGY: float = 2.4       # cool teal fill on the right-hand shelves
+const ARCHIVE_FILL_ENERGY: float = 2.9       # cool teal fill on the right-hand shelves
 
+const SSAO_INTENSITY: float = 2.2
 const GLOW_THRESHOLD: float = .95
 const GLOW_INTENSITY: float = .85
 const GLOW_BLOOM: float = .04
@@ -72,6 +73,12 @@ func environment() -> void:
 	env.volumetric_fog_albedo = Color("c0c6bf")
 	env.volumetric_fog_ambient_inject = .22
 	env.volumetric_fog_anisotropy = .55   # forward scattering: shafts glow toward camera
+	# Grounding: stronger, tighter AO that also darkens direct light at contacts.
+	env.ssao_intensity = SSAO_INTENSITY
+	env.ssao_radius = 1.0
+	env.ssao_power = 1.6
+	env.ssao_detail = .7
+	env.ssao_light_affect = .35
 	env.adjustment_enabled = true
 	env.adjustment_contrast = 1.06
 	env.adjustment_saturation = 1.12
@@ -143,12 +150,13 @@ func hearth() -> void:
 			var material: StandardMaterial3D = data.material
 			material.albedo_color = Color(2.2,1.5,.9)   # HDR so flame cards bloom
 	# Warm bounce from the fire onto the near piers and pot belly.
-	var bounce = world.light(world.hearth+Vector3(0,.6,1.4),Color("ff9a4a"),.5,5.5)
+	var bounce = world.light(world.hearth+Vector3(0,.6,1.4),Color("ff9a4a"),1.0,5.5)
 	bounce.light_cull_mask = 1
 
 func foreground_fill() -> void:
 	# Concept's left edge is lantern-lit shelving, not black (measured 44 vs 13).
 	var left = world.light(Vector3(-5.6,1.7,6.2),Color("ffd0a4"),2.0,6.5)
+	left.shadow_enabled = true
 	left.light_cull_mask = 1
 	var shelves = world.light(Vector3(-7.2,2.8,3.6),Color("e8c098"),1.25,5.0)
 	shelves.light_cull_mask = 1

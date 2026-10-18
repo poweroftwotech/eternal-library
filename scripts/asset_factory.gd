@@ -194,7 +194,8 @@ func box(pose: Vector3, size: Vector3, material: Material, solid: bool = false, 
 	mesh.layers = render_layer
 	mesh.scale = size
 	mesh.material_override = material
-	if not solid and size.y < 2 and size.length() < 6:
+	# Only hairline trims skip shadows; props need them to sit on the floor.
+	if not solid and size.length() < .08:
 		mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	node.add_child(mesh)
 	if solid:
