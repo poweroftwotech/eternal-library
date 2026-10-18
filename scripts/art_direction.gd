@@ -22,12 +22,12 @@ const GARDEN_KEY_AIM: Vector3 = Vector3(-1.7,0,-3.4)  # tilted toward the arch/c
 const GARDEN_FOG_ENERGY: float = 1.3        # how strongly the key paints the haze
 const GARDEN_HAZE_SCALE: float = 2.0        # multiplies existing garden FogVolumes
 const GLOBAL_HAZE: float = .0030
-const LIGHTWELL_GLOW: float = 3.5           # emissive glass in the vault opening
+const LIGHTWELL_GLOW: float = 1.0           # emissive glass in the vault opening
 
 const FIRE_ENERGY: float = 2.4              # base; atmosphere.gd adds flicker
 const EMBER_GLOW: float = 1.8
 const LANTERN_FLAME_GLOW: float = 2.5
-const LANTERN_LIGHT_SCALE: float = .6     # lamp OmniLights (world.lantern, 1.8 base)
+const LANTERN_LIGHT_SCALE: float = .1     # lamp OmniLights (world.lantern, 1.8 base)
 const ARCHIVE_FILL_ENERGY: float = 2.9       # cool teal fill on the right-hand shelves
 
 const SSAO_INTENSITY: float = 2.2
