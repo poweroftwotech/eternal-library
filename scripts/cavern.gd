@@ -234,7 +234,7 @@ func build_portals() -> void:
 		portal(portal_sill(data), data[4])
 		vista.bridge(crossing_start(data), data[5], 3.4, [], 0)
 
-func portal_sill(data: Array) -> Vector3:
+static func portal_sill(data: Array) -> Vector3:
 	# The quarried face sits inside the pillar's typical radius, so rock is
 	# cut back to it across the whole gate.
 	return Vector3(data[0] + data[4] * data[2] * .85, data[3], data[1])

@@ -53,6 +53,12 @@ func capture() -> void:
 		game.player.camera.fov = 60
 		game.look_toward(Vector3(86,44,-150))
 		game.hud.zone_label.text = "THE ETERNAL LIBRARY · ROCK GATE"
+	elif mode == "vista_gate":
+		# From the overlook itself, zoomed on the right-hand rock-cut gate (slice 5).
+		game.player.teleport(Vector3(-1,2.25,-27.45))
+		game.player.camera.fov = 14
+		game.look_toward(Vector3(90,41,-150))
+		game.hud.zone_label.text = "THE ETERNAL LIBRARY · ROCK GATE"
 	elif mode == "balcony":
 		game.player.teleport(Vector3(-1,2.25,-27.45))
 		game.look_toward(Vector3(5,-22,-178))

@@ -1,6 +1,6 @@
 """Hero props for the camp (ART_DIRECTION.md backlog 4), built headlessly in Blender.
 
-  blender --background --factory-startup --python tools/build_props.py
+  blender --background --factory-startup --python tools/build_props.py [-- name ...]
 
 Writes assets/models/<name>.glb. Geometry only: each surface carries a material
 *name* (bark, log_end, char, stew) that asset_factory.gd swaps for the matching
@@ -10,6 +10,7 @@ Models are authored in metres, origin at the hearth centre on the floor.
 import math
 import os
 import random
+import sys
 
 import bmesh
 import bpy
@@ -332,9 +333,86 @@ def bedroll():
     export("bedroll")
 
 
-fire_logs()
-stew()
-cauldron()
-ladle()
-pack()
-bedroll()
+
+def tilted_box(bm, centre, size, pitch, yaw, mat_index, offset=.04):
+    """Bevelled box pitched about X (nose up), then yawed about Z."""
+    before = set(bm.faces)
+    made = bmesh.ops.create_cube(bm, size=1.0)
+    cp, sp = math.cos(pitch), math.sin(pitch)
+    cy, sy = math.cos(yaw), math.sin(yaw)
+    for v in made["verts"]:
+        x, y, z = v.co.x * size[0], v.co.y * size[1], v.co.z * size[2]
+        y, z = y * cp - z * sp, y * sp + z * cp
+        v.co = (centre[0] + x * cy - y * sy, centre[1] + x * sy + y * cy, centre[2] + z)
+    edges = list({e for v in made["verts"] for e in v.link_edges})
+    bmesh.ops.bevel(bm, geom=edges + made["verts"], offset=offset, segments=1, affect="EDGES")
+    for f in set(bm.faces) - before:
+        f.material_index = mat_index
+
+
+def drum(bm, centre, radius, height, mat_index, segs=14):
+    before = set(bm.faces)
+    made = bmesh.ops.create_cone(bm, cap_ends=True, segments=segs, radius1=radius, radius2=radius, depth=height)
+    bmesh.ops.translate(bm, verts=made["verts"], vec=centre)
+    for f in set(bm.faces) - before:
+        f.material_index = mat_index
+
+
+def lamassu():
+    """Gate colossus for the overlook (ART_DIRECTION.md section 8, slice 5): a
+    human-headed winged bull on a plinth, about 6.2 m tall. It is shown at
+    roughly 4x in the gorge, so only the silhouette and the big carved masses
+    matter: five legs (the Assyrian convention), layered feather-row wings, a
+    long ridged beard and a horned tiara. Front = -Y (Godot +Z)."""
+    reset()
+    bm = bmesh.new()
+    stone, plinth, band = 0, 1, 2
+    bevel_box(bm, (0, .2, .35), (2.1, 4.8, .7), .06, plinth)
+    bevel_box(bm, (0, -2.21, .35), (1.9, .06, .4), .01, band)
+    for side in (-1, 1):
+        bevel_box(bm, (side * 1.06, .2, .35), (.06, 4.4, .4), .01, band)
+    # Bull body: deep chest at the front, tapering haunch behind.
+    bevel_box(bm, (0, .35, 2.45), (1.45, 3.1, 1.55), .3, stone)
+    for v in bm.verts:
+        if v.co.z > 1.6 and v.co.y > -1.4:
+            v.co.x *= 1.0 - .08 * (v.co.y + 1.2) / 3.0
+    bevel_box(bm, (0, -1.05, 2.6), (1.35, .9, 1.7), .3, stone)
+    # Five legs: two square front legs, two striding rear legs, one extra in the
+    # side view so the colossus reads standing from the front and walking from
+    # the side.
+    for x, y in ((-.45, -1.15), (.45, -1.15), (-.45, 1.45), (.45, 1.45), (.47, -.35)):
+        bevel_box(bm, (x, y, 1.25), (.42, .5, 1.1), .08, stone)
+        bevel_box(bm, (x, y - .04, .8), (.5, .6, .22), .05, stone)
+    tilted_box(bm, (0, 2.0, 2.3), (.2, .5, 1.3), .5, 0, stone)
+    # Wings: four overlapping feather rows sweep up and back along each flank.
+    for side in (-1, 1):
+        for row in range(4):
+            length = 2.9 - row * .35
+            tilted_box(bm, (side * (.82 + row * .05), .55 + row * .12, 3.35 + row * .42),
+                       (.14, length, .55), .52, 0, stone, .05)
+            for k in range(int(length / .32)):
+                tilted_box(bm, (side * (.9 + row * .05), -.6 + row * .12 + k * .3, 3.12 + row * .42 + k * .155),
+                           (.08, .22, .3), .52, 0, stone, .02)
+    # Human head, long ridged beard, and a tiara with three horn bands.
+    bevel_box(bm, (0, -1.55, 3.85), (.92, .9, 1.05), .18, stone)
+    bevel_box(bm, (0, -1.98, 3.95), (.26, .2, .42), .06, stone)
+    for k in range(5):
+        bevel_box(bm, (0, -1.92, 3.2 - k * .2), (.86 - k * .06, .34, .19), .05, stone)
+    for side in (-1, 1):
+        bevel_box(bm, (side * .52, -1.45, 3.75), (.14, .36, .5), .05, stone)
+    drum(bm, (0, -1.5, 4.85), .5, .95, stone)
+    for k in range(3):
+        drum(bm, (0, -1.5, 4.5 + k * .3), .54, .07, band)
+    bevel_box(bm, (0, -1.5, 5.4), (1.04, 1.04, .14), .03, stone)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    # vista_colossus is a darker limestone made in vista_foreground.gd.
+    new_object("Lamassu", bm, ["vista_colossus", "sandstone", "mosaic"])
+    export("lamassu")
+
+
+PROPS = {"fire_logs": fire_logs, "stew": stew, "cauldron": cauldron, "ladle": ladle,
+         "pack": pack, "bedroll": bedroll, "lamassu": lamassu}
+# Build only the props named after "--" (all of them when none are given).
+wanted = sys.argv[sys.argv.index("--") + 1:] if "--" in sys.argv else []
+for prop_name in wanted or PROPS:
+    PROPS[prop_name]()

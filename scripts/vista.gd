@@ -23,6 +23,7 @@ const AQUEDUCT_UPPER: float = 11.0   # upper arcade height under the deck
 const AQUEDUCT_LOWER: float = 19.0   # taller lower arcade
 const Cavern = preload("res://scripts/cavern.gd")
 const VistaLight = preload("res://scripts/vista_light.gd")
+const VistaForeground = preload("res://scripts/vista_foreground.gd")
 var lamp_points := PackedVector3Array()
 var lamp_noise := FastNoiseLite.new()
 
@@ -319,6 +320,7 @@ func build() -> void:
 	cascade(Vector3(-29,-57.4,-140),Vector2(4.5,101))
 	# The closed cavern needs every terrace in vista.ledges, so it comes last.
 	Cavern.new(self).build()
+	VistaForeground.new(self).build()
 	VistaLight.new(self).build()
 	mist(Vector3(4,-151,-163),Vector3(90,55,218),.018,Color("9bbbc4"))
 	mist(Vector3(8,38,-258),Vector3(33,64,43),.007,Color("bdd8db"))
@@ -722,6 +724,9 @@ func bank_towers(center: Vector2, sx: float, sz: float, top: float, seed_value: 
 		var z: float = center.y+(0.0 if count==1 else (k*2-1)*sz*.42)
 		var half: float = local.randf_range(5.5,7.5)
 		var c = Vector2(center.x+inward*(sx-half-2.5),z)
+		# Towers never stand in the overlook's sightline to a rock-cut gate.
+		if blocks_gate_sightline(c,half+4):
+			continue
 		persian_tower(c,half,top,top+local.randf_range(10,19),seed_value+k)
 
 func persian_tower(c: Vector2, half: float, bottom: float, top: float, style: int) -> void:
@@ -759,3 +764,13 @@ func persian_tower(c: Vector2, half: float, bottom: float, top: float, style: in
 	hang.rotation.y = out*PI*.5
 	lamp(Vector3(c.x+out*(half+1.0),top+1.2,c.y),.3,true)
 	ledges.append({"center":c,"height":top+.6,"rx":half+1.1,"rz":half+1.1})
+
+func blocks_gate_sightline(c: Vector2, margin: float) -> bool:
+	var eye := Vector2(VistaLight.EYE.x,VistaLight.EYE.z)
+	for gate: Array in Cavern.PORTALS:
+		var sill: Vector3 = Cavern.portal_sill(gate)
+		var target := Vector2(sill.x,sill.z)
+		var t: float = clampf((c-eye).dot(target-eye)/eye.distance_squared_to(target),0.0,1.0)
+		if c.distance_to(eye.lerp(target,t))<margin:
+			return true
+	return false

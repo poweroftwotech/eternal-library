@@ -544,3 +544,47 @@ Slices 4 (aqueducts, tunnel portals, stepped falls, walkers) and 5
 | warm/cool split (need 29) | 58 | 49 | **36 ok** |
 
 Preview: `previews/vista_v016.png`. Slice 5 (foreground framing) remains.
+
+**Slice 5 (done 2026-10-18), foreground framing.** New
+`scripts/vista_foreground.gd` (after the cavern, before the lighting pass);
+tuning numbers at its top.
+- **Lamassu colossi:** `lamassu.glb` (new in `tools/build_props.py`, which now
+  takes `-- name ...` to build single props): a human-headed winged bull,
+  about 6.2 m, with five legs, four feather rows per wing, a ridged beard and
+  a horned tiara, on a plinth with a mosaic band. Two stand at ×4 (about
+  25 m) on rough rock piers (`Cavern.column`) with dressed plinth courses,
+  flanking the near gorge at (−30, −62) and (36, −66) and turned 0.5 rad
+  toward the overlook, like the box art's gate guardians. They use their own
+  warm-grey `vista_colossus` stone (plain limestone glared: near flanks 1.53)
+  and a soft warm key from below.
+- **Stair:** a monumental rock-cut stair (14 steps, 5 m wide, one mass down
+  to y −20) runs from just outside the balcony's front-left guard down into
+  the lower-left quadrant, to a faience-edged landing near the left
+  colossus. Its side walls are stepped mosaic, with a winged relief every
+  third step on the side the overlook sees, and a kilim on each tread. A
+  single sloped runner plane cut through the step noses and filled the frame
+  edge beside the camera. Two more kilims hang over the parapet; they sit
+  low in the frame and are mostly under the HUD.
+- **Gate sightlines:** `vista.blocks_gate_sightline()` skips bank towers in
+  the overlook's line to a gate; `Cavern.portal_sill()` is now static.
+- **Still open:** the gates remain hidden from the overlook. The new capture
+  mode `vista_gate` (from the overlook, zoomed on gate B) shows bank 4's front
+  tiers and the right colossus's crown in the way. Exposing one needs a
+  decision: move a gate (for example onto a colossus pier or the vault wall
+  above bank 2), lower bank 4's front, or accept that the high crossings
+  carry the tunnelling read.
+- **Gate:** every box-art check passes (table). Playtest 43/43, geometry
+  32/32, atmosphere 9/9, headless 3/3 clean. Frame time 4.36 ms. The interior
+  is unchanged.
+
+| region | box art | slice 4 | slice 5 |
+|---|---|---|---|
+| vault | 49 | 43 | **43 ok** |
+| focal glow | 144 | 119 | **119 ok** |
+| far depth band | 91 | 97 | **96 ok** |
+| near flanks | 70 | 64 | **75 ok (1.07)** |
+| mist floor | 108 | 108 | **96 ok** |
+| empty void | 6.9% | 0.1% | 1.0% ok |
+| warm/cool split (need 29) | 58 | 36 | **50 ok** |
+
+Preview: `previews/vista_v017.png`. All five planned slices are done.
