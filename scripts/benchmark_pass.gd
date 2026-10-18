@@ -97,10 +97,6 @@ func ring(pose: Vector3, radius: float, thickness: float, material: Material, ve
 
 func camp_detail() -> void:
 	var hearth: Vector3 = world.hearth
-	ring(hearth+Vector3(0,1.045,0),.692,.022,art.mat("iron_cook"))
-	for i in range(16):
-		var a: float = TAU*i/16
-		art.sphere(hearth+Vector3(sin(a)*.673,.94,cos(a)*.673),Vector3.ONE*.028,art.mat("iron"))
 	# Charcoal shards and ember seams remain visible below the belly of the pot.
 	for i in range(28):
 		var p = hearth+Vector3(rng.randf_range(-.65,.65),.12,rng.randf_range(-.57,.57))

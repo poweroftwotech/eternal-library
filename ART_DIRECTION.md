@@ -198,8 +198,13 @@ archive).
    (PLACEHOLDER drops the names) and needs a UV layer for tangents. The
    hearth ring's front stone was removed so a log shows through, like the
    concept. `GARDEN_KEY_ENERGY` went 17 → 15 to keep the whole frame inside
-   ±15%. Next: cauldron, ladle, lantern, bowls, bedroll/pack as meshes, and
-   particle flames.
+   ±15%. Cauldron done too: `cauldron.glb` (hammered belly, rolled lip, 3
+   legs, D-ring handles) uses its own `cauldron_iron` material (iron_cook px
+   at albedo 0.36, metallic 0.6) because the wider belly caught more
+   firelight and pushed the hearth region to 1.20. Hearth flames are now
+   `world.fire_particles()`: additive GPU particles for flames (40, kept low)
+   and turbulent embers, in place of the five flame cards. Gate: hearth
+   1.14, whole frame 1.15. Next: ladle, lantern, bowls, bedroll/pack as meshes.
    Original brief: **Hero props as authored meshes** (Blender → glTF in `assets/models/`,
    textures painted at 32 texels/m): cauldron + stew surface, fire logs,
    lantern, three ingredient bowls (mushrooms, roots, herbs), bedroll,

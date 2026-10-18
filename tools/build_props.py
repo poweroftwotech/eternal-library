@@ -151,5 +151,71 @@ def stew():
     export("stew")
 
 
+
+def tube(bm, rng, path, radius, mat_index, segs=8):
+    """Round tube along a polyline (handles, legs)."""
+    rings = []
+    for k, p in enumerate(path):
+        q = path[min(k + 1, len(path) - 1)]
+        o = path[max(k - 1, 0)]
+        d = [q[i] - o[i] for i in range(3)]
+        n = math.sqrt(sum(a * a for a in d)) or 1
+        d = [a / n for a in d]
+        up = (0, 0, 1) if abs(d[2]) < .9 else (1, 0, 0)
+        u = (d[1] * up[2] - d[2] * up[1], d[2] * up[0] - d[0] * up[2], d[0] * up[1] - d[1] * up[0])
+        un = math.sqrt(sum(a * a for a in u))
+        u = [a / un for a in u]
+        v = (d[1] * u[2] - d[2] * u[1], d[2] * u[0] - d[0] * u[2], d[0] * u[1] - d[1] * u[0])
+        r = radius(k / (len(path) - 1)) if callable(radius) else radius
+        rings.append([bm.verts.new([p[i] + (u[i] * math.cos(s / segs * math.tau) + v[i] * math.sin(s / segs * math.tau)) * r for i in range(3)]) for s in range(segs)])
+    for a, b in zip(rings, rings[1:]):
+        for s in range(segs):
+            bm.faces.new((a[s], a[(s + 1) % segs], b[(s + 1) % segs], b[s])).material_index = mat_index
+    for ring, flip in ((rings[0], True), (rings[-1], False)):
+        bm.faces.new(ring[::-1] if flip else ring).material_index = mat_index
+
+
+def cauldron():
+    """Round-bellied hammered iron cauldron: rolled lip, 3 legs, D-ring side
+    handles on lugs. Rim radius ~.70 at 1.06 m so the stew (.92) and the pot
+    interaction volume keep their positions."""
+    reset()
+    rng = random.Random(4403)
+    bm = bmesh.new()
+    # (radius, height) outer belly up to the lip, then the inner wall down to
+    # a hidden floor under the stew surface.
+    profile = [(.0, .30), (.30, .30), (.50, .35), (.64, .45), (.73, .60), (.74, .70), (.70, .84),
+               (.65, .95), (.64, .99), (.69, 1.02), (.72, 1.055), (.69, 1.08), (.64, 1.07),
+               (.61, 1.02), (.60, .95), (.0, .88)]
+    segs = 40
+    grid = []
+    for k, (r, z) in enumerate(profile):
+        ring = []
+        for s in range(segs):
+            a = s / segs * math.tau
+            # Hammered belly: small per-vertex dents, none on the lip.
+            rr = r * (1 + (rng.uniform(-.018, .012) if 2 <= k <= 6 else 0))
+            ring.append(bm.verts.new((math.cos(a) * rr, math.sin(a) * rr, z)))
+        grid.append(ring)
+    for a, b in zip(grid, grid[1:]):
+        for s in range(segs):
+            bm.faces.new((a[s], a[(s + 1) % segs], b[(s + 1) % segs], b[s]))
+    bmesh.ops.remove_doubles(bm, verts=grid[0] + grid[-1], dist=.001)
+    for i in range(3):
+        a = i / 3 * math.tau + math.pi / 6
+        top = (math.cos(a) * .44, math.sin(a) * .44, .36)
+        foot = (math.cos(a) * .56, math.sin(a) * .56, .02)
+        tube(bm, rng, [top, ((top[0] + foot[0]) / 2, (top[1] + foot[1]) / 2, .17), foot], lambda t: .05 - t * .02, 0)
+    for side in (-1, 1):
+        # Lug on the shoulder, then a drooping D-ring through it.
+        tube(bm, rng, [(side * .66, 0, .97), (side * .78, 0, .97)], .035, 0, 6)
+        path = [(side * (.78 + math.sin(j / 12 * math.pi) * .17), 0, .97 - (1 - math.cos(j / 12 * math.pi)) * .17) for j in range(13)]
+        tube(bm, rng, path, .02, 0)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    new_object("Cauldron", bm, ["cauldron_iron"])
+    export("cauldron")
+
+
 fire_logs()
 stew()
+cauldron()

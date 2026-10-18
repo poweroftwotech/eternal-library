@@ -270,18 +270,9 @@ func build_camp() -> void:
 	art.model("fire_logs",hearth)
 	for i in range(18):
 		art.sphere(hearth+Vector3(art.rng.randf_range(-.45,.45),.24,art.rng.randf_range(-.36,.36)),Vector3(.1,.07,.12),art.mat("ember"))
-	var profile = [Vector2(0,.3),Vector2(.43,.3),Vector2(.61,.44),Vector2(.66,.78),Vector2(.68,.98),Vector2(.72,1.02),Vector2(.70,1.08),Vector2(.65,1.08),Vector2(.62,.98),Vector2(.59,.48),Vector2(.4,.36),Vector2(0,.36)]
-	art.mesh_node(art.lathe(profile,32),hearth,art.mat("iron_cook"))
+	# v0.12: authored cauldron (tools/build_props.py): belly, lip, legs, handles.
+	art.model("cauldron",hearth)
 	art.model("stew",hearth+Vector3(0,.92,0))
-	for side in [-1,1]:
-		art.segment(hearth+Vector3(side*.55,.35,0),hearth+Vector3(side*.55,.02,0),.038,art.mat("iron"))
-		# Handles are open arcs, not solid discs.
-		for j in range(10):
-			var a: float = j*PI/10
-			var b: float = (j+1)*PI/10
-			var p = hearth+Vector3(side*(.67+sin(a)*.20),.81+cos(a)*.18,0)
-			var q = hearth+Vector3(side*(.67+sin(b)*.20),.81+cos(b)*.18,0)
-			art.segment(p,q,.025,art.mat("iron"))
 	for i in range(10):
 		var angle: float = i*2.4
 		art.sphere(hearth+Vector3(cos(angle)*.42,.95,sin(angle)*.42),Vector3(.1,.025,.07),art.mat("root") if i%2 else art.mat("leaf"))
@@ -306,8 +297,9 @@ func build_camp() -> void:
 		book.rotation.y = i*.15
 	lantern(Vector3(-3.35,.56,4.8))
 	# Sprite effects remain world-space objects, not a painted screenshot backdrop.
-	for i in range(5):
-		effect("flame",hearth+Vector3((i-2)*.15,.40,art.rng.randf_range(-.15,.15)),Vector2(.28,.62),i*.8)
+	# v0.12: GPU particle flames and rising embers replace the flat flame cards.
+	fire_particles(hearth+Vector3(0,.14,-.05),Vector3(.55,.03,.3),40,.6,Vector2(.24,.36),Vector2(.3,.6),Color(.9,.6,.28),Color(.7,.2,.05,0))
+	fire_particles(hearth+Vector3(0,.3,0),Vector3(.35,.1,.3),26,2.4,Vector2(.03,.03),Vector2(.35,.8),Color(3.0,1.4,.4),Color(1.2,.25,.05,0),true)
 	for i in range(8):
 		effect("steam",hearth+Vector3(art.rng.randf_range(-.25,.25),1.15,art.rng.randf_range(-.2,.2)),Vector2(.42,.64),i*.71)
 
@@ -463,3 +455,58 @@ func _process(delta: float) -> void:
 			node.position = effect_data.origin+Vector3((sin(phase*.9)*.22+.18)*t,t*1.5,cos(phase*.7)*.16*t)
 			node.scale = Vector3(.6+t*1.5,.65+t*.9,1)
 			effect_data.material.albedo_color.a = sin(t*PI)*.30*(1-t*.7)
+
+## Additive billboard particles for the hearth. Flames: short-lived, buoyant,
+## shrinking flame.png cards. Embers (sparks = true): tiny, long-lived, turbulent.
+func fire_particles(pose: Vector3, extents: Vector3, amount: int, lifetime: float, size: Vector2, speed: Vector2, hot: Color, cool: Color, sparks: bool = false) -> GPUParticles3D:
+	var process: ParticleProcessMaterial = ParticleProcessMaterial.new()
+	process.emission_shape = ParticleProcessMaterial.EMISSION_SHAPE_BOX
+	process.emission_box_extents = extents
+	process.direction = Vector3.UP
+	process.spread = 25.0 if sparks else 10.0
+	process.initial_velocity_min = speed.x
+	process.initial_velocity_max = speed.y
+	process.gravity = Vector3(0,.4 if sparks else .9,0)
+	process.scale_min = .7
+	process.scale_max = 1.3
+	var shrink: Curve = Curve.new()
+	shrink.add_point(Vector2(0,.6 if not sparks else 1.0))
+	shrink.add_point(Vector2(.35,1.0))
+	shrink.add_point(Vector2(1,0))
+	var shrink_texture: CurveTexture = CurveTexture.new()
+	shrink_texture.curve = shrink
+	process.scale_curve = shrink_texture
+	var ramp: Gradient = Gradient.new()
+	ramp.set_color(0,hot)
+	ramp.set_color(1,cool)
+	var ramp_texture: GradientTexture1D = GradientTexture1D.new()
+	ramp_texture.gradient = ramp
+	process.color_ramp = ramp_texture
+	if sparks:
+		process.turbulence_enabled = true
+		process.turbulence_noise_strength = 1.4
+		process.turbulence_noise_scale = 2.0
+	var material: StandardMaterial3D = StandardMaterial3D.new()
+	material.shading_mode = BaseMaterial3D.SHADING_MODE_UNSHADED
+	material.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA
+	material.blend_mode = BaseMaterial3D.BLEND_MODE_ADD
+	material.billboard_mode = BaseMaterial3D.BILLBOARD_PARTICLES
+	material.vertex_color_use_as_albedo = true
+	material.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST
+	if not sparks:
+		material.albedo_texture = load("res://assets/textures/flame.png")
+	var quad: QuadMesh = QuadMesh.new()
+	quad.size = size
+	quad.material = material
+	var particles: GPUParticles3D = GPUParticles3D.new()
+	particles.amount = amount
+	particles.lifetime = lifetime
+	particles.preprocess = lifetime*2.0
+	particles.process_material = process
+	particles.draw_pass_1 = quad
+	particles.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	particles.visibility_aabb = AABB(Vector3(-1,-.3,-1),Vector3(2,2.5,2))
+	particles.position = pose
+	particles.set_meta("dynamic",true)
+	add_child(particles)
+	return particles

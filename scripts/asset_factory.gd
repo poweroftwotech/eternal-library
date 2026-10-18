@@ -34,6 +34,14 @@ func _init(parent: Node3D) -> void:
 func mat(name: String) -> StandardMaterial3D:
 	if materials.has(name):
 		return materials[name]
+	if name == "cauldron_iron":
+		# Concept pot: dark hammered iron with crisp highlights, not firelit brown.
+		var iron: StandardMaterial3D = mat("iron_cook").duplicate()
+		iron.albedo_color = Color(.36,.35,.34)
+		iron.metallic = .6
+		iron.roughness = .7
+		materials[name] = iron
+		return iron
 	var result = StandardMaterial3D.new()
 	result.texture_filter = BaseMaterial3D.TEXTURE_FILTER_NEAREST_WITH_MIPMAPS
 	result.roughness = 1.0
