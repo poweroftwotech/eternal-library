@@ -358,55 +358,90 @@ def drum(bm, centre, radius, height, mat_index, segs=14):
         f.material_index = mat_index
 
 
+def ball(bm, centre, radius, mat_index, squash=1.0):
+    before = set(bm.faces)
+    made = bmesh.ops.create_uvsphere(bm, u_segments=8, v_segments=5, radius=radius)
+    for v in made["verts"]:
+        v.co.z *= squash
+    bmesh.ops.translate(bm, verts=made["verts"], vec=centre)
+    for f in set(bm.faces) - before:
+        f.material_index = mat_index
+
+
+def soften(obj, levels=1):
+    """Subdivision applied on export: rounded, worn masses instead of boxes."""
+    mod = obj.modifiers.new("soften", "SUBSURF")
+    mod.levels = levels
+    mod.render_levels = levels
+
+
 def lamassu():
-    """Gate colossus for the overlook (ART_DIRECTION.md section 8, slice 5): a
-    human-headed winged bull on a plinth, about 6.2 m tall. It is shown at
-    roughly 4x in the gorge, so only the silhouette and the big carved masses
-    matter: five legs (the Assyrian convention), layered feather-row wings, a
-    long ridged beard and a horned tiara. Front = -Y (Godot +Z)."""
+    """Gate colossus for the overlook (ART_DIRECTION.md section 8, slices 5 and
+    8): a human-headed winged bull on a plinth, about 6.2 m tall, shown at
+    roughly 4x. Slice 8 re-sculpts it so it reads at gorge distance: every
+    carved mass is subdivided (rounded, worn edges), the beard and hair are
+    rows of curls over a dark crevice backing, the face has a brow, nose and
+    deep-set eyes, and the horned tiara has a feathered rim. The plinth stays
+    crisp (a separate, unsubdivided object). Front = -Y (Godot +Z)."""
     reset()
+    stone, plinth, band, crevice = 0, 1, 2, 3
+    materials = ["vista_colossus", "sandstone", "mosaic", "vista_colossus_crevice"]
     bm = bmesh.new()
-    stone, plinth, band = 0, 1, 2
     bevel_box(bm, (0, .2, .35), (2.1, 4.8, .7), .06, plinth)
     bevel_box(bm, (0, -2.21, .35), (1.9, .06, .4), .01, band)
     for side in (-1, 1):
         bevel_box(bm, (side * 1.06, .2, .35), (.06, 4.4, .4), .01, band)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    new_object("LamassuPlinth", bm, materials)
+
+    bm = bmesh.new()
     # Bull body: deep chest at the front, tapering haunch behind.
     bevel_box(bm, (0, .35, 2.45), (1.45, 3.1, 1.55), .3, stone)
-    for v in bm.verts:
-        if v.co.z > 1.6 and v.co.y > -1.4:
-            v.co.x *= 1.0 - .08 * (v.co.y + 1.2) / 3.0
     bevel_box(bm, (0, -1.05, 2.6), (1.35, .9, 1.7), .3, stone)
-    # Five legs: two square front legs, two striding rear legs, one extra in the
-    # side view so the colossus reads standing from the front and walking from
-    # the side.
+    # Five legs with hooves.
     for x, y in ((-.45, -1.15), (.45, -1.15), (-.45, 1.45), (.45, 1.45), (.47, -.35)):
-        bevel_box(bm, (x, y, 1.25), (.42, .5, 1.1), .08, stone)
-        bevel_box(bm, (x, y - .04, .8), (.5, .6, .22), .05, stone)
+        bevel_box(bm, (x, y, 1.3), (.4, .48, 1.05), .1, stone)
+        bevel_box(bm, (x, y - .04, .82), (.5, .6, .24), .07, stone)
     tilted_box(bm, (0, 2.0, 2.3), (.2, .5, 1.3), .5, 0, stone)
-    # Wings: four overlapping feather rows sweep up and back along each flank.
+    # Wings: dark backing first, so the gaps between feather rows read.
     for side in (-1, 1):
+        tilted_box(bm, (side * .78, .7, 3.6), (.06, 2.9, 1.9), .52, 0, crevice, .02)
         for row in range(4):
             length = 2.9 - row * .35
-            tilted_box(bm, (side * (.82 + row * .05), .55 + row * .12, 3.35 + row * .42),
-                       (.14, length, .55), .52, 0, stone, .05)
+            tilted_box(bm, (side * (.84 + row * .05), .55 + row * .12, 3.35 + row * .42),
+                       (.14, length, .5), .52, 0, stone, .05)
             for k in range(int(length / .32)):
-                tilted_box(bm, (side * (.9 + row * .05), -.6 + row * .12 + k * .3, 3.12 + row * .42 + k * .155),
-                           (.08, .22, .3), .52, 0, stone, .02)
-    # Human head, long ridged beard, and a tiara with three horn bands.
-    bevel_box(bm, (0, -1.55, 3.85), (.92, .9, 1.05), .18, stone)
-    bevel_box(bm, (0, -1.98, 3.95), (.26, .2, .42), .06, stone)
-    for k in range(5):
-        bevel_box(bm, (0, -1.92, 3.2 - k * .2), (.86 - k * .06, .34, .19), .05, stone)
+                tilted_box(bm, (side * (.92 + row * .05), -.6 + row * .12 + k * .3, 3.12 + row * .42 + k * .155),
+                           (.08, .22, .28), .52, 0, stone, .02)
+    # Head: face, brow ridge, nose, deep-set eyes, ears.
+    bevel_box(bm, (0, -1.55, 3.95), (.9, .88, .95), .2, stone)
+    bevel_box(bm, (0, -2.0, 4.18), (.78, .16, .14), .05, stone)
+    tilted_box(bm, (0, -2.03, 3.95), (.2, .16, .36), -.25, 0, stone, .05)
     for side in (-1, 1):
-        bevel_box(bm, (side * .52, -1.45, 3.75), (.14, .36, .5), .05, stone)
+        bevel_box(bm, (side * .2, -1.99, 4.06), (.18, .04, .09), .01, crevice)
+        bevel_box(bm, (side * .5, -1.45, 3.9), (.12, .3, .42), .05, stone)
+    # Beard and hair: rows of curls over a dark backing.
+    bevel_box(bm, (0, -1.88, 3.15), (.78, .1, 1.05), .02, crevice)
+    for row in range(5):
+        width = .78 - row * .06
+        count = 5 - row // 2
+        for k in range(count):
+            x = -width / 2 + width * (k + .5) / count
+            ball(bm, (x, -1.97, 3.6 - row * .22), .1, stone, 1.15)
+    for side in (-1, 1):
+        bevel_box(bm, (side * .44, -1.2, 3.55), (.08, .5, .7), .02, crevice)
+        for row in range(3):
+            for k in range(2):
+                ball(bm, (side * .49, -1.33 + k * .26, 3.8 - row * .24), .1, stone, 1.1)
+    # Tiara: drum, three horn bands, feathered rim.
     drum(bm, (0, -1.5, 4.85), .5, .95, stone)
     for k in range(3):
         drum(bm, (0, -1.5, 4.5 + k * .3), .54, .07, band)
-    bevel_box(bm, (0, -1.5, 5.4), (1.04, 1.04, .14), .03, stone)
+    for k in range(12):
+        a = k / 12 * math.tau
+        bevel_box(bm, (math.cos(a) * .46, -1.5 + math.sin(a) * .46, 5.38), (.16, .16, .2), .03, stone)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
-    # vista_colossus is a darker limestone made in vista_foreground.gd.
-    new_object("Lamassu", bm, ["vista_colossus", "sandstone", "mosaic"])
+    soften(new_object("Lamassu", bm, materials))
     export("lamassu")
 
 

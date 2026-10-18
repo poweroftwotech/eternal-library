@@ -620,3 +620,95 @@ What changed:
   limit: the lamplit opening is bright. Playtest 43/43, geometry 32/32,
   atmosphere 9/9, headless 3/3 clean, frame time 4.5 ms, interior unchanged.
   Previews: `previews/vista_v018.png`, `vista_gate_v018.png`.
+
+### Next level (2026-10-18): slices 6–8
+
+The user's notes after slice 5: looking back from the balcony edge there was
+no exterior (the balcony read as a pavilion in empty space; the reading room
+should feel tunnelled into solid ground); the facades read as nothing but
+bookshelves; and everything had sharp, unworn corners, with statues that were
+hard to read. They wanted weathering that reads as old and cared for, not
+abandoned. Mockups were agreed first: the loggia in a cliff, a mixed facade
+(stacks, lattice windows, doorways, balcony windows, tile panels) and a
+weathering sheet.
+
+**Slice 6 (done 2026-10-18), the cliff.** New `scripts/vista_cliff.gd`, run
+after the foreground pass.
+- **Cliff face:** a noise-relief rock face (`gorge_roof`, layer 4,
+  shadowless) at the parapet line (z −28.45), x −160..160, from the balcony
+  floor up past the vault (which hides its top). The rock is dressed flat
+  around the loggia and at each window.
+- **Loggia:** an opening matching the balcony slab (x −7.55..5.55, up to the
+  canopy top at 9.1), with flat rock cheeks, a soffit, and a back wall at z −18.4
+  with the gallery passage cut through it.
+- **Iwan:** a pointed limestone iwan (`arch_bay`, 18.1 × 17.8 m) frames the
+  loggia, with its spring at the canopy top, a mosaic tympanum above the
+  canopy, a faience band, lamps on the piers and a short warm light. A 26 m
+  version reached the near colossus and pushed the near flanks to 1.24.
+- **Windows:** seven lit rock-cut windows (pointed frames, sills, lamplight
+  behind) hint at more rooms inside the rock.
+- **Unchanged:** the balcony's collision and guards. Render-only.
+- **Capture modes:** `balcony_back`, `balcony_side`, and the `vista_cliff`
+  debug viewpoint.
+- **Gate:** all box-art checks pass (near flanks 1.22). Playtest 43/43,
+  geometry 32/32, atmosphere 9/9, headless 3/3 clean, frame time 4.36 ms,
+  interior unchanged. Previews: `previews/balcony_back_v019.png`,
+  `balcony_side_v019.png`, `vista_cliff_v019.png`. The cliff relief is faceted
+  and dark from the gorge; slice 8 (weathering) revisits it.
+
+**Slice 7 (done 2026-10-18), facade module mix.** `vista.arcade()` no longer
+puts a bookshelf in every arch. A position hash (stable between runs) picks
+one of five modules, and the shape says what each one is:
+- **Doorway** (12%, terrace row only): a tall lit pointed opening, a step and
+  a figure in it, plus a lamp.
+- **Lattice window** (22%): a pointed frame, lamplight behind the
+  `lit_window` muntins, and a sill.
+- **Balcony window** (8%): the same, with a slab, five balusters and a gold
+  rail.
+- **Book stack**: a *rectangular* framed bay (jambs, lintel, cornice) around a
+  recessed `stack_atlas` wall (`gorge_stacks`, albedo ×0.72). 35% have a
+  rolling ladder. Stacks within 110 m are warm-lit (`gorge_stacks_near`).
+- **Tile panel** (14%): a faience panel in a sandstone surround.
+
+The alpha shelf insets (`gorge_shelves`) are gone. The tuning constants are
+`FACADE_*`, `STACK_SHADE` and `WINDOW_GLOW` at the top of `vista.gd`.
+- **Brightness:** with about 4 bays in 10 now lit openings, the near flanks
+  rose to 1.27–1.28. Three local fixes (window glow, near-stack glow, stack
+  shade) moved them less than 0.01. The iteration gate stopped the loop, and
+  the user picked strategy B (dim the warm exterior lights) over A (darker
+  trim stone). `VAULT_BOUNCE_ENERGY` 0.8 → 0.68 and `CLUSTER_ENERGY` 6 → 5
+  brought the flanks to 1.24. Window and near-stack glow went back to their
+  old values; the 0.72 stack shade stays, because it reads as a recess.
+- **Gate:** all box-art checks pass (near flanks 1.24, at the edge). Playtest
+  43/43, geometry 32/32, atmosphere 9/9, headless 3/3 clean. Frame time 5.04
+  ms (slice 6: 4.36), from the extra frame and ladder instances. Interior
+  unchanged. Previews: `previews/vista_v020.png`, `facade_mix_v020.png`.
+
+**Slice 8 (done 2026-10-18), weathering: lived-in, not abandoned.**
+- **Lamassu re-sculpt** (`tools/build_props.py`): every carved mass is
+  subdivided once on export (`soften()`, rounded worn edges; level 2 made a
+  4.8 MB file, level 1 is 1.2 MB). The face has a brow ridge, nose and
+  deep-set eyes. The beard (5 rows) and side hair are rows of curls over a
+  dark backing. The tiara has a feathered rim, and dark slabs behind the
+  wings make the gaps between feather rows read. Recesses use the new
+  `vista_colossus_crevice` stone (`COLOSSUS_STONE` darkened 62%). The
+  plinth is a separate, unsubdivided object, so it stays crisp.
+- **Merlons** (`vista.merlons()`): 5% lost, 12% missing their cap, 10%
+  rebuilt in pale `vista_repair` stone, all slightly out of square. A
+  position hash (`hash01`) keeps it stable.
+- **Rain stains** (`weather_edge()`): dark `vista_grime` (`3a342d`) stains
+  every ~1.7 m along deck fascias and gold bands (65%), plus streaks down the
+  slim piers. Stains on the wall itself were invisible: the bay frames stand
+  0.43–0.5 m proud and the decks overhang by 2.2 m. The first grime colour
+  (`5d554b`) disappeared under the warm lamplight.
+- **Moss lines** along 35% of deck edges, and **stone of three ages** per tier
+  (`gorge_stone`, darker `_aged`, warmer `_clean`).
+- **Honest caveat:** the big wall planes are still evenly clean at overlook
+  distance. Real grime gradients, such as darkening under ledges or around
+  openings, would need a weathered px map variant (a follow-up). The first GPU
+  capture after adding material variants came out dark, because shaders were
+  still compiling. Recapture before trusting a sudden drop.
+- **Gate:** all box-art checks pass (near flanks 1.20). Playtest 43/43 (merged
+  static groups 89, ceiling 100), geometry 32/32, atmosphere 9/9, headless 3/3
+  clean. Frame time 5.47 ms (slice 7: 5.04). Interior unchanged. Previews:
+  `previews/vista_v021.png`, `lamassu_v021.png`, `weathering_v021.png`.

@@ -17,6 +17,22 @@ var ledges: Array = []
 var tower_count: int = 0
 var cypress_mesh: Mesh
 var portal_count: int = 0
+## Facade module mix (slice 7), as fractions of bays. Doorways only on the
+## terrace-level row; stacks take whatever the others leave.
+const FACADE_DOORWAY: float = .12
+const FACADE_WINDOW: float = .22
+const FACADE_BALCONY: float = .08
+const FACADE_PANEL: float = .14
+const FACADE_LADDER: float = .35        # share of stacks with a rolling ladder
+const STACK_SHADE: float = .72          # albedo multiplier on facade book stacks
+const WINDOW_GLOW: float = .38          # lit-window emission
+## Weathering (slice 8): lived-in, not abandoned.
+const MERLON_LOST: float = .05
+const MERLON_CAPLESS: float = .12
+const MERLON_REPAIRED: float = .10
+const STREAK_SPACING: float = 1.7        # metres between rain stains on a deck fascia
+const STREAK_CHANCE: float = .65
+const MOSS_CHANCE: float = .35          # share of deck edges with a moss line
 const AQUEDUCT_BAY: float = 11.0     # target span between pier centres
 const AQUEDUCT_PIER: float = 1.2     # half-pier width at each bay end
 const AQUEDUCT_UPPER: float = 11.0   # upper arcade height under the deck
@@ -24,6 +40,7 @@ const AQUEDUCT_LOWER: float = 19.0   # taller lower arcade
 const Cavern = preload("res://scripts/cavern.gd")
 const VistaLight = preload("res://scripts/vista_light.gd")
 const VistaForeground = preload("res://scripts/vista_foreground.gd")
+const VistaCliff = preload("res://scripts/vista_cliff.gd")
 var lamp_points := PackedVector3Array()
 var lamp_noise := FastNoiseLite.new()
 
@@ -45,6 +62,13 @@ func exterior_materials() -> void:
 	var carpet = art.mat("rug").duplicate()
 	carpet.cull_mode = BaseMaterial3D.CULL_DISABLED
 	art.materials["vista_carpet"] = carpet
+	# Weathering (slice 8): grime for rain streaks, pale fresh stone for repairs.
+	var grime = art.mat("sandstone").duplicate()
+	grime.albedo_color = Color("3a342d")   # dark enough to read under warm lamplight
+	art.materials["vista_grime"] = grime
+	var repair = art.mat("limestone").duplicate()
+	repair.albedo_color = Color("e8dfcc")
+	art.materials["vista_repair"] = repair
 	var gold = art.mat("brass").duplicate()
 	gold.albedo_color = Color("c6a66b")
 	gold.metallic = .25
@@ -64,7 +88,7 @@ func exterior_materials() -> void:
 	art.materials["vista_dome"] = dome
 	var windows = art.mat("lit_window").duplicate()
 	windows.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
-	windows.emission_energy_multiplier = .38
+	windows.emission_energy_multiplier = WINDOW_GLOW
 	windows.emission = Color("e9bd77")
 	art.materials["vista_window"] = windows
 	var lamp = StandardMaterial3D.new()
@@ -321,6 +345,7 @@ func build() -> void:
 	# The closed cavern needs every terrace in vista.ledges, so it comes last.
 	Cavern.new(self).build()
 	VistaForeground.new(self).build()
+	VistaCliff.new(self).build()
 	VistaLight.new(self).build()
 	mist(Vector3(4,-151,-163),Vector3(90,55,218),.018,Color("9bbbc4"))
 	mist(Vector3(8,38,-258),Vector3(33,64,43),.007,Color("bdd8db"))
@@ -341,27 +366,27 @@ func build() -> void:
 	art.render_layer = 1
 
 func gorge_materials() -> void:
-	# Inset shelves carry true book scale; the old repeating building-facade atlas
-	# is not used on the banks. The masonry and arches are actual geometry.
-	var shelves = art.mat("gorge_books").duplicate()
-	shelves.uv1_triplanar = false
-	shelves.uv1_world_triplanar = false
-	shelves.uv1_scale = Vector3.ONE
-	shelves.albedo_color = Color("e1d5bd")
-	shelves.transparency = BaseMaterial3D.TRANSPARENCY_ALPHA_SCISSOR
-	shelves.alpha_scissor_threshold = .45
-	shelves.emission_enabled = true
-	shelves.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
-	shelves.emission_texture = shelves.albedo_texture
-	shelves.emission = Color("d3b488")
-	shelves.emission_energy_multiplier = .15
-	art.materials["gorge_shelves"] = shelves
-	# Near stacks are candle-lit from inside (tuned in vista_light.gd).
-	art.materials["gorge_shelves_near"] = shelves.duplicate()
+	# Rectangular book stacks (slice 7): the 2 m stack_atlas wall, warm-lit near.
+	var stacks = art.mat("stack_atlas").duplicate()
+	# Recessed book walls sit in their own shadow; full albedo read brighter
+	# than the old cut-out shelves (near flanks 1.28).
+	stacks.albedo_color = Color(STACK_SHADE,STACK_SHADE,STACK_SHADE)
+	art.materials["gorge_stacks"] = stacks
+	var near_stacks = stacks.duplicate()
+	near_stacks.emission_enabled = true
+	near_stacks.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
+	near_stacks.emission_texture = stacks.albedo_texture
+	art.materials["gorge_stacks_near"] = near_stacks
 	var stone = art.mat("sandstone").duplicate()
 	stone.albedo_color = Color("8b9c9c")
 	stone.uv1_scale = Vector3.ONE*.21
 	art.materials["gorge_stone"] = stone
+	var aged = stone.duplicate()
+	aged.albedo_color = Color("6f7a76")
+	art.materials["gorge_stone_aged"] = aged
+	var clean = stone.duplicate()
+	clean.albedo_color = Color("a09f92")
+	art.materials["gorge_stone_clean"] = clean
 	var pier = art.mat("exterior_faience").duplicate()
 	pier.uv1_scale = Vector3.ONE*.25
 	art.materials["gorge_pier"] = pier
@@ -411,7 +436,8 @@ func bank(center: Vector2, rx: float, rz: float, top: float, seed_value: int) ->
 		# setback reads as a ziggurat step.
 		# 0.88: a rectangle with the ellipse's radii would be ~27% larger in plan.
 		var polygon = tower_outline(center+offset,sx*.88,sz*.88,turn)
-		prism(polygon,bottom,h,art.mat("gorge_stone"))
+		# Stone of different ages tier by tier (slice 8): kept up, not rebuilt at once.
+		prism(polygon,bottom,h,art.mat(["gorge_stone","gorge_stone_aged","gorge_stone_clean"][int(hash01(Vector3(center.x,bottom,center.y))*3.0)]))
 		profile_variation = maxf(profile_variation,absf(last_rx-sx))
 		max_tier_height = maxf(max_tier_height,h)
 		var deck = tower_outline(center+offset,sx*.88+2.2,sz*.88+2.2,turn)
@@ -455,31 +481,90 @@ func facades(polygon: PackedVector2Array, bottom: float, height: float, style: i
 			var v: Vector2 = a.lerp(b,(j+.5)/bays)
 			for row in range(row_count):
 				var base = Vector3(v.x,bottom+.28+row*height/row_count,v.y)+normal*.09
-				arcade(base,yaw,style+j+row)
+				arcade(base,yaw,style+j+row,row)
 		# Slim projecting supports break up the shelf face and join cornices.
 		for v in [a,b]:
 			var pier = block(Vector3(v.x,bottom+height*.5,v.y)+normal*.21,Vector3(.42,height,.65),"gorge_pier")
 			pier.rotation.y = yaw
+			# Rain runs down the pier face from the deck above.
+			var top = Vector3(v.x,bottom+height,v.y)+normal*.56
+			if hash01(top)<STREAK_CHANCE:
+				var run: float = 1.5+hash01(top*3.1)*minf(height-2.0,6.0)
+				art.batch_box("gorge_streaks",top+Vector3.UP*(-run*.5),Vector3(.32,run,.03),art.mat("vista_grime"),yaw)
 		if bottom> -110 and (i+style)%9==0:
 			var at = Vector3(center.x,bottom+height*.70,center.y)+normal*3.5
 			world.light(at,Color("ffc790"),4.0,18)
 
-func arcade(base: Vector3, yaw: float, style: int) -> void:
+## One facade bay. The shape says what it is (slice 7): arches are openings
+## (lattice windows, balcony windows, doorways on the terrace row), book stacks
+## are rectangular framed bays, and plain faience panels rest the eye. The
+## module comes from a position hash, so the mix is stable between runs.
+func arcade(base: Vector3, yaw: float, style: int, row: int = 1) -> void:
+	shelf_bays += 1
+	var basis = Basis(Vector3.UP,yaw)
+	var near: bool = base.distance_to(VistaLight.EYE)<VistaLight.NEAR_SHELF_REACH
+	var pick: float = hash01(base)
+	if row==0 and pick<FACADE_DOORWAY:
+		arch_bay_module(base,basis,yaw,"doorway",near)
+	elif pick<FACADE_DOORWAY+FACADE_WINDOW:
+		arch_bay_module(base,basis,yaw,"window",near)
+	elif pick<FACADE_DOORWAY+FACADE_WINDOW+FACADE_BALCONY:
+		arch_bay_module(base,basis,yaw,"balcony",near)
+	elif pick<1.0-FACADE_PANEL:
+		stack_bay(base,basis,yaw,near,pick)
+	else:
+		tile_panel(base,basis,yaw)
+
+func arch_frame(base: Vector3, basis: Basis) -> void:
 	if arch_mesh==null:
 		var source = art.extrude(arcade_outline(),.43,art.mat("sandstone"),Vector3.ZERO)
 		arch_mesh = source.mesh
 		source.free()
-	var basis = Basis(Vector3.UP,yaw)
 	art.batch_mesh("gorge_arch_frames",arch_mesh,art.mat("sandstone"),Transform3D(basis,base))
-	var quad = QuadMesh.new()
-	quad.size = Vector2.ONE
-	var shelf_pose: Vector3 = base+Vector3.UP*2.1-basis.z*.04
-	var near: bool = base.distance_to(VistaLight.EYE)<VistaLight.NEAR_SHELF_REACH
-	art.batch_mesh("gorge_shelf_insets_near" if near else "gorge_shelf_insets",quad,art.mat("gorge_shelves_near" if near else "gorge_shelves"),Transform3D(basis*Basis.from_scale(Vector3(2.75,4.2,1)),shelf_pose))
-	if style%7==0:
-		window(base+Vector3.UP*2.3+basis.z*.04,Vector2(.86,2.65),yaw)
-	lamp(base+basis.x*1.62+Vector3.UP*2.56+basis.z*.42,.12)
-	shelf_bays += 1
+
+## Pointed opening with lamplight behind a lattice (the lit_window map's
+## muntins), as a window, a window with a small balcony, or a doorway with a
+## step and a figure in it.
+func arch_bay_module(base: Vector3, basis: Basis, yaw: float, kind: String, near: bool) -> void:
+	arch_frame(base,basis)
+	var glow: Vector3 = base+Vector3.UP*2.05-basis.z*.03
+	if kind=="doorway":
+		window(glow,Vector2(2.6,4.0),yaw)
+		art.batch_box("gorge_facade_trim",base+basis.z*.55+Vector3.UP*.1,Vector3(3.2,.2,.9),art.mat("sandstone"),yaw)
+		reader(base+basis.z*.25,yaw)
+		lamp(base+basis.x*1.9+Vector3.UP*3.0+basis.z*.42,.16,true)
+		return
+	window(glow+Vector3.UP*.35,Vector2(2.4,3.2),yaw)
+	art.batch_box("gorge_facade_trim",base+Vector3.UP*.55+basis.z*.12,Vector3(2.9,.16,.5),art.mat("sandstone"),yaw)
+	if kind=="balcony":
+		art.batch_box("gorge_facade_trim",base+Vector3.UP*.6+basis.z*.75,Vector3(3.0,.18,1.3),art.mat("sandstone"),yaw)
+		for k in range(5):
+			art.batch_box("gorge_balusters",base+basis.x*(k-2)*.7+Vector3.UP*1.0+basis.z*1.3,Vector3(.12,.75,.12),art.mat("sandstone"),yaw)
+		art.batch_box("gorge_facade_trim",base+Vector3.UP*1.42+basis.z*1.3,Vector3(3.0,.1,.14),art.mat("vista_gold"),yaw)
+	if near:
+		lamp(base+basis.x*1.62+Vector3.UP*2.56+basis.z*.42,.12)
+
+## Rectangular framed book stack: jambs, lintel and cornice around a recessed
+## two-metre book wall (stack_atlas), some with a rolling ladder.
+func stack_bay(base: Vector3, basis: Basis, yaw: float, near: bool, pick: float) -> void:
+	var stacks: String = "gorge_stacks_near" if near else "gorge_stacks"
+	art.batch_box(stacks,base+Vector3.UP*2.05-basis.z*.12,Vector3(2.9,4.1,.12),art.mat(stacks),yaw)
+	for side in [-1,1]:
+		art.batch_box("gorge_stack_frames",base+basis.x*side*1.6+Vector3.UP*2.15,Vector3(.32,4.3,.5),art.mat("sandstone"),yaw)
+	art.batch_box("gorge_stack_frames",base+Vector3.UP*4.42,Vector3(3.55,.3,.55),art.mat("sandstone"),yaw)
+	art.batch_box("gorge_stack_frames",base+Vector3.UP*4.66,Vector3(3.8,.18,.72),art.mat("sandstone"),yaw)
+	if fposmod(pick*7.0,1.0)<FACADE_LADDER:
+		for side in [-1,1]:
+			art.batch_box("gorge_ladders",base+basis.x*(.55+side*.22)+Vector3.UP*2.05+basis.z*.1,Vector3(.06,4.0,.06),art.mat("wood"),yaw)
+		for k in range(8):
+			art.batch_box("gorge_ladders",base+basis.x*.55+Vector3.UP*(.4+k*.48)+basis.z*.1,Vector3(.44,.05,.05),art.mat("wood"),yaw)
+	if near:
+		lamp(base+basis.x*1.62+Vector3.UP*2.56+basis.z*.42,.12)
+
+## Plain faience panel in a sandstone surround.
+func tile_panel(base: Vector3, basis: Basis, yaw: float) -> void:
+	art.batch_box("gorge_tile_panels",base+Vector3.UP*2.1-basis.z*.05,Vector3(2.9,4.0,.1),art.mat("exterior_faience"),yaw)
+	art.batch_box("gorge_stack_frames",base+Vector3.UP*4.25,Vector3(3.3,.22,.4),art.mat("sandstone"),yaw)
 
 func arcade_outline() -> PackedVector2Array:
 	# Both halves are two-centred pointed curves, matching the inset alpha mask.
@@ -511,6 +596,7 @@ func ledge_edges(polygon: PackedVector2Array, y: float, occupied: bool, style: i
 		if normal.dot(Vector3(-center.x,0,0).normalized())<.05 and normal.z<.35:
 			continue
 		var count: int = maxi(2,int(a.distance_to(b)/2.2))
+		weather_edge(a,b,normal)
 		if crowned:
 			# Bank tops end in stepped merlons, not a balustrade.
 			merlons(a,b)
@@ -706,8 +792,20 @@ func merlons(a: Vector3, b: Vector3) -> void:
 	var count: int = maxi(1,int(direction.length()/1.5))
 	for j in range(count):
 		var p: Vector3 = a.lerp(b,(j+.5)/count)
-		for step in range(3):
-			art.batch_box("gorge_merlons",p+Vector3.UP*(.2+step*.42),Vector3(.95-step*.3,.42,.42),art.mat("sandstone"),yaw)
+		# Worn but kept (slice 8): a few lost, some missing their cap, some
+		# rebuilt in fresh pale stone, and none sitting perfectly square.
+		var wear: float = hash01(p)
+		if wear<MERLON_LOST:
+			continue
+		var steps: int = 2 if wear<MERLON_LOST+MERLON_CAPLESS else 3
+		var stone: String = "vista_repair" if wear>1.0-MERLON_REPAIRED else "sandstone"
+		var tilt: float = (hash01(p*1.7)-.5)*.12
+		for step in range(steps):
+			art.batch_box("gorge_merlons_"+stone,p+Vector3.UP*(.2+step*.42),Vector3(.95-step*.3,.42,.42),art.mat(stone),yaw+tilt)
+
+## Stable per-position random in [0, 1).
+func hash01(p: Vector3) -> float:
+	return fposmod(sin(p.x*12.9898+p.y*78.233+p.z*37.719)*43758.5453,1.0)
 
 func cypress(p: Vector3, height: float) -> void:
 	if cypress_mesh==null:
@@ -774,3 +872,22 @@ func blocks_gate_sightline(c: Vector2, margin: float) -> bool:
 		if c.distance_to(eye.lerp(target,t))<margin:
 			return true
 	return false
+
+## Rain stains the deck fascia under its drip edge, and some deck edges hold
+## a thin line of moss along the joint. (On the wall itself the stains hid
+## behind the bay frames, which stand 0.43-0.5 m proud.)
+func weather_edge(a: Vector3, b: Vector3, normal: Vector3) -> void:
+	var length: float = a.distance_to(b)
+	var along: Vector3 = (b-a)/maxf(length,.01)
+	var yaw: float = atan2(normal.x,normal.z)
+	for k in range(int(length/STREAK_SPACING)):
+		var p: Vector3 = a+along*(k+.5)*STREAK_SPACING
+		var h: float = hash01(p)
+		if h>STREAK_CHANCE:
+			continue
+		# Fascia (y -0.5..0.15) and gold band (-0.83..-0.63): stains run the full depth,
+		# fading out as narrower drips below the band.
+		art.batch_box("gorge_streaks",p+normal*.03+Vector3.UP*-.34,Vector3(.3+h*.5,.98,.04),art.mat("vista_grime"),yaw)
+	if hash01(a*.37)<MOSS_CHANCE:
+		var mid: Vector3 = (a+b)*.5
+		art.batch_box("gorge_moss",mid-normal*.25+Vector3.UP*.17,Vector3(length*.8,.06,.3),art.mat("moss"),yaw)

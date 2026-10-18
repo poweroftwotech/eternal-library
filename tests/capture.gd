@@ -59,6 +59,21 @@ func capture() -> void:
 		game.player.camera.fov = 22
 		game.look_toward(Vector3(31,-13,-61))
 		game.hud.zone_label.text = "THE ETERNAL LIBRARY · ROCK GATE"
+	elif mode == "balcony_back":
+		# Looking back from the balcony edge into the loggia (slice 6).
+		game.player.teleport(Vector3(-1,2.25,-27.3))
+		game.player.camera.fov = 75
+		game.look_toward(Vector3(-1,6,0))
+	elif mode == "balcony_side":
+		game.player.teleport(Vector3(4.5,2.25,-27.3))
+		game.player.camera.fov = 80
+		game.look_toward(Vector3(-10,9,-10))
+	elif mode == "vista_cliff":
+		# Debug viewpoint (not reachable) in the gorge, facing the cliff the
+		# reading room is tunnelled into.
+		game.player.teleport(Vector3(-1,8,-75))
+		game.player.camera.fov = 70
+		game.look_toward(Vector3(-1,16,-28))
 	elif mode == "balcony":
 		game.player.teleport(Vector3(-1,2.25,-27.45))
 		game.look_toward(Vector3(5,-22,-178))

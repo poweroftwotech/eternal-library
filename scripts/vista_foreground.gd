@@ -47,6 +47,10 @@ func colossi() -> void:
 	var stone: StandardMaterial3D = art.mat("limestone").duplicate()
 	stone.albedo_color = COLOSSUS_STONE
 	art.materials["vista_colossus"] = stone
+	# Carved recesses (beard, eyes, under the wings) read dark at distance.
+	var crevice: StandardMaterial3D = art.mat("limestone").duplicate()
+	crevice.albedo_color = COLOSSUS_STONE.darkened(.62)
+	art.materials["vista_colossus_crevice"] = crevice
 	var rock := SurfaceTool.new()
 	rock.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var cavern = Cavern.new(vista)

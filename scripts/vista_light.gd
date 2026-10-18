@@ -14,7 +14,7 @@ const CLUSTER_MIN_LAMPS: int = 4
 const CLUSTER_LIGHT_LIMIT: int = 56
 const CLUSTER_REACH: float = 170.0           # only clusters this close get a light
 const CLUSTER_COLOR: Color = Color("ff9d4a")
-const CLUSTER_ENERGY: float = 6.0
+const CLUSTER_ENERGY: float = 5.0             # 6.0 until slice 7
 const CLUSTER_RANGE: float = 20.0
 
 const FAR_HAZE_DENSITY: float = .007
@@ -28,12 +28,12 @@ const SANCTUM_KEY_COLOR: Color = Color("d6ecf7")
 const SANCTUM_KEY_ENERGY: float = 12.0
 
 const EXTERIOR_MASK: int = 2
-const VAULT_BOUNCE_ENERGY: float = .8         # ExteriorVaultBounce (vista.gd), was .9
+const VAULT_BOUNCE_ENERGY: float = .68        # ExteriorVaultBounce (vista.gd); .8 until slice 7, .9 originally
 const VAULT_BOUNCE_COLOR: Color = Color("cdb79a") # warm city light off the stone; was cool a6bac1
 const EYE: Vector3 = Vector3(-1, 4, -27.5)         # the overlook camera
 const NEAR_SHELF_REACH: float = 110.0
 const NEAR_SHELF_EMISSION: Color = Color("ffb867")
-const NEAR_SHELF_GLOW: float = .9
+const NEAR_SHELF_GLOW: float = .9          # gorge_stacks_near (warm candle-lit stacks near the overlook)
 
 var vista
 var world
@@ -51,7 +51,7 @@ func build() -> void:
 	sanctum_glow()
 
 func lamp_material() -> void:
-	var near: StandardMaterial3D = art.mat("gorge_shelves_near")
+	var near: StandardMaterial3D = art.mat("gorge_stacks_near")
 	near.emission = NEAR_SHELF_EMISSION
 	near.emission_energy_multiplier = NEAR_SHELF_GLOW
 	var lamp: StandardMaterial3D = art.mat("vista_lamp")
