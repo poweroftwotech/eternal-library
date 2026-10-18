@@ -588,3 +588,35 @@ tuning numbers at its top.
 | warm/cool split (need 29) | 58 | 36 | **50 ok** |
 
 Preview: `previews/vista_v017.png`. All five planned slices are done.
+
+**Gate decision (2026-10-18): option A, a gate under the right colossus.**
+Three options were rendered from the overlook, with temporary code that was
+then removed (`previews/gate_options/sheet.png`; rows A, B, C; overlook on
+the left, zoom on the gate on the right). A marker pass first showed that
+no spot on the spurs or apse columns is visible from the overlook.
+- **A (chosen):** move a gate onto the rock the overlook does see, the right
+  colossus's pier.
+- **B (rejected):** stepping bank 4's top tiers back cleared the buildings,
+  but the vault follows terrace clearance, so the rock dropped in front of the
+  gate.
+- **C:** leave both gates hidden.
+
+What changed:
+- `cavern.portal(sill, normal, stone)` and the quarried cut
+  (`Cavern.quarry()`, now a plane cut of any facing in `column()`) work in any
+  horizontal direction, not only ±x.
+- `vista_foreground.gd` cuts a flat face into the right colossus's pier
+  facing the balcony and sets an iwan in it at sill −19, its top tucked under
+  the plinth course, like the tombs below the reliefs at Naqsh-e Rostam. The
+  frame is the colossus's warm-grey `vista_colossus` stone; in limestone it
+  pushed the near flanks to 1.24. It has a faience lintel, a landing, lamps
+  and a warm light.
+- The bank-4 gate and its high crossing are gone. `PORTALS` keeps the throat
+  gate (hidden from the overlook, still carrying the high crossing).
+- **Tests:** the playtest now expects 7 crossings, 2 gates and 14 fall
+  segments. `vista_gate` zooms on the colossus gate from the overlook;
+  `vista_portal` is a debug view of the throat gate.
+- **Gate:** all box-art checks pass. Near flanks are 1.22, the closest to its
+  limit: the lamplit opening is bright. Playtest 43/43, geometry 32/32,
+  atmosphere 9/9, headless 3/3 clean, frame time 4.5 ms, interior unchanged.
+  Previews: `previews/vista_v018.png`, `vista_gate_v018.png`.

@@ -1,6 +1,7 @@
 extends RefCounted
 ## Exterior slice 5, foreground framing (ART_DIRECTION.md section 8): two
-## lamassu colossi on rock piers flank the near gorge and face the overlook,
+## lamassu colossi on rock piers flank the near gorge and face the overlook
+## (the right pier holds the rock-cut gate the overlook sees),
 ## and a monumental rock-cut stair runs diagonally down from the balcony's
 ## front-left corner to a landing at the left colossus's feet, giving the view
 ## the box art's off-axis lead-in. Everything stands outside the balcony
@@ -15,6 +16,12 @@ const COLOSSUS_FLOOR: float = -6.0           # plinth level, below the balcony (
 const COLOSSI: Array = [[-30.0, -62.0, .5], [36.0, -66.0, -.5]]
 const COLOSSUS_LIGHT_ENERGY: float = 2.5
 const COLOSSUS_STONE: Color = Color("a39a8c")  # warm grey; plain limestone glared
+## The gate the overlook sees: a rock-cut iwan in the right colossus's pier,
+## like the tombs cut under the reliefs at Naqsh-e Rostam, facing the balcony.
+const GATE_COLOSSUS: int = 1                 # index into COLOSSI
+const GATE_SILL: float = -19.0               # iwan top (-7) tucks under the plinth course
+const GATE_DEPTH: float = .8                 # quarried face at this fraction of the pier radius
+const PIER_RADIUS: float = 9.0
 
 const STAIR_TOP: Vector3 = Vector3(-7.0, 2.2, -29.2)       # just outside the front-left guard
 const STAIR_LANDING: Vector3 = Vector3(-16.0, -8.0, -58.0)  # lower-left quadrant of the overlook view
@@ -43,10 +50,17 @@ func colossi() -> void:
 	var rock := SurfaceTool.new()
 	rock.begin(Mesh.PRIMITIVE_TRIANGLES)
 	var cavern = Cavern.new(vista)
-	for data: Array in COLOSSI:
+	for i in range(COLOSSI.size()):
+		var data: Array = COLOSSI[i]
 		var base := Vector3(data[0], COLOSSUS_FLOOR, data[1])
 		var yaw: float = data[2]
-		cavern.column(rock, Vector2(base.x, base.z), 9.0, -176.0, COLOSSUS_FLOOR - .8)
+		var cut: Dictionary = {}
+		if i == GATE_COLOSSUS:
+			var toward := Vector3(VistaLight.EYE.x - base.x, 0, VistaLight.EYE.z - base.z).normalized()
+			var sill := Vector3(base.x, GATE_SILL, base.z) + toward * PIER_RADIUS * GATE_DEPTH
+			cut = Cavern.quarry(sill, toward, COLOSSUS_FLOOR - .8)
+			cavern.portal(sill, toward, "vista_colossus")
+		cavern.column(rock, Vector2(base.x, base.z), PIER_RADIUS, -176.0, COLOSSUS_FLOOR - .8, cut)
 		# A dressed plinth course over the rough pier.
 		vista.prism(vista.tower_outline(Vector2(base.x, base.z), 6.0, 11.5, -yaw), COLOSSUS_FLOOR - 1.2, 1.2, art.mat("sandstone"))
 		var statue: Node3D = art.model("lamassu", base, yaw)

@@ -18,12 +18,13 @@ const SANCTUM: Vector3 = Vector3(8, 0, -256)
 const PORTAL_WIDTH: float = 10.0
 const PORTAL_HEIGHT: float = 12.0
 const PORTAL_LIGHT_ENERGY: float = 6.0
-## Rock-cut portals open off bank top decks, where the spurs rise clear of the
-## buildings: [spur centre x, z, spur radius, sill y, facing (+1 = faces +x),
-## far end of its flying crossing].
+## Rock-cut gates in the throat spurs open off bank top decks, where the spurs
+## rise clear of the buildings: [spur centre x, z, spur radius, sill y, facing
+## (+1 = faces +x), far end of its flying crossing]. The gate the overlook sees
+## is under the right colossus (vista_foreground.gd); this one is hidden from
+## the overlook and carries the high crossing over the throat.
 const PORTALS: Array = [
-	[-74.0, -175.0, 21.0, 29.15, 1.0, Vector3(38, 35.4, -181)],
-	[104.0, -150.0, 16.0, 35.15, -1.0, Vector3(-40, 39.4, -140)]]
+	[-74.0, -175.0, 21.0, 29.15, 1.0, Vector3(38, 35.4, -181)]]
 const UPLIGHT_ENERGY: float = .65     # cool fill on the rock from below
 const CITY_GLOW_ENERGY: float = 5.0   # warm window glow on the rock above each tower
 const MIST_LIGHT_ENERGY: float = 2.5  # under the mist floor
@@ -152,8 +153,8 @@ func hang(surface: SurfaceTool, top: Vector3, radius: float, length: float, flat
 	emit_tube(surface, rings, centres, -.35)
 
 ## A rock pillar rising from deep below into the vault, with a noisy profile.
-## `cut` (optional: x, facing, z, half, y0, y1) dresses a flat quarried face
-## into the pillar where a rock-cut portal sits; the pillar is then built finer.
+## `cut` (optional, from quarry()) dresses a flat quarried face into the pillar
+## where a rock-cut gate sits; the pillar is then built finer.
 func column(surface: SurfaceTool, base: Vector2, radius: float, bottom: float, top: float, cut: Dictionary = {}) -> void:
 	var rings: Array = []
 	var centres: Array = []
@@ -170,8 +171,10 @@ func column(surface: SurfaceTool, base: Vector2, radius: float, bottom: float, t
 			var a: float = TAU * i / sides
 			var bulge: float = 1.0 + .3 * noise.get_noise_2d(cos(a) * 40.0 + base.x, y * 1.5)
 			var v: Vector3 = centre + Vector3(cos(a), 0, sin(a)) * r * bulge
-			if cut and (v.x - cut.x) * cut.facing > 0.0 and y > cut.y0 and y < cut.y1 and absf(v.z - cut.z) < cut.half:
-				v.x = cut.x
+			if cut and y > cut.y0 and y < cut.y1:
+				var proud: float = (v - cut.point).dot(cut.normal)
+				if proud > 0.0 and absf((v - cut.point).dot(Vector3.UP.cross(cut.normal))) < cut.half:
+					v -= cut.normal * proud
 			row.append(v)
 		row[sides] = row[0]
 		rings.append(row)
@@ -215,7 +218,7 @@ func build_spurs(surface: SurfaceTool) -> void:
 		var cut: Dictionary = {}
 		for gate: Array in PORTALS:
 			if is_equal_approx(gate[0], data[0]):
-				cut = {"x": portal_sill(gate).x, "facing": gate[4], "z": gate[1], "half": PORTAL_WIDTH * .5 + 2.5, "y0": gate[3] - 3.0, "y1": gate[3] + PORTAL_HEIGHT + 3.0}
+				cut = quarry(portal_sill(gate), Vector3(gate[4], 0, 0), gate[3] + PORTAL_HEIGHT + 3.0)
 		column(surface, Vector2(data[0], data[1]), data[2], -176.0, top, cut)
 	# Curtains hang across the throat's shoulders.
 	for i in range(10):
@@ -226,12 +229,11 @@ func build_spurs(surface: SurfaceTool) -> void:
 		var tip: float = maxf(maxf(floor_at(x, z), MIN_TIP), top - rng.randf_range(16.0, 26.0))
 		hang(surface, Vector3(x, top, z), rng.randf_range(5.0, 9.0), top - tip, .55)
 
-## Rock-cut iwans (after Naqsh-e Rostam) in the two throat spurs, each the end
-## of a new aqueduct across the gorge: the city tunnels on through the rock.
-## One sits above the mist; the lower one glows inside it.
+## Rock-cut iwans (after Naqsh-e Rostam) in the throat spurs, each the end of
+## a flying crossing: the city tunnels on through the rock.
 func build_portals() -> void:
 	for data: Array in PORTALS:
-		portal(portal_sill(data), data[4])
+		portal(portal_sill(data), Vector3(data[4], 0, 0))
 		vista.bridge(crossing_start(data), data[5], 3.4, [], 0)
 
 static func portal_sill(data: Array) -> Vector3:
@@ -256,26 +258,35 @@ func crossing_clearance(x: float, z: float) -> float:
 			y = maxf(y, lerpf(a.y, b.y, t) + 16.0)
 	return y
 
-func portal(sill: Vector3, facing: float) -> void:
+## The flat quarried face a gate needs, for column(): rock standing proud of
+## the plane through `sill` (facing `normal`) is cut back to it, a little wider
+## than the gate and from just under the sill up to `top`.
+static func quarry(sill: Vector3, normal: Vector3, top: float) -> Dictionary:
+	return {"point": sill, "normal": normal, "half": PORTAL_WIDTH * .5 + 3.5, "y0": sill.y - 3.0, "y1": top}
+
+## A carved iwan (limestone unless `stone` says otherwise) on a quarried face at `sill`, opening toward `normal`
+## (horizontal, unit length).
+func portal(sill: Vector3, normal: Vector3, stone: String = "limestone") -> void:
 	vista.portal_count += 1
-	var along := Vector3(0, 0, -facing)
-	var basis := Basis(along, Vector3.UP, along.cross(Vector3.UP))
-	# Carved limestone iwan: a tall pointed opening in a frame set into the rock.
-	var frame: MeshInstance3D = art.extrude(vista.arch_bay(PORTAL_WIDTH, PORTAL_HEIGHT, 2.5, true), 4.0, art.mat("limestone"), sill + Vector3(0, PORTAL_HEIGHT, 0) - along * PORTAL_WIDTH * .5)
-	frame.basis = basis
+	var along: Vector3 = Vector3.UP.cross(normal)
+	var yaw: float = atan2(normal.x, normal.z)
+	# Pointed opening in a frame 4 m deep, half of it proud of the rock.
+	var frame: MeshInstance3D = art.extrude(vista.arch_bay(PORTAL_WIDTH, PORTAL_HEIGHT, 2.5, true), 4.0, art.mat(stone), sill + Vector3(0, PORTAL_HEIGHT, 0) - along * PORTAL_WIDTH * .5)
+	frame.basis = Basis(along, Vector3.UP, along.cross(Vector3.UP))
 	# Warm lamplit tunnel: just in front of the quarried face, recessed 1.7 m
 	# inside the frame's reveal.
 	var glow := QuadMesh.new()
 	glow.size = Vector2(PORTAL_WIDTH - 5.0, PORTAL_HEIGHT - 1.6)
-	var inner: MeshInstance3D = art.mesh_node(glow, sill + Vector3(facing * .3, glow.size.y * .5, 0), art.mat("gorge_portal"))
-	inner.rotation.y = facing * PI * .5
-	# Faience band over the arch and a landing in front.
-	vista.block(sill + Vector3(facing * 2.1, PORTAL_HEIGHT + .4, 0), Vector3(.6, .8, PORTAL_WIDTH + 1.0), "exterior_faience")
-	vista.prism(vista.tower_outline(Vector2(sill.x + facing * 3.5, sill.z), 4.0, PORTAL_WIDTH * .55, 0.0), sill.y - .8, .8, art.mat("exterior_faience"))
+	var inner: MeshInstance3D = art.mesh_node(glow, sill + normal * .3 + Vector3(0, glow.size.y * .5, 0), art.mat("gorge_portal"))
+	inner.rotation.y = yaw
+	# Faience lintel across the top of the frame, and a landing in front.
+	vista.block(sill + normal * 2.1 + Vector3(0, PORTAL_HEIGHT - .5, 0), Vector3(.6, .8, PORTAL_WIDTH + 1.0), "exterior_faience").rotation.y = yaw - PI * .5
+	var landing: Vector3 = sill + normal * 3.5
+	vista.prism(vista.tower_outline(Vector2(landing.x, landing.z), 4.0, PORTAL_WIDTH * .55, atan2(normal.z, normal.x)), sill.y - .8, .8, art.mat("exterior_faience"))
 	for side: float in [-1.0, 1.0]:
-		vista.lamp(sill + Vector3(facing * 2.6, 3.2, side * (PORTAL_WIDTH * .5 - 1.0)), .35, true)
+		vista.lamp(sill + normal * 2.6 + along * side * (PORTAL_WIDTH * .5 - 1.0) + Vector3(0, 3.2, 0), .35, true)
 	# Lights the landing, the rock around the opening (layer 4) and the mist.
-	var light: OmniLight3D = vista.big_light(sill + Vector3(facing * 6.0, 6.0, 0), Color("ffb066"), PORTAL_LIGHT_ENERGY, 30, 2 | 4)
+	var light: OmniLight3D = vista.big_light(sill + normal * 6.0 + Vector3(0, 6.0, 0), Color("ffb066"), PORTAL_LIGHT_ENERGY, 30, 2 | 4)
 	light.light_volumetric_fog_energy = 1.5
 
 func build_apse(surface: SurfaceTool) -> void:

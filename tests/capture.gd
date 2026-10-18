@@ -47,17 +47,17 @@ func capture() -> void:
 		game.look_toward(Vector3(5,-22,-178))
 		game.hud.zone_label.text = "THE ETERNAL LIBRARY · OVERLOOK"
 	elif mode == "vista_portal":
-		# Debug viewpoint (not reachable) beside the rock-cut portal off bank 4's
-		# top deck (slice 4). The portals are hidden from the overlook itself.
-		game.player.teleport(Vector3(48,36.5,-128))
+		# Debug viewpoint (not reachable) by the throat gate off bank 5's top deck,
+		# which the overlook cannot see.
+		game.player.teleport(Vector3(-30,31.5,-166))
 		game.player.camera.fov = 60
-		game.look_toward(Vector3(86,44,-150))
+		game.look_toward(Vector3(-56,35,-175))
 		game.hud.zone_label.text = "THE ETERNAL LIBRARY · ROCK GATE"
 	elif mode == "vista_gate":
-		# From the overlook itself, zoomed on the right-hand rock-cut gate (slice 5).
+		# From the overlook itself, zoomed on the gate under the right colossus.
 		game.player.teleport(Vector3(-1,2.25,-27.45))
-		game.player.camera.fov = 14
-		game.look_toward(Vector3(90,41,-150))
+		game.player.camera.fov = 22
+		game.look_toward(Vector3(31,-13,-61))
 		game.hud.zone_label.text = "THE ETERNAL LIBRARY · ROCK GATE"
 	elif mode == "balcony":
 		game.player.teleport(Vector3(-1,2.25,-27.45))
