@@ -377,9 +377,10 @@ func gorge_materials() -> void:
 	near_stacks.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
 	near_stacks.emission_texture = stacks.albedo_texture
 	art.materials["gorge_stacks_near"] = near_stacks
-	var stone = art.mat("sandstone").duplicate()
+	# Tier walls (slice 9): the weathered ashlar px map, a 4 m storey tile with
+	# ledge grime and drip streaks baked in, at the 32 texels/m px scale.
+	var stone = art.mat("gorge_stone_weathered").duplicate()
 	stone.albedo_color = Color("8b9c9c")
-	stone.uv1_scale = Vector3.ONE*.21
 	art.materials["gorge_stone"] = stone
 	var aged = stone.duplicate()
 	aged.albedo_color = Color("6f7a76")

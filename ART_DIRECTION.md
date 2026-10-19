@@ -705,10 +705,59 @@ The alpha shelf insets (`gorge_shelves`) are gone. The tuning constants are
   (`gorge_stone`, darker `_aged`, warmer `_clean`).
 - **Honest caveat:** the big wall planes are still evenly clean at overlook
   distance. Real grime gradients, such as darkening under ledges or around
-  openings, would need a weathered px map variant (a follow-up). The first GPU
+  openings, needed a weathered px map variant (done in slice 9). The first GPU
   capture after adding material variants came out dark, because shaders were
   still compiling. Recapture before trusting a sudden drop.
 - **Gate:** all box-art checks pass (near flanks 1.20). Playtest 43/43 (merged
   static groups 89, ceiling 100), geometry 32/32, atmosphere 9/9, headless 3/3
   clean. Frame time 5.47 ms (slice 7: 5.04). Interior unchanged. Previews:
   `previews/vista_v021.png`, `lamassu_v021.png`, `weathering_v021.png`.
+
+**Slice 9 (done 2026-10-18), wall grime on the tier walls.** The slice 8
+caveat: geometry can't stain the big tier wall planes, because the bay frames
+stand proud of them. The grime is now baked into a texture.
+- **Map:** `gorge_stone_weathered` in `tools/pixel_materials_ext.gd`
+  (`weathered_ashlar()`). It is the sandstone ashlar coursing (8-texel courses,
+  blocks 14–26 texels) on a 128 × 128 tile, which is one 4 m storey at
+  32 texels/m. It uses the sandstone palette plus one deeper umber
+  (8 colours) with ordered Bayer dithering. Row 0 is the top of the wall:
+  world triplanar flips y.
+  - **Ledge stain:** strongest under each 4 m line (−0.46 in value),
+    mottled by a coarse blotch noise and gone by 60% of the way down. There is
+    a faint splash-back band at the foot.
+  - **Streaks:** 14 soot drips run 18–70 texels down from the ledge line, and
+    8 shorter ones from block sills. They are 2–4 texels wide, wander a texel
+    along the joints and fade as they fall.
+  - **Cared for, not abandoned:** the stain stops well short of black, the
+    joints stay crisp, and 6% of blocks are clean recent repairs, lighter
+    and unstained. The stained stone is slightly less rough.
+- **Import:** like the other px maps (lossless, mipmaps, `compress_to=0`; the
+  `_normal` map has `normal_map=1`).
+- **Use:** `vista.gorge_materials()` builds `gorge_stone`, `_aged` and
+  `_clean` from it, keeping their three tints. The old `uv1_scale` of 0.21 is
+  gone: `enforce_texel_density()` already reset it to the px scale, which is now
+  0.25 for the 4 m tile. There are still three materials, so the group count is
+  unchanged. Render layers and the interior are untouched.
+- **New capture mode** `vista_walls`: from the overlook, zoomed (FOV 26) on
+  the near-left tier walls.
+- **Honest caveat:** in the full overlook the change is modest. A diff
+  against v021 shows darkening only on the wall planes, in bands under the
+  decks, and the walls no longer read as one even tone. The drips are
+  6–12 cm wide, so at 60–150 m they mip away, and from the overlook only the
+  ledge gradient carries. The drips read in close and debug views. The 4 m
+  stain period doesn't line up with the 8.3–11.7 m tiers, so some bands fall
+  mid-wall. They read as storey lines, but a band isn't always right under a
+  deck.
+- **Gate:** all box-art checks pass (near flanks 1.19, was 1.20). Playtest
+  43/43 (merged static groups 89, ceiling 100), geometry 32/32, atmosphere
+  9/9, headless 3/3 clean (240 frames, exit 0). Previews:
+  `previews/vista_v022.png`, `walls_v022.png`.
+
+| region | box art | slice 8 | slice 9 |
+|---|---|---|---|
+| vault | 49 | 45 | **44 ok** |
+| focal glow | 144 | 118 | **118 ok** |
+| far depth band | 91 | 96 | **96 ok** |
+| near flanks | 70 | 84 (1.20) | **83 ok (1.19)** |
+| mist floor | 108 | 96 | **96 ok** |
+| warm/cool split (need 29) | 58 | 62 | **62 ok** |

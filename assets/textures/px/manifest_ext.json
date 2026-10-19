@@ -63,6 +63,13 @@
     16
    ]
   },
+  "gorge_stone_weathered": {
+   "mapping": "world",
+   "size": [
+    128,
+    128
+   ]
+  },
   "ivy_leaf": {
    "mapping": "card",
    "size": [

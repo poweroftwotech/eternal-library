@@ -291,6 +291,107 @@ func stack_atlas() -> void:
 
 func architecture() -> void:
 	faience("exterior_faience", 61)
+	weathered_ashlar("gorge_stone_weathered", pal(["#3a2a1d", "#4a3a2c", "#6b5038", "#8a6a4b", "#a0805c",
+		"#b39570", "#c4a983", "#d4bd98"]), 81)
+
+## Gorge tier walls (ART_DIRECTION.md section 8, slice 9): the sandstone
+## ashlar coursing with rain grime baked in. One tile is 4 m (a storey), so
+## each storey darkens under its ledge, fades over ~2 m and carries soot and
+## drip streaks down from the top. Old but kept up: the stain stops short of
+## black, the joints stay crisp and a few blocks are recent clean repairs.
+## Texture v runs down the wall (world triplanar flips y), so row 0 is the top.
+func weathered_ashlar(material_name: String, palette: PackedColorArray, seed_value: int) -> void:
+	var w: int = 128
+	var h: int = 128
+	var course: int = 8
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var block_id: PackedInt32Array = PackedInt32Array()
+	block_id.resize(w * h)
+	var edge: PackedInt32Array = PackedInt32Array()   # 1 lit bevel, -1 shadow bevel, -2 joint
+	edge.resize(w * h)
+	var blocks: int = 0
+	for row: int in range(h / course):
+		var y0: int = row * course
+		var start: int = rng.randi_range(0, 24)
+		var x: int = start
+		while x < start + w:
+			var bw: int = rng.randi_range(14, 26)
+			if start + w - x - bw < 14:
+				bw = start + w - x   # close the row seamlessly
+			blocks += 1
+			for yy: int in range(y0, y0 + course):
+				for xx: int in range(x, x + bw):
+					block_id[yy * w + xx % w] = blocks
+			for xx: int in range(x, x + bw):
+				edge[y0 * w + xx % w] = -2
+				edge[(y0 + 1) * w + xx % w] = maxi(edge[(y0 + 1) * w + xx % w], 1)
+				edge[(y0 + course - 1) * w + xx % w] = -1
+			for yy: int in range(y0, y0 + course):
+				edge[yy * w + x % w] = -2
+				if edge[yy * w + (x + 1) % w] > -2:
+					edge[yy * w + (x + 1) % w] = 1
+				if edge[yy * w + (x + bw - 1) % w] > -2:
+					edge[yy * w + (x + bw - 1) % w] = -1
+			x += bw
+	var tone: PackedFloat32Array = PackedFloat32Array()
+	var repaired: PackedByteArray = PackedByteArray()
+	for b: int in range(blocks + 1):
+		tone.append(rng.randf() * .30 - .15)
+		repaired.append(1 if rng.randf() < .06 else 0)
+	# Drips: soot runs from the ledge line and shorter ones from block sills.
+	var streak: PackedFloat32Array = filled(w * h, 0.0)
+	for k: int in range(22):
+		var sx: int = rng.randi_range(0, w - 1)
+		var top: int = 0 if k < 14 else rng.randi_range(2, 10) * course
+		var length: int = rng.randi_range(18, 70) if k < 14 else rng.randi_range(6, 20)
+		var width: int = rng.randi_range(2, 4)
+		var strength: float = rng.randf_range(.26, .40)
+		for yy: int in range(top, mini(top + length, h)):
+			var fade: float = 1.0 - float(yy - top) / length
+			# Water wanders a texel now and then as it runs down the joints.
+			var wander: int = int(floor(sin(yy * .21 + k) * 1.2))
+			for dx: int in range(width):
+				var i: int = yy * w + posmod(sx + dx + wander, w)
+				streak[i] = maxf(streak[i], strength * (.4 + .6 * fade) * (1.0 if dx > 0 and dx < width - 1 or width < 3 else .6))
+	var grain: PackedFloat32Array = noise(w, h, 16, seed_value + 3)
+	var fine: PackedFloat32Array = noise(w, h, 2, seed_value + 4, 1)
+	var blotch: PackedFloat32Array = noise(w, h, 32, seed_value + 6, 2)
+	var chip_field: PackedFloat32Array = noise(w, h, 3, seed_value + 9, 1)
+	var n: int = palette.size()
+	var lo: float = 1.0 / n
+	var rgb: PackedColorArray = PackedColorArray()
+	var height: PackedFloat32Array = PackedFloat32Array()
+	var rough: PackedFloat32Array = PackedFloat32Array()
+	for y: int in range(h):
+		var t: float = float(y) / h
+		# Ledge stain: heavy under the ledge, gone by mid-storey; a little
+		# splash-back damp at the foot.
+		var ledge: float = pow(clampf(1.0 - t / .6, 0.0, 1.0), 1.4) * .46 + pow(clampf((t - .9) / .1, 0.0, 1.0), 2.0) * .07
+		for x: int in range(w):
+			var i: int = y * w + x
+			var g: float = grain[i] * .55 + fine[i] * .45
+			var b: int = block_id[i]
+			var value: float = .25 + g * .6 + tone[b]
+			if edge[i] == 1:
+				value += .22
+			elif edge[i] == -1:
+				value -= .20
+			var chip: bool = chip_field[i] > .94
+			if chip:
+				value -= .22
+			var stain: float = 0.0
+			if repaired[b] == 0:
+				stain = ledge * (.7 + blotch[i] * .6) + streak[i]
+			else:
+				value += .08
+			value -= stain
+			value = lo + clampf(value, 0.0, 1.0) * (1.0 - lo)
+			rgb.append(palette[0] if edge[i] == -2 else quant(clampf(value, 0.0, .999), palette, x, y, .6))
+			height.append(0.0 if edge[i] == -2 else .75 + g * .25 - (.3 if chip else 0.0) - streak[i] * .2 + (.05 if edge[i] == 1 else 0.0))
+			# Grimy stone holds a slight film; still matte.
+			rough.append(.82 + g * .15 - stain * .12)
+	save(material_name, w, h, rgb, height, rough)
 
 # ------------------------------------------------------------------ foliage
 ## Alpha card from an SDF-style inside test. Lit top-left rim, shadow
