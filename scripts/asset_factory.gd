@@ -522,7 +522,7 @@ func root_vegetable(pose: Vector3, scale_value: float = 1, parent: Node3D = null
 
 func book_instance(pose: Vector3, size: Vector3, color: Color, rotation: Basis) -> void:
 	batch_mesh("books",unit_box,mat("book_leather"),Transform3D(rotation*Basis.from_scale(size),pose),color)
-	batch_mesh("book_pages",unit_box,mat("pages"),Transform3D(rotation*Basis.from_scale(Vector3(.012,size.y*.84,size.z*.79)),pose+rotation*Vector3(size.x*.5+.004,0,.015)))
+	batch_mesh("book_pages",unit_box,mat("pages"),Transform3D(rotation*Basis.from_scale(Vector3(.012,size.y*.84,size.z*.79)),pose+rotation*Vector3(size.x*.5+.016,0,.015)))
 	# Raised leather bindings, cover lips and a small gilt title cartouche.
 	for side in [-1,1]:
 		batch_mesh("book_cover_lips",unit_box,mat("book_leather"),Transform3D(rotation*Basis.from_scale(Vector3(.018,size.y*1.025,size.z*1.04)),pose+rotation*Vector3(side*size.x*.5,0,0)),color)

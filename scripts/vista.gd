@@ -100,16 +100,24 @@ func exterior_materials() -> void:
 
 func build_balcony() -> void:
 	# Unbroken walking surface from gallery through a short vaulted passage.
-	block(Vector3(-1,2,-17.4),Vector3(4.4,.4,8.8),"paving",true)
+	# Passage pieces end 5 cm inside the reading-room wall (z -13.0..-13.4), not
+	# flush with its face, which made their end faces z-fight with the brick.
+	# Ends at -13.1, where the gallery floor begins (overlapping it, the two
+	# floors fought in the doorway).
+	block(Vector3(-1,2,-17.45),Vector3(4.4,.4,8.7),"paving",true)
 	for x in [-3.3,1.3]:
-		block(Vector3(x,4.6,-17.5),Vector3(.4,5.2,9),"brick",true)
-		block(Vector3(x,3.0,-17.5),Vector3(.46,.65,9),"tile")
-	block(Vector3(-1,7.25,-17.5),Vector3(5,.5,9),"sandstone",true)
+		block(Vector3(x,4.6,-17.525),Vector3(.4,5.2,8.95),"brick",true)
+		# Tile strip and lintel run 4.5 cm past the walls at the balcony end (z -22.0),
+		# where their end faces were flush and flickered.
+		block(Vector3(x,3.0,-17.5475),Vector3(.46,.65,9.025),"tile")
+	# 4.96 wide: at 5.0 its ends were flush with the passage walls' outer faces.
+	block(Vector3(-1,7.25,-17.5475),Vector3(4.96,.5,9.025),"sandstone",true)
 	for z in [-14,-17,-20.2]:
 		world.arch(Vector3(-1,2.2,z),1.8,1.8,2.1,.22)
 	for z in [-15.6,-19.6]:
 		world.lantern(Vector3(-2.9,4.5,z))
-	block(Vector3(-1,1.8,-24.0),Vector3(13,.8,8.6),"sandstone",true)
+	# Top at 2.18, just under the passage paving (2.2) where they overlap.
+	block(Vector3(-1,1.79,-24.0),Vector3(13,.78,8.6),"sandstone",true)
 	block(Vector3(-1,2.21,-24),Vector3(12.6,.035,8),"tile")
 	# Ceiling and columns frame the view while keeping the player underground.
 	block(Vector3(-1,8.8,-23.8),Vector3(14,.6,10),"cave",true)
@@ -159,7 +167,7 @@ func balcony_details() -> void:
 		var profile = [Vector2(0,0),Vector2(.11,0),Vector2(.07,.08),Vector2(.12,.18),Vector2(.055,.28),Vector2(.06,.44),Vector2(.10,.49),Vector2(0,.49)]
 		art.mesh_node(art.lathe(profile,12),Vector3(x+.46,2.76,-28.1),art.mat("limestone"))
 	for x in [-6.8,-3.7,1.7,4.8]:
-		art.bevel_box(Vector3(x,2.89,-28.0),Vector3(.42,.64,.7),art.mat("exterior_faience"),.04)
+		art.bevel_box(Vector3(x,2.89,-28.01),Vector3(.42,.64,.74),art.mat("exterior_faience"),.04)  # 3 cm proud of the parapet front
 		art.bevel_box(Vector3(x,3.24,-28.0),Vector3(.56,.12,.8),art.mat("limestone"),.025)
 	# The rug is folded over the parapet and continues onto the terrace floor.
 	var rug = QuadMesh.new()
@@ -422,7 +430,8 @@ func bank(center: Vector2, rx: float, rz: float, top: float, seed_value: int) ->
 	extent = maxf(extent,absf(center.y)+rz)
 	var local = RandomNumberGenerator.new()
 	local.seed = seed_value*8329
-	var bottom: float = -176
+	# Banks start a little apart so their base caps never share a plane.
+	var bottom: float = -176-seed_value*.05
 	var level: int = 0
 	var last_rx: float = rx
 	while bottom<top-.05:

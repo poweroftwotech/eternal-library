@@ -43,7 +43,9 @@ func _ready() -> void:
 	organic.build()
 	preload("res://scripts/planting_pass.gd").new(self,art).build()
 	preload("res://scripts/art_direction.gd").new(self,art).build()
-	art.merge_static_geometry()
+	# ZFIGHT_NO_MERGE keeps every box separate so tests/zfight_audit.gd can name it.
+	if OS.get_environment("ZFIGHT_NO_MERGE").is_empty():
+		art.merge_static_geometry()
 	art.flush_batches()
 	atmosphere = preload("res://scripts/atmosphere.gd").new(self)
 	atmosphere.build()
@@ -175,7 +177,7 @@ func build_architecture() -> void:
 	box(Vector3(-1.1,12.0,-14.4),Vector3(15,12,.55),"brick")
 	for x in [-5.7,-1.1,3.5]:
 		art.shelf(Vector3(x,7.6,-13.7),4.4,7.4,PI)
-		box(Vector3(x-2.25,11.2,-13.3),Vector3(.25,8,.8),"sandstone")
+		box(Vector3(x-2.25,11.2,-13.28),Vector3(.25,8,.84),"sandstone")  # 4 cm proud of the upper wall face (was flush: z-fight)
 	box(Vector3(-1.1,7.5,-13.5),Vector3(15,.35,1.2),"sandstone")
 	box(Vector3(-1.0,17.0,-7),Vector3(15,.4,16),"brick")
 	build_stairs(Vector3(2.5,0,-3.4),1.8,5.9,2.2)
@@ -230,7 +232,9 @@ func arch(pose: Vector3, radius: float, spring: float, rise: float, thickness: f
 		art.extrude(PackedVector2Array(outer_curve),.85,art.mat("mosaic"),pose)
 		var rows: int = maxi(1,int(ceil(spring/.43)))
 		for row in range(rows):
-			box(pose+Vector3(side*(radius+thickness*.5),spring*(row+.5)/rows,0),Vector3(thickness,spring/rows-.015,1.1),"limestone" if pose.z>=-20 else "arch_stone")
+			# 2 cm wider each side: the inner face stands proud of the wall end it
+			# lines (flush, they z-fought in the doorway reveals).
+			box(pose+Vector3(side*(radius+thickness*.5),spring*(row+.5)/rows,0),Vector3(thickness+.04,spring/rows-.015,1.1),"limestone" if pose.z>=-20 else "arch_stone")
 
 func build_stairs(start: Vector3, width: float, run: float, rise: float) -> void:
 	var count: int = 13

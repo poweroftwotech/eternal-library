@@ -116,7 +116,8 @@ func loggia_rock(surface: SurfaceTool) -> void:
 	plane(surface, Vector3(LOGGIA_X.x, LOGGIA_FLOOR, FACE_Z), depth, height, Vector3.RIGHT)
 	plane(surface, Vector3(LOGGIA_X.y, LOGGIA_FLOOR, FACE_Z), depth, height, Vector3.LEFT)
 	var width := Vector3(LOGGIA_X.y - LOGGIA_X.x, 0, 0)
-	plane(surface, Vector3(LOGGIA_X.x, LOGGIA_TOP, FACE_Z), width, depth, Vector3.DOWN)
+	# 4 cm inside the canopy slab (top 9.1): level with it, the two-sided soffit fought.
+	plane(surface, Vector3(LOGGIA_X.x, LOGGIA_TOP - .04, FACE_Z), width, depth, Vector3.DOWN)
 	var back: float = LOGGIA_BACK
 	var p: Rect2 = PASSAGE
 	plane(surface, Vector3(LOGGIA_X.x, LOGGIA_FLOOR, back), Vector3(p.position.x - LOGGIA_X.x, 0, 0), height, Vector3.BACK)
@@ -127,11 +128,13 @@ func loggia_rock(surface: SurfaceTool) -> void:
 ## above the canopy, with a faience band along the frame's top.
 func iwan() -> void:
 	var pier: float = 2.5
-	var span: float = LOGGIA_X.y - LOGGIA_X.x + pier * 2.0
+	# The piers' inner faces stand 4 cm inside the rock cheeks, not flush with them.
+	var span: float = LOGGIA_X.y - LOGGIA_X.x + pier * 2.0 + .08
 	var height: float = 17.8
-	var start := Vector3(LOGGIA_X.x - pier, LOGGIA_FLOOR + height, FACE_Z - .9)
+	var start := Vector3(LOGGIA_X.x - pier - .04, LOGGIA_FLOOR + height, FACE_Z - .9)
 	art.extrude(vista.arch_bay(span, height, pier, true), 2.0, art.mat("limestone"), start)
-	var tympanum: Node3D = vista.block(Vector3((LOGGIA_X.x + LOGGIA_X.y) * .5, LOGGIA_TOP + 5.5, FACE_Z - .05), Vector3(LOGGIA_X.y - LOGGIA_X.x, 11.0, .1), "mosaic")
+	# 10 cm proud of the cliff face; flush, its back face fought the two-sided rock.
+	var tympanum: Node3D = vista.block(Vector3((LOGGIA_X.x + LOGGIA_X.y) * .5, LOGGIA_TOP + 5.5, FACE_Z - .15), Vector3(LOGGIA_X.y - LOGGIA_X.x, 11.0, .1), "mosaic")
 	tympanum.name = "LoggiaTympanum"
 	vista.block(Vector3(start.x + span * .5, start.y + .4, FACE_Z - 1.0), Vector3(span + 1.0, .8, 2.2), "exterior_faience")
 	for side: float in [LOGGIA_X.x - 1.2, LOGGIA_X.y + 1.2]:
@@ -148,4 +151,5 @@ func window(x: float, sill: float) -> void:
 	glow.size = Vector2(WINDOW_SIZE.x - .4, WINDOW_SIZE.y - 1.0)
 	var inner: MeshInstance3D = art.mesh_node(glow, Vector3(x, sill + glow.size.y * .5 + .1, FACE_Z - .1), art.mat("gorge_portal"))
 	inner.rotation.y = PI
-	vista.block(Vector3(x, sill - .15, FACE_Z - .6), Vector3(frame_span + .6, .3, 1.2), "limestone")
+	# Back face 10 cm inside the rock (it was flush with the face).
+	vista.block(Vector3(x, sill - .15, FACE_Z - .5), Vector3(frame_span + .6, .3, 1.2), "limestone")

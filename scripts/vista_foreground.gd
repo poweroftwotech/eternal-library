@@ -106,7 +106,7 @@ func stair() -> void:
 			relief.rotation.y = atan2(across.x * shown, across.z * shown)
 	# Landing near the left colossus's feet.
 	vista.prism(vista.tower_outline(Vector2(STAIR_LANDING.x, STAIR_LANDING.z), 6.0, 6.0, -yaw), STAIR_BASE, STAIR_LANDING.y - STAIR_BASE, art.mat("sandstone"))
-	vista.prism(vista.tower_outline(Vector2(STAIR_LANDING.x, STAIR_LANDING.z), 6.4, 6.4, -yaw), STAIR_LANDING.y - .5, .5, art.mat("exterior_faience"))
+	vista.prism(vista.tower_outline(Vector2(STAIR_LANDING.x, STAIR_LANDING.z), 6.4, 6.4, -yaw), STAIR_LANDING.y - .5, .52, art.mat("exterior_faience"))  # 2 cm above the landing top (was flush)
 	# A kilim runner laid tread by tread (one sloped plane cut through the
 	# step noses and filled the frame edge where it began beside the camera).
 	for k in range(1, STAIR_STEPS):

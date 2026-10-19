@@ -761,3 +761,45 @@ stand proud of them. The grime is now baked into a texture.
 | near flanks | 70 | 84 (1.20) | **83 ok (1.19)** |
 | mist floor | 108 | 96 | **96 ok** |
 | warm/cool split (need 29) | 58 | 62 | **62 ok** |
+
+### Z-fighting pass (2026-10-18)
+
+New `tests/zfight_audit.gd` collects every rendered triangle, including
+MultiMesh instances. It needs a real renderer: `godot --path . --script
+res://tests/zfight_audit.gd -- [count] [near]`. It buckets triangles by plane
+(3 mm) and reports same-facing overlaps between different materials (or any
+overlap with a two-sided material). Same-material overlaps are skipped: with
+world-triplanar mapping they render identical pixels. Set `ZFIGHT_NO_MERGE=1`
+to skip `merge_static_geometry()`, so each box is reported by its centre and
+size and can be matched to code.
+
+Fixed (each flush face moved 2–10 cm inside or proud of its neighbour):
+- Balcony slab top (now 2.18) vs passage paving (2.2) at the passage mouth.
+- Passage paving vs gallery floor in the doorway (the paving now ends at -13.1).
+- Passage walls, tile strip and lintel ends inside the reading-room wall
+  (z −13.05). The lintel is 4.96 wide, so its ends are no longer flush with
+  the walls' outer faces.
+- `world.arch()` jambs are 2 cm wider per side, so they stand proud of the wall
+  ends in doorway reveals.
+- Upper-wall sandstone pilasters are 4 cm proud of the brick.
+- Parapet faience posts are 3 cm proud of the parapet front.
+- Book page slabs sit outside the cover lip; they were 1 mm proud of it,
+  about 30k overlaps across all shelves.
+- Cliff: tympanum 10 cm off the two-sided rock, soffit 4 cm inside the
+  canopy, iwan piers 4 cm inside the rock cheeks, window sills' backs inside the rock.
+- Stair landing faience band 2 cm above the landing; bank bases offset by
+  0.05 m per bank so their −176 caps don't share a plane.
+
+The audit can't see occlusion. What it still lists near the balcony and reading
+room is hidden: bottoms on the floor at y 0, end caps buried in walls, the
+under-floor soil, and wall tops above the ceiling slab. Exterior entries left
+are the same kind: pier and tier caps inside deck slabs, the sanctum's top
+deck under the rotunda, and the base caps under the mist. Gates: playtest
+43/43, geometry 32/32, atmosphere 9/9, headless 3/3 clean, box art 0 misses
+(near flanks 1.18).
+- **Follow-up (user report):** two spots still flickered at the balcony end of
+  the gallery passage. The passage walls, the tile strip and the lintel all
+  ended at z −22.0. The audit had found those pairs, but it printed one
+  location per pair (the hidden −13.05 end), so the visible end was missed.
+  The tile strip and lintel now run 4.5 cm past the walls. The audit now
+  reports one row per pair *and plane*. New capture mode `passage_end`.

@@ -70,6 +70,11 @@ func capture() -> void:
 		game.player.teleport(Vector3(-1,2.25,-27.3))
 		game.player.camera.fov = 75
 		game.look_toward(Vector3(-1,6,0))
+	elif mode == "passage_end":
+		# Close on the balcony end of the gallery passage (z-fight check).
+		game.player.teleport(Vector3(-1,2.25,-25.5))
+		game.player.camera.fov = 75
+		game.look_toward(Vector3(-1,3.6,-18))
 	elif mode == "balcony_side":
 		game.player.teleport(Vector3(4.5,2.25,-27.3))
 		game.player.camera.fov = 80
