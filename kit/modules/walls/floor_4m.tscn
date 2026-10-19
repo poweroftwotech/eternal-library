@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://15b4ufkmyodi"]
 
-[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_frq3u"]
-[ext_resource type="PackedScene" path="res://assets/kit/walls/floor_4m.glb" id="2_xfarn"]
+[ext_resource type="Script" uid="uid://bbhhj48p3yt0x" path="res://scripts/world/kit_module.gd" id="1_frq3u"]
+[ext_resource type="PackedScene" uid="uid://40uldce2jhs7" path="res://assets/kit/walls/floor_4m.glb" id="2_xfarn"]
 
 [node name="floor_4m" type="Node3D" unique_id=1917552914]
 script = ExtResource("1_frq3u")

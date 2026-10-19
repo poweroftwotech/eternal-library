@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="KitCatalog" format=3]
+[gd_resource type="Resource" script_class="KitCatalog" format=3 uid="uid://beitftodwulxa"]
 
-[ext_resource type="Script" path="res://scripts/world/kit_catalog.gd" id="1_wnug1"]
+[ext_resource type="Script" uid="uid://0t1s70usbdnx" path="res://scripts/world/kit_catalog.gd" id="1_wnug1"]
 
 [resource]
 script = ExtResource("1_wnug1")

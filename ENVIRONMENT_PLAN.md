@@ -308,8 +308,8 @@ mode needed.
 - **Breakable** props swap to pre-fractured pieces (made in Blender as
   `M_prop_vase_a_broken`). Pieces despawn after a while; a "broken" delta is saved.
 - **Items** reference an `ItemDef` resource. Picking one up moves ownership to the
-  inventory, so quick slots reference owned items instead of copying them (the
-  quick-slot rule in `AGENTS.md`). Dropping recreates the prop.
+  inventory, so quick slots reference owned items instead of copying them.
+  Dropping recreates the prop.
 - Props use **local triplanar or UVs**, not world triplanar, so their texture
   doesn't swim when they move.
 
@@ -415,8 +415,6 @@ the route audit and the two-process persistence test.
 | **4. Areas and streaming** | `AreaRecipe`, graph and routing, threaded room streaming, light budget | An area of 6–10 rooms (R01, several R02, one baked room) streams without hitches at the frame target. |
 | **5. Kit breadth** | R03 grid generator, R05 courtyard template, R09 ring generator, R11 (R03 plus water), and porting the Overlook and R10 from `vista.gd` | Each new type is added mostly through modules and `.tres` rules, with little new code. That is the test of the architecture. |
 
-Walking and turning physics stay deferred, as `AGENTS.md` asks.
-
 ---
 
 ## 11. Risks and open items
@@ -431,10 +429,9 @@ Walking and turning physics stay deferred, as `AGENTS.md` asks.
 - **SDFGI with streaming** can pop when rooms load. Measure in phase 4; fallback is
   per-room `VoxelGI` for authored rooms.
 - **Save size** grows with deltas. Cap dropped props per area and compact old deltas.
-- **Missing references.** `AGENTS.md` points to `references/legacy-data-remaster.md`,
-  `references/godot4-pitfalls.md` and `references/atmospheric-lighting.md`, but no
-  `references/` folder exists in this project or in `C:\projects`. Restore them
-  before phase 0, or confirm they aren't needed.
+- ~~Missing references in `AGENTS.md`~~: resolved 2026-10-18. `AGENTS.md` had been
+  copied from another project; it was rewritten for this one and no longer cites
+  a `references/` folder.
 
 ---
 
@@ -477,9 +474,8 @@ right. A Blender edit (pier widened 25%) reached the graybox through one export.
 Import never needs Blender (`art_src/` has a `.gdignore`).
 
 **Not verified, and known gaps:**
-- Interactive placement in the Kit dock can't run headlessly. The plugin loads
-  and reads the catalog, but click-to-place, rotation and undo need a try in
-  the editor.
+- ~~Interactive placement in the Kit dock~~: the user confirmed click-to-place
+  works in the editor (2026-10-18).
 - The first import that creates a new library material prints "invalid UID"
   warnings until a second import; `export_kit.bat` imports twice.
 - Shelf recesses use simple book blocks; real book dressing is phase 1

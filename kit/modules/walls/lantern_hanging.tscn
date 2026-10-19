@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://cpydak8e2r1kv"]
 
-[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_q7e1v"]
-[ext_resource type="PackedScene" path="res://assets/kit/walls/lantern_hanging.glb" id="2_45sp7"]
+[ext_resource type="Script" uid="uid://bbhhj48p3yt0x" path="res://scripts/world/kit_module.gd" id="1_q7e1v"]
+[ext_resource type="PackedScene" uid="uid://dx7kvkea8qppf" path="res://assets/kit/walls/lantern_hanging.glb" id="2_45sp7"]
 
 [node name="lantern_hanging" type="Node3D" unique_id=668699186]
 script = ExtResource("1_q7e1v")

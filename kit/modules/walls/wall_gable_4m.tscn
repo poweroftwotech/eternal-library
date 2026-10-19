@@ -1,7 +1,7 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://ql85jnvlo5ci"]
 
-[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_udsg0"]
-[ext_resource type="PackedScene" path="res://assets/kit/walls/wall_gable_4m.glb" id="2_vt75h"]
+[ext_resource type="Script" uid="uid://bbhhj48p3yt0x" path="res://scripts/world/kit_module.gd" id="1_udsg0"]
+[ext_resource type="PackedScene" uid="uid://c70whnxx8u12d" path="res://assets/kit/walls/wall_gable_4m.glb" id="2_vt75h"]
 
 [node name="wall_gable_4m" type="Node3D" unique_id=607125384]
 script = ExtResource("1_udsg0")
