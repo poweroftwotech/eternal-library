@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_wq17x"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/growth_parapet_strands.tscn" id="2_hqepw"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="3_jq2pw"]
+
+[sub_resource type="Resource" id="Resource_uhoux"]
+script = ExtResource("1_wq17x")
+label = "nothing"
+weight = 4.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_pmvqw"]
+script = ExtResource("1_wq17x")
+label = "strands"
+scene = ExtResource("2_hqepw")
+weight = 2.0
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("3_jq2pw")
+entries = Array[ExtResource("1_wq17x")]([SubResource("Resource_uhoux"), SubResource("Resource_pmvqw")])
+slot_bounds = AABB(-0.3, -2.6, -0.4, 0.65, 2.7, 0.55)

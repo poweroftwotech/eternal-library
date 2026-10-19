@@ -115,6 +115,87 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "growth_arch_3m_heavy",
+"scene": "res://kit/modules/dressing/growth_arch_3m_heavy.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "ivy", "arch"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "growth_arch_3m_light",
+"scene": "res://kit/modules/dressing/growth_arch_3m_light.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "ivy", "arch"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "growth_arch_iwan_heavy",
+"scene": "res://kit/modules/dressing/growth_arch_iwan_heavy.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "ivy", "arch"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "growth_arch_iwan_light",
+"scene": "res://kit/modules/dressing/growth_arch_iwan_light.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "ivy", "arch"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "growth_cornice_long",
+"scene": "res://kit/modules/dressing/growth_cornice_long.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "ivy", "cornice"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "growth_cornice_short",
+"scene": "res://kit/modules/dressing/growth_cornice_short.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "ivy", "cornice"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "growth_parapet_stair",
+"scene": "res://kit/modules/dressing/growth_parapet_stair.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "ivy", "parapet"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "growth_parapet_stair_r",
+"scene": "res://kit/modules/dressing/growth_parapet_stair_r.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "ivy", "parapet"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "growth_parapet_strands",
+"scene": "res://kit/modules/dressing/growth_parapet_strands.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "ivy", "parapet"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "iwan_fountain",
 "scene": "res://kit/modules/dressing/iwan_fountain.tscn",
 "shape": "free",

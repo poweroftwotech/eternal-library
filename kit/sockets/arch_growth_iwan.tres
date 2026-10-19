@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_cwee4"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/growth_arch_iwan_light.tscn" id="2_74m1s"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/growth_arch_iwan_heavy.tscn" id="3_1d4q5"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="4_ebbi2"]
+
+[sub_resource type="Resource" id="Resource_xvh57"]
+script = ExtResource("1_cwee4")
+label = "nothing"
+weight = 3.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_hsavs"]
+script = ExtResource("1_cwee4")
+label = "light"
+scene = ExtResource("2_74m1s")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_31pob"]
+script = ExtResource("1_cwee4")
+label = "heavy"
+scene = ExtResource("3_1d4q5")
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("4_ebbi2")
+entries = Array[ExtResource("1_cwee4")]([SubResource("Resource_xvh57"), SubResource("Resource_hsavs"), SubResource("Resource_31pob")])
+slot_bounds = AABB(-3.05, 4.05, -0.4, 6.1, 3.92, 0.5)

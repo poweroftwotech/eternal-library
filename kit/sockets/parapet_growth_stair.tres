@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_pqy0k"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/growth_parapet_stair.tscn" id="2_08s4q"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="3_axjc4"]
+
+[sub_resource type="Resource" id="Resource_vntv8"]
+script = ExtResource("1_pqy0k")
+label = "nothing"
+weight = 4.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_7oive"]
+script = ExtResource("1_pqy0k")
+label = "strands"
+scene = ExtResource("2_08s4q")
+weight = 2.0
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("3_axjc4")
+entries = Array[ExtResource("1_pqy0k")]([SubResource("Resource_vntv8"), SubResource("Resource_7oive")])
+slot_bounds = AABB(-0.75, -1.2, -0.4, 1.05, 1.42, 0.55)

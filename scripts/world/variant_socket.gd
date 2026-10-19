@@ -56,6 +56,10 @@ enum Mode { REPLACE, TOGGLE, SCATTER, STATE, EDGE_SCATTER }
 ## (seam items in front of an upper wall sit on a gallery, never float).
 @export var settle: bool = false
 @export var settle_max_drop: float = 0.5
+## Spawns nothing unless a sibling socket (same parent) picked the entry with this
+## label: growth on a stone coping only when the module's look is "masonry"
+## (polish B). A room resolves these after the rest.
+@export var needs_look: String = ""
 
 var last_pick: int = -1
 ## SCATTER / EDGE_SCATTER: number of items placed (gaps not counted).
@@ -98,6 +102,9 @@ func resolve(seed_value: int, room_pin_value: int = -1, style_pick: int = -1) ->
 	if force < 0 and style_pick >= 0 and style_pick < socket_set.entries.size():
 		force = style_pick
 	var idx: int = force if force >= 0 else socket_set.pick(rng)
+	if needs_look != "" and not look_present():
+		last_pick = idx
+		return idx
 	match mode:
 		Mode.TOGGLE:
 			if rng.randf() > toggle_chance:
@@ -113,6 +120,10 @@ func resolve(seed_value: int, room_pin_value: int = -1, style_pick: int = -1) ->
 		_:
 			_spawn(idx, Transform3D.IDENTITY, rng)
 	last_pick = idx
+	if needs_look == "" and room() == null and get_parent() != null:     # a module previewed on its own: gated siblings follow
+		for s: Node in get_parent().get_children():
+			if s != self and s is VariantSocket and (s as VariantSocket).needs_look != "":
+				(s as VariantSocket).resolve((s as VariantSocket)._seed, (s as VariantSocket).room_pin)
 	return idx
 
 
@@ -292,3 +303,13 @@ func entry_label(idx: int) -> String:
 	if e.label != "":
 		return e.label
 	return e.scene.resource_path.get_file().get_basename() if e.scene != null else "(no scene)"
+
+
+## needs_look: whether a sibling socket's current pick has that label.
+func look_present() -> bool:
+	if get_parent() == null:
+		return false
+	for s: Node in get_parent().get_children():
+		if s != self and s is VariantSocket and (s as VariantSocket).entry_label((s as VariantSocket).last_pick) == needs_look:
+			return true
+	return false

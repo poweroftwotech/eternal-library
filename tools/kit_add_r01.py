@@ -384,6 +384,32 @@ REMOVE_MODULES = ["M_stair_gallery_8m_open", "M_stair_gallery_8m_open_r"]
 # Script-owned markers to delete (module, marker name prefix). Polish B item 4:
 # no vines on the gallery rails (the rail_growth set stays for reuse).
 REMOVE_MARKERS = [("M_" + g, "SOCKET_rail_growth__") for g in GALLERIES]
+
+# Polish B item 5: growth sockets.
+CORNICE_RUN = 1.3     # curtain centres 1.35-2.65 m into a bay; a curtain is up to 1.7 m wide
+COPING_Y = 1.485      # masonry handrail centre line (stair and gallery balustrades)
+COPING_Z = H + 0.15 + 0.92      # gallery handrail top (kit_add_dressing RAIL_HI)
+STAIR_PITCH = math.atan(STAIR[2] / STAIR[1])
+STAIR_COPING_LEN = (6.8 - 1.0) / math.cos(STAIR_PITCH)
+
+
+def stair_coping(x):
+    """Masonry stair handrail top above stair x (from the foot): nosing line + 0.92."""
+    steps, run, top = STAIR[0], STAIR[1], STAIR[2]
+    return top / steps + min(x, run - run / steps) * math.tan(STAIR_PITCH) + 0.92
+
+
+def cornice_socket():
+    return {"socket_set": "cornice_growth", "socket_mode": "edge_scatter", "scatter_count": [0, 2],
+            "scatter_spacing": 1.0, "edge_length": CORNICE_RUN, "edge_depth": 0.0, "scatter_spin": 0}
+
+
+def parapet_socket(length, most, set_name="parapet_growth"):
+    """Strands hang plumb from the coping, so items keep their turn (no spin)."""
+    return {"socket_set": set_name, "socket_mode": "edge_scatter", "scatter_count": [0, most],
+            "scatter_spacing": 0.9, "edge_length": length, "edge_depth": 0.0, "scatter_spin": 0,
+            "needs_look": "masonry"}
+
 ADD_MARKERS = [
     ("M_wall_iwan_12m", "SOCKET_iwan_centre__iwan", (6.0, -1.2, 0.0), {"socket_set": "iwan_centre"}),
     ("M_table_reading", "SOCKET_table_props__table", (0.0, 0.0, 0.78), TABLE_SOCKET),
@@ -412,6 +438,26 @@ ADD_MARKERS = [
     ("M_post_gallery_column", "SOCKET_gallery_support__column", (0.0, COL_Y, 0.0), {"socket_set": "gallery_support"}),
     ("M_post_gallery_column_corner", "SOCKET_gallery_support__corner", (COL_Y, COL_Y, 0.0),
      {"socket_set": "gallery_support_corner"}),
+    # Polish B item 5: growth. Arch growth at the arch centre on the room face.
+    ("M_wall_arch_3m", "SOCKET_arch_growth__arch3", (2.0, T, 0.0), {"socket_set": "arch_growth"}),
+    ("M_wall_iwan_12m", "SOCKET_arch_growth_iwan__iwan", (6.0, T, 0.0), {"socket_set": "arch_growth_iwan"}),
+    # Ivy curtains from the vault springing (8 m in the hall), clear of the piers at
+    # the bay ends; turned so the strip runs along the bay and -Z faces the room.
+    ("M_vault_hall_12m", "SOCKET_cornice_growth__west", (T, 2.0 + CORNICE_RUN / 2, H), cornice_socket(), (0.0, 0.0, -math.pi / 2)),
+    ("M_vault_hall_12m", "SOCKET_cornice_growth__east", (HALL - T, 2.0 - CORNICE_RUN / 2, H), cornice_socket(),
+     (0.0, 0.0, math.pi / 2)),
+    # Strands from the masonry balustrade's coping (only with the masonry look),
+    # kept 0.35 m clear of a wall face or a neighbouring gallery lane (strands
+    # reach 0.3 m either side of their spot).
+    ("M_gallery_slab_4m", "SOCKET_parapet_growth__slab", (0.65, COPING_Y, COPING_Z), parapet_socket(2.7, 2)),
+    ("M_gallery_slab_4m_open_end", "SOCKET_parapet_growth__open_end", (0.65, COPING_Y, COPING_Z), parapet_socket(1.4, 1)),
+    ("M_gallery_slab_4m_open_start", "SOCKET_parapet_growth__open_start", (1.95, COPING_Y, COPING_Z), parapet_socket(1.4, 1)),
+    ("M_gallery_end_12m", "SOCKET_parapet_growth__end", (1.95, COPING_Y, COPING_Z), parapet_socket(8.1, 4)),
+    # The stair copings, pitched up the slope from stair x 1.0 to 6.8.
+    ("M_stair_gallery_8m", "SOCKET_parapet_growth_stair__stair_gallery_8m", (1.0, COPING_Y, stair_coping(1.0)),
+     parapet_socket(STAIR_COPING_LEN, 4, "parapet_growth_stair"), (0.0, -STAIR_PITCH, 0.0)),
+    ("M_stair_gallery_8m_r", "SOCKET_parapet_growth_stair_r__stair_gallery_8m_r", (STAIR[1] - 6.8, COPING_Y, stair_coping(6.8)),
+     parapet_socket(STAIR_COPING_LEN, 4, "parapet_growth_stair_r"), (0.0, STAIR_PITCH, 0.0)),
 ]
 
 

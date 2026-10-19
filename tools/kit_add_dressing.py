@@ -18,6 +18,9 @@ Every module's origin is the socket it fills (Blender axes; Godot -Z = +Y):
                (wall line, floor level; the slab lane is y 0.3..1.6).
   gallery_column(_corner) a gallery_support(_corner) socket: the column centre
                (floor level); the wall is -Y (and -X for the corner).
+  growth_*    a growth socket (polish B): on the face the ivy clings to, room +Y.
+               arch: the arch centre at floor level; cornice: the springing line;
+               parapet: the coping top centre line (pitched on a stair).
 """
 import math
 import os
@@ -28,7 +31,7 @@ import bmesh
 import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kit_blender import (add_box, add_card, add_lathe, add_ngon_prism, add_obox, add_prism, rebuild,  # noqa: E402
+from kit_blender import (add_box, add_card, add_lathe, add_ngon_prism, add_obox, add_prism, add_tube, rebuild,  # noqa: E402
                          H, T, arch_outline, arch_ring, marker, mesh_object, module)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -691,6 +694,183 @@ def gallery_column_corner(r):
     gallery_support(r, "gallery_column_corner", (-90, 180), 0.2)
 
 
+# --- growth (polish slice B item 5) ------------------------------------------
+# Built like the prototype's arch_head_ivy, pier_ivy and clinging vine()
+# (scripts/arch_pass.gd, interior_pass.gd): a thin vine tube tracing the stone,
+# dense ivy leaf clumps, and long hanging strands. Leaves are ivy_leaf cards
+# (swaying kit_foliage material); the vine is a static tube. Every growth
+# candidate's origin is on the face it clings to; the room is +Y.
+LEAF = (0.15, 0.17)     # ivy card, as the prototype's (0.16 x 0.2) arch ivy
+VINE_R = 0.011
+
+
+def leaf(bm, uv, rng, p, scale=1.0, flat=False):
+    """One ivy card centred near p, roughly parallel to the wall (or lying flat)."""
+    w, h = LEAF[0] * scale, LEAF[1] * scale
+    if flat:
+        add_card(bm, uv, (p[0], p[1] - h / 2, p[2]), w, h, rng.uniform(-0.6, 0.6), math.radians(-90))
+    else:
+        add_card(bm, uv, (p[0], p[1], p[2] - h / 2), w, h, rng.uniform(-0.5, 0.5), rng.uniform(-0.5, 0.5))
+
+
+def clump(bm, uv, rng, centre, n, rx, rz, zmax=99.0):
+    """A dense ivy clump: n cards in an ellipse rx x rz on the wall, 0-0.12 m out."""
+    for _ in range(n):
+        z = min(centre[2] + rng.uniform(-rz, rz * 0.8), zmax - LEAF[1] / 2)
+        leaf(bm, uv, rng, (centre[0] + rng.uniform(-rx, rx), centre[1] + rng.uniform(0.0, 0.12), z))
+
+
+def strand(bm, uv, rng, top, length, zmin=-99.0):
+    """Leaves hanging from `top` in a slightly drifting line, down to `length`."""
+    x, drift, z = top[0], rng.uniform(-0.05, 0.05), top[2]
+    while z > max(top[2] - length, zmin):
+        leaf(bm, uv, rng, (x + rng.uniform(-0.04, 0.04), top[1] + rng.uniform(-0.02, 0.04), z - 0.04), 0.9)
+        x += drift * 0.1
+        z -= rng.uniform(0.1, 0.13)
+
+
+def clinging(bm_vine, bm_leaf, uv, rng, path, per_m=14, spread=0.14, zmax=99.0):
+    """A vine tube along path (on the wall) with leaves along it, none above zmax."""
+    from mathutils import Vector
+    add_tube(bm_vine, path, VINE_R, 5)
+    for a, b in zip(path, path[1:]):
+        n = max(1, round((Vector(b) - Vector(a)).length * per_m))
+        for j in range(n):
+            t = (j + rng.random()) / n
+            p = [a[i] + (b[i] - a[i]) * t for i in range(3)]
+            leaf(bm_leaf, uv, rng, (p[0] + rng.uniform(-spread, spread), p[1] + rng.uniform(0.0, 0.08),
+                                    min(p[2] + rng.uniform(-spread, spread * 0.8), zmax - LEAF[1] / 2)))
+
+
+def arch_point(span, spring, k, off, t, side):
+    """A point (x, z) on an arch_outline arch centred on x = 0, offset `off` out
+    from the intrados: t = 0 at the springing, 1 at the crown; side -1 left, 1 right."""
+    r = span * k
+    cx = r - span / 2                 # the left arc's centre (right of centre if pointed)
+    rr = r + off
+    end = math.acos(max(-1.0, min(1.0, -cx / rr)))
+    a = math.pi + t * (end - math.pi)
+    x = cx + rr * math.cos(a)
+    return (x if side < 0 else -x, spring + rr * math.sin(a))
+
+
+def arch_growth(r, name, span, spring, k, heavy, face, zmax, strand_floor, seed):
+    """Ivy over an arch: vines along the extrados, clumps near the apex and strands
+    hanging into the opening. `face`: how far out the wall face (or frame) is.
+    Nothing grows above zmax; strands stop at strand_floor."""
+    rng = random.Random(seed)
+    bv, bl = bmesh.new(), bmesh.new()
+    uv = bl.loops.layers.uv.new("UVMap")
+    y = face + 0.015
+    s = span / 3.0                    # counts and reach scale with the arch
+    sides = (-1, 1) if heavy else (rng.choice((-1, 1)),)
+    for side in sides:
+        t0 = 0.4                    # clear of the piers either side
+        path = [arch_point(span, spring, k, 0.14, t0 + (1.0 - t0) * i / 10, side) for i in range(11)]
+        if not heavy:                  # a light vine runs a little way past the crown
+            path += [arch_point(span, spring, k, 0.14, 1.0 - 0.3 * i / 4, -side) for i in range(1, 5)]
+        path = [(x, y, min(z, zmax - 0.03)) for (x, z) in path]
+        clinging(bv, bl, uv, rng, path, 12 if heavy else 8, 0.1 * s ** 0.5, zmax)
+    for side in (-1, 1):              # clumps along the head, densest at the crown
+        n = round((10 if heavy else (3 if side in sides else 1)) * s)
+        for i in range(n):
+            t = 0.5 + 0.5 * (i + rng.random()) / n
+            (x, z) = arch_point(span, spring, k, 0.2, t, side)
+            clump(bl, uv, rng, (x, face, z), rng.randint(6, 9) if heavy else rng.randint(4, 6), 0.2 * s ** 0.5, 0.2, zmax)
+    for side in (-1, 1):              # strands into the opening
+        m = round((7 if heavy else 2) * s)
+        for i in range(m):
+            t = 0.5 + 0.47 * i / max(m - 1, 1) + rng.uniform(-0.03, 0.03) if heavy else rng.uniform(0.7, 0.97)
+            (x, z) = arch_point(span, spring, k, 0.0, t, side)
+            strand(bl, uv, rng, (x, face + 0.05, min(z, zmax) - 0.02),
+                   rng.uniform(0.25, 1.1 if heavy else 0.6) * s ** 0.5, strand_floor)
+    mesh_object(name + "__vine", bv, ["vine"], r)
+    mesh_object(name + "__leaves", bl, ["ivy_leaf"], r, recalc=False)
+
+
+# wall_arch_3m: 3 m opening, springs at 1.8 m, k 0.6. The lower-storey arches sit
+# under a gallery slab (soffit 3.85 m), so nothing grows above 3.8 m; strands
+# stop at 2.2 m, clear of a head in the doorway.
+def growth_arch_3m_light(r):
+    arch_growth(r, "growth_arch_3m_light", 3.0, 1.8, 0.6, False, 0.0, 3.8, 2.2, 61)
+
+
+def growth_arch_3m_heavy(r):
+    arch_growth(r, "growth_arch_3m_heavy", 3.0, 1.8, 0.6, True, 0.0, 3.8, 2.2, 67)
+
+
+# The iwan arch: 6 m, springs at 4 m, k 0.58, in front of the 6 cm mosaic frame;
+# the gable starts at 8 m.
+def growth_arch_iwan_light(r):
+    arch_growth(r, "growth_arch_iwan_light", 6.0, 4.0, 0.58, False, 0.07, 7.95, 4.3, 71)
+
+
+def growth_arch_iwan_heavy(r):
+    arch_growth(r, "growth_arch_iwan_heavy", 6.0, 4.0, 0.58, True, 0.07, 7.95, 4.3, 73)
+
+
+def cornice_curtain(r, name, strands, lengths, seed):
+    """Ivy curtain from the springing line (origin) down the wall face: a vine
+    along the line, a clump on it and strands about 0.36 m apart."""
+    rng = random.Random(seed)
+    bv, bl = bmesh.new(), bmesh.new()
+    uv = bl.loops.layers.uv.new("UVMap")
+    half = 0.18 * strands
+    clinging(bv, bl, uv, rng, [(-half, 0.02, -0.04), (0.0, 0.025, 0.02), (half, 0.02, -0.03)], 10, 0.1)
+    clump(bl, uv, rng, (0.0, 0.0, -0.05), 6 + 2 * strands, half, 0.12)
+    for i in range(strands):
+        x = -half + 2 * half * (i + 0.5) / strands + rng.uniform(-0.06, 0.06)
+        strand(bl, uv, rng, (x, 0.06, -0.05), rng.uniform(*lengths))
+    mesh_object(name + "__vine", bv, ["vine"], r)
+    mesh_object(name + "__leaves", bl, ["ivy_leaf"], r, recalc=False)
+
+
+def growth_cornice_short(r):
+    cornice_curtain(r, "growth_cornice_short", 3, (0.4, 1.1), 79)
+
+
+def growth_cornice_long(r):
+    cornice_curtain(r, "growth_cornice_long", 4, (0.9, 2.3), 83)
+
+
+STAIR_PITCH = math.atan(STAIR_TOP / STAIR_RUN)   # the masonry handrail's slope
+
+
+def parapet_strands(r, name, pitch, seed):
+    """Strands from a crack in a stone coping (origin: coping top, centre line),
+    over the hall-side edge and down the open face. On a stair the socket is
+    pitched by -pitch about its Y axis; the strands are built level and turned
+    back by `pitch`, so they hang plumb. The leaves in the crack lie on the coping."""
+    from mathutils import Matrix
+    rng = random.Random(seed)
+    bl = bmesh.new()
+    uv = bl.loops.layers.uv.new("UVMap")
+    for _ in range(rng.randint(2, 4)):
+        x = rng.uniform(-0.25, 0.25)
+        leaf(bl, uv, rng, (x, 0.13, -0.02), 0.9)                     # over the edge
+        strand(bl, uv, rng, (x, 0.2, -0.1), rng.uniform(0.4, 1.2) if pitch else rng.uniform(0.8, 2.4))
+    m = Matrix.Rotation(pitch, 3, "Y")
+    for v in bl.verts:
+        v.co = m @ v.co
+    for _ in range(4):
+        leaf(bl, uv, rng, (rng.uniform(-0.2, 0.2), rng.uniform(-0.04, 0.06), 0.012), 0.9, flat=True)
+    mesh_object(name + "__leaves", bl, ["ivy_leaf"], r, recalc=False)
+
+
+def growth_parapet_strands(r):
+    parapet_strands(r, "growth_parapet_strands", 0.0, 89)
+
+
+def growth_parapet_stair(r):
+    """For stair_gallery_8m (rises along +X): its socket is turned -STAIR_PITCH about Y."""
+    parapet_strands(r, "growth_parapet_stair", STAIR_PITCH, 97)
+
+
+def growth_parapet_stair_r(r):
+    """For stair_gallery_8m_r (falls along +X): its socket is turned +STAIR_PITCH about Y."""
+    parapet_strands(r, "growth_parapet_stair_r", -STAIR_PITCH, 101)
+
+
 MODULES = [
     ("M_recess_shelves", props("wood,storage,recess"), recess_shelves),
     ("M_recess_shelves_broken", dict(props("wood,storage,recess,ruin"), kit_rev=3), recess_shelves_broken),
@@ -726,6 +906,16 @@ MODULES = [
     ("M_gallery_masonry_end", props("stone,brick,gallery"), gallery_masonry_end),
     ("M_gallery_column", props("stone,brick,gallery,structure"), gallery_column),
     ("M_gallery_column_corner", props("stone,brick,gallery,structure"), gallery_column_corner),
+    # Polish B item 5: growth over arches, from the vault springing and on stone copings.
+    ("M_growth_arch_3m_light", props("plant,ivy,arch"), growth_arch_3m_light),
+    ("M_growth_arch_3m_heavy", props("plant,ivy,arch"), growth_arch_3m_heavy),
+    ("M_growth_arch_iwan_light", props("plant,ivy,arch"), growth_arch_iwan_light),
+    ("M_growth_arch_iwan_heavy", props("plant,ivy,arch"), growth_arch_iwan_heavy),
+    ("M_growth_cornice_short", props("plant,ivy,cornice"), growth_cornice_short),
+    ("M_growth_cornice_long", props("plant,ivy,cornice"), growth_cornice_long),
+    ("M_growth_parapet_strands", props("plant,ivy,parapet"), growth_parapet_strands),
+    ("M_growth_parapet_stair", props("plant,ivy,parapet"), growth_parapet_stair),
+    ("M_growth_parapet_stair_r", props("plant,ivy,parapet"), growth_parapet_stair_r),
 ]
 
 

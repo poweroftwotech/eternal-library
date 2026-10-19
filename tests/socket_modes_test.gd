@@ -1,6 +1,7 @@
 extends SceneTree
 ## Phase 1 step 3 gate: socket sets and the STATE / SCATTER / REPLACE modes;
-## weathering items 1-4 (edge scatter, settle, plants, decals, stair looks).
+## weathering items 1-4 (edge scatter, settle, plants, decals, stair looks);
+## polish B growth (arch, cornice and coping ivy, the masonry gate).
 ##   godot --headless --path . --script res://tests/socket_modes_test.gd
 
 const SETS: Dictionary = {
@@ -21,6 +22,12 @@ const SETS: Dictionary = {
 	"gallery_style_end": ["masonry", "wood"],
 	"gallery_support": ["masonry", "wood"],
 	"gallery_support_corner": ["masonry", "wood"],
+	"arch_growth": ["nothing", "light", "heavy"],
+	"arch_growth_iwan": ["nothing", "light", "heavy"],
+	"cornice_growth": ["nothing", "short curtain", "long curtain"],
+	"parapet_growth": ["nothing", "strands"],
+	"parapet_growth_stair": ["nothing", "strands"],
+	"parapet_growth_stair_r": ["nothing", "strands"],
 }
 
 var failures: PackedStringArray = []
@@ -48,6 +55,7 @@ func run() -> void:
 	await check_rail_ivy()
 	await check_decals()
 	await check_style_groups()
+	await check_growth()
 	print("socket_modes_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -382,4 +390,84 @@ func check_style_groups() -> void:
 	check(pinned[stair_key] == 1 and pinned["Shell/gallery_end_12m/Mesh/M_gallery_end_12m/SOCKET_gallery_style"] == 0,
 		"a pin wins over the group; the rest keep the room's pick (seed %d)" % stone_seed)
 	room.queue_free()
+	await process_frame
+
+
+## Polish B item 5: growth candidates are ivy cards on the swaying material (with
+## a vine tube where they cling); coping strands grow only on the masonry look
+## and hang plumb on the pitched stair coping; cornice curtains face the hall.
+func check_growth() -> void:
+	for set_name: String in ["arch_growth", "arch_growth_iwan", "cornice_growth", "parapet_growth", "parapet_growth_stair", "parapet_growth_stair_r"]:
+		var set: SocketSet = load("res://kit/sockets/%s.tres" % set_name)
+		for e: SocketEntry in set.entries:
+			if e.scene == null:
+				continue
+			var n: Node = e.scene.instantiate()
+			var mats: Array = n.find_children("*", "MeshInstance3D", true, false).map(
+				func(m: Node) -> String: return (m as MeshInstance3D).mesh.surface_get_material(0).resource_name)
+			var foliage: Array = n.find_children("*", "MeshInstance3D", true, false).filter(func(m: Node) -> bool:
+				var mat: Material = (m as MeshInstance3D).mesh.surface_get_material(0)
+				return mat is ShaderMaterial and (mat as ShaderMaterial).shader.resource_path.ends_with("kit_foliage.gdshader"))
+			var clings: bool = not set_name.begins_with("parapet")
+			check(mats.has("ivy_leaf") and not foliage.is_empty() and (mats.has("vine") or not clings),
+				"%s '%s': swaying ivy cards%s (%s)" % [set_name, e.label, " and a vine" if clings else "", mats])
+			n.free()
+	# The masonry gate on a gallery module previewed on its own.
+	var pair: Array = await module_socket("res://kit/modules/walls/gallery_slab_4m.tscn", "parapet_growth")
+	var node: Node3D = pair[0]
+	var growth: VariantSocket = pair[1]
+	var look: VariantSocket = node.find_children("*", "VariantSocket", true, false).filter(
+		func(s: Node) -> bool: return (s as VariantSocket).socket_set.resource_path.ends_with("gallery_style_slab.tres"))[0]
+	if growth != null:
+		check(growth.needs_look == "masonry" and growth.mode == VariantSocket.Mode.EDGE_SCATTER and not growth.scatter_spin,
+			"coping socket: EDGE_SCATTER, no spin, gated on the masonry look")
+		growth.scatter_count = Vector2i(2, 2)
+		growth.pinned = growth.socket_set.index_of("strands")
+		look.pinned = look.socket_set.index_of("masonry")
+		look.resolve(3)
+		check(internal(growth).size() == 2, "masonry look: strands hang from the coping (%d)" % internal(growth).size())
+		look.pinned = look.socket_set.index_of("wood")
+		look.resolve(3)
+		check(internal(growth).is_empty(), "wood look: no strands (%d)" % internal(growth).size())
+	node.queue_free()
+	# Plumb strands on the pitched stair coping.
+	for stair: String in ["stair_gallery_8m", "stair_gallery_8m_r"]:
+		pair = await module_socket("res://kit/modules/walls/%s.tscn" % stair, "parapet_growth_stair" + ("_r" if stair.ends_with("_r") else ""))
+		node = pair[0]
+		growth = pair[1]
+		look = node.find_children("*", "VariantSocket", true, false).filter(
+			func(s: Node) -> bool: return (s as VariantSocket).socket_set.resource_path.contains("stair_style"))[0]
+		if growth != null:
+			var pitch: float = rad_to_deg(growth.global_basis.x.angle_to(Vector3(growth.global_basis.x.x, 0, growth.global_basis.x.z)))
+			check(absf(pitch - 27.4) < 0.5, "%s coping socket is pitched with the stair (%.1f deg)" % [stair, pitch])
+			growth.scatter_count = Vector2i(1, 1)
+			growth.pinned = growth.socket_set.index_of("strands")
+			look.pinned = look.socket_set.index_of("masonry")
+			look.resolve(5)
+			var items: Array[Node] = internal(growth)
+			if items.size() == 1:
+				var box := AABB()
+				var first: bool = true
+				for m: Node in items[0].find_children("*", "MeshInstance3D", true, false):
+					var xf: Transform3D = (m as MeshInstance3D).global_transform
+					for v: Vector3 in (m as MeshInstance3D).mesh.get_faces():
+						box = AABB(xf * v, Vector3.ZERO) if first else box.expand(xf * v)
+						first = false
+				check(box.size.x < 0.75 and box.size.y > 0.45, "%s strands hang plumb (%.2f wide, %.2f tall)" % [stair, box.size.x, box.size.y])
+			else:
+				check(false, "%s: one strand item placed (%d)" % [stair, items.size()])
+		node.queue_free()
+	# Cornice curtains: the strip runs along the bay and -Z faces into the hall.
+	var vault: Node3D = (load("res://kit/modules/walls/vault_hall_12m.tscn") as PackedScene).instantiate()
+	root.add_child(vault)
+	var cornices: Array = vault.find_children("*", "VariantSocket", true, false).filter(
+		func(s: Node) -> bool: return (s as VariantSocket).socket_set.resource_path.ends_with("cornice_growth.tres"))
+	check(cornices.size() == 2, "the hall vault has two cornice sockets (%d)" % cornices.size())
+	for s: Node in cornices:
+		var c := s as VariantSocket
+		var inward: Vector3 = -c.global_basis.z
+		var toward_centre: float = signf(6.0 - c.global_position.x)
+		check(absf(c.global_position.y - 8.0 + 4.0) < 0.01 and inward.x * toward_centre > 0.99 and absf(c.global_basis.x.z) > 0.99,
+			"cornice socket at the springing (%s) faces the hall (%s)" % [c.global_position, inward])
+	vault.queue_free()
 	await process_frame

@@ -6,7 +6,7 @@ extends SceneTree
 ## seed: the room's preview_seed (default: as saved; "-" keeps it). A fifth argument
 ## "collapse" pins every recess to "collapsed" (to inspect settled spill);
 ## "seams" pins every wall-base seam to "rubble"; "growth" pins seams to "fern"
-## and gallery rails to "ivy"; "decals" pins wall stains to "water stain", floor
+## and every growth socket (polish B) to its heaviest pick; "decals" pins wall stains to "water stain", floor
 ## wear to "crack" and lamp soot to "soot"; "nodecals" pins all three to "nothing";
 ## "open_stairs" pins both stairs to the open wooden look.
 ## Run `godot --headless --import` first.
@@ -27,6 +27,7 @@ const VIEWS: Dictionary = {
 	"stair_foot": [Vector3(4.6, 1.5, -19.6), Vector3(1.4, 0.9, -15.0), 60.0],  # the west stair's foot newel (polish 1b)
 	"under_gallery": [Vector3(0.75, 1.5, -0.75), Vector3(1.0, 2.3, -7.0), 70.0],    # along the west wall under the gallery (1c)
 	"arcade": [Vector3(7.0, 1.6, -2.6), Vector3(1.0, 2.6, -5.0), 70.0],           # side-on to the west arcade (1c)
+	"side_arch": [Vector3(5.5, 1.7, -10.0), Vector3(0.3, 2.7, -10.0), 66.0],        # the west side door arch (polish B)
 }
 
 
@@ -44,7 +45,8 @@ func capture() -> void:
 		room.preview_seed = int(args[3])
 	# option -> [[set, entry], ...]: pin every socket of that set to that entry.
 	var pin_all: Dictionary = {"collapse": [["recess_library", "collapsed"]], "seams": [["seam_debris", "rubble"]],
-		"growth": [["seam_debris", "fern"]],
+		"growth": [["seam_debris", "fern"], ["arch_growth", "heavy"], ["arch_growth_iwan", "heavy"], ["cornice_growth", "long curtain"],
+			["parapet_growth", "strands"], ["parapet_growth_stair", "strands"], ["parapet_growth_stair_r", "strands"]],
 		"decals": [["wall_stains", "water stain"], ["floor_wear", "crack"], ["lamp_soot", "soot"]],
 		"nodecals": [["wall_stains", "nothing"], ["floor_wear", "nothing"], ["lamp_soot", "nothing"]],
 		"open_stairs": [["stair_style", "open wood"]]}

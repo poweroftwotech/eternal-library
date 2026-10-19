@@ -50,7 +50,9 @@ func resolve_sockets(seed_value: int) -> Dictionary:
 	_last_seed = seed_value
 	var picks: Dictionary = {}
 	var styles: Dictionary = style_picks(seed_value)
-	for s: VariantSocket in sockets():
+	var all: Array[VariantSocket] = sockets()
+	# Sockets gated on a sibling's look (VariantSocket.needs_look) go after the looks.
+	for s: VariantSocket in all.filter(func(v: VariantSocket) -> bool: return v.needs_look == "") + all.filter(func(v: VariantSocket) -> bool: return v.needs_look != ""):
 		var key: String = socket_key(s)
 		var group: String = s.socket_set.style_group if s.socket_set != null else ""
 		picks[key] = s.resolve(socket_seed(seed_value, key), socket_pins.get(key, -1), styles.get(group, -1))

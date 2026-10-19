@@ -61,8 +61,9 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 		check(by_set == {"recess_library": 16, "iwan_centre": 1, "table_props": 4, "lamp_state": 7, "seam_debris": 10,
 				"wall_stains": 10, "floor_wear": 15, "lamp_soot": 7, "stair_style": 1, "stair_style_r": 1,
 				"gallery_style_slab": 2, "gallery_style_open_end": 1, "gallery_style_open_start": 1, "gallery_style_end": 1,
-				"gallery_support": 6, "gallery_support_corner": 2},
-			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps, 10 seams, 10 wall stains, 15 floors, 7 soot, 2 stairs, 5 gallery looks, 8 column points (found %s)" % by_set)
+				"gallery_support": 6, "gallery_support_corner": 2, "arch_growth": 3, "arch_growth_iwan": 1, "cornice_growth": 10,
+				"parapet_growth": 5, "parapet_growth_stair": 1, "parapet_growth_stair_r": 1},
+			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps, 10 seams, 10 wall stains, 15 floors, 7 soot, 2 stairs, 5 gallery looks, 8 column points, growth over 4 arches, 10 cornices and 7 copings (found %s)" % by_set)
 		check(tmpl.resolve_sockets(7) == tmpl.resolve_sockets(7), "socket picks are deterministic")
 	check(room.get_node("Connectors").get_child_count() == 3, "three door connectors")
 	await physics_frame

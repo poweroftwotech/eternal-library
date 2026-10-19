@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_0epkc"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/growth_cornice_short.tscn" id="2_ilyws"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/growth_cornice_long.tscn" id="3_recht"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="4_vevw7"]
+
+[sub_resource type="Resource" id="Resource_l4mv7"]
+script = ExtResource("1_0epkc")
+label = "nothing"
+weight = 3.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_fd654"]
+script = ExtResource("1_0epkc")
+label = "short curtain"
+scene = ExtResource("2_ilyws")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_5dv4u"]
+script = ExtResource("1_0epkc")
+label = "long curtain"
+scene = ExtResource("3_recht")
+weight = 1.5
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("4_vevw7")
+entries = Array[ExtResource("1_0epkc")]([SubResource("Resource_l4mv7"), SubResource("Resource_fd654"), SubResource("Resource_5dv4u")])
+slot_bounds = AABB(-0.85, -2.45, -0.3, 1.7, 2.6, 0.38)

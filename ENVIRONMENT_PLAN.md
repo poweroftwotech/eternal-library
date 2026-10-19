@@ -1256,6 +1256,61 @@ reviewed in the editor before the next one starts.
    - **`parapet_growth`** on the masonry stair parapet. The socket is pitched
      to the stair slope, and strands grow from a crack in the coping and hang
      down the open face. Only the masonry look carries it.
+   - **Done 2026-10-19.** How it landed:
+     - Candidates in `kit_add_dressing.py` (`growth_*`): `leaf` cards on
+       `ivy_leaf` (swaying), a `vine` tube (`kit_blender.add_tube`, new
+       `vine` library material from the px map), plus `clump`, `strand` and
+       `clinging` helpers. `growth_arch_{3m,iwan}_{light,heavy}` trace the
+       extrados (`arch_point` follows `arch_outline`). Counts and reach scale
+       with the span. `growth_cornice_{short,long}` are 3 or 4 strand
+       curtains. `growth_parapet_strands` and `growth_parapet_stair(_r)` are
+       2-4 strands from a crack.
+     - Sets (`seed_sockets.gd`): `arch_growth` and `arch_growth_iwan`
+       (REPLACE: nothing 3, light 2, heavy 1; one set per arch size, like the
+       stair looks), `cornice_growth` (nothing, short, long curtain),
+       `parapet_growth` and `parapet_growth_stair(_r)` (nothing 4, strands 2).
+       Their slots keep clear of the piers and the gallery soffit (3 m arches
+       stop at 3.8 m, strands at 2.2 m above the floor).
+     - Sockets (`kit_add_r01.py` ADD_MARKERS): `wall_arch_3m` and the iwan at
+       the arch centre on the room face. The cornice sockets are on
+       `vault_hall_12m`, not the wall modules, so they exist only where a
+       hall vault springs (a lower-storey wall top is under the gallery). They
+       sit at both springing lines and are turned so the strip runs along the
+       bay, 1.35-2.65 m in, clear of the piers. Copings: the four gallery
+       modules and both stairs on the handrail centre line, 0.35 m clear of
+       walls and neighbouring lanes. The stair sockets are pitched with the
+       slope (27.4 deg); their candidates are built level and turned back by
+       the pitch, so strands hang plumb.
+     - **Masonry gate:** a candidate can't carry sockets (spawned looks are
+       internal children and `RoomTemplate.sockets()` doesn't see them). So
+       the coping sockets live on the modules with the new
+       `VariantSocket.needs_look = "masonry"` (Blender property `needs_look`):
+       the socket spawns nothing unless a sibling socket picked an entry with
+       that label. `RoomTemplate.resolve_sockets` resolves gated sockets after
+       the rest. A module previewed on its own re-resolves gated siblings
+       after its look changes, and `KitValidateRoom` skips the slot check when
+       the look's pick (pin, group or roll) isn't masonry.
+   - **Verified:** `kit_test` 851 (graybox 42 sockets; the iwan has arch
+     growth), `reading_room_test` 71 (3 + 1 arches, 10 cornices, 7 copings),
+     `validate_room_test` 25 (the room is clean with masonry and with open
+     stairs), `socket_modes_test` 244 (new `check_growth`: every candidate is
+     swaying ivy with a vine where it clings; masonry gives strands and wood
+     none; stair strands hang plumb, under 0.75 m wide in world; the cornice
+     sockets face the hall from 8 m), spill 6, room atmosphere 32, room
+     playtest 11, and all three 240-frame gates.
+   - GPU: `previews/reading_room_b5_growth_{entrance,gallery,end_gallery,iwan,
+     west_stair,side_arch}.png` (capture option `growth` pins every growth
+     socket to its heaviest pick; new view `side_arch`) and
+     `reading_room_b5_{entrance,gallery}.png` (the default roll).
+   - **Against `garden_v011.png`:** the iwan head, the coping strands and the
+     cornice curtains read like the garden's arch ivy and gallery trailing ivy.
+   - **Caveats:**
+     - The ivy is darker than the garden's because lamplight is not daylight.
+     - The leaves have no per-leaf tint (the prototype varies the colour per
+       leaf; there are no vertex colours in the kit glTF yet).
+     - The 3 m arches under a gallery can't grow above their apex (soffit at
+       3.85 m), so their clumps stay on the haunches.
+     - The default roll is sparse by design (weights favour nothing).
 6. **Root clump for collapsed recesses** (the loose end from item 2). Roots
    push through the broken recess and creep over the fallen boards, using the
    same vine tube.

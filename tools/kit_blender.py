@@ -238,3 +238,25 @@ def add_card(bm, uv, base, width, height, yaw=0.0, tilt=0.0, mat=0):
     for loop, t in zip(f.loops, ((0, 0), (1, 0), (1, 1), (0, 1))):
         loop[uv].uv = t
     return f
+
+
+def add_tube(bm, path, radius, segs=5, mat=0):
+    """Thin closed tube along a polyline (vines and roots, polish B): rings of
+    `segs` verts perpendicular to the path, capped at both ends. `radius` is a
+    number or one radius per path point (tapering roots)."""
+    from mathutils import Vector
+    pts = [Vector(p) for p in path]
+    radii = radius if isinstance(radius, (list, tuple)) else [radius] * len(pts)
+    rings = []
+    for i, p in enumerate(pts):
+        t = (pts[min(i + 1, len(pts) - 1)] - pts[max(i - 1, 0)]).normalized()
+        a = t.cross(Vector((0.0, 0.0, 1.0)) if abs(t.z) < 0.9 else Vector((1.0, 0.0, 0.0))).normalized()
+        b = t.cross(a)
+        rings.append([bm.verts.new(p + (a * math.cos(2 * math.pi * k / segs) + b * math.sin(2 * math.pi * k / segs)) * radii[i])
+                      for k in range(segs)])
+    for k in range(len(rings) - 1):
+        for i in range(segs):
+            j = (i + 1) % segs
+            bm.faces.new((rings[k][i], rings[k][j], rings[k + 1][j], rings[k + 1][i])).material_index = mat
+    bm.faces.new(list(reversed(rings[0]))).material_index = mat
+    bm.faces.new(rings[-1]).material_index = mat

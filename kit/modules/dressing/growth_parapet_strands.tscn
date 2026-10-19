@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_v3ujn"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/growth_parapet_strands.glb" id="2_6cmt3"]
+
+[node name="growth_parapet_strands" type="Node3D" unique_id=443970191]
+script = ExtResource("1_v3ujn")
+family = "dressing"
+tags = PackedStringArray("plant", "ivy", "parapet")
+source_glb = "res://assets/kit/dressing/growth_parapet_strands.glb"
+
+[node name="Mesh" parent="." unique_id=1411209168 instance=ExtResource("2_6cmt3")]

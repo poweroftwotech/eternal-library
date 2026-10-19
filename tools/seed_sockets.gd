@@ -86,6 +86,26 @@ func _initialize() -> void:
 	for set_name: String in ["stair_style", "stair_style_r", "gallery_style_slab", "gallery_style_open_end",
 			"gallery_style_open_start", "gallery_style_end", "gallery_support", "gallery_support_corner"]:
 		style_group(set_name, "gallery_build")
+	# Polish B item 5: growth where it grows (dressing family, swaying ivy). Arch
+	# growth is a REPLACE pick per arch (one set per arch size); the cornice and
+	# parapet sets are EDGE_SCATTER items. Slots are Godot local (Y up, -Z the room).
+	socket_set("arch_growth", [["nothing", "", 3.0], ["light", DRESS + "growth_arch_3m_light.tscn", 2.0],
+		["heavy", DRESS + "growth_arch_3m_heavy.tscn", 1.0]])
+	slot("arch_growth", AABB(Vector3(-1.47, 2.0, -0.3), Vector3(2.94, 1.82, 0.4)))   # between the piers, under a gallery soffit
+	socket_set("arch_growth_iwan", [["nothing", "", 3.0], ["light", DRESS + "growth_arch_iwan_light.tscn", 2.0],
+		["heavy", DRESS + "growth_arch_iwan_heavy.tscn", 1.0]])
+	slot("arch_growth_iwan", AABB(Vector3(-3.05, 4.05, -0.4), Vector3(6.1, 3.92, 0.5)))  # under the gable
+	socket_set("cornice_growth", [["nothing", "", 3.0], ["short curtain", DRESS + "growth_cornice_short.tscn", 2.0],
+		["long curtain", DRESS + "growth_cornice_long.tscn", 1.5]])
+	slot("cornice_growth", AABB(Vector3(-0.85, -2.45, -0.3), Vector3(1.7, 2.6, 0.38)))   # one curtain
+	socket_set("parapet_growth", [["nothing", "", 4.0], ["strands", DRESS + "growth_parapet_strands.tscn", 2.0]])
+	slot("parapet_growth", AABB(Vector3(-0.3, -2.6, -0.4), Vector3(0.65, 2.7, 0.55)))
+	# The stair copings are pitched; their candidates hang plumb, so the slot
+	# (socket space) leans down the slope one way or the other.
+	socket_set("parapet_growth_stair", [["nothing", "", 4.0], ["strands", DRESS + "growth_parapet_stair.tscn", 2.0]])
+	socket_set("parapet_growth_stair_r", [["nothing", "", 4.0], ["strands", DRESS + "growth_parapet_stair_r.tscn", 2.0]])
+	slot("parapet_growth_stair", AABB(Vector3(-0.75, -1.2, -0.4), Vector3(1.05, 1.42, 0.55)))
+	slot("parapet_growth_stair_r", AABB(Vector3(-0.35, -1.2, -0.4), Vector3(1.15, 1.42, 0.55)))
 	print("seed_sockets: ", "; ".join(made) if not made.is_empty() else "nothing to do")
 	quit()
 

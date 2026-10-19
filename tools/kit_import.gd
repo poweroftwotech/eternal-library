@@ -160,7 +160,7 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 				_warnings.append("socket %s: no socket set at %s" % [kind, set_path])
 			# Optional Blender properties: socket_mode (replace|toggle|scatter|state|edge_scatter),
 			# scatter_count [min, max], scatter_extent [half x, half depth], scatter_spacing,
-			# edge_length, edge_depth, scatter_spin (0/1), settle (0/1), settle_max_drop.
+			# edge_length, edge_depth, scatter_spin (0/1), settle (0/1), settle_max_drop, needs_look.
 			var modes: Dictionary = {"replace": VariantSocket.Mode.REPLACE, "toggle": VariantSocket.Mode.TOGGLE,
 				"scatter": VariantSocket.Mode.SCATTER, "state": VariantSocket.Mode.STATE,
 				"edge_scatter": VariantSocket.Mode.EDGE_SCATTER}
@@ -181,6 +181,8 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 				socket.settle = bool(int(extras["settle"]))
 			if extras.has("scatter_spacing"):
 				socket.scatter_spacing = float(extras["scatter_spacing"])
+			if extras.has("needs_look"):
+				socket.needs_look = str(extras["needs_look"])
 			replacement = socket
 		_:
 			replacement = Marker3D.new()

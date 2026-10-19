@@ -179,6 +179,8 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 			continue
 		if _pinned_to_nothing(root, s):
 			continue      # the room (or socket) chose "nothing" here: no slot to check
+		if _gated_off(root, s):
+			continue      # its module's look is not the one it grows on (needs_look)
 		var path: String = s.socket_set.resource_path
 		if not checked_sets.has(path):
 			checked_sets[path] = true
@@ -464,6 +466,18 @@ static func _claims(root: Node) -> Array:
 				out.append([s, socket_xf * VariantSocket.relative_transform(inst as Node3D, m as Node3D) * AABB(size * -0.5, size)])
 		inst.free()
 	return out
+
+
+## needs_look: no sibling socket's pick (as _pick_of rolls it) has that label, so
+## the socket stays empty.
+static func _gated_off(root: Node, s: VariantSocket) -> bool:
+	if s.needs_look == "" or s.get_parent() == null:
+		return false
+	for n: Node in s.get_parent().get_children():
+		if n != s and n is VariantSocket and (n as VariantSocket).socket_set != null \
+				and (n as VariantSocket).entry_label(_pick_of(root, n as VariantSocket)) == s.needs_look:
+			return false
+	return true
 
 
 static func _pick_of(root: Node, s: VariantSocket) -> int:
