@@ -1,11 +1,13 @@
 [gd_scene format=3]
 
 [ext_resource type="Texture2D" path="res://assets/textures/decals/damp_floor.png" id="1_6c7uf"]
+[ext_resource type="Texture2D" path="res://assets/textures/decals/damp_floor_orm.png" id="2_orm"]
 
 [node name="damp_floor" type="Node3D" unique_id=660522974]
 
 [node name="Decal" type="Decal" parent="." unique_id=86121109]
 size = Vector3(1.25, 0.3, 1.25)
 texture_albedo = ExtResource("1_6c7uf")
+texture_orm = ExtResource("2_orm")
 normal_fade = 0.8
 cull_mask = 524288

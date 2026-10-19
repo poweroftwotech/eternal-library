@@ -1361,6 +1361,27 @@ reviewed in the editor before the next one starts.
    flagstone and mottled generators get ported to the GDScript generator
    (`pixel_materials_ext.gd`) as kit variants (`*_kit`), so the prototype
    stays pixel-identical. Same palettes, texel scale and dithering.
+   - **Done 2026-10-19.** `kit_room()` in `pixel_materials_ext.gd` writes
+     `brick_kit`, `arch_stone_kit`, `floor_stone_kit` and `vault_plaster_kit`
+     with `ashlar_kit`, `flagstones_kit` and `mottled_kit`, line-for-line
+     ports of the .py generators (same palettes, parameters, Bayer dithering
+     at 0.35, normals at strength 2). Godot's RNG isn't numpy's, so the block
+     and flag layouts differ but read the same. Brick tiles at 72 texels
+     (2.25 m, `uv1_scale` 0.444) so its 9-texel courses close; the .py's 64
+     leaves a stray unjointed row at every 2 m seam. The four
+     `kit/materials/*.tres` now load the `_kit` maps; the `.import` files copy
+     the originals' settings (lossless, mipmaps, normal-map flag). Re-running
+     the generator leaves every existing map byte-identical.
+   - **Verified:** prototype `capture.gd` concept/paving/archive against the
+     pre-change captures: mean diff 0.24/0.17/0.01 against run-to-run noise
+     0.37/0.13/0.01 (within noise). `kit_test` 855, `reading_room_test` 73,
+     `validate_room_test` 25, `socket_modes_test` 246, all three 240-frame
+     gates. GPU: `previews/reading_room_c_{before,c7}_{relief_floor,
+     relief_wall,arcade,vault,entrance}.png` (new views `relief_floor` and
+     `relief_wall` in `reading_room_capture.gd`, which now also prints frame
+     time over 240 frames, vsync off). Frame time 1.6-1.9 ms before and after.
+   - **Caveat:** no relief yet, by design: the kit maps reproduce the flat
+     look so item 8 starts from a like-for-like base.
 8. **Relief baked into normal and roughness.** Pixel rule: each texel keeps
    one flat colour; relief comes through light.
    - **Flagstones:** each stone tilted a few degrees, with dished wear at
@@ -1373,9 +1394,99 @@ reviewed in the editor before the next one starts.
      Lantern light then gives the specular glints the room lacks.
    - Higher `normal_scale` for the kit materials. Damp floor decals get an
      ORM map (lower roughness), so damp patches catch the light.
+   - **Done 2026-10-19 (walking lines moved to item 9).** All relief comes
+     from a second RNG (`seed + 11`), so the item 7 albedo is unchanged.
+     - **Flagstones:** each stone tilts 1.7-4 degrees in a random direction,
+       is dished 0.08-0.3 at the centre, and one in ten sinks (one in fourteen
+       rises). Joints sit deeper (-0.25), arrises are rounded and chipped
+       where a 2-texel noise passes 0.72. Roughness: joints 0.42-0.52 (damp),
+       arrises 0.6-0.7, chipped arrises 0.95, faces 0.8-0.95 polished down by
+       up to 0.45 in the worn dish.
+     - **Brick and arch stone:** each block bulges up to 0.3 or sits up to
+       0.12 inset (a dome falling to 0 at the arrises), mortar is recessed to
+       -0.1, arrises are rounded and 5-texel spalls (noise > 0.74) are cut
+       0.2 deep. Roughness: mortar 0.9+, spalls and chips 0.97, faces ±0.05
+       per block, smoother on proud crowns.
+     - **Plaster:** a 0.5 m (16-texel) two-octave swell at 3x the grain, with
+       the crests smoother than the hollows (±0.1 roughness).
+     - The four kit materials go from `normal_scale` 0.55 to 1.0.
+     - `damp_floor_orm.png` (written by `damp_floor()`): AO 1, metal 0,
+       roughness 0.05-0.3 in the patch (wettest at the centre) and 0.7 on the
+       salt rim. `kit/decals/damp_floor.tscn` sets it as `texture_orm`.
+   - **Verified:** prototype concept/paving/archive mean diff 0.23/0.13/0.004
+     (noise 0.37/0.13/0.01). Every existing map and decal stays
+     byte-identical. `kit_test` 855, `reading_room_test` 73,
+     `validate_room_test` 25, `socket_modes_test` 246, all three 240-frame
+     gates. GPU: `previews/reading_room_c_c8_{relief_floor,relief_wall,
+     arcade,vault,entrance,relief_damp}.png` against `_c7_` / `_before_`,
+     and `reading_room_c_c8_damp.png` (new capture option `damp`, new view
+     `relief_damp` on the floor-wear socket at (10, -2)). Frame time is
+     unchanged: 1.63-1.95 ms before and after.
+   - **Caveats:**
+     - **Walking lines:** they can't go in a tiling map, because the map
+       repeats every 2 m wherever the floor is. Polished paths down the hall
+       and around the tables need world position, so they move to item 9's
+       world-space roughness. For now the polish is per stone (the worn
+       dish).
+     - **Glints:** specular glints are rare. Lanterns hang at the walls or
+       stand on the floor, so few views put a light opposite the camera. The
+       relief shows mostly as per-stone shading and darker joints.
+     - **Vault:** the vault swell is soft at hall distance, because the
+       vault is lit steeply from below.
+     - **Damp decal:** the gloss is hard to see in the captures. The decal
+       blends its ORM by its albedo alpha (0.25-0.5 in the patch), so the
+       salt rim reads more than the sheen.
 9. **Optional macro variation.** If tiling still shows: a kit ShaderMaterial
    (world triplanar like now) that adds world-space tint and roughness
    variation, snapped to the 32 tx/m grid so it stays pixel-art.
+   - **Done 2026-10-19, with the walking lines from item 8.**
+     - **Shader:** `shaders/kit_px_world.gdshader` is a hand port of the
+       StandardMaterial3D world-triplanar path (same tangent frame,
+       `vec3(1, -1, 1)` flip, nearest-mipmap-anisotropic sampling, roughness
+       from R, specular 0.65). The four kit `.tres` are now ShaderMaterials
+       with the same maps and `uv1_scale`. With the extras off it matches
+       item 8 within noise (mean diff 0.27-0.44).
+     - **Macro tint and roughness:** value noise at 1.5 m and 5 m, read at
+       the centre of each 32 tx/m texel. It is quantised to ±4 steps with a
+       4x4 Bayer on the face's texel grid, so a texel stays one flat colour.
+       Darker steps lean warm. Strength ±0.12 on brick, arch stone and
+       floor, ±0.08 on the vault plaster. A third noise varies roughness by
+       ±0.12 (±0.08 on the vault).
+     - **Walking lines:** `FloorWear` (`scripts/world/floor_wear.gd`) bakes
+       an R8 wear map at 32 tx/m on `_ready` (67 ms for R01's 12 x 20 m). It
+       hands the map to the shader through three new project shader globals,
+       `kit_wear_map`, `kit_wear_rect` and `kit_wear_y`. The map holds
+       authored polylines with weights, plus a lighter ring around each
+       `ring_nodes` footprint (the four tables), broken up by noise and
+       dithered to 4 steps. `floor_stone` (`wear_strength` 1) blends toward
+       roughness 0.3 and darkens 5 % on full wear, on up-facing texels inside
+       the rect and the y range only, so the galleries stay unworn. A room
+       without a FloorWear has no wear (the rect stays zero), and leaving the
+       tree clears it.
+     - **R01's paths:** both lanes beside the rug (x 4 and 8), the entrance
+       and iwan aprons, spurs to both side doors around the tables, and both
+       stair feet.
+   - **Verified:**
+     - `reading_room_test` 79 (new: the wear map is baked, both lanes are
+       worn, there's no wear mid-rug, and `floor_stone` takes wear),
+       `kit_test` 855, `validate_room_test` 25, `socket_modes_test` 246,
+       and all three 240-frame gates.
+     - Prototype mean diff 0.23/0.12/0.004 (noise 0.37/0.13/0.01).
+     - GPU: `previews/reading_room_c_c9_{relief_floor,relief_wall,arcade,
+       vault,entrance,relief_damp,relief_lane}.png`, plus
+       `reading_room_c_c9_relief_lane_nowear.png` (same view, wear off). New
+       view: `relief_lane`.
+     - Frame time 1.66-1.99 ms (item 8: 1.63-1.95), about +0.03 ms.
+   - **Caveats:**
+     - **Wear look:** worn lanes read as smoother and slightly darker, with
+       an odd glint, not as a bright sheen. Glints need a lantern opposite
+       the camera, and few views have one.
+     - **Macro tint:** it is subtle at hall distance. It shows most on the
+       vault and on long brick runs.
+     - **FloorWear limits:** paths are authored per room (phase 2 will need
+       to generate them from connectors and furniture). The room may move
+       but not turn, and only one room's wear is live at a time.
+     - **Editor:** wear only shows at runtime; the editor viewport has none.
    - Parallax is out for now: `StandardMaterial3D` height maps don't work
      with world triplanar. A custom triplanar parallax shader is a later
      option if relief is still too flat.

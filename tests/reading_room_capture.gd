@@ -2,13 +2,13 @@ extends SceneTree
 ## GPU capture of rooms/authored/reading_room.tscn (needs a real display, not --headless).
 ##   godot --path . --resolution 1600x900 --script res://tests/reading_room_capture.gd -- <out.png> [view] [frames] [seed]
 ## Views: entrance, iwan, gallery, stair, vault, end_gallery, table, recesses, seam,
-## soot, crown, west_stair, stair_foot, under_gallery, arcade.
+## soot, crown, west_stair, stair_foot, under_gallery, arcade, side_arch, roots, relief_floor, relief_wall, relief_damp, relief_lane.
 ## seed: the room's preview_seed (default: as saved; "-" keeps it). A fifth argument
 ## "collapse" pins every recess to "collapsed" (to inspect settled spill);
 ## "seams" pins every wall-base seam to "rubble"; "growth" pins seams to "fern"
 ## and every growth socket (polish B) to its heaviest pick; "decals" pins wall stains to "water stain", floor
 ## wear to "crack" and lamp soot to "soot"; "nodecals" pins all three to "nothing";
-## "open_stairs" pins both stairs to the open wooden look.
+## "open_stairs" pins both stairs to the open wooden look; "damp" pins floor wear to "damp patch".
 ## Run `godot --headless --import` first.
 
 const VIEWS: Dictionary = {
@@ -29,6 +29,10 @@ const VIEWS: Dictionary = {
 	"arcade": [Vector3(7.0, 1.6, -2.6), Vector3(1.0, 2.6, -5.0), 70.0],           # side-on to the west arcade (1c)
 	"side_arch": [Vector3(5.5, 1.7, -10.0), Vector3(0.3, 2.7, -10.0), 66.0],        # the west side door arch (polish B)
 	"roots": [Vector3(4.4, 1.5, -2.7), Vector3(0.0, 1.0, -2.1), 60.0],                # a lower west recess, close (polish B item 6)
+	"relief_floor": [Vector3(7.6, 1.0, -1.2), Vector3(6.0, 0.0, -5.6), 64.0],        # low over the flags toward the floor lantern (polish C)
+	"relief_wall": [Vector3(7.0, 1.8, -16.5), Vector3(11.9, 2.6, -21.5), 66.0],       # along the brick beside the iwan, lamp-lit (polish C)
+	"relief_damp": [Vector3(8.2, 1.1, -3.8), Vector3(10.2, 0.0, -1.8), 60.0],         # a floor-wear socket toward the east hanging lantern (polish C)
+	"relief_lane": [Vector3(4.1, 0.9, -2.6), Vector3(3.6, 0.0, -9.5), 62.0],          # low down the west walking lane toward the floor lantern (polish C item 9)
 }
 
 
@@ -50,6 +54,7 @@ func capture() -> void:
 			["parapet_growth", "strands"], ["parapet_growth_stair", "strands"], ["parapet_growth_stair_r", "strands"]],
 		"decals": [["wall_stains", "water stain"], ["floor_wear", "crack"], ["lamp_soot", "soot"]],
 		"nodecals": [["wall_stains", "nothing"], ["floor_wear", "nothing"], ["lamp_soot", "nothing"]],
+		"damp": [["floor_wear", "damp patch"]],
 		"open_stairs": [["stair_style", "open wood"]]}
 	if args.size() > 4 and pin_all.has(args[4]):
 		var pins: Dictionary[String, int] = {}
@@ -73,4 +78,12 @@ func capture() -> void:
 	var img: Image = root.get_viewport().get_texture().get_image()
 	var err: Error = img.save_png(out)
 	print("reading_room_capture: ", "saved " + out if err == OK else "FAILED " + error_string(err))
+	# Frame time over 240 frames with vsync off (one fps sample is noise).
+	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	for i: int in 30:
+		await process_frame
+	var t0: int = Time.get_ticks_usec()
+	for i: int in 240:
+		await process_frame
+	print("reading_room_capture: frame time %.2f ms" % ((Time.get_ticks_usec() - t0) / 240000.0))
 	quit(0 if err == OK else 1)

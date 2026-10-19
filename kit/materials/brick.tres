@@ -1,19 +1,22 @@
-[gd_resource type="StandardMaterial3D" format=3 uid="uid://31mwtve5r10f"]
+[gd_resource type="ShaderMaterial" format=3 uid="uid://31mwtve5r10f"]
 
-[ext_resource type="Texture2D" uid="uid://cemjssna1vv17" path="res://assets/textures/px/brick.png" id="1_wtu44"]
-[ext_resource type="Texture2D" uid="uid://espe3wulr8vd" path="res://assets/textures/px/brick_normal.png" id="2_ncsmn"]
-[ext_resource type="Texture2D" uid="uid://wdteojo4vog7" path="res://assets/textures/px/brick_rough.png" id="3_043gh"]
+[ext_resource type="Shader" path="res://shaders/kit_px_world.gdshader" id="0_shader"]
+[ext_resource type="Texture2D" uid="uid://pnrwx72r1044" path="res://assets/textures/px/brick_kit.png" id="1_wtu44"]
+[ext_resource type="Texture2D" uid="uid://1l4h8g5dttty" path="res://assets/textures/px/brick_kit_normal.png" id="2_ncsmn"]
+[ext_resource type="Texture2D" uid="uid://1qqb1g4xid4" path="res://assets/textures/px/brick_kit_rough.png" id="3_043gh"]
 
 [resource]
 resource_name = "brick"
-albedo_texture = ExtResource("1_wtu44")
-metallic_specular = 0.65
-roughness_texture = ExtResource("3_043gh")
-normal_enabled = true
-normal_scale = 0.55
-normal_texture = ExtResource("2_ncsmn")
-uv1_scale = Vector3(0.5, 0.5, 0.5)
-uv1_triplanar = true
-uv1_world_triplanar = true
-texture_filter = 4
-metadata/px_scale = Vector3(0.5, 0.5, 0.5)
+render_priority = 0
+shader = ExtResource("0_shader")
+shader_parameter/texture_albedo = ExtResource("1_wtu44")
+shader_parameter/texture_roughness = ExtResource("3_043gh")
+shader_parameter/texture_normal = ExtResource("2_ncsmn")
+shader_parameter/specular = 0.65
+shader_parameter/normal_scale = 1.0
+shader_parameter/uv1_scale = Vector3(0.44444445, 0.44444445, 0.44444445)
+shader_parameter/uv1_blend_sharpness = 1.0
+shader_parameter/tint_strength = 0.12
+shader_parameter/rough_variation = 0.12
+shader_parameter/wear_strength = 0.0
+metadata/px_scale = Vector3(0.44444445, 0.44444445, 0.44444445)

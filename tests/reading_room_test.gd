@@ -66,6 +66,15 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps, 10 seams, 10 wall stains, 15 floors, 7 soot, 2 stairs, 5 gallery looks, 8 column points, growth over 4 arches, 10 cornices and 7 copings (found %s)" % by_set)
 		check(tmpl.resolve_sockets(7) == tmpl.resolve_sockets(7), "socket picks are deterministic")
 	check(room.get_node("Connectors").get_child_count() == 3, "three door connectors")
+	# Floor wear (polish C item 9): the walked lanes are polished, under the rug is not.
+	var wear: FloorWear = room.get_node_or_null("FloorWear")
+	check(wear != null and wear.texture != null, "FloorWear baked a wear map")
+	if wear != null and wear.texture != null:
+		var lanes: Vector3 = Vector3(wear_at(wear, 4.0, -10.0), wear_at(wear, 6.0, -10.0), wear_at(wear, 8.0, -10.0))
+		check(lanes.x > 0.4 and lanes.z > 0.4 and lanes.y == 0.0,
+			"wear runs down both lanes beside the rug, none mid-rug (%s)" % lanes)
+	var floor_mat: ShaderMaterial = load("res://kit/materials/floor_stone.tres") as ShaderMaterial
+	check(floor_mat != null and float(floor_mat.get_shader_parameter("wear_strength")) > 0.0, "floor_stone takes the wear")
 	await physics_frame
 	await physics_frame
 	var space: PhysicsDirectSpaceState3D = room.get_world_3d().direct_space_state
@@ -166,6 +175,12 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 
 ## Pins every stair_style socket in the room to `label`, as the Sockets panel
 ## would. Returns how many stairs were pinned.
+## Baked wear (0..1) at room x/z.
+func wear_at(wear: FloorWear, x: float, z: float) -> float:
+	var p: Vector2 = (Vector2(x, z) - wear.rect.position) * FloorWear.TEXEL
+	return wear.texture.get_image().get_pixel(int(p.x), int(p.y)).r
+
+
 func pin_stairs(room: RoomTemplate, label: String) -> int:
 	var lib: SocketSet = load("res://kit/sockets/stair_style.tres")
 	var pins: Dictionary[String, int] = {}

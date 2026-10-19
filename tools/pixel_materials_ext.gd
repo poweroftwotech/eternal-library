@@ -31,6 +31,7 @@ func _init() -> void:
 	books()
 	architecture()
 	foliage()
+	kit_room()
 	var file: FileAccess = FileAccess.open(OUT + "manifest_ext.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify({"texel_density": 32, "materials": manifest}, " "))
 	file.close()
@@ -400,6 +401,227 @@ func weathered_ashlar(material_name: String, palette: PackedColorArray, seed_val
 			rough.append(.82 + g * .15 - stain * .12)
 	save(material_name, w, h, rgb, height, rough)
 
+# ----------------------------------------------------------------- kit room
+## Kit-only variants of the R01 room maps (ENVIRONMENT_PLAN.md polish C item 7).
+## kit/materials/{brick,arch_stone,floor_stone,vault_plaster}.tres point at
+## these; the prototype keeps the Python-generated originals untouched. Ports
+## of ashlar(), flagstones() and mottled() in tools/pixel_materials.py with the
+## same palettes, parameters, texel scale and dithering (Godot's RNG differs
+## from numpy's, so the block layout differs). Brick tiles at 72 texels so its
+## 9-texel courses close (the .py's 64 leaves a stray row at the seam).
+func kit_room() -> void:
+	var sand: PackedColorArray = pal(["#3a2a1d", "#6b5038", "#8a6a4b", "#a0805c", "#b39570", "#c4a983", "#d4bd98", "#7a7266"])
+	var lime: PackedColorArray = pal(["#5d5244", "#7c705f", "#968a76", "#ab9f88", "#bdb29b", "#cfc5ae", "#ddd5c0"])
+	var floor_pal: PackedColorArray = pal(["#2a221b", "#4a3d31", "#5f4f40", "#72604e", "#86735e", "#9a8670", "#ad9a82"])
+	var plaster: PackedColorArray = pal(["#8a7a62", "#9d8d73", "#ae9e83", "#bdae93", "#cbbda3", "#d8cbb2"])
+	ashlar_kit("brick_kit", sand, 72, 9, 13, 21, 12)
+	ashlar_kit("arch_stone_kit", lime, 64, 8, 10, 16, 13)
+	flagstones_kit("floor_stone_kit", floor_pal, 64, 17)
+	mottled_kit("vault_plaster_kit", plaster, 64, 12, 21, .7)
+
+## Coursed blocks with baked pixel bevels (lit top-left, shadow bottom-right),
+## as ashlar() in the .py.
+func ashlar_kit(material_name: String, palette: PackedColorArray, size: int, course: int, min_w: int, max_w: int,
+		seed_value: int, mortar_index: int = 0, chip: float = .08) -> void:
+	var w: int = size
+	var h: int = size
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var block_id: PackedInt32Array = PackedInt32Array()
+	block_id.resize(w * h)
+	var edge: PackedInt32Array = PackedInt32Array()   # 1 lit bevel, -1 shadow bevel, -2 joint
+	edge.resize(w * h)
+	var dome: PackedFloat32Array = filled(w * h, 0.0)   # 1 at a block's centre, 0 at its arrises
+	var blocks: int = 0
+	for row: int in range(h / course):
+		var y0: int = row * course
+		var start: int = rng.randi_range(0, max_w - 1)
+		var x: int = start
+		while x < start + w:
+			var bw: int = rng.randi_range(min_w, max_w)
+			if start + w - x - bw < min_w:
+				bw = start + w - x   # close the row seamlessly
+			blocks += 1
+			for yy: int in range(y0, y0 + course):
+				var v: float = (yy - y0 + .5) / course * 2.0 - 1.0
+				for xx: int in range(x, x + bw):
+					block_id[yy * w + xx % w] = blocks
+					var u: float = (xx - x + .5) / bw * 2.0 - 1.0
+					dome[yy * w + xx % w] = (1.0 - u * u) * (1.0 - v * v)
+			for xx: int in range(x, x + bw):
+				edge[y0 * w + xx % w] = -2
+				edge[(y0 + 1) * w + xx % w] = maxi(edge[(y0 + 1) * w + xx % w], 1)
+				edge[(y0 + course - 1) * w + xx % w] = -1
+			for yy: int in range(y0, y0 + course):
+				edge[yy * w + x % w] = -2
+				if edge[yy * w + (x + 1) % w] > -2:
+					edge[yy * w + (x + 1) % w] = 1
+				if edge[yy * w + (x + bw - 1) % w] > -2:
+					edge[yy * w + (x + bw - 1) % w] = -1
+			x += bw
+	var tone_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	tone_rng.seed = seed_value + 7
+	var tone: PackedFloat32Array = PackedFloat32Array()
+	for b: int in range(blocks + 1):
+		tone.append(tone_rng.randf() * .30 - .15)
+	# Relief (polish C item 8), drawn from its own RNG so the albedo is
+	# unchanged: each block bulges proud or sits a little inset, and is a touch
+	# smoother or rougher than its neighbours.
+	var relief_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	relief_rng.seed = seed_value + 11
+	var bulge: PackedFloat32Array = PackedFloat32Array()
+	var face_rough: PackedFloat32Array = PackedFloat32Array()
+	for b: int in range(blocks + 1):
+		bulge.append(relief_rng.randf_range(-.12, .3))
+		face_rough.append(relief_rng.randf_range(-.05, .05))
+	var grain: PackedFloat32Array = noise(w, h, 8, seed_value + 3)
+	var fine: PackedFloat32Array = noise(w, h, 2, seed_value + 4, 1)
+	var chip_field: PackedFloat32Array = noise(w, h, 3, seed_value + 9, 1)
+	var spall_field: PackedFloat32Array = noise(w, h, 5, seed_value + 20, 2)
+	var n: int = palette.size()
+	var lo: float = (mortar_index + 1.0) / n
+	var rgb: PackedColorArray = PackedColorArray()
+	var height: PackedFloat32Array = PackedFloat32Array()
+	var rough: PackedFloat32Array = PackedFloat32Array()
+	for y: int in range(h):
+		for x: int in range(w):
+			var i: int = y * w + x
+			var g: float = grain[i] * .55 + fine[i] * .45
+			var value: float = .25 + g * .6 + tone[block_id[i]]
+			if edge[i] == 1:
+				value += .22
+			elif edge[i] == -1:
+				value -= .20
+			var chipped: bool = chip_field[i] > 1.0 - chip
+			if chipped:
+				value -= .25
+			value = lo + clampf(value, 0.0, 1.0) * (1.0 - lo)
+			rgb.append(palette[mortar_index] if edge[i] == -2 else quant(clampf(value, 0.0, .999), palette, x, y))
+			if edge[i] == -2:
+				# Recessed mortar, more matte than the dressed stone.
+				height.append(-.1)
+				rough.append(.9 + g * .08)
+				continue
+			var b: int = block_id[i]
+			var spalled: bool = spall_field[i] > .74 and dome[i] > .15
+			var hgt: float = .75 + g * .2 + bulge[b] * dome[i]
+			if edge[i] != 0:
+				hgt -= .12   # worn, rounded arris
+			if chipped:
+				hgt -= .3
+			if spalled:
+				hgt -= .2
+			height.append(hgt)
+			rough.append((.97 if chipped or spalled else .82 + g * .15 + face_rough[b]) - maxf(bulge[b], 0.0) * dome[i] * .15)
+	save(material_name, w, h, rgb, height, rough)
+
+## Staggered flagstone courses with a joint, lit and shadow rim per stone, as
+## flagstones() in the .py.
+func flagstones_kit(material_name: String, palette: PackedColorArray, size: int, seed_value: int,
+		rows: Vector2i = Vector2i(14, 22), cols: Vector2i = Vector2i(16, 28)) -> void:
+	var w: int = size
+	var h: int = size
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var value: PackedFloat32Array = filled(w * h, 0.0)
+	var mark: PackedInt32Array = PackedInt32Array()   # 3 joint, 1 lit rim, -1 shadow rim
+	mark.resize(w * h)
+	# Relief (polish C item 8) from its own RNG so the albedo is unchanged.
+	# Per stone: a tilt of a few degrees, a dished centre worn by feet (and
+	# polished to match), and now and then a stone sunk or lifted.
+	var relief_rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	relief_rng.seed = seed_value + 11
+	var relief: PackedFloat32Array = filled(w * h, 0.0)   # height offset from tilt, dish and settling
+	var wear: PackedFloat32Array = filled(w * h, 0.0)     # 0..1 polish from foot traffic
+	var courses: Array[Vector2i] = []   # (y0, height)
+	var y: int = 0
+	while y < h:
+		var rh: int = rng.randi_range(rows.x, rows.y - 1)
+		if h - y - rh < rows.x:
+			rh = h - y
+		courses.append(Vector2i(y, rh))
+		y += rh
+	for c: Vector2i in courses:
+		var offset: int = rng.randi_range(0, w - 1)
+		var x: int = 0
+		while x < w:
+			var cw: int = rng.randi_range(cols.x, cols.y - 1)
+			if w - x - cw < cols.x:
+				cw = w - x
+			var t: float = rng.randf() * .35 - .17
+			var slope: Vector2 = Vector2.from_angle(relief_rng.randf() * TAU) * relief_rng.randf_range(.015, .035)
+			var dish: float = relief_rng.randf_range(.08, .3)
+			var settle: float = relief_rng.randf()
+			var lift: float = -.14 if settle < .1 else (.1 if settle > .93 else 0.0)
+			for yy: int in range(c.x, c.x + c.y):
+				var v: float = (yy - c.x + .5) / c.y * 2.0 - 1.0
+				for xx: int in range(x, x + cw):
+					var i: int = yy * w + (xx + offset) % w
+					var u: float = (xx - x + .5) / cw * 2.0 - 1.0
+					var bowl: float = (1.0 - u * u) * (1.0 - v * v)
+					relief[i] = slope.dot(Vector2(xx - x - cw * .5, yy - c.x - c.y * .5)) - dish * bowl + lift
+					wear[i] = bowl * dish / .3
+					value[i] = t
+					if yy == c.x or xx == x:
+						mark[i] = 3
+					elif yy == c.x + 1 or xx == x + 1:
+						mark[i] = 1
+					elif yy == c.x + c.y - 1 or xx == x + cw - 1:
+						mark[i] = -1
+			x += cw
+	var grain: PackedFloat32Array = noise(w, h, 10, seed_value + 1)
+	var fine: PackedFloat32Array = noise(w, h, 2, seed_value + 2, 1)
+	var chip_field: PackedFloat32Array = noise(w, h, 2, seed_value + 21, 1)
+	var rgb: PackedColorArray = PackedColorArray()
+	var height: PackedFloat32Array = PackedFloat32Array()
+	var rough: PackedFloat32Array = PackedFloat32Array()
+	for yy: int in range(h):
+		for xx: int in range(w):
+			var i: int = yy * w + xx
+			var g: float = grain[i] * .6 + fine[i] * .4
+			var v: float = .30 + g * .55 + value[i] + (.15 if mark[i] == 1 else 0.0) - (.18 if mark[i] == -1 else 0.0)
+			rgb.append(palette[0] if mark[i] == 3 else quant(clampf(v, .15, .999), palette, xx, yy))
+			if mark[i] == 3:
+				# Deep joint; damp collects there, so it is the glossiest texel.
+				height.append(-.25)
+				rough.append(.42 + g * .1)
+				continue
+			var hgt: float = .8 + g * .12 + relief[i]
+			var r: float = .8 + g * .15 - wear[i] * .45
+			if mark[i] != 0:
+				hgt -= .1   # rounded arris
+				if chip_field[i] > .72:
+					hgt -= .35   # chipped arris
+					r = .95
+				else:
+					r = .6 + g * .1   # damp seeps up the arris
+			height.append(hgt)
+			rough.append(r)
+	save(material_name, w, h, rgb, height, rough)
+
+## Mottled ground as mottled() in the .py (the GDScript mottled() above is
+## the props variant with its own normal strength and bands).
+func mottled_kit(material_name: String, palette: PackedColorArray, size: int, cell: int, seed_value: int,
+		contrast: float = 1.0, rough_base: float = .88) -> void:
+	var w: int = size
+	var h: int = size
+	var grain: PackedFloat32Array = noise(w, h, cell, seed_value)
+	var fine: PackedFloat32Array = noise(w, h, 2, seed_value + 1, 1)
+	# Trowel undulation (polish C item 8): broad, shallow swells a trowel-width
+	# across, with the trowelled crests a little smoother than the hollows.
+	var swell: PackedFloat32Array = noise(w, h, 16, seed_value + 40, 2)
+	var rgb: PackedColorArray = PackedColorArray()
+	var height: PackedFloat32Array = PackedFloat32Array()
+	var rough: PackedFloat32Array = PackedFloat32Array()
+	for y: int in range(h):
+		for x: int in range(w):
+			var i: int = y * w + x
+			var g: float = grain[i] * .65 + fine[i] * .35
+			rgb.append(quant(clampf(.5 + (g - .5) * 1.6 * contrast, 0.0, .999), palette, x, y))
+			height.append(g * .3 + swell[i] * 3.0)
+			rough.append(rough_base + (g - .5) * .1 - (swell[i] - .5) * .2)
+	save(material_name, w, h, rgb, height, rough)
+
 # ------------------------------------------------------------------ foliage
 ## Alpha card from an SDF-style inside test. Lit top-left rim, shadow
 ## bottom-right rim, midrib and side veins, 4-5 green tones.
@@ -758,6 +980,18 @@ func damp_floor(decal_name: String, w: int, h: int, seed_value: int) -> void:
 				rgb.append(quant(clampf(.8 - field[i] * .6, 0.0, .999), body, x, y, .5))
 				alpha.append(alpha_q(.25 + field[i] * .25, x, y))
 	decal_save(decal_name, w, h, rgb, alpha)
+	# ORM (polish C item 8): the Decal blends it by the albedo alpha, so the
+	# patch reads glossy where it is wet. AO 1, metal 0; roughness per texel,
+	# wettest (lowest) at the centre, the salt rim stays matte.
+	var orm: Image = Image.create_empty(w, h, false, Image.FORMAT_RGB8)
+	for y: int in range(h):
+		for x: int in range(w):
+			var i: int = y * w + x
+			var r: float = .9
+			if field[i] >= .05:
+				r = .7 if rim(field, w, h, x, y, .05) else .3 - field[i] * .25 + (fine[i] - .5) * .1
+			orm.set_pixel(x, y, Color(1.0, clampf(r, 0.0, 1.0), 0.0))
+	orm.save_png(ProjectSettings.globalize_path(DECAL_OUT + decal_name + "_orm.png"))
 
 ## Moss lumps in a floor joint, with a damp halo.
 func moss_floor(decal_name: String, w: int, h: int, seed_value: int) -> void:

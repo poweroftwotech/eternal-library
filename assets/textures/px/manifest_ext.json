@@ -1,5 +1,12 @@
 {
  "materials": {
+  "arch_stone_kit": {
+   "mapping": "world",
+   "size": [
+    64,
+    64
+   ]
+  },
   "book_leather": {
    "mapping": "world",
    "size": [
@@ -12,6 +19,13 @@
    "size": [
     16,
     16
+   ]
+  },
+  "brick_kit": {
+   "mapping": "world",
+   "size": [
+    72,
+    72
    ]
   },
   "char": {
@@ -54,6 +68,13 @@
    "size": [
     16,
     32
+   ]
+  },
+  "floor_stone_kit": {
+   "mapping": "world",
+   "size": [
+    64,
+    64
    ]
   },
   "fruit_skin": {
@@ -145,6 +166,13 @@
    "size": [
     16,
     16
+   ]
+  },
+  "vault_plaster_kit": {
+   "mapping": "world",
+   "size": [
+    64,
+    64
    ]
   },
   "vine": {
