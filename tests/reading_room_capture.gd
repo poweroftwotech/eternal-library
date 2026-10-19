@@ -28,6 +28,7 @@ const VIEWS: Dictionary = {
 	"under_gallery": [Vector3(0.75, 1.5, -0.75), Vector3(1.0, 2.3, -7.0), 70.0],    # along the west wall under the gallery (1c)
 	"arcade": [Vector3(7.0, 1.6, -2.6), Vector3(1.0, 2.6, -5.0), 70.0],           # side-on to the west arcade (1c)
 	"side_arch": [Vector3(5.5, 1.7, -10.0), Vector3(0.3, 2.7, -10.0), 66.0],        # the west side door arch (polish B)
+	"roots": [Vector3(4.4, 1.5, -2.7), Vector3(0.0, 1.0, -2.1), 60.0],                # a lower west recess, close (polish B item 6)
 }
 
 

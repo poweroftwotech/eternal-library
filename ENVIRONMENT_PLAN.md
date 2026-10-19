@@ -907,7 +907,7 @@ Agreed scope: only the parts that existing tools carry, so phase 3's
      and it trails over the balustrade rather than below the slab; longer
      strands would read more. The user checked the plants in the editor. **Not done:**
      the root clump for collapsed recesses (deferred, it needs a recess
-     candidate change).
+     candidate change; done in polish B item 6).
 3. ~~**Decals**~~ (done 2026-10-19).
    - **Maps:** 8 pixel decal maps in `assets/textures/decals/`, written by a
      `decals` pass in `tools/pixel_materials_ext.gd` (`-- decals` runs only
@@ -1317,6 +1317,33 @@ reviewed in the editor before the next one starts.
    - **Check:** GPU captures from the hall and the galleries, compared against
      `garden_v011.png` for density and how the growth reads. The validator
      covers the new slots.
+   - **Done 2026-10-19.** The roots are part of the collapsed candidate's
+     boards module, `recess_shelves_broken` (rev 5, rebuilt in place). A
+     gnarled clump of six stubs bursts from a crack in the recess back above
+     the top board. Two roots run down the back wall, over the top board and
+     down the shelf fronts to the floor. A third creeps along the dropped
+     board, downhill, and off its low end. They use `add_tube` with tapering
+     radii and a new `wander` helper (subdivided, jittered along the wall),
+     on `bark` like the prototype's garden roots (the `root` map read as
+     striped rope). The runs over the two floor boards are part of those
+     boards' `__spill` meshes (second material), so ShelfFill settles each
+     root with its board onto a gallery slab or a stair. `board_top` and
+     `dropped_top` keep the runs on the board surfaces.
+   - **Verified:** `socket_modes_test` 246 (new: the collapsed fill has a
+     bark root mesh and both spill boards carry wood + bark), `kit_test` 855,
+     `reading_room_test` 71, `validate_room_test` 25 (the candidate still
+     fits its slot and spill), spill 6, room atmosphere 32, room playtest 11,
+     and all three 240-frame gates. GPU (capture option `collapse`):
+     `previews/reading_room_b6_collapse_{roots,recesses,gallery}.png`, with
+     a new close view `roots` on the lower west recess.
+   - **Caveats:**
+     - In an upper recess the spill boards (and their roots) rise 0.15 m onto
+       the gallery slab, while the in-recess roots stay on the recess floor.
+       So there is a small step at the slab edge, as the boards already had.
+     - At hall distance the roots are a quiet accent; they read up close.
+     - The floor runs are hard to see behind the book spill.
+
+**B is complete (items 4-6).** Next: C (surface relief, items 7-9) or phase 2.
 
 **C. Surface relief (shader-only: no collision change, no extra polygons)**
 7. **Kit-only material maps.** The room maps (`brick`, `arch_stone`,

@@ -396,6 +396,7 @@ func check_style_groups() -> void:
 ## Polish B item 5: growth candidates are ivy cards on the swaying material (with
 ## a vine tube where they cling); coping strands grow only on the masonry look
 ## and hang plumb on the pitched stair coping; cornice curtains face the hall.
+## Item 6: roots in the collapsed recess.
 func check_growth() -> void:
 	for set_name: String in ["arch_growth", "arch_growth_iwan", "cornice_growth", "parapet_growth", "parapet_growth_stair", "parapet_growth_stair_r"]:
 		var set: SocketSet = load("res://kit/sockets/%s.tres" % set_name)
@@ -412,6 +413,21 @@ func check_growth() -> void:
 			check(mats.has("ivy_leaf") and not foliage.is_empty() and (mats.has("vine") or not clings),
 				"%s '%s': swaying ivy cards%s (%s)" % [set_name, e.label, " and a vine" if clings else "", mats])
 			n.free()
+	# Item 6: a collapsed recess grows roots; the floor runs are part of the spill
+	# boards (a second surface), so they settle with them.
+	var fallen: Node = (load("res://kit/dressing/recess_books_fallen.tscn") as PackedScene).instantiate()
+	var surfaces: Dictionary = {}
+	for m: Node in fallen.find_children("*", "MeshInstance3D", true, false):
+		var mesh: Mesh = (m as MeshInstance3D).mesh
+		if mesh == null:
+			continue
+		surfaces[String(m.name)] = range(mesh.get_surface_count()).map(func(i: int) -> String: return mesh.surface_get_material(i).resource_name)
+	var spill: Array = surfaces.keys().filter(func(k: String) -> bool: return k.contains("__spill"))
+	check(surfaces.keys().any(func(k: String) -> bool: return k.contains("__roots") and surfaces[k] == ["bark"]),
+		"collapsed recess has a root mesh (%s)" % [surfaces])
+	check(spill.size() == 2 and spill.all(func(k: String) -> bool: return surfaces[k] == ["wood", "bark"]),
+		"both spill boards carry their root run (%s)" % [spill.map(func(k: String) -> Array: return surfaces[k])])
+	fallen.free()
 	# The masonry gate on a gallery module previewed on its own.
 	var pair: Array = await module_socket("res://kit/modules/walls/gallery_slab_4m.tscn", "parapet_growth")
 	var node: Node3D = pair[0]

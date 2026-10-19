@@ -65,12 +65,96 @@ def recess_shelves_broken(r):
     # 0.15 m out so it lies in front of the wall face), so ShelfFill
     # can rest each on whatever is below (a gallery slab, a stair, the floor).
     # rev 2: centre 0.95 -> 0.82, so the board stays inside the 3 m opening.
+    # rev 5 (polish B item 6): roots push through a crack in the recess back and
+    # creep down over the boards; the runs over the floor boards are part of
+    # those boards' meshes (second material), so they settle with them.
+    rng = random.Random(107)
+    roots = bmesh.new()
+    crack = (rng.uniform(-0.3, 0.3), BACK + 0.012, 2.9)
+    root_clump(roots, rng, crack)
+    spill = {}
     for (name, centre, size, rot) in (
             ("a", (-0.55, 0.45, 0.03), (1.7, 0.45, 0.05), (0.0, 0.0, math.radians(28))),
             ("b", (0.82, 0.4, 0.09), (1.2, 0.45, 0.05), (math.radians(8), 0.0, math.radians(-12)))):
         bm = bmesh.new()
         add_obox(bm, centre, size, rot)
-        mesh_object("recess_shelves_broken__spill_" + name, bm, ["wood"], r)
+        spill[name] = (bm, centre, size, rot)
+    for (x, board, tip) in ((-0.75, "a", (0.05, 0.8)), (0.55, "b", (1.3, 0.55))):   # tips along each board
+        # Down the back wall, over the top board, down the front of the shelves.
+        drop = [crack, (crack[0] * 0.6 + x * 0.4, BACK + 0.015, 2.35), (x, BACK + 0.015, 1.92),
+                (x + 0.05, 0.0, BOARDS[4] + 0.07), (x + 0.08, FRONT + 0.03, BOARDS[4] + 0.06),
+                (x + 0.1, FRONT + 0.035, BOARDS[4] - 0.05), (x + 0.04, FRONT + 0.04, 1.1),
+                (x + 0.1, FRONT + 0.04, 0.45), (x + 0.06, FRONT + 0.045, 0.12), (x + 0.1, FRONT + 0.06, 0.025)]
+        drop = wander(rng, drop)
+        add_tube(roots, drop, taper(len(drop), 0.05, 0.03), 6)
+        # Out of the recess and over the floor board to a thin tip.
+        bm, centre, size, rot = spill[board]
+        start = drop[-1]
+        run = [(start[0] + (tip[0] - start[0]) * t, start[1] + (tip[1] - start[1]) * t, 0.0) for t in (i / 9 for i in range(10))]
+        run = [(px + rng.uniform(-0.04, 0.04) * (0 < i < 9), py, board_top(px, py, centre, size, rot) + 0.024)
+               for i, (px, py, _z) in enumerate(run)]
+        add_tube(bm, [start] + run[1:], taper(len(run), 0.03, 0.008), 6, mat=1)
+    for (name, (bm, _c, _s, _r)) in spill.items():
+        mesh_object("recess_shelves_broken__spill_" + name, bm, ["wood", "bark"], r)
+    # A third root creeps along the dropped board, downhill, and off its low end.
+    along = [crack, (crack[0] - 0.4, BACK + 0.015, 2.3), (-0.95, BACK + 0.015, 1.92),
+             (-1.0, FRONT + 0.035, BOARDS[4] + 0.03), (-1.02, FRONT + 0.04, BOARDS[4] - 0.08), (-1.0, 0.12, 1.15)]
+    along += [(xx, 0.05 + 0.04 * math.sin(xx * 3.0), dropped_top(xx) + 0.035) for xx in (-0.95 + 0.25 * i for i in range(9))]
+    along += [(1.3, FRONT + 0.05, dropped_top(1.3) - 0.06), (1.32, FRONT + 0.06, 0.3), (1.28, 0.1, 0.02), (1.1, -0.05, 0.015)]
+    along = wander(rng, along)
+    add_tube(roots, along, taper(len(along), 0.045, 0.01), 6)
+    mesh_object("recess_shelves_broken__roots", roots, ["bark"], r)
+
+
+DROPPED = ((0.05, -0.02, 0.78), 0.05, math.radians(9.5))   # the dropped board: centre, thickness, tilt about Y
+
+
+def dropped_top(x):
+    """Top of the dropped board above recess x (it falls toward +X)."""
+    (cx, _cy, cz), t, a = DROPPED
+    return cz - (x - cx) * math.tan(a) + t / 2 / math.cos(a)
+
+
+def board_top(x, y, centre, size, rot):
+    """Top surface height of an add_obox board at (x, y), or the floor (0) off it."""
+    from mathutils import Euler, Vector
+    m = Euler(rot, "XYZ").to_matrix()
+    local = m.transposed() @ (Vector((x, y, centre[2])) - Vector(centre))
+    if abs(local.x) > size[0] / 2 or abs(local.y) > size[1] / 2:
+        return 0.0
+    n = m @ Vector((0.0, 0.0, 1.0))
+    top = Vector(centre) + n * (size[2] / 2)
+    return top.z - (n.x * (x - top.x) + n.y * (y - top.y)) / n.z
+
+
+def wander(rng, path, step=0.1, amp=0.025):
+    """Subdivide a path to about `step` and jitter the inner points along the wall
+    (x), so a root reads gnarled rather than straight; the ends stay put."""
+    from mathutils import Vector
+    out = [path[0]]
+    for a, b in zip(path, path[1:]):
+        n = max(1, round((Vector(b) - Vector(a)).length / step))
+        for j in range(1, n + 1):
+            t = j / n
+            out.append((a[0] + (b[0] - a[0]) * t, a[1] + (b[1] - a[1]) * t, a[2] + (b[2] - a[2]) * t))
+    return [out[0]] + [(x + rng.uniform(-amp, amp), y, z) for (x, y, z) in out[1:-1]] + [out[-1]]
+
+
+def taper(n, r0, r1):
+    return [r0 + (r1 - r0) * i / max(n - 1, 1) for i in range(n)]
+
+
+def root_clump(bm, rng, crack):
+    """Gnarled root stubs bursting from a crack in the recess back, spread on the wall."""
+    for k in range(6):
+        a = k * math.tau / 6 + rng.uniform(-0.3, 0.3)
+        reach = rng.uniform(0.18, 0.42)
+        path = [crack]
+        for j in range(1, 4):
+            f = reach * j / 3
+            path.append((crack[0] + math.cos(a) * f + rng.uniform(-0.03, 0.03), crack[1] + 0.004 * j,
+                         crack[2] + math.sin(a) * f * 0.8 + rng.uniform(-0.03, 0.03)))
+        add_tube(bm, path, taper(4, 0.065, 0.015), 6)
 
 
 def recess_tile_panel(r):
@@ -249,7 +333,7 @@ def plant_fern(r):
     rng = random.Random(41)
     bm = bmesh.new()
     uv = bm.loops.layers.uv.new("UVMap")
-    for k in range(7):
+    for k in range(6):
         add_card(bm, uv, (0.0, 0.0, 0.0), 0.12, rng.uniform(0.28, 0.38), k * math.tau / 7 + rng.uniform(-0.2, 0.2),
                  math.radians(rng.uniform(45, 62)))
     mesh_object("plant_fern__fronds", bm, ["fern"], r, recalc=False)
@@ -873,7 +957,7 @@ def growth_parapet_stair_r(r):
 
 MODULES = [
     ("M_recess_shelves", props("wood,storage,recess"), recess_shelves),
-    ("M_recess_shelves_broken", dict(props("wood,storage,recess,ruin"), kit_rev=3), recess_shelves_broken),
+    ("M_recess_shelves_broken", dict(props("wood,storage,recess,ruin"), kit_rev=5), recess_shelves_broken),
     ("M_recess_tile_panel", props("tile,recess"), recess_tile_panel),
     ("M_recess_sealed_door", props("brick,wood,recess,door"), recess_sealed_door),
     ("M_iwan_lectern", props("wood,iwan,centrepiece"), iwan_lectern),
@@ -929,7 +1013,7 @@ def main():
         if bpy.data.objects.get(name) is None:
             build(module(name, ((i % 7) * 4.0, (i // 7) * 5.0, 0.0), p))
             added.append(name)
-    REBUILD = [("M_recess_shelves_broken", 3),   # rev 3: floor boards split out as __spill
+    REBUILD = [("M_recess_shelves_broken", 5),   # rev 3: floor boards split out as __spill; rev 5: roots (polish B)
                ("M_stair_steps_masonry", 5), ("M_stair_steps_open", 2),   # rev 2: railings, fill, claims (polish A)
                ("M_stair_steps_masonry_r", 5)]                          # rev 4: stone balustrade (1b); rev 5: head claim (1c)
     added += ["%s (rebuilt rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
