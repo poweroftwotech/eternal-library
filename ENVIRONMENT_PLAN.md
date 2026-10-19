@@ -569,12 +569,46 @@ cluster lanterns barely read at hall scale. The 13.4 m runner overhangs a
 3-bay hall, so for R01 (5 bays) place it with tables and lanterns in mind.
 Nothing has been placed in the editor yet.
 
+**Step 2 drafted (2026-10-18): `rooms/authored/reading_room.tscn`.** At the
+user's request the first draft comes from a script, `tools/build_reading_room.gd`.
+It refuses to overwrite the room unless given `--force`; from here on the scene
+is edited by hand in the editor. It is a `RoomTemplate` (`room_id` `reading_room`), 3 × 5
+bays (12 × 20 m), two storeys under `vault_hall_12m`, built from 91 kit
+modules under `Shell / Sockets / Props / Dressing / Lights / Connectors /
+Bounds`.
+
+- **Layout:** entrance arch in the south middle bay, iwan and gable at the
+  north end, side doors in west bay 1 and east bay 3. Two stairs mirror each
+  other: the west stair runs over bays 2-3 up to a west gallery over bays 0-1,
+  and the east stair runs over bays 1-2 up to an east gallery over bays 3-4.
+  A 2-bay stair along a side wall always crosses the middle bay, so the side
+  doors moved off it (the atlas plan had them in the middle). Bays behind the
+  stairs get plain walls. **16 recess sockets**, matching the atlas.
+- **Dressing and lights:** rug runner, four reading tables, two chandeliers,
+  four lanterns under the galleries and one at the iwan apex.
+- **Connectors:** `SNAP_entrance`, `SNAP_door_west` and `SNAP_door_east`
+  (Marker3D, group `room_connector`, -Z points out of the room).
+- **Temporary:** `TempSafetyFloor` (invisible, 0.25 m under the floor; delete
+  it once the room sits in an area) and `PreviewEnvironment` (replace it with
+  the Atmosphere node in step 4; a room in the game must not carry its own
+  WorldEnvironment).
+
+**Verified:** `tests/reading_room_test.gd` passes 24 checks: KitValidate
+clean, 16 sockets, floor in all 15 cells, the three doors open, walls closed,
+and a capsule walking the hall into the iwan, up each stair onto its gallery,
+and out a side door onto the safety floor. The 240-frame gate is clean.
+`tests/reading_room_capture.gd` captures `previews/reading_room_*.png`
+(entrance, iwan, gallery, stair, vault). **Caveats:** the galleries don't
+connect (each stair serves its own 2-bay stretch), because a continuous
+gallery needs a gallery corner or bridge module. The side doors open onto
+darkness. The room is dim until step 4's grade. The iwan centrepiece spot is
+empty until step 3. The user opened it in the editor and approved the draft.
+
 **Next steps for phase 1, in order:**
 0. ~~**Socket panel in the Kit dock**~~ (done, see above).
 1. ~~**More modules for R01**~~ (done, see above).
-2. **Build `rooms/authored/reading_room.tscn` by hand in the editor** with the Kit
-   dock (3 × 5 bays, two storeys, vault), as a `RoomTemplate` with
-   `Shell / Sockets / Props / Dressing / Lights / Connectors / Bounds` children.
+2. ~~**Build `rooms/authored/reading_room.tscn`**~~ (drafted by script, see above; tweak it by hand).
+2b. **Gallery corner / bridge module** so both galleries join along an end wall.
 3. **More socket sets:** iwan centrepiece (lectern, tree, fountain), lamp state
    (`STATE` mode: lit, failing, dark), and recess variants such as a tile panel
    or sealed door. Add a `SCATTER` mode (books and pots on tables).
