@@ -52,7 +52,29 @@ func resolve_sockets(seed_value: int) -> Dictionary:
 	for s: VariantSocket in sockets():
 		var key: String = socket_key(s)
 		picks[key] = s.resolve(socket_seed(seed_value, key), socket_pins.get(key, -1))
+	apply_claims()
 	return picks
+
+
+## Picks can claim space (CLAIM_ markers: the wall base behind a masonry
+## stair). Clears every other socket's items whose origin is in a claim.
+## Returns how many items were cleared.
+func apply_claims() -> int:
+	var all: Array[VariantSocket] = sockets()
+	var boxes: Dictionary = {}     # socket -> its claims, room space
+	for s: VariantSocket in all:
+		var c: Array[AABB] = s.claims(self)
+		if not c.is_empty():
+			boxes[s] = c
+	var cleared: int = 0
+	for s: VariantSocket in all:
+		var others: Array[AABB] = []
+		for owner_socket: VariantSocket in boxes:
+			if owner_socket != s:
+				others.append_array(boxes[owner_socket])
+		if not others.is_empty():
+			cleared += s.release_claimed(self, others)
+	return cleared
 
 
 func socket_seed(seed_value: int, key: String) -> int:

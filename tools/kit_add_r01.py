@@ -149,39 +149,33 @@ def iwan(r):
 
 STAIR = (20, 8.0, H + 0.15, T, 1.6)   # steps, run, top, wall-side y, open-side y
 STAIR_SOCKET = (4.0, (T + 1.6) / 2, 0.0)   # footprint middle, where stair_steps_* have their origin
-STAIR_TURN = (0.0, 0.0, math.pi)          # reversed stair: both looks are symmetric across the lane
+SLAB = 0.3                                 # ramp slab depth, measured vertically
 
 
 def stair(r, name="stair_gallery_8m", reverse=False):
     """reverse=True mirrors along X: the stair rises toward its origin, so on a
     wall it climbs the other way from the plain one (same footprint).
-    The steps themselves are a stair_style socket (masonry or open wood,
-    weathering item 4); the module keeps what every look shares: the walkable
-    ramp, the balustrade on the open side and the foot / head snaps."""
-    marker("SOCKET_stair_style__" + name, r, STAIR_SOCKET, {"socket_set": "stair_style"}).rotation_euler = \
-        STAIR_TURN if reverse else (0.0, 0.0, 0.0)
+    The look is a stair_style socket (stair_style_r on the reversed stair:
+    masonry or open wood, each with its own railing). The module keeps what
+    every look shares, so routes never depend on the pick: a walkable ramp
+    slab (open underneath; the masonry look fills it), an invisible rail strip
+    on the open edge and the foot / head snaps. Polish slice A (rev 2)."""
+    marker("SOCKET_stair_style__" + name, r, STAIR_SOCKET,
+           {"socket_set": "stair_style_r" if reverse else "stair_style"})
     steps, run, top, y0, y1 = STAIR
     rise, tread = top / steps, run / steps
-    # Walkable ramp through the middle of the treads (collision only).
+    slope = rise / tread
+    # Walkable ramp slab through the middle of the treads (collision only).
     bm = bmesh.new()
-    add_prism(bm, [(-tread / 2, 0.0), (run - tread / 2, top), (run, top), (run, 0.0)], 0.0, 0.0, y0, y1)
+    add_prism(bm, [(-tread / 2, 0.0), (run - tread / 2, top), (run, top), (run, top - SLAB),
+                   (run - tread / 2, top - SLAB), (-tread / 2 + SLAB / slope, 0.0)], 0.0, 0.0, y0, y1)
     mesh_object(name + "__ramp-colonly", flip(bm, run, reverse), ["arch_stone"], r)
-    # Balustrade on the open side: posts and a sloped handrail.
+    # Rail strip on the open edge, from the slab up to handrail height (the
+    # visible railing comes with the look).
     bm = bmesh.new()
-    x = tread / 2
-    while x < run:
-        z = (math.floor(x / tread) + 1) * rise
-        add_box(bm, x - 0.03, x + 0.03, y1 - 0.1, y1 - 0.04, z, z + 0.9)
-        x += 0.8
-    a = [bm.verts.new(p) for p in ((0, y1 - 0.12, rise + 0.86), (0, y1 - 0.02, rise + 0.86),
-                                   (0, y1 - 0.02, rise + 0.94), (0, y1 - 0.12, rise + 0.94))]
-    b = [bm.verts.new((run, v.co.y, v.co.z + top - rise)) for v in a]
-    bm.faces.new(list(reversed(a)))
-    bm.faces.new(b)
-    for i in range(4):
-        j = (i + 1) % 4
-        bm.faces.new((a[i], a[j], b[j], b[i]))
-    mesh_object(name + "__rail-col", flip(bm, run, reverse), ["wood"], r)
+    add_prism(bm, [(0.0, 0.0), (run - tread / 2, top), (run, top), (run, top + 0.94), (0.0, rise + 0.94)],
+              0.0, 0.0, y1 - 0.12, y1 - 0.02)
+    mesh_object(name + "__rail-colonly", flip(bm, run, reverse), ["wood"], r)
     foot, head = (run, 0.0) if reverse else (0.0, run)
     marker("SNAP_stair_foot__" + name, r, (foot, (y0 + y1) / 2, 0.0), {"snap_kind": "stair_foot"})
     marker("SNAP_stair_head__" + name, r, (head, (y0 + y1) / 2, top), {"snap_kind": "stair_head"})
@@ -351,13 +345,13 @@ MODULES = [
     ("M_vault_hall_12m", props("cell", [3, 1, 1], "", "plaster,tile,ceiling,hall_12m"), vault_hall),
     ("M_wall_gable_12m", props("edge", [3, 1, 0], "gable", "brick,structure,ceiling,hall_12m"), gable_12m),
     ("M_wall_iwan_12m", props("edge", [3, 2, 0], "iwan", "brick,tile,structure,landmark,hall_12m"), iwan),
-    ("M_stair_gallery_8m", props("edge", [2, 1, 0], "stair", "stone,vertical"), stair),
+    ("M_stair_gallery_8m", dict(props("edge", [2, 1, 0], "stair", "stone,vertical"), kit_rev=2), stair),
     ("M_post_pier_corbel", props("post", [0, 1, 0], "", "stone,structure,gallery"), pier_corbel),
     ("M_table_reading", props("free", [0, 1, 0], "", "wood,furniture"), table),
     ("M_lantern_cluster", dict(props("free", [0, 4, 0], "", "brass,light,hall_12m"), kit_rev=2), lantern_cluster),
     ("M_rug_runner", props("free", [0, 0, 0], "", "cloth,floor"), rug_runner),
     # Step 2b: one continuous gallery (side runs + end-wall run, stairs both ways).
-    ("M_stair_gallery_8m_r", props("edge", [2, 1, 0], "stair", "stone,vertical"), stair_reversed),
+    ("M_stair_gallery_8m_r", dict(props("edge", [2, 1, 0], "stair", "stone,vertical"), kit_rev=2), stair_reversed),
     ("M_gallery_slab_4m_open_end", props("edge", [1, 1, 0], "gallery", "wood,vertical,gallery_corner"), gallery_open_end),
     ("M_gallery_slab_4m_open_start", props("edge", [1, 1, 0], "gallery", "wood,vertical,gallery_corner"), gallery_open_start),
     ("M_gallery_end_12m", props("edge", [3, 1, 0], "gallery_end", "wood,vertical,hall_12m"), gallery_end),
@@ -393,7 +387,7 @@ ADD_MARKERS = [
     ("M_lantern_cluster", "SOCKET_lamp_soot__cluster", (0.0, 0.0, 14.6), SOOT, UP_TURN),      # vault crown
     # Item 4: stair looks.
     ("M_stair_gallery_8m", "SOCKET_stair_style__stair_gallery_8m", STAIR_SOCKET, {"socket_set": "stair_style"}),
-    ("M_stair_gallery_8m_r", "SOCKET_stair_style__stair_gallery_8m_r", STAIR_SOCKET, {"socket_set": "stair_style"}, STAIR_TURN),
+    ("M_stair_gallery_8m_r", "SOCKET_stair_style__stair_gallery_8m_r", STAIR_SOCKET, {"socket_set": "stair_style_r"}),
 ]
 
 
@@ -401,7 +395,8 @@ ADD_MARKERS = [
 # custom properties) when the root's "kit_rev" is below the listed rev. Only for modules that
 # are still script-made; a hand-edited one would lose its edits, so list
 # nothing here that you have changed in Blender.
-REBUILD = [("M_lantern_cluster", 2)]   # rev 2 (step 4): glass split from the frame, open ring caps
+REBUILD = [("M_lantern_cluster", 2),   # rev 2 (step 4): glass split from the frame, open ring caps
+           ("M_stair_gallery_8m", 2), ("M_stair_gallery_8m_r", 2)]   # rev 2 (polish A): slab ramp, rail strip, railing in the look
 
 
 

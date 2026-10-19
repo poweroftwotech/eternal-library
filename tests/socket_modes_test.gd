@@ -14,6 +14,7 @@ const SETS: Dictionary = {
 	"floor_wear": ["nothing", "crack", "crack b", "damp patch", "moss"],
 	"lamp_soot": ["soot", "faint soot", "nothing"],
 	"stair_style": ["masonry", "open wood"],
+	"stair_style_r": ["masonry", "open wood"],
 }
 
 var failures: PackedStringArray = []

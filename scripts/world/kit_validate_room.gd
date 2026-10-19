@@ -29,6 +29,7 @@ const DECAL_FACING: float = 0.6                 # cos at which a surface takes a
 const DECAL_DEPTH: float = 0.1                  # surfaces this far off the decal's target are another surface
 
 static var _fit_cache: Dictionary = {}     # set path -> PackedStringArray of misfits
+static var _claimed: Array = []            # [socket, room-space AABB] claimed by current picks
 
 
 static func run(root: Node) -> Dictionary:
@@ -169,6 +170,7 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 			if cs.shape != null and not cs.disabled:
 				var xf: Transform3D = _relative(root, cs)
 				bodies.append([m, xf * cs.shape.get_debug_mesh().get_aabb(), xf, cs.shape])
+	_claimed = _claims(root)
 	var checked_sets: Dictionary = {}
 	var seen: Dictionary = {}     # one warning per (socket, module), not per collision shape
 	for socket: Node in root.find_children("*", "VariantSocket", true, false):
@@ -202,6 +204,8 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 			_spill_probe(root, s, socket_xf, bodies, label, warnings, local_slot, true)
 		else:
 			var slot: AABB = (socket_xf * local_slot).grow(-SLOT_MARGIN)
+			if _claimed.any(func(c: Array) -> bool: return c[0] != s and (c[1] as AABB).encloses(slot)):
+				continue     # another pick claims this space (a masonry stair over a wall base)
 			for item: Array in bodies:
 				if item[0] != host and slot.intersects(item[1]) and not seen.has([s, item[0]]):
 					seen[[s, item[0]]] = true
@@ -229,6 +233,8 @@ static func _spill_probe(root: Node, s: VariantSocket, socket_xf: Transform3D, b
 			var local := Vector3(lerpf(zone.position.x, zone.end.x, (ix + 0.5) / SPILL_PROBES.x), zone.end.y,
 				lerpf(zone.position.z, zone.end.z, (iz + 0.5) / SPILL_PROBES.y))
 			var from: Vector3 = socket_xf * local
+			if _claimed.any(func(c: Array) -> bool: return c[0] != s and (c[1] as AABB).grow(0.001).has_point(from - up * zone.size.y)):
+				continue     # claimed by another pick: nothing of this socket is kept there
 			var best: float = INF       # distance down to the first surface
 			for item: Array in near:
 				var crossings_up: int = 0
@@ -435,3 +441,40 @@ static func _pinned_to_nothing(root: Node, s: VariantSocket) -> bool:
 		pin = (root as RoomTemplate).socket_pins.get((root as RoomTemplate).socket_key(s), pin)
 	return pin >= 0 and pin < s.socket_set.entries.size() and s.socket_set.entries[pin] != null \
 		and s.socket_set.entries[pin].scene == null
+
+
+## Claims of the current picks (polish slice A): REPLACE sockets whose picked
+## candidate carries CLAIM_ markers. The pick is the pin (room first), else what
+## the room's preview seed rolls, as RoomTemplate.resolve_sockets() would.
+## Returns [[socket, room-space AABB], ...].
+static func _claims(root: Node) -> Array:
+	var out: Array = []
+	for node: Node in root.find_children("*", "VariantSocket", true, false):
+		var s := node as VariantSocket
+		if s.socket_set == null or s.mode != VariantSocket.Mode.REPLACE:
+			continue
+		var idx: int = _pick_of(root, s)
+		if idx < 0 or s.socket_set.entries[idx] == null or s.socket_set.entries[idx].scene == null:
+			continue
+		var inst: Node = s.socket_set.entries[idx].scene.instantiate()
+		var socket_xf: Transform3D = _relative(root, s)
+		for m: Node in inst.find_children("CLAIM_*", "Marker3D", true, false):
+			if m.has_meta("claim_box"):
+				var size: Vector3 = m.get_meta("claim_box")
+				out.append([s, socket_xf * VariantSocket.relative_transform(inst as Node3D, m as Node3D) * AABB(size * -0.5, size)])
+		inst.free()
+	return out
+
+
+static func _pick_of(root: Node, s: VariantSocket) -> int:
+	var n: int = s.socket_set.entries.size()
+	var pin: int = s.pinned
+	if root is RoomTemplate:
+		var tmpl := root as RoomTemplate
+		var key: String = tmpl.socket_key(s)
+		pin = tmpl.socket_pins.get(key, pin)
+		if pin < 0 or pin >= n:
+			var rng := RandomNumberGenerator.new()
+			rng.seed = tmpl.socket_seed(tmpl.preview_seed, key)
+			return s.socket_set.pick(rng)
+	return pin if pin >= 0 and pin < n else -1

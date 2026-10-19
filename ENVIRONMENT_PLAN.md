@@ -1049,3 +1049,131 @@ courtyard (phase 5); stair *layout* variants as seeded sub-assemblies
   file; consider clearing `multimesh` before saving, or not exporting it.
 - `VariantSocket` instances are internal children, so they don't appear in the
   Scene dock. That's intended (never saved), but it may surprise you.
+
+### Next: the R01 polish slice (planned 2026-10-19, before phase 2)
+
+**Why now:** the user's call. Getting the first room right makes later rooms
+cheaper, because every fix lands in the kit, the sockets and the material
+maps that R02 and later rooms reuse. None of the items below were in the plan
+before. The phase 3 "wear/grime shader" is a different thing: that is
+age-driven change over game time, not static surface relief. Each item is
+reviewed in the editor before the next one starts.
+
+**A. Stairs** (done 2026-10-19)
+1. ~~**Masonry railing for the masonry look.**~~
+   - The stair modules (`stair_gallery_8m`/`_r`, rev 2) now carry no visible
+     mesh. They keep a walkable ramp slab, an invisible rail strip on the open
+     edge (`__rail-colonly`, handrail height) and the snaps.
+   - Each look brings its railing. Masonry: a sloped parapet, 0.2 m thick on
+     the open edge, 0.85 m above the nosings, with a coping and a foot newel,
+     all in `arch_stone` like the steps (rev 3: a brick body was tried first
+     and didn't match the steps). Open wood keeps the wooden posts and
+     handrail, moved over from the module.
+   - The railing sits on the open side, so the looks aren't symmetric any
+     more. The reversed stair's socket uses a mirrored set, `stair_style_r`
+     (`stair_steps_masonry_r`, `stair_steps_open_r`), with the same labels
+     and order, so a pin means the same look on either stair. The half-turn
+     socket from item 4 is gone.
+2. ~~**Walk under the open stair.**~~
+   - The ramp is a 0.3 m slab (measured vertically) with the same top surface
+     as before. The masonry look adds `__fill-colonly` under the slab (a
+     dressing candidate with collision), so masonry stays solid.
+   - Open wood has no collision of its own. Under its high end the capsule
+     walks to the wall.
+3. ~~**Claims.**~~
+   - Candidates carry `CLAIM_` empties (Blender property `claim_size`).
+     `kit_import` turns them into Marker3D nodes (group `kit_claim`, meta
+     `claim_box` in Godot axes).
+   - `RoomTemplate.resolve_sockets()` ends with `apply_claims()`: every other
+     socket drops items whose origin is in a claim
+     (`VariantSocket.claims()` / `release_claimed()`). A pending settle now
+     checks a resolve counter, so a claim removal doesn't cancel the settle.
+     In the editor, a socket change inside a room re-resolves the whole room,
+     so claims follow the pick.
+   - Masonry claims the whole 8 m wall base behind it (0.6 m high). Open wood
+     claims its 1.6 m low end, where nothing fits under the slab.
+   - Validate Room works the picks out statically (pin first, else the room's
+     preview seed) and skips probe points and slots inside other sockets'
+     claims.
+   - The four "nothing" pins on the hidden seams and `pin_hidden_seams()` are
+     gone.
+   - **Verified:**
+     - `kit_test` 572 (each stair and look: no own mesh, slab open underneath,
+       socket set and placement, footprint, foot snap, railing on the open
+       edge, collision only under masonry, one claim each).
+     - `reading_room_test` 62 (both looks: routes, masonry solid underneath,
+       capsule walks under both open stairs to the wall, seams behind the
+       stairs cleared by masonry and present with open wood).
+     - `validate_room_test` 25 (claims: 8 m for masonry, 1.6 m for open; the
+       room validates clean either way).
+     - `socket_modes_test` 157, spill 6, atmosphere 32, room playtest 11,
+       camp playtest 43, the prototype atmosphere test, pin persistence and
+       all three 240-frame gates pass.
+     - GPU: `previews/reading_room_stair_{masonry,open}_{west_stair,stair}.png`.
+   - **Caveat:** dressing candidates aren't on the decal layer, so the stone
+     stair takes no floor decals (unchanged from item 4).
+1b. **Next (user review 2026-10-19): a stone balustrade, not a solid parapet.**
+   The user wants the masonry look's railing to be an open stone balustrade:
+   turned stone balusters (lathe profile, like the Reading Garden gallery
+   in `previews/garden_v011.png`) standing on a sloped stone plinth, under a
+   sloped stone handrail/coping, with a newel at the foot and head. Keep it
+   in `stair_steps_masonry(_r)` (`kit_add_dressing.py`, rebuild rev 4).
+   Collision is unchanged (the module's rail strip). Consider offering both
+   as looks ("masonry, solid parapet" and "masonry, balustrade") if the solid
+   one is worth keeping. Start the next session here, then continue with B.
+
+**B. Growth where it grows (matching the prototype's Reading Garden, `previews/garden_v011.png`)**
+4. **No vines on the wooden gallery rails.** The `rail_growth` sockets are
+   removed from the gallery modules. The set stays for reuse elsewhere.
+5. **New growth sockets and candidates** (dressing family, swaying foliage
+   material). They're built like the prototype's `arch_head_ivy`,
+   `pier_ivy` and clinging `vine()`: a thin vine tube that traces the stone,
+   dense ivy leaf clumps, and long hanging strands.
+   - **`arch_growth`** over arches: `wall_arch_3m` (side doors, entrance) and
+     the iwan arch. The vine follows the extrados, with clumps near the apex
+     and strands hanging into the opening. Picks: nothing, light, heavy.
+   - **`cornice_growth`**, an EDGE_SCATTER along the line where the walls meet
+     the vault (the tile band at 8 m on the side walls). Curtains of ivy hang
+     from the springing line, the "between ceiling and walls" look.
+   - **`parapet_growth`** on the masonry stair parapet. The socket is pitched
+     to the stair slope, and strands grow from a crack in the coping and hang
+     down the open face. Only the masonry look carries it.
+6. **Root clump for collapsed recesses** (the loose end from item 2). Roots
+   push through the broken recess and creep over the fallen boards, using the
+   same vine tube.
+   - **Check:** GPU captures from the hall and the galleries, compared against
+     `garden_v011.png` for density and how the growth reads. The validator
+     covers the new slots.
+
+**C. Surface relief (shader-only: no collision change, no extra polygons)**
+7. **Kit-only material maps.** The room maps (`brick`, `arch_stone`,
+   `floor_stone`, `vault_plaster`) come from `tools/pixel_materials.py`, which
+   needs Python and numpy, and the prototype shares them. The ashlar,
+   flagstone and mottled generators get ported to the GDScript generator
+   (`pixel_materials_ext.gd`) as kit variants (`*_kit`), so the prototype
+   stays pixel-identical. Same palettes, texel scale and dithering.
+8. **Relief baked into normal and roughness.** Pixel rule: each texel keeps
+   one flat colour; relief comes through light.
+   - **Flagstones:** each stone tilted a few degrees, with dished wear at
+     centres, chipped arrises, deeper joints and a few sunken or raised stones.
+   - **Brick and ashlar:** per-block bulge or inset, recessed mortar,
+     spalled faces.
+   - **Plaster:** low-frequency trowel undulation.
+   - **Roughness:** polished walking lines down the hall and around the
+     tables, glossier at the joints where damp collects, matte where dry.
+     Lantern light then gives the specular glints the room lacks.
+   - Higher `normal_scale` for the kit materials. Damp floor decals get an
+     ORM map (lower roughness), so damp patches catch the light.
+9. **Optional macro variation.** If tiling still shows: a kit ShaderMaterial
+   (world triplanar like now) that adds world-space tint and roughness
+   variation, snapped to the 32 tx/m grid so it stays pixel-art.
+   - Parallax is out for now: `StandardMaterial3D` height maps don't work
+     with world triplanar. A custom triplanar parallax shader is a later
+     option if relief is still too flat.
+   - **Check:** before/after GPU captures with grazing lantern light (floor,
+     walls, vault), and image_diff of the prototype (must stay within noise).
+     Frame time is reported.
+
+**Suggested order:** A (stairs: 1, 2, 3), then B (growth: 4, 5, 6), then C
+(relief: 7, 8, 9). C is independent, so it can move first if the flat look
+matters most. Phase 2 (generated R02) starts after this slice.

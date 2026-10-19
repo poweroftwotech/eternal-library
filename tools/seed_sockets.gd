@@ -71,6 +71,10 @@ func _initialize() -> void:
 	# footprint (the steps have always run past the pier at the stair's middle).
 	socket_set("stair_style", [["masonry", DRESS + "stair_steps_masonry.tscn", 2.0],
 		["open wood", DRESS + "stair_steps_open.tscn", 1.0]])
+	# The reversed stair's looks, mirrored (the railing stays on the open edge).
+	# Same labels and order, so a pin means the same look on either stair.
+	socket_set("stair_style_r", [["masonry", DRESS + "stair_steps_masonry_r.tscn", 2.0],
+		["open wood", DRESS + "stair_steps_open_r.tscn", 1.0]])
 	print("seed_sockets: ", "; ".join(made) if not made.is_empty() else "nothing to do")
 	quit()
 

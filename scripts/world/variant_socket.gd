@@ -64,6 +64,7 @@ var _seed: int = 0
 ## Pin set by the owning room (RoomTemplate.socket_pins); wins over `pinned`.
 var room_pin: int = -1
 var _children: Array[Node] = []
+var _generation: int = 0     # bumped by every resolve; a pending settle checks it
 
 
 func _ready() -> void:
@@ -83,6 +84,7 @@ func room() -> Node:
 
 func resolve(seed_value: int, room_pin_value: int = -1) -> int:
 	_seed = seed_value
+	_generation += 1
 	room_pin = room_pin_value
 	clear()
 	last_count = 0
@@ -175,10 +177,10 @@ func _scatter(force: int, rng: RandomNumberGenerator) -> void:
 func _settle_when_ready() -> void:
 	if not is_inside_tree():
 		return
-	var batch: Array[Node] = _children.duplicate()
+	var generation: int = _generation
 	await get_tree().physics_frame
 	await get_tree().physics_frame
-	if is_inside_tree() and _children == batch:     # not re-resolved meanwhile
+	if is_inside_tree() and _generation == generation:     # not re-resolved meanwhile (claims may remove items)
 		settle_items()
 
 
@@ -205,6 +207,50 @@ func settle_items() -> int:
 	return removed
 
 
+## Boxes the current pick claims (CLAIM_ markers in its scene, meta
+## "claim_box"), in `space`'s coordinates: while a masonry stair is picked the
+## wall base behind it is claimed, so other sockets clear their items there.
+func claims(space: Node3D) -> Array[AABB]:
+	var out: Array[AABB] = []
+	for c: Node in _children:
+		if not is_instance_valid(c):
+			continue
+		for m: Node in c.find_children("CLAIM_*", "Marker3D", true, false):
+			if m.has_meta("claim_box"):
+				var size: Vector3 = m.get_meta("claim_box")
+				out.append(relative_transform(space, m as Node3D) * AABB(size * -0.5, size))
+	return out
+
+
+## Removes spawned items whose origin lies in one of `boxes` (in `space`'s
+## coordinates). Returns how many were removed.
+func release_claimed(space: Node3D, boxes: Array[AABB]) -> int:
+	var removed: int = 0
+	for c: Node in _children.duplicate():
+		if not c is Node3D or not is_instance_valid(c):
+			continue
+		var p: Vector3 = relative_transform(space, c as Node3D).origin
+		if boxes.any(func(b: AABB) -> bool: return b.grow(0.001).has_point(p)):
+			_children.erase(c)
+			remove_child(c)
+			c.queue_free()
+			removed += 1
+	if mode == Mode.SCATTER or mode == Mode.EDGE_SCATTER:
+		last_count -= removed
+	return removed
+
+
+## Transform of `node` in `space`'s coordinates; works outside the tree.
+static func relative_transform(space: Node3D, node: Node3D) -> Transform3D:
+	var xf: Transform3D = node.transform
+	var p: Node = node.get_parent()
+	while p != null and p != space:
+		if p is Node3D:
+			xf = (p as Node3D).transform * xf
+		p = p.get_parent()
+	return xf
+
+
 func _pin_next() -> void:
 	if socket_set == null or socket_set.entries.is_empty():
 		return
@@ -213,7 +259,11 @@ func _pin_next() -> void:
 
 func _editor_refresh() -> void:
 	if Engine.is_editor_hint() and is_inside_tree():
-		resolve(_seed, room_pin)
+		var r: Node = room()
+		if r != null:     # the room re-resolves everything, so claims follow this pick
+			r.call("resolve_sockets", r.get("_last_seed"))
+		else:
+			resolve(_seed, room_pin)
 
 
 ## The entry this socket is forced to (room pin first, then its own), or -1.

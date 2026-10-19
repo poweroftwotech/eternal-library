@@ -12,7 +12,7 @@ Every module's origin is the socket it fills (Blender axes; Godot -Z = +Y):
                centre line. The recess back is y = -0.25, the room is +Y.
   iwan_*       the iwan centrepiece socket (alcove floor, ~1.8 m from the back).
   prop_*       a table-top SCATTER socket: the table surface (z = 0).
-  stair_steps_* a stair_style socket: the middle of a stair_gallery_8m footprint
+  stair_steps_* a stair_style(_r) socket: the middle of a stair_gallery_8m(_r) footprint
                (floor level, lane centre); the stair rises along +X.
 """
 import math
@@ -25,7 +25,7 @@ import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from kit_blender import (add_box, add_card, add_lathe, add_ngon_prism, add_obox, add_prism, rebuild,  # noqa: E402
-                         H, T, arch_outline, mesh_object, module)
+                         H, T, arch_outline, marker, mesh_object, module)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BLEND = os.path.join(ROOT, "art_src", "kit", "kit_dressing.blend")
@@ -326,42 +326,115 @@ def prop_inkwell(r):
     mesh_object("prop_inkwell__quill", bm, ["linen"], r)
 
 
-# --- stair candidates (weathering item 4) --------------------------------------
-# The look of stair_gallery_8m / _r is a stair_style socket; the stair module
-# keeps the ramp collision, rail and snaps, so routes never change. Both looks
-# are symmetric across the lane, so the reversed stair turns its socket half a
-# turn instead of needing mirrored candidates.
+# --- stair candidates (weathering item 4, polish slice A) ---------------------
+# The look of stair_gallery_8m / _r is a stair_style(_r) socket. The stair
+# module keeps the walkable ramp slab, the open-side rail collision and the
+# snaps, so routes never depend on the look. Each look brings its own railing
+# and, for masonry, the solid fill under the slab. The open side (+Y) carries
+# the railing, so the reversed stair needs mirrored candidates (`_r`): a half
+# turn would put the railing against the wall.
 STAIR_STEPS, STAIR_RUN, STAIR_TOP = 20, 8.0, H + 0.15
 STAIR_HALF = (1.6 - T) / 2      # lane half width (T to 1.6 from the wall line)
+STAIR_WALL = -STAIR_HALF - T    # the wall's centre line, in socket space
 
 
-def stair_steps_masonry(r):
-    """Solid stone steps, as the stair module used to carry."""
-    rise, tread, x0 = STAIR_TOP / STAIR_STEPS, STAIR_RUN / STAIR_STEPS, -STAIR_RUN / 2
+def stair_x(x, reverse):
+    """Stair-space x (0 = foot of a plain stair) to socket space (origin mid-run)."""
+    return (STAIR_RUN - x if reverse else x) - STAIR_RUN / 2
+
+
+def stair_prism(bm, outline, y0, y1, reverse):
+    """add_prism for a stair-space XZ outline, mirrored for the reversed stair."""
+    pts = [(stair_x(u, reverse), v) for (u, v) in outline]
+    if reverse:
+        pts.reverse()
+    add_prism(bm, pts, 0.0, 0.0, y0, y1)
+
+
+def stair_box(bm, x0, x1, y0, y1, z0, z1, reverse):
+    a, b = sorted((stair_x(x0, reverse), stair_x(x1, reverse)))
+    add_box(bm, a, b, y0, y1, z0, z1)
+
+
+def stair_claim(r, name, x0, x1, z1, reverse):
+    """CLAIM_ empty: while this look is picked, other sockets' items whose origin
+    is in the box (from the wall line to the open edge) are cleared."""
+    a, b = sorted((stair_x(x0, reverse), stair_x(x1, reverse)))
+    y0, y1 = STAIR_WALL, STAIR_HALF
+    marker("CLAIM_" + name, r, ((a + b) / 2, (y0 + y1) / 2, z1 / 2), {"claim_size": [b - a, y1 - y0, z1]})
+
+
+def stair_steps_masonry(r, reverse=False):
+    """Solid stone steps behind a sloped stone parapet on the open edge, all in
+    arch_stone like the steps: a coping that follows the nosings and a newel at the foot.
+    The solid under the slab is collision (the stair is not walkable under)."""
+    name = "stair_steps_masonry" + ("_r" if reverse else "")
+    rise, tread = STAIR_TOP / STAIR_STEPS, STAIR_RUN / STAIR_STEPS
+    run, top, slope = STAIR_RUN, STAIR_TOP, STAIR_TOP / STAIR_STEPS / (STAIR_RUN / STAIR_STEPS)
+    inner = STAIR_HALF - 0.2       # the parapet takes the outer 0.2 m of the lane
     bm = bmesh.new()
     for i in range(STAIR_STEPS):
-        add_box(bm, x0 + i * tread, x0 + (i + 1) * tread, -STAIR_HALF, STAIR_HALF, 0.0, (i + 1) * rise)
-    mesh_object("stair_steps_masonry__steps", bm, ["arch_stone"], r)
+        stair_box(bm, i * tread, (i + 1) * tread, -STAIR_HALF, inner, 0.0, (i + 1) * rise, reverse)
+    mesh_object(name + "__steps", bm, ["arch_stone"], r)
+    h = 0.85                       # parapet top above the nosing line
+    line = lambda x: rise + h + x * slope    # noqa: E731
+    bm = bmesh.new()
+    stair_prism(bm, [(0.02, 0.0), (run, 0.0), (run, top + h), (run - tread, top + h), (0.02, line(0.02))],
+                inner, STAIR_HALF, reverse)
+    mesh_object(name + "__parapet", bm, ["arch_stone"], r)
+    bm = bmesh.new()
+    stair_prism(bm, [(0.02, line(0.02)), (run - tread, top + h), (run, top + h), (run, top + h + 0.08),
+                     (run - tread, top + h + 0.08), (0.02, line(0.02) + 0.08)], inner - 0.02, STAIR_HALF, reverse)
+    stair_box(bm, 0.0, 0.32, inner - 0.03, STAIR_HALF - 0.01, 0.0, line(0.32) + 0.16, reverse)   # foot newel
+    mesh_object(name + "__coping", bm, ["arch_stone"], r)
+    bm = bmesh.new()
+    stair_prism(bm, [(0.1, 0.0), (run - tread / 2, top - 0.1), (run, top - 0.1), (run, 0.0)],
+                -STAIR_HALF, STAIR_HALF, reverse)
+    mesh_object(name + "__fill-colonly", bm, ["arch_stone"], r)
+    stair_claim(r, "under", 0.0, run, 0.6, reverse)      # the wall base behind it is hidden
 
 
-def stair_steps_open(r):
+def stair_steps_open(r, reverse=False):
     """Wooden stringer stair with open risers: two sloped stringers (8 cm thick,
     0.3 m deep, top edge 8 cm above the nosings, foot on the floor) carrying
-    5 cm treads with a 3 cm nosing; light shows between the steps."""
-    rise, tread, x0 = STAIR_TOP / STAIR_STEPS, STAIR_RUN / STAIR_STEPS, -STAIR_RUN / 2
+    5 cm treads with a 3 cm nosing, and a wooden post-and-handrail balustrade.
+    No collision of its own: the module's slab and rail strip are walked on, and
+    the space under the high end is open."""
+    name = "stair_steps_open" + ("_r" if reverse else "")
+    rise, tread = STAIR_TOP / STAIR_STEPS, STAIR_RUN / STAIR_STEPS
     run, top, lip = STAIR_RUN, STAIR_TOP, 0.08
     outline = [(0.0, 0.0), (0.6, 0.0), (run, top - 0.3), (run, top + lip),
                (run - tread, top + lip), (0.0, rise + lip)]
     bm = bmesh.new()
     for (a, b) in ((-STAIR_HALF, -STAIR_HALF + 0.08), (STAIR_HALF - 0.08, STAIR_HALF)):
-        add_prism(bm, outline, x0, 0.0, a, b)
-    mesh_object("stair_steps_open__stringers", bm, ["wood"], r)
+        stair_prism(bm, outline, a, b, reverse)
+    mesh_object(name + "__stringers", bm, ["wood"], r)
     bm = bmesh.new()
     for i in range(STAIR_STEPS):
         z = (i + 1) * rise
-        add_box(bm, x0 + max(0.0, i * tread - 0.03), x0 + (i + 1) * tread,
-                -STAIR_HALF + 0.08, STAIR_HALF - 0.08, z - 0.05, z)
-    mesh_object("stair_steps_open__treads", bm, ["wood"], r)
+        stair_box(bm, max(0.0, i * tread - 0.03), (i + 1) * tread, -STAIR_HALF + 0.08, STAIR_HALF - 0.08, z - 0.05, z, reverse)
+    mesh_object(name + "__treads", bm, ["wood"], r)
+    # Balustrade (as the stair module carried before): posts every 0.8 m and a
+    # sloped handrail.
+    y1 = STAIR_HALF
+    bm = bmesh.new()
+    x = tread / 2
+    while x < run:
+        z = (math.floor(x / tread) + 1) * rise
+        stair_box(bm, x - 0.03, x + 0.03, y1 - 0.1, y1 - 0.04, z, z + 0.9, reverse)
+        x += 0.8
+    stair_prism(bm, [(0.0, rise + 0.86), (run, top + 0.86), (run, top + 0.94), (0.0, rise + 0.94)],
+                y1 - 0.12, y1 - 0.02, reverse)
+    mesh_object(name + "__rail", bm, ["wood"], r)
+    stair_claim(r, "low_end", 0.0, 1.6, 0.8, reverse)    # too low to reach under
+
+
+def stair_steps_masonry_r(r):
+    stair_steps_masonry(r, True)
+
+
+def stair_steps_open_r(r):
+    stair_steps_open(r, True)
 
 
 MODULES = [
@@ -384,8 +457,10 @@ MODULES = [
     ("M_prop_oil_lamp", props("brass,light,table_prop"), prop_oil_lamp),
     ("M_prop_scroll", props("linen,table_prop"), prop_scroll),
     ("M_prop_inkwell", props("iron,table_prop"), prop_inkwell),
-    ("M_stair_steps_masonry", props("stone,stair"), stair_steps_masonry),
-    ("M_stair_steps_open", props("wood,stair"), stair_steps_open),
+    ("M_stair_steps_masonry", dict(props("stone,stair"), kit_rev=3), stair_steps_masonry),
+    ("M_stair_steps_open", dict(props("wood,stair"), kit_rev=2), stair_steps_open),
+    ("M_stair_steps_masonry_r", dict(props("stone,stair"), kit_rev=3), stair_steps_masonry_r),
+    ("M_stair_steps_open_r", dict(props("wood,stair"), kit_rev=2), stair_steps_open_r),
 ]
 
 
@@ -399,7 +474,9 @@ def main():
         if bpy.data.objects.get(name) is None:
             build(module(name, ((i % 7) * 4.0, (i // 7) * 5.0, 0.0), p))
             added.append(name)
-    REBUILD = [("M_recess_shelves_broken", 3)]   # rev 3: floor boards split out as __spill
+    REBUILD = [("M_recess_shelves_broken", 3),   # rev 3: floor boards split out as __spill
+               ("M_stair_steps_masonry", 3), ("M_stair_steps_open", 2),   # rev 2: railings, fill, claims (polish A)
+               ("M_stair_steps_masonry_r", 3)]                          # rev 3: parapet in arch_stone to match the steps
     added += ["%s (rebuilt rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
     if not added:
         print("kit_add_dressing: all modules already present; nothing to do.")

@@ -187,8 +187,26 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "stair_steps_masonry_r",
+"scene": "res://kit/modules/dressing/stair_steps_masonry_r.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "stair"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "stair_steps_open",
 "scene": "res://kit/modules/dressing/stair_steps_open.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "stair"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stair_steps_open_r",
+"scene": "res://kit/modules/dressing/stair_steps_open_r.tscn",
 "shape": "free",
 "size_cells": Vector3i(0, 0, 0),
 "tags": PackedStringArray("wood", "stair"),

@@ -6,7 +6,10 @@ extends EditorScenePostImport
 ##
 ## 1. Swaps every surface material for the shared PxMaterial by slot name.
 ## 2. Puts generated collision on layer 1 (world static).
-## 3. Turns SNAP_/SOCKET_/LIGHT_/ANCHOR_ empties into Marker3D / lights.
+## 3. Turns SNAP_/SOCKET_/LIGHT_/ANCHOR_/CLAIM_ empties into Marker3D / lights.
+##    CLAIM_ (polish slice A): a box, centred on the empty, whose size comes from
+##    the Blender property claim_size [x, y, z]; stored as meta "claim_box"
+##    (Godot axes). RoomTemplate clears other sockets' items inside it.
 ## 4. Copies the module's Blender custom properties into meta "kit" on the root.
 ## 5. Puts the meshes of edge, cell and post modules on KitModule.DECAL_LAYER too.
 
@@ -17,7 +20,7 @@ const LIGHT_PROFILES: Dictionary = {
 	"chandelier": {"color": Color(1.0, 0.74, 0.42), "energy": 2.2, "range": 10.0, "attenuation": 1.0, "shadow": true, "size": 0.35},
 	"cold": {"color": Color(0.66, 0.86, 1.0), "energy": 1.0, "range": 6.0, "attenuation": 1.2, "shadow": false},
 }
-const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_"]
+const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_"]
 
 var _warnings: PackedStringArray = []
 
@@ -186,7 +189,10 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 	for key: Variant in extras:
 		replacement.set_meta(StringName(str(key)), extras[key])
 	replacement.set_meta("kit_kind", kind)
-	var group: String = {"SNAP_": "kit_snap", "SOCKET_": "kit_socket", "LIGHT_": "kit_light", "ANCHOR_": "npc_anchor"}[prefix]
+	if prefix == "CLAIM_" and extras.get("claim_size") is Array:
+		var sz: Array = extras["claim_size"]
+		replacement.set_meta("claim_box", Vector3(float(sz[0]), float(sz[2]), float(sz[1])))   # Blender y/z -> Godot z/y
+	var group: String = {"SNAP_": "kit_snap", "SOCKET_": "kit_socket", "LIGHT_": "kit_light", "ANCHOR_": "npc_anchor", "CLAIM_": "kit_claim"}[prefix]
 	parent.add_child(replacement, true)
 	parent.move_child(replacement, node.get_index())
 	replacement.owner = scene

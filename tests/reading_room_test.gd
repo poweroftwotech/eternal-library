@@ -26,19 +26,19 @@ func run() -> void:
 	var packed: PackedScene = load(ROOM)
 	check(packed != null, "reading room loads")
 	if packed != null:
-		await audit(packed.instantiate() as Node3D)
+		await audit(packed.instantiate() as Node3D, false)
 		# Weathering item 4: the stair look is a socket. Pin both stairs to open
 		# wood and run the whole audit again, routes up both stairs included.
 		var open: RoomTemplate = packed.instantiate()
 		check(pin_stairs(open, "open wood") == 2, "both stairs pin to the open wooden look")
-		await audit(open)
+		await audit(open, true)
 	print("reading_room_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
 	quit(1 if not failures.is_empty() else 0)
 
 
-func audit(room: Node3D) -> void:
+func audit(room: Node3D, open_stairs: bool) -> void:
 	root.add_child(room)
 	var tmpl := room as RoomTemplate
 	check(tmpl != null and tmpl.room_id == "reading_room", "root is a RoomTemplate with room_id reading_room")
@@ -55,7 +55,7 @@ func audit(room: Node3D) -> void:
 			var key: String = s.socket_set.resource_path.get_file().get_basename() if s.socket_set != null else "(none)"
 			by_set[key] = int(by_set.get(key, 0)) + 1
 		check(by_set == {"recess_library": 16, "iwan_centre": 1, "table_props": 4, "lamp_state": 7, "seam_debris": 10, "rail_growth": 5,
-				"wall_stains": 10, "floor_wear": 15, "lamp_soot": 7, "stair_style": 2},
+				"wall_stains": 10, "floor_wear": 15, "lamp_soot": 7, "stair_style": 1, "stair_style_r": 1},
 			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps, 10 seams, 5 rails, 10 wall stains, 15 floors, 7 soot, 2 stairs (found %s)" % by_set)
 		check(tmpl.resolve_sockets(7) == tmpl.resolve_sockets(7), "socket picks are deterministic")
 	check(room.get_node("Connectors").get_child_count() == 3, "three door connectors")
@@ -91,6 +91,29 @@ func audit(room: Node3D) -> void:
 	# East stair (mirrored module): foot at z -16 in bay 4, also rises toward the entrance.
 	feet = await walk(body, Vector3(11.05, 0.95, -18.5), Vector3(0, 0, 3), func(p: Vector3) -> bool: return p.z > -4.0)
 	check(feet.z > -5.0 and absf(feet.y - 4.15) < 0.1, "east stair reaches the east gallery (feet at %s)" % feet)
+	# Polish slice A: under the high end of each stair (bay 2) the masonry look
+	# is solid, the open wooden one can be walked under, up to the wall.
+	for side: Array in [[Vector3(3.0, 0.95, -9.5), -1.0], [Vector3(9.0, 0.95, -9.5), 1.0]]:
+		var start: Vector3 = side[0]
+		var dir: float = side[1]
+		if open_stairs:
+			feet = await walk(body, start, Vector3(dir * 2, 0, 0), func(p: Vector3) -> bool: return absf(p.x - 6.0) > 4.9)
+			check(absf(feet.x - 6.0) > 4.8 and absf(feet.y) < 0.1, "walk under the open stair to the wall (feet at %s)" % feet)
+		else:
+			check(await blocked(body, start, Vector3(dir * 2.5, 0, 0)), "the masonry stair is solid underneath (from %s)" % start)
+	# Claims: behind masonry the wall-base seams are cleared; open wood shows them.
+	if tmpl != null:
+		var behind: int = 0
+		var hidden_walls: Array[Vector3] = [Vector3(0, 0, -12), Vector3(0, 0, -16), Vector3(12, 0, -8), Vector3(12, 0, -12)]
+		for s: VariantSocket in tmpl.sockets():
+			var host: Node = s.get_parent()
+			while host != null and not host is KitModule:
+				host = host.get_parent()
+			if s.socket_set != null and s.socket_set.resource_path.ends_with("seam_debris.tres") and host != null \
+					and hidden_walls.has((host as Node3D).position.snappedf(0.01)):
+				behind += s.last_count
+		check((behind > 0) == open_stairs, "seams behind the stairs: %d items (%s)" % [behind,
+			"open wood shows them" if open_stairs else "masonry claims them"])
 	# Step 2b: the galleries are one U. From the west stair head, round both
 	# corners along the entrance wall and back down the east side.
 	await walk(body, Vector3(0.95, 0.95, -18.5), Vector3(0, 0, 3), func(p: Vector3) -> bool: return p.z > -4.0)

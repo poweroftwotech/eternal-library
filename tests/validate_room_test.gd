@@ -242,7 +242,13 @@ func check_open_stairs() -> void:
 		if key.ends_with("/SOCKET_stair_style"):
 			pins[key] = lib.index_of("open wood")
 			pinned += 1
+	# Polish slice A: as saved (masonry) each stair claims its whole wall base;
+	# open wood claims only its low end, where nothing fits under it.
+	var spans: Array = KitValidateRoom._claims(room).map(func(c: Array) -> float: return (c[1] as AABB).size.z)
+	check(spans.size() == 2 and spans.all(func(z: float) -> bool: return is_equal_approx(z, 8.0)), "masonry stairs each claim 8 m of wall base (%s)" % [spans])
 	room.socket_pins = pins
+	spans = KitValidateRoom._claims(room).map(func(c: Array) -> float: return (c[1] as AABB).size.z)
+	check(spans.size() == 2 and spans.all(func(z: float) -> bool: return is_equal_approx(z, 1.6)), "open stairs each claim only their 1.6 m low end (%s)" % [spans])
 	var r: Dictionary = KitValidateRoom.run(room)
 	check(pinned == 2 and (r["errors"] as PackedStringArray).is_empty() and (r["warnings"] as PackedStringArray).is_empty(),
 		"with open stairs the reading room validates clean (%d pinned, %s)" % [pinned, r])

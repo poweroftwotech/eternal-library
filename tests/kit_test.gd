@@ -291,41 +291,76 @@ func check_stair_route() -> void:
 	await process_frame
 
 
-## Weathering item 4: a gallery stair's look is a stair_style socket. The
-## module keeps the ramp, rail and snaps; the steps come from the candidate.
-## Both looks fill the same footprint on the plain and the reversed stair (the
-## reversed socket is turned half a turn), and each rises the right way.
+
+## Item 4 and polish slice A: a gallery stair's look is a stair_style socket
+## (stair_style_r on the reversed stair, mirrored so the railing stays on the
+## open edge). The module keeps only what routes need: a ramp slab that is
+## open underneath, an invisible rail strip and the snaps. Each look fills the
+## footprint, starts at the foot snap and brings its railing on the open edge;
+## masonry also brings the solid fill under the slab and claims the wall base.
 func check_stair_style() -> void:
-	var lib: SocketSet = load("res://kit/sockets/stair_style.tres")
 	for m: String in ["stair_gallery_8m", "stair_gallery_8m_r"]:
+		var lib: SocketSet = load("res://kit/sockets/%s.tres" % ("stair_style_r" if m.ends_with("_r") else "stair_style"))
 		var node: KitModule = (load("res://kit/modules/walls/%s.tscn" % m) as PackedScene).instantiate()
 		root.add_child(node)
-		check(node.find_children(m + "__steps*", "MeshInstance3D", true, false).is_empty(), "%s carries no steps of its own" % m)
+		var visible: Array[Node] = node.find_children(m + "*", "MeshInstance3D", true, false)
+		check(visible.is_empty(), "%s has no visible mesh of its own (the look brings steps and railing)" % m)
+		check(lowest_ramp_point_under(node, 6.5 if m == "stair_gallery_8m" else 1.5) > 2.5,
+			"%s ramp is a slab, open underneath at the high end" % m)
 		var sockets: Array[Node] = node.find_children("SOCKET_stair_style*", "VariantSocket", true, false)
 		check(sockets.size() == 1, "%s has one stair_style socket" % m)
 		if sockets.size() == 1:
 			var s := sockets[0] as VariantSocket
-			check(s.socket_set == lib and s.position.is_equal_approx(Vector3(4.0, 0.0, -0.95)), "%s socket sits mid-footprint (%s)" % [m, s.position])
+			check(s.socket_set == lib and s.transform.is_equal_approx(Transform3D(Basis.IDENTITY, Vector3(4.0, 0.0, -0.95))),
+				"%s socket uses %s, mid-footprint, unturned (%s)" % [m, lib.resource_path.get_file(), s.transform])
+			check(lib.index_of("masonry") == 0 and lib.index_of("open wood") == 1, "%s set keeps the shared label order" % m)
 			for label: String in ["masonry", "open wood"]:
 				s.resolve(1, lib.index_of(label))
 				await process_frame
 				var box: AABB
-				var low_end: float = 0.0     # x of the lowest tread top: the foot
+				var low_end: float = 0.0     # x of the lowest step top: the foot
 				var lowest: float = INF
+				var rail_z: float = 0.0      # z of the railing mesh (the open edge is z -1.6)
+				var bodies: int = 0
+				var claims: int = 0
 				for n: Node in s.get_children(true):
+					bodies += n.find_children("*", "CollisionShape3D", true, false).size()
+					claims += n.find_children("CLAIM_*", "Marker3D", true, false).filter(func(c: Node) -> bool: return c.has_meta("claim_box")).size()
 					for mi: Node in n.find_children("*", "MeshInstance3D", true, false):
 						var mesh_inst := mi as MeshInstance3D
 						var b: AABB = mesh_inst.global_transform * mesh_inst.mesh.get_aabb()
 						box = b if not box.has_volume() else box.merge(b)
-						var faces: PackedVector3Array = mesh_inst.mesh.get_faces()
-						for p: Vector3 in faces:
+						if String(mi.name).contains("rail") or String(mi.name).contains("parapet"):
+							rail_z = b.get_center().z
+						for p: Vector3 in mesh_inst.mesh.get_faces():
 							var w: Vector3 = mesh_inst.global_transform * p
 							if w.y > 0.1 and w.y < lowest:
 								lowest = w.y
 								low_end = w.x
-				check(box.position.snappedf(0.01).is_equal_approx(Vector3(0, 0, -1.6)) and box.end.x <= 8.01 and box.end.z <= -0.29,
+				check(box.position.x > -0.03 and box.end.x < 8.03 and box.position.z > -1.63 and box.end.z < -0.29 and absf(box.position.y) < 0.01,
 					"%s '%s' fills the stair footprint (%s)" % [m, label, box])
 				var foot: float = 0.0 if m == "stair_gallery_8m" else 8.0
 				check(absf(low_end - foot) < 0.5, "%s '%s' starts at the foot snap (lowest step at x %.2f)" % [m, label, low_end])
+				check(rail_z < -1.4, "%s '%s' railing runs on the open edge (z %.2f)" % [m, label, rail_z])
+				check((bodies > 0) == (label == "masonry"), "%s '%s' %s collision under the slab (%d shapes)" % [m, label, "has" if label == "masonry" else "has no", bodies])
+				check(claims == 1, "%s '%s' claims one box (%d)" % [m, label, claims])
 		node.queue_free()
 	await process_frame
+
+
+## Lowest ramp collision point straight down from 5 m at
+## stair-run x (module space, lane centre). A wedge reaches the floor (0); a
+## slab stops at its underside.
+func lowest_ramp_point_under(node: Node, x: float) -> float:
+	var low: float = INF
+	for cs: Node in node.find_children("*", "CollisionShape3D", true, false):
+		if not String(cs.get_parent().name).contains("ramp"):
+			continue
+		var faces: PackedVector3Array = ((cs as CollisionShape3D).shape as ConcavePolygonShape3D).get_faces()
+		var xf: Transform3D = (cs as Node3D).global_transform
+		for i: int in range(0, faces.size(), 3):
+			var hit: Variant = Geometry3D.ray_intersects_triangle(Vector3(x, 5.0, -0.95), Vector3.DOWN,
+				xf * faces[i], xf * faces[i + 1], xf * faces[i + 2])
+			if hit != null:
+				low = minf(low, (hit as Vector3).y)
+	return low
