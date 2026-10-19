@@ -342,6 +342,8 @@ func check_stair_style() -> void:
 				var foot: float = 0.0 if m == "stair_gallery_8m" else 8.0
 				check(absf(low_end - foot) < 0.5, "%s '%s' starts at the foot snap (lowest step at x %.2f)" % [m, label, low_end])
 				check(rail_z < -1.4, "%s '%s' railing runs on the open edge (z %.2f)" % [m, label, rail_z])
+				if label == "masonry":
+					check_stone_balustrade(s, m)
 				check((bodies > 0) == (label == "masonry"), "%s '%s' %s collision under the slab (%d shapes)" % [m, label, "has" if label == "masonry" else "has no", bodies])
 				check(claims == 1, "%s '%s' claims one box (%d)" % [m, label, claims])
 		node.queue_free()
@@ -351,6 +353,35 @@ func check_stair_style() -> void:
 ## Lowest ramp collision point straight down from 5 m at
 ## stair-run x (module space, lane centre). A wedge reaches the floor (0); a
 ## slab stops at its underside.
+## Polish 1b: the masonry railing is an open stone balustrade: one turned
+## baluster per tread between a foot and a head newel, under a handrail, all on
+## the open edge.
+func check_stone_balustrade(s: VariantSocket, m: String) -> void:
+	var parts: Dictionary = {}
+	for n: Node in s.get_children(true):
+		for mi: Node in n.find_children("*", "MeshInstance3D", true, false):
+			for part: String in ["balusters", "handrail", "newels", "parapet"]:
+				if String(mi.name).contains(part):
+					parts[part] = mi
+	check(not parts.has("parapet") and parts.has("balusters") and parts.has("handrail") and parts.has("newels"),
+		"%s masonry has a balustrade, not a parapet (%s)" % [m, parts.keys()])
+	if not parts.has("balusters"):
+		return
+	var mesh_inst := parts["balusters"] as MeshInstance3D
+	var columns: Dictionary = {}     # 0.4 m tread index -> baluster (separate turned columns)
+	var z_lo: float = INF
+	for p: Vector3 in mesh_inst.mesh.get_faces():
+		var w: Vector3 = mesh_inst.global_transform * p
+		columns[int(floorf(w.x / 0.4))] = true
+		z_lo = minf(z_lo, w.z)
+	check(columns.size() == 18 and not columns.has(0) and not columns.has(19),
+		"%s masonry has 18 balusters, one per tread clear of the newels (%d)" % [m, columns.size()])
+	check(z_lo > -1.6, "%s masonry balusters stand on the open edge (z from %.2f)" % [m, z_lo])
+	var newels := parts["newels"] as MeshInstance3D
+	var nb: AABB = newels.global_transform * newels.mesh.get_aabb()
+	check(nb.position.x < 0.01 and nb.end.x > 7.99, "%s masonry has a newel at the foot and the head (%s)" % [m, nb])
+
+
 func lowest_ramp_point_under(node: Node, x: float) -> float:
 	var low: float = INF
 	for cs: Node in node.find_children("*", "CollisionShape3D", true, false):

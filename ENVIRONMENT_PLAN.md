@@ -1112,15 +1112,28 @@ reviewed in the editor before the next one starts.
      - GPU: `previews/reading_room_stair_{masonry,open}_{west_stair,stair}.png`.
    - **Caveat:** dressing candidates aren't on the decal layer, so the stone
      stair takes no floor decals (unchanged from item 4).
-1b. **Next (user review 2026-10-19): a stone balustrade, not a solid parapet.**
-   The user wants the masonry look's railing to be an open stone balustrade:
-   turned stone balusters (lathe profile, like the Reading Garden gallery
-   in `previews/garden_v011.png`) standing on a sloped stone plinth, under a
-   sloped stone handrail/coping, with a newel at the foot and head. Keep it
-   in `stair_steps_masonry(_r)` (`kit_add_dressing.py`, rebuild rev 4).
-   Collision is unchanged (the module's rail strip). Consider offering both
-   as looks ("masonry, solid parapet" and "masonry, balustrade") if the solid
-   one is worth keeping. Start the next session here, then continue with B.
+1b. ~~**A stone balustrade, not a solid parapet**~~ (user review 2026-10-19,
+   done the same day).
+   - `stair_steps_masonry(_r)` rev 4 (`kit_add_dressing.py`): the parapet and
+     coping are replaced by `__plinth` (sloped, floor to 0.18 m above the
+     nosings), `__balusters` (18 turned columns, one per tread, the prototype
+     gallery's lathe profile with radii x0.85, sunk 7 cm into plinth and rail),
+     `__handrail` (0.8-0.92 m above the nosings, flat over the top tread) and
+     `__newels` (foot and head: square shaft, overhanging cap, ball finial).
+     All in `arch_stone`. Collision is unchanged (module rail strip + fill).
+   - Only the balustrade is kept. The solid parapet (rev 3) is in git history
+     if a third look is ever wanted.
+   - **Verified:** `kit_test` 588 (new: masonry has balusters, handrail and
+     newels and no parapet; 18 separate balusters clear of the newels; newels
+     at both ends; on the open edge), `reading_room_test` 62,
+     `validate_room_test` 25, `socket_modes_test` 157, all three 240-frame gates.
+   - GPU: `previews/reading_room_stair_balustrade_{stair,west_stair,stair_foot}.png`
+     (new capture view `stair_foot`).
+   - **Caveat:** the world-triplanar `arch_stone` map puts its mortar lines
+     across the balusters as dark bands. It reads as turned rings at play
+     distance; a plain-stone variant would need a separate material.
+
+**A is complete.** Next: B (growth), starting with item 4.
 
 **B. Growth where it grows (matching the prototype's Reading Garden, `previews/garden_v011.png`)**
 4. **No vines on the wooden gallery rails.** The `rail_growth` sockets are

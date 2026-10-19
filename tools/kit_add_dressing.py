@@ -364,29 +364,57 @@ def stair_claim(r, name, x0, x1, z1, reverse):
     marker("CLAIM_" + name, r, ((a + b) / 2, (y0 + y1) / 2, z1 / 2), {"claim_size": [b - a, y1 - y0, z1]})
 
 
+# Turned baluster (radius, height 0..1), the prototype gallery's profile
+# (interior_pass.gd) with its radii scaled to 0.85.
+BALUSTER = [(0.0, 0.0), (0.077, 0.0), (0.077, 0.12), (0.047, 0.196), (0.06, 0.543),
+            (0.038, 0.783), (0.068, 0.913), (0.077, 1.0), (0.0, 1.0)]
+FINIAL = [(0.0, 0.0), (0.05, 0.0), (0.03, 0.03), (0.06, 0.07), (0.065, 0.1), (0.05, 0.14), (0.0, 0.16)]
+
+
 def stair_steps_masonry(r, reverse=False):
-    """Solid stone steps behind a sloped stone parapet on the open edge, all in
-    arch_stone like the steps: a coping that follows the nosings and a newel at the foot.
+    """Solid stone steps with an open stone balustrade on the open edge, all in
+    arch_stone like the steps (polish 1b): a sloped plinth 0.18 m above the
+    nosing line, a turned baluster per tread, a sloped handrail 0.8-0.92 m above
+    the nosings, and a capped newel with a ball finial at the foot and the head.
     The solid under the slab is collision (the stair is not walkable under)."""
     name = "stair_steps_masonry" + ("_r" if reverse else "")
     rise, tread = STAIR_TOP / STAIR_STEPS, STAIR_RUN / STAIR_STEPS
     run, top, slope = STAIR_RUN, STAIR_TOP, STAIR_TOP / STAIR_STEPS / (STAIR_RUN / STAIR_STEPS)
-    inner = STAIR_HALF - 0.2       # the parapet takes the outer 0.2 m of the lane
+    inner = STAIR_HALF - 0.2       # the balustrade takes the outer 0.2 m of the lane
     bm = bmesh.new()
     for i in range(STAIR_STEPS):
         stair_box(bm, i * tread, (i + 1) * tread, -STAIR_HALF, inner, 0.0, (i + 1) * rise, reverse)
     mesh_object(name + "__steps", bm, ["arch_stone"], r)
-    h = 0.85                       # parapet top above the nosing line
-    line = lambda x: rise + h + x * slope    # noqa: E731
+    nosing = lambda x: rise + min(x, run - tread) * slope    # noqa: E731  (flat over the top tread)
+
+    def band(x0, x1, lo, hi):
+        """XZ outline of a band lo..hi above the nosing line, from x0 to x1 (> run - tread)."""
+        return [(x0, nosing(x0) + lo), (run - tread, top + lo), (x1, top + lo),
+                (x1, top + hi), (run - tread, top + hi), (x0, nosing(x0) + hi)]
+
+    plinth, rail_lo, rail_hi = 0.18, 0.8, 0.92
     bm = bmesh.new()
-    stair_prism(bm, [(0.02, 0.0), (run, 0.0), (run, top + h), (run - tread, top + h), (0.02, line(0.02))],
-                inner, STAIR_HALF, reverse)
-    mesh_object(name + "__parapet", bm, ["arch_stone"], r)
+    stair_prism(bm, [(0.02, 0.0), (run - 0.02, 0.0), (run - 0.02, top + plinth), (run - tread, top + plinth),
+                     (0.02, nosing(0.02) + plinth)], inner, STAIR_HALF - 0.02, reverse)
+    mesh_object(name + "__plinth", bm, ["arch_stone"], r)
     bm = bmesh.new()
-    stair_prism(bm, [(0.02, line(0.02)), (run - tread, top + h), (run, top + h), (run, top + h + 0.08),
-                     (run - tread, top + h + 0.08), (0.02, line(0.02) + 0.08)], inner - 0.02, STAIR_HALF, reverse)
-    stair_box(bm, 0.0, 0.32, inner - 0.03, STAIR_HALF - 0.01, 0.0, line(0.32) + 0.16, reverse)   # foot newel
-    mesh_object(name + "__coping", bm, ["arch_stone"], r)
+    for i in range(1, STAIR_STEPS - 1):        # one per tread, clear of the newels
+        x = i * tread + tread / 2
+        z0, z1 = nosing(x) + plinth - 0.07, nosing(x) + rail_lo + 0.07    # sunk into plinth and rail
+        add_lathe(bm, [(rr, z0 + t * (z1 - z0)) for (rr, t) in BALUSTER],
+                  cx=stair_x(x, reverse), cy=inner + 0.09, segs=12)
+    mesh_object(name + "__balusters", bm, ["arch_stone"], r)
+    bm = bmesh.new()
+    stair_prism(bm, band(0.25, run - 0.15, rail_lo, rail_hi), inner - 0.02, STAIR_HALF - 0.01, reverse)
+    mesh_object(name + "__handrail", bm, ["arch_stone"], r)
+    bm = bmesh.new()
+    for (x0, x1, h) in ((0.0, 0.3, nosing(0.3) + rail_hi + 0.06), (run - 0.3, run, top + rail_hi + 0.06)):
+        stair_box(bm, x0, x1, inner - 0.03, STAIR_HALF, 0.0, h, reverse)                   # shaft
+        stair_box(bm, x0 - 0.025, x1 + 0.025 if x1 < run else x1, inner - 0.055, STAIR_HALF + 0.02,
+                  h, h + 0.08, reverse)                                                     # cap
+        add_lathe(bm, [(rr, h + 0.07 + z) for (rr, z) in FINIAL],
+                  cx=stair_x((x0 + x1) / 2, reverse), cy=(inner - 0.03 + STAIR_HALF) / 2, segs=10)
+    mesh_object(name + "__newels", bm, ["arch_stone"], r)
     bm = bmesh.new()
     stair_prism(bm, [(0.1, 0.0), (run - tread / 2, top - 0.1), (run, top - 0.1), (run, 0.0)],
                 -STAIR_HALF, STAIR_HALF, reverse)
@@ -457,9 +485,9 @@ MODULES = [
     ("M_prop_oil_lamp", props("brass,light,table_prop"), prop_oil_lamp),
     ("M_prop_scroll", props("linen,table_prop"), prop_scroll),
     ("M_prop_inkwell", props("iron,table_prop"), prop_inkwell),
-    ("M_stair_steps_masonry", dict(props("stone,stair"), kit_rev=3), stair_steps_masonry),
+    ("M_stair_steps_masonry", dict(props("stone,stair"), kit_rev=4), stair_steps_masonry),
     ("M_stair_steps_open", dict(props("wood,stair"), kit_rev=2), stair_steps_open),
-    ("M_stair_steps_masonry_r", dict(props("stone,stair"), kit_rev=3), stair_steps_masonry_r),
+    ("M_stair_steps_masonry_r", dict(props("stone,stair"), kit_rev=4), stair_steps_masonry_r),
     ("M_stair_steps_open_r", dict(props("wood,stair"), kit_rev=2), stair_steps_open_r),
 ]
 
@@ -475,8 +503,8 @@ def main():
             build(module(name, ((i % 7) * 4.0, (i // 7) * 5.0, 0.0), p))
             added.append(name)
     REBUILD = [("M_recess_shelves_broken", 3),   # rev 3: floor boards split out as __spill
-               ("M_stair_steps_masonry", 3), ("M_stair_steps_open", 2),   # rev 2: railings, fill, claims (polish A)
-               ("M_stair_steps_masonry_r", 3)]                          # rev 3: parapet in arch_stone to match the steps
+               ("M_stair_steps_masonry", 4), ("M_stair_steps_open", 2),   # rev 2: railings, fill, claims (polish A)
+               ("M_stair_steps_masonry_r", 4)]                          # rev 4: open stone balustrade (polish 1b)
     added += ["%s (rebuilt rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
     if not added:
         print("kit_add_dressing: all modules already present; nothing to do.")
