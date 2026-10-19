@@ -510,6 +510,17 @@ capture `previews/kit_graybox_entrance.png` shows books on the shelves.
 Reroll and Pin haven't been clicked in the editor yet.
 
 **Next steps for phase 1, in order:**
+0. **Socket panel in the Kit dock (do first; requested by the user 2026-10-18).**
+   Reaching a module's socket today takes Editable Children on the wrapper and
+   again on its Mesh. The user tested this and found it too clunky for daily use.
+   Add a section to the Kit dock: when a module (or any node inside one) is
+   selected in the viewport or Scene dock, list its `VariantSocket`s with the
+   current pick, **Prev / Next / Random**, a **Pin** toggle and a **Clear pin**
+   button. Edits must be undoable (`EditorUndoRedoManager`) and saved as
+   per-room overrides on the socket (`pinned`) without the user enabling
+   Editable Children. Check that the override survives saving and reopening
+   the room. Also add a room-level list: every socket in the open
+   `RoomTemplate`, so all pins in a room can be reviewed and cleared in one place.
 1. **More modules for R01** (in `kit_walls.blend`): a 12 m-wide hall needs
    walls on 3-bay runs, a wide iwan end-wall module (6 m arch, deep), a stair to
    the gallery, a reading table, a lantern cluster and a carpet runner. Corner
