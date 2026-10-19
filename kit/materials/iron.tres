@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://r40k7auyes0g"]
+
+[ext_resource type="Texture2D" uid="uid://brcx7c1ii5t3j" path="res://assets/textures/px/iron.png" id="1_53wkn"]
+[ext_resource type="Texture2D" uid="uid://bk13g01hexinu" path="res://assets/textures/px/iron_normal.png" id="2_1tpk0"]
+[ext_resource type="Texture2D" uid="uid://cdlrxg62m57bc" path="res://assets/textures/px/iron_rough.png" id="3_5u6lu"]
+
+[resource]
+resource_name = "iron"
+albedo_texture = ExtResource("1_53wkn")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_5u6lu")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_1tpk0")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

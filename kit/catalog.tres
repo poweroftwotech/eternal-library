@@ -1,6 +1,6 @@
 [gd_resource type="Resource" script_class="KitCatalog" format=3 uid="uid://beitftodwulxa"]
 
-[ext_resource type="Script" uid="uid://0t1s70usbdnx" path="res://scripts/world/kit_catalog.gd" id="1_wnug1"]
+[ext_resource type="Script" path="res://scripts/world/kit_catalog.gd" id="1_wnug1"]
 
 [resource]
 script = ExtResource("1_wnug1")
@@ -25,6 +25,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "lantern_cluster",
+"scene": "res://kit/modules/walls/lantern_cluster.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 4, 0),
+"tags": PackedStringArray("brass", "light", "hall_12m"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "lantern_hanging",
 "scene": "res://kit/modules/walls/lantern_hanging.tscn",
 "shape": "free",
@@ -43,11 +52,56 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "post_pier_corbel",
+"scene": "res://kit/modules/walls/post_pier_corbel.tscn",
+"shape": "post",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("stone", "structure", "gallery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "rug_runner",
+"scene": "res://kit/modules/walls/rug_runner.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor"),
+"weight": 1.0
+}, {
+"edge": "stair",
+"family": "walls",
+"name": "stair_gallery_8m",
+"scene": "res://kit/modules/walls/stair_gallery_8m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(2, 1, 0),
+"tags": PackedStringArray("stone", "vertical"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "table_reading",
+"scene": "res://kit/modules/walls/table_reading.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("wood", "furniture"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "vault_bay_4m",
 "scene": "res://kit/modules/walls/vault_bay_4m.tscn",
 "shape": "cell",
 "size_cells": Vector3i(1, 1, 1),
 "tags": PackedStringArray("plaster", "ceiling"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "vault_hall_12m",
+"scene": "res://kit/modules/walls/vault_hall_12m.tscn",
+"shape": "cell",
+"size_cells": Vector3i(3, 1, 1),
+"tags": PackedStringArray("plaster", "tile", "ceiling", "hall_12m"),
 "weight": 1.0
 }, {
 "edge": "opening_3m",
@@ -61,11 +115,29 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "gable",
 "family": "walls",
+"name": "wall_gable_12m",
+"scene": "res://kit/modules/walls/wall_gable_12m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(3, 1, 0),
+"tags": PackedStringArray("brick", "structure", "ceiling", "hall_12m"),
+"weight": 1.0
+}, {
+"edge": "gable",
+"family": "walls",
 "name": "wall_gable_4m",
 "scene": "res://kit/modules/walls/wall_gable_4m.tscn",
 "shape": "edge",
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("brick", "structure", "ceiling"),
+"weight": 1.0
+}, {
+"edge": "iwan",
+"family": "walls",
+"name": "wall_iwan_12m",
+"scene": "res://kit/modules/walls/wall_iwan_12m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(3, 2, 0),
+"tags": PackedStringArray("brick", "tile", "structure", "landmark", "hall_12m"),
 "weight": 1.0
 }, {
 "edge": "solid",

@@ -30,6 +30,7 @@ func run() -> void:
 			check_module(entry)
 	check_wrapper_keeps_user_nodes()
 	await check_graybox()
+	await check_stair_route()
 	print("kit_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -74,6 +75,22 @@ func check_module(entry: Dictionary) -> void:
 		"lantern_hanging":
 			var lights: int = parts.filter(func(n: Node) -> bool: return n is OmniLight3D).size()
 			check(lights == 1, "lantern carries one OmniLight3D")
+		"lantern_cluster":
+			var lights: Array = parts.filter(func(n: Node) -> bool: return n is OmniLight3D)
+			check(lights.size() == 1 and (lights[0] as Node).get_meta("light_profile", "") == "chandelier",
+				"lantern cluster carries one chandelier light")
+		"wall_iwan_12m":
+			var sockets: Array = parts.filter(func(n: Node) -> bool: return n is VariantSocket)
+			check(sockets.size() == 1 and (sockets[0] as VariantSocket).socket_set != null, "iwan back shelves have a recess socket")
+			check(module.size_cells == Vector3i(3, 2, 0) and module.edge == "iwan", "iwan is a 3-bay, 2-storey edge")
+		"stair_gallery_8m":
+			check(has_in_group(parts, "kit_snap", "SNAP_stair_head") and has_in_group(parts, "kit_snap", "SNAP_stair_foot"),
+				"stair has head and foot connectors")
+		"table_reading":
+			check(parts.filter(func(n: Node) -> bool: return n.is_in_group("npc_anchor")).size() == 6, "reading table has 6 seat anchors")
+		"rug_runner":
+			var rug: MeshInstance3D = parts.filter(func(n: Node) -> bool: return n is MeshInstance3D)[0]
+			check(rug.mesh.surface_get_format(0) & Mesh.ARRAY_FORMAT_TEX_UV != 0, "rug runner keeps its UVs (rug map is UV-mapped)")
 	node.free()
 
 
@@ -217,3 +234,42 @@ func motion_blocked(body: CharacterBody3D, motion: Vector3) -> bool:
 	params.from = body.global_transform
 	params.motion = motion
 	return PhysicsServer3D.body_test_motion(body.get_rid(), params)
+
+
+## Phase 1 step 1: a player capsule walks from the floor up stair_gallery_8m
+## onto a gallery slab (move_and_slide with gravity, like the real player).
+func check_stair_route() -> void:
+	var rig := Node3D.new()
+	root.add_child(rig)
+	for x: float in [-4.0, 0.0, 4.0, 8.0]:
+		var fl: Node3D = (load("res://kit/modules/walls/floor_4m.tscn") as PackedScene).instantiate()
+		fl.position = Vector3(x, 0, 0)
+		rig.add_child(fl)
+	var stair: Node3D = (load("res://kit/modules/walls/stair_gallery_8m.tscn") as PackedScene).instantiate()
+	rig.add_child(stair)
+	var slab: Node3D = (load("res://kit/modules/walls/gallery_slab_4m.tscn") as PackedScene).instantiate()
+	slab.position = Vector3(8, 0, 0)
+	rig.add_child(slab)
+	var body := CharacterBody3D.new()
+	var shape := CollisionShape3D.new()
+	var capsule := CapsuleShape3D.new()
+	capsule.radius = 0.35
+	capsule.height = 1.8
+	shape.shape = capsule
+	body.add_child(shape)
+	body.collision_mask = 1
+	rig.add_child(body)
+	body.global_position = Vector3(-1.5, 0.95, -0.95)
+	await physics_frame
+	for _i: int in 360:
+		body.velocity.x = 3.0
+		body.velocity.y = 0.0 if body.is_on_floor() else body.velocity.y - 9.8 / 60.0
+		body.move_and_slide()
+		await physics_frame
+		if body.global_position.x > 9.5:
+			break
+	var feet: Vector3 = body.global_position - Vector3(0, 0.9, 0)
+	check(feet.x > 9.0 and absf(feet.y - 4.15) < 0.1,
+		"player capsule climbs the gallery stair onto the slab (feet at %s)" % feet)
+	rig.queue_free()
+	await process_frame

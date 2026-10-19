@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bj75wrjq8gkdw"]
+
+[ext_resource type="Texture2D" uid="uid://c3pauf8nlt74g" path="res://assets/textures/px/mosaic.png" id="1_plgij"]
+[ext_resource type="Texture2D" uid="uid://v28cjkw2w4g4" path="res://assets/textures/px/mosaic_normal.png" id="2_e5a7e"]
+[ext_resource type="Texture2D" uid="uid://dhtxpdx3164vg" path="res://assets/textures/px/mosaic_rough.png" id="3_u5iit"]
+
+[resource]
+resource_name = "mosaic"
+albedo_texture = ExtResource("1_plgij")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_u5iit")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_e5a7e")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

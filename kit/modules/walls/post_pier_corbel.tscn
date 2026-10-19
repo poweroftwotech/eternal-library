@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_tha5t"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/post_pier_corbel.glb" id="2_2uj0e"]
+
+[node name="post_pier_corbel" type="Node3D" unique_id=1099056509]
+script = ExtResource("1_tha5t")
+shape = 2
+family = "walls"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("stone", "structure", "gallery")
+source_glb = "res://assets/kit/walls/post_pier_corbel.glb"
+
+[node name="Mesh" parent="." unique_id=2128716579 instance=ExtResource("2_2uj0e")]

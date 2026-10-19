@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_5xwxm"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/wall_iwan_12m.glb" id="2_nmqew"]
+
+[node name="wall_iwan_12m" type="Node3D" unique_id=1991758842]
+script = ExtResource("1_5xwxm")
+shape = 0
+family = "walls"
+size_cells = Vector3i(3, 2, 0)
+edge = "iwan"
+tags = PackedStringArray("brick", "tile", "structure", "landmark", "hall_12m")
+source_glb = "res://assets/kit/walls/wall_iwan_12m.glb"
+
+[node name="Mesh" parent="." unique_id=1738743662 instance=ExtResource("2_nmqew")]

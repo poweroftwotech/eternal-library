@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://b40lyxmggn6k4"]
+
+[ext_resource type="Texture2D" uid="uid://dvyaobmvw8sod" path="res://assets/textures/px/rug.png" id="1_k1tlq"]
+[ext_resource type="Texture2D" uid="uid://bhyimhuqu4rik" path="res://assets/textures/px/rug_rough.png" id="2_x003m"]
+
+[resource]
+resource_name = "rug"
+albedo_texture = ExtResource("1_k1tlq")
+metallic_specular = 0.65
+roughness_texture = ExtResource("2_x003m")
+texture_filter = 4

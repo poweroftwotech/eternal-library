@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_gqk2o"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/lantern_cluster.glb" id="2_pdoo5"]
+
+[node name="lantern_cluster" type="Node3D" unique_id=499785762]
+script = ExtResource("1_gqk2o")
+family = "walls"
+size_cells = Vector3i(0, 4, 0)
+tags = PackedStringArray("brass", "light", "hall_12m")
+source_glb = "res://assets/kit/walls/lantern_cluster.glb"
+
+[node name="Mesh" parent="." unique_id=1618148296 instance=ExtResource("2_pdoo5")]

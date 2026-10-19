@@ -536,12 +536,42 @@ Both 240-frame gates are clean, and the editor loads the plugin headless
 without errors. **Not verified:** clicking the panel in the editor (layout,
 icons, undo/redo from Ctrl+Z).
 
+**Step 1 done (2026-10-18): R01 modules.** Eight new modules in
+`kit_walls.blend` (17 in the catalog), added by `tools/kit_add_r01.py`. That
+script is additive: it opens the hand-edited `.blend`, adds only missing
+modules and saves, so re-running never touches your edits. Shared Blender
+helpers now live in `tools/kit_blender.py` (the seed script uses them too).
+
+| Module | Shape | Notes |
+|---|---|---|
+| `vault_hall_12m` | cell 3×1 | Pointed barrel vault over 12 m (k 0.58), tiled crown strip, transverse rib on the bay boundary. Place it one storey up on two-storey walls: springs at 8 m, intrados crown at 14.55 m |
+| `wall_gable_12m` | edge, 3 bays | Closes the vault end above the wall top (also one storey up) |
+| `wall_iwan_12m` | edge, 3 bays × 2 storeys | 6 m pointed iwan, 3 m deep, tile-lined, mosaic frame, four blind tiled niches, back shelves with a `recess_library` socket, `ANCHOR_study` for the centrepiece. It protrudes 3.3 m behind the wall line, so use it against rock |
+| `stair_gallery_8m` | edge, 2 bays | Masonry stair along a wall, up 4.15 m to the gallery slab lane; walkable `-colonly` ramp, balustrade, `SNAP_stair_foot` / `SNAP_stair_head`. Leave the gallery slab out over its two bays |
+| `post_pier_corbel` | post | Pier with corbels under the gallery slab (use at storey 0; plain pier above) |
+| `table_reading` | free | 1.4 × 4.4 m, six `ANCHOR_seat` markers |
+| `lantern_cluster` | free | One big and four small lanterns, chain up to the 12 m vault crown, one `chandelier` light (new profile in `kit_import.gd`, casts shadows) |
+| `rug_runner` | free | Three rugs end to end (13.4 m), UV-mapped `rug` map; the exporter now writes UVs (`export_texcoords=True`; the old modules exported byte-identical) |
+
+`tests/kit_r01_capture.gd` assembles a 3 × 3 bay slice in memory (never saved)
+and captures `previews/kit_r01_hall.png`, `kit_r01_iwan.png` and
+`kit_r01_gallery.png`. Catalog refreshes now keep `kit/catalog.tres`'s UID (read from
+the file header, since `get_resource_uid` returns -1 in headless runs).
+
+**Verified:** `tests/kit_test.gd` passes 241 checks: every new module's
+materials, collision and markers, the iwan socket, the chandelier light, rug
+UVs, and a player capsule (`move_and_slide` with gravity) climbing the stair
+onto a gallery slab. Both 240-frame gates are clean, with no import warnings.
+The GPU captures show the iwan, vault crown tiles, ribs, gallery, stair and
+chandelier as intended. **Caveats:** the iwan's tile lining is one
+uniform pattern, which is busy and has no ochre/lapis variation yet. The small
+cluster lanterns barely read at hall scale. The 13.4 m runner overhangs a
+3-bay hall, so for R01 (5 bays) place it with tables and lanterns in mind.
+Nothing has been placed in the editor yet.
+
 **Next steps for phase 1, in order:**
 0. ~~**Socket panel in the Kit dock**~~ (done, see above).
-1. **More modules for R01** (in `kit_walls.blend`): a 12 m-wide hall needs
-   walls on 3-bay runs, a wide iwan end-wall module (6 m arch, deep), a stair to
-   the gallery, a reading table, a lantern cluster and a carpet runner. Corner
-   pier variants for gallery level.
+1. ~~**More modules for R01**~~ (done, see above).
 2. **Build `rooms/authored/reading_room.tscn` by hand in the editor** with the Kit
    dock (3 × 5 bays, two storeys, vault), as a `RoomTemplate` with
    `Shell / Sockets / Props / Dressing / Lights / Connectors / Bounds` children.

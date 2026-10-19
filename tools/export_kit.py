@@ -50,7 +50,7 @@ def export_open_file():
         bpy.ops.export_scene.gltf(
             filepath=path, export_format="GLB", use_selection=True, export_extras=True,
             export_yup=True, export_apply=True, export_lights=False, export_cameras=False,
-            export_texcoords=False, export_normals=True, export_materials="EXPORT",
+            export_texcoords=True, export_normals=True, export_materials="EXPORT",
             export_animations=False)
         root.matrix_world = saved
         count += 1

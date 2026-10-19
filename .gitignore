@@ -1,3 +1,5 @@
 .godot/
 # Blender autosave backups
 *.blend1
+# Python bytecode from Blender tool imports
+__pycache__/

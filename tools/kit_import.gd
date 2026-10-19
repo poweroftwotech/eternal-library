@@ -13,6 +13,7 @@ const KIT_DIR: String = "res://assets/kit/"
 const LIGHT_PROFILES: Dictionary = {
 	"lantern": {"color": Color(1.0, 0.71, 0.36), "energy": 1.3, "range": 6.0, "attenuation": 1.2, "shadow": false},
 	"brazier": {"color": Color(1.0, 0.55, 0.25), "energy": 2.0, "range": 7.0, "attenuation": 1.0, "shadow": true},
+	"chandelier": {"color": Color(1.0, 0.74, 0.42), "energy": 2.2, "range": 10.0, "attenuation": 1.0, "shadow": true},
 	"cold": {"color": Color(0.66, 0.86, 1.0), "energy": 1.0, "range": 6.0, "attenuation": 1.2, "shadow": false},
 }
 const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_"]

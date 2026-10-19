@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ebjq8"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/table_reading.glb" id="2_g6avu"]
+
+[node name="table_reading" type="Node3D" unique_id=2111325058]
+script = ExtResource("1_ebjq8")
+family = "walls"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("wood", "furniture")
+source_glb = "res://assets/kit/walls/table_reading.glb"
+
+[node name="Mesh" parent="." unique_id=623784431 instance=ExtResource("2_g6avu")]
