@@ -29,6 +29,7 @@ static func apply(target: Node, state: String) -> LampState:
 			light.set_meta("lamp_base_energy", light.light_energy)
 		var base: float = light.get_meta("lamp_base_energy")
 		light.visible = state != "dark"
+		light.set_meta("lamp_state", state)   # Atmosphere sways only "lit" lamps
 		light.light_energy = base * (0.55 if state == "failing" else 1.0)
 	for inst: MeshInstance3D in meshes:
 		for i: int in inst.mesh.get_surface_count():

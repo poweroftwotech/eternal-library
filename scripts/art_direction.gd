@@ -9,19 +9,17 @@ extends RefCounted
 ##   2. hearth fire + lanterns (bloom halos)
 ##   3. warm firelit foreground (pot, provisions, piers)
 ##   4. cool teal archive on the right
-## Every number that matters is a constant here so it can be tuned from captures.
+## The environment look (tonemap, ambient, glow, haze, AO, grade, SDFGI) lives
+## in PROFILE, an AtmosphereProfile shared with authored rooms; the light
+## numbers below are specific to this scene and stay constants here.
 
-const TONEMAPPER: int = Environment.TONE_MAPPER_AGX
-const EXPOSURE: float = .97
-const AMBIENT_ENERGY: float = .22
-const AMBIENT_COLOR: Color = Color("5a86a6")
+const PROFILE: String = "res://kit/atmosphere/prototype_v011.tres"
 
 const GARDEN_KEY_ENERGY: float = 15.0      # SpotLight under the lightwell
 const GARDEN_KEY_COLOR: Color = Color("f2f5e2")
 const GARDEN_KEY_AIM: Vector3 = Vector3(-1.7,0,-3.4)  # tilted toward the arch/camera
 const GARDEN_FOG_ENERGY: float = 1.3        # how strongly the key paints the haze
 const GARDEN_HAZE_SCALE: float = 2.0        # multiplies existing garden FogVolumes
-const GLOBAL_HAZE: float = .0030
 const LIGHTWELL_GLOW: float = 1.0           # emissive glass in the vault opening
 
 const FIRE_ENERGY: float = 2.4              # base; atmosphere.gd adds flicker
@@ -29,15 +27,6 @@ const EMBER_GLOW: float = 1.8
 const LANTERN_FLAME_GLOW: float = 2.5
 const LANTERN_LIGHT_SCALE: float = .1     # lamp OmniLights (world.lantern, 1.8 base)
 const ARCHIVE_FILL_ENERGY: float = 2.9       # cool teal fill on the right-hand shelves
-
-const SSAO_INTENSITY: float = 2.2
-const GLOW_THRESHOLD: float = .95
-const GLOW_INTENSITY: float = .85
-const GLOW_BLOOM: float = .04
-
-## SDFGI gives real bounce light (warm fire bounce on the piers) but costs GPU
-## time. Off by default; try it on the target machine.
-const USE_SDFGI: bool = true
 
 var world
 var art
@@ -55,55 +44,7 @@ func build() -> void:
 	enforce_texel_density()
 
 func environment() -> void:
-	var env: Environment = world.environment
-	env.tonemap_mode = TONEMAPPER
-	env.tonemap_exposure = EXPOSURE
-	env.ambient_light_color = AMBIENT_COLOR
-	env.ambient_light_energy = AMBIENT_ENERGY
-	env.glow_enabled = true
-	env.glow_intensity = GLOW_INTENSITY
-	env.glow_strength = 1.0
-	env.glow_bloom = GLOW_BLOOM
-	env.glow_hdr_threshold = GLOW_THRESHOLD
-	env.glow_hdr_scale = 2.0
-	env.glow_blend_mode = Environment.GLOW_BLEND_MODE_SCREEN
-	for i in range(7):
-		env.set_glow_level(i,1.0 if i in [1,2,3,4,5] else 0.0)
-	env.volumetric_fog_density = GLOBAL_HAZE
-	env.volumetric_fog_albedo = Color("c0c6bf")
-	env.volumetric_fog_ambient_inject = .22
-	env.volumetric_fog_anisotropy = .55   # forward scattering: shafts glow toward camera
-	# Grounding: stronger, tighter AO that also darkens direct light at contacts.
-	env.ssao_intensity = SSAO_INTENSITY
-	env.ssao_radius = 1.0
-	env.ssao_power = 1.6
-	env.ssao_detail = .7
-	env.ssao_light_affect = .35
-	env.adjustment_enabled = true
-	env.adjustment_contrast = 1.06
-	env.adjustment_saturation = 1.12
-	env.adjustment_color_correction = split_tone()
-	if USE_SDFGI:
-		env.sdfgi_enabled = true
-		env.sdfgi_use_occlusion = true
-		env.sdfgi_energy = 1.0
-		env.sdfgi_cascades = 4
-		env.sdfgi_min_cell_size = .15
-
-## Per-channel curves: shadows lean teal, highlights lean amber (concept grade).
-func split_tone() -> GradientTexture1D:
-	var gradient = Gradient.new()
-	gradient.offsets = PackedFloat32Array([0.0,.18,.5,.82,1.0])
-	gradient.colors = PackedColorArray([
-		Color(0.0,0.012,0.018),
-		Color(.155,.185,.195),
-		Color(.495,.50,.50),
-		Color(.83,.82,.80),
-		Color(.98,.98,.965)])
-	var texture = GradientTexture1D.new()
-	texture.gradient = gradient
-	texture.width = 256
-	return texture
+	(load(PROFILE) as AtmosphereProfile).apply(world.environment)
 
 func garden_key() -> void:
 	for child in world.get_children():

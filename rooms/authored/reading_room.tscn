@@ -20,6 +20,8 @@
 [ext_resource type="PackedScene" path="res://kit/modules/walls/table_reading.tscn" id="18_3e3ao"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_cluster.tscn" id="19_xadva"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_hanging.tscn" id="20_ncy22"]
+[ext_resource type="Script" path="res://scripts/world/atmosphere.gd" id="21_jkhh2"]
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="22_mhd57"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_gml7e"]
 size = Vector3(12, 15, 23.3)
@@ -27,21 +29,13 @@ size = Vector3(12, 15, 23.3)
 [sub_resource type="BoxShape3D" id="BoxShape3D_vsckd"]
 size = Vector3(60, 0.5, 60)
 
-[sub_resource type="Environment" id="Environment_tx56d"]
-background_mode = 1
-background_color = Color(0.03, 0.05, 0.06, 1)
-ambient_light_source = 2
-ambient_light_color = Color(0.45, 0.55, 0.62, 1)
-ambient_light_energy = 0.35
-tonemap_mode = 4
-glow_enabled = true
-volumetric_fog_enabled = true
-volumetric_fog_density = 0.012
-volumetric_fog_albedo = Color(0.7, 0.75, 0.8, 1)
-
 [node name="ReadingRoom" type="Node3D" unique_id=1456888310]
 script = ExtResource("1_kokae")
 room_id = "reading_room"
+socket_pins = Dictionary[String, int]({
+"Lights/lantern_cluster/Mesh/M_lantern_cluster/SOCKET_lamp_state": 0,
+"Lights/lantern_cluster2/Mesh/M_lantern_cluster/SOCKET_lamp_state": 0
+})
 
 [node name="Shell" type="Node3D" parent="." unique_id=191676557]
 
@@ -325,6 +319,21 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 11, 0, -6)
 [node name="lantern_hanging5" parent="Lights" unique_id=20133229 instance=ExtResource("20_ncy22")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 3.5, -21.5)
 
+[node name="IwanGlow" type="OmniLight3D" parent="Lights" unique_id=719340596]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2.4, -21)
+light_color = Color(1, 0.8117647, 0.5411765, 1)
+light_energy = 1.2
+
+[node name="CoolFillWest" type="OmniLight3D" parent="Lights" unique_id=727568481]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 6.5, -14)
+light_color = Color(0.17254902, 0.45490196, 0.9019608, 1)
+omni_range = 9.0
+
+[node name="CoolFillEast" type="OmniLight3D" parent="Lights" unique_id=1358792714]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 6.5, -14)
+light_color = Color(0.17254902, 0.45490196, 0.9019608, 1)
+omni_range = 9.0
+
 [node name="Connectors" type="Node3D" parent="." unique_id=1974359293]
 
 [node name="SNAP_entrance" type="Marker3D" parent="Connectors" unique_id=1814919197 groups=["room_connector"]]
@@ -338,6 +347,10 @@ metadata/snap_kind = "door"
 [node name="SNAP_door_east" type="Marker3D" parent="Connectors" unique_id=1913077202 groups=["room_connector"]]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 12, 0, -6)
 metadata/snap_kind = "door"
+
+[node name="Atmosphere" type="Node" parent="." unique_id=134238818]
+script = ExtResource("21_jkhh2")
+profile = ExtResource("22_mhd57")
 
 [node name="Bounds" type="Area3D" parent="." unique_id=1009981543]
 collision_layer = 0
@@ -355,6 +368,3 @@ collision_mask = 0
 
 [node name="Shape" type="CollisionShape3D" parent="TempSafetyFloor" unique_id=1588010187]
 shape = SubResource("BoxShape3D_vsckd")
-
-[node name="PreviewEnvironment" type="WorldEnvironment" parent="." unique_id=614290751]
-environment = SubResource("Environment_tx56d")

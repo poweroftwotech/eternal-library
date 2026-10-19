@@ -263,6 +263,15 @@ archive).
 - **Capture:** double-click `tools\capture_concept.bat`, or run
   `godot --path . --script res://tests/capture.gd -- <abs.png> concept 120`.
 - **Compare:** `python tools/compare_concept.py previews/concept_v011.png`.
+- **Tune the look (since 2026-10-19):** tonemap, exposure, ambient, glow,
+  haze, AO, the split-tone grade and SDFGI live in
+  `kit/atmosphere/prototype_v011.tres` (an `AtmosphereProfile`; edit it in the
+  Inspector). `art_direction.gd` keeps only this scene's light constants.
+  Authored rooms use their own profile through an `Atmosphere` node, e.g.
+  `kit/atmosphere/reading_room.tres` (ENVIRONMENT_PLAN.md phase 1 step 4).
+  To prove a change left a render alone, diff two captures with
+  `godot --headless --path . --script res://tests/image_diff.gd -- <a.png> <b.png>`
+  (run-to-run noise is about 0.15 mean).
 
 ## 7. v0.12 extras (2026-10-18)
 

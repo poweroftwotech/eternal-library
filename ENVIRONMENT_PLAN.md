@@ -591,9 +591,9 @@ Bounds`.
 - **Connectors:** `SNAP_entrance`, `SNAP_door_west` and `SNAP_door_east`
   (Marker3D, group `room_connector`, -Z points out of the room).
 - **Temporary:** `TempSafetyFloor` (invisible, 0.25 m under the floor; delete
-  it once the room sits in an area) and `PreviewEnvironment` (replace it with
-  the Atmosphere node in step 4; a room in the game must not carry its own
-  WorldEnvironment).
+  it once the room sits in an area) and `PreviewEnvironment` (replaced by the
+  Atmosphere node in step 4, which defers to any environment the game or an
+  area already supplies).
 
 **Verified:** `tests/reading_room_test.gd` passes 28 checks: KitValidate
 clean, 16 sockets, floor in all 15 cells, the three doors open, walls closed,
@@ -656,15 +656,53 @@ weights should drop once age conditions exist. Table props are small and read
 poorly at hall distance. The sealed door hasn't shown up in a capture yet
 (the test instances it). Age, stratum and faction conditions are still unused. The user checked Reroll and the Sockets panel in the editor.
 
+**Step 4 done (2026-10-19): Atmosphere.**
+
+| Piece | File |
+|---|---|
+| `AtmosphereProfile`: tonemap, exposure, ambient, glow (levels, threshold, bloom), haze, SSAO, contrast/saturation, split-tone grade, SDFGI and lantern sway. `apply(env)` sets exactly what `art_direction.gd` used to; `build_environment()` makes a whole room environment | `scripts/world/atmosphere_profile.gd` |
+| `Atmosphere` node: adds an internal `WorldEnvironment` from its profile only when nothing else supplies one (in the editor: only a saved `WorldEnvironment` counts), sways lit lanterns, and offers a deterministic `tick(t)` | `scripts/world/atmosphere.gd` (the prototype's `scripts/atmosphere.gd` is a different, older file) |
+| Profiles: `prototype_v011.tres` (the script defaults are the v0.11 numbers) and `reading_room.tres` (exposure 1.25, haze 0.012, darker background) | `kit/atmosphere/`, from `tools/seed_atmosphere.gd` |
+| The prototype now takes its look from `prototype_v011.tres` | `scripts/art_direction.gd` (look constants removed; light constants stay) |
+
+**Reading room:** `PreviewEnvironment` is replaced by an `Atmosphere` node
+(patched in place, no other node touched). Both chandeliers are pinned `lit`
+in the room's `socket_pins` (the hero lights are authored; smaller lanterns
+still vary). Authored fills under `Lights` follow the warm/cool rule:
+`IwanGlow` low in the iwan, plus `CoolFillWest` / `CoolFillEast` (teal) over
+the back half. The builder makes the same.
+
+**Kit fixes found while tuning:** the chandelier lit almost nothing. Its glass
+shared a mesh with the brass, so it cast shadows, and its solid bottom cap
+0.3 m under a shadowed light threw a ~10 m shadow disc on the floor.
+`lantern_cluster` is now rev 2: glass as its own non-shadow mesh and open
+ring caps, rebuilt by a `kit_rev` rule in `tools/kit_add_r01.py`. The
+`chandelier` light profile gets `light_size` 0.35, so the frame posts no
+longer throw hard bands across the vault.
+
+**Verified:** the prototype is pixel-identical within render noise. Two
+before-captures differ by mean 0.143 (0-255); after vs before is 0.104 and
+0.198 (`tests/image_diff.gd`). `tests/room_atmosphere_test.gd` passes 32
+checks: prototype profile values, the room builds and activates its own
+environment, defers to an existing one, sways only lit lamps
+deterministically, pins, and fills. Every other gate passes (socket modes 56,
+kit 444, room 28, prototype atmosphere test), and the three 240-frame gates
+are clean. The editor loads the room headless without errors. Luminance
+(`tests/luma.gd`) of the entrance view went from 37 (21% near-black) before
+the step to 47.6 (2%); gallery 40.0 (12%); iwan 29.5. **Caveats:** the iwan
+view's lower corners (bay-4 lower recesses) stay dark teal (luma ~12-15);
+ambient and SDFGI energy barely move them, so a lantern there would be the
+fix. The user checked the look in the editor viewport.
+Fog volumes, the prototype's foliage wind shader and water ripples were not
+ported (no room uses them yet).
+
 **Next steps for phase 1, in order:**
 0. ~~**Socket panel in the Kit dock**~~ (done, see above).
 1. ~~**More modules for R01**~~ (done, see above).
 2. ~~**Build `rooms/authored/reading_room.tscn`**~~ (drafted by script, see above; tweak it by hand).
 2b. ~~**Gallery corner / end-wall gallery**~~ (done, see above).
 3. ~~**More socket sets**~~ (done, see above). Follow-up: age conditions on lamp and recess weights.
-4. **Atmosphere:** port `art_direction.gd` and `atmosphere.gd` into an
-   `Atmosphere` node with an `AtmosphereProfile` resource, so authored rooms get
-   the prototype's grade, glow and fog.
+4. ~~**Atmosphere**~~ (done, see above).
 5. **Validate Room** in the Kit dock: extend `KitValidate` with edge-gap checks
    (every cell edge closed by an edge module or connector) and a socket fit check.
 6. **Swap R01 into the game** in place of the code-built interior, capture it

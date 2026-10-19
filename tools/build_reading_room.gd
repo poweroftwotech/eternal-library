@@ -45,7 +45,7 @@ func _initialize() -> void:
 	build_connectors()
 	build_bounds()
 	add_safety_floor()
-	add_preview_environment()
+	add_atmosphere()
 	var packed := PackedScene.new()
 	var err: Error = packed.pack(room)
 	if err == OK:
@@ -115,6 +115,31 @@ func build_lights() -> void:
 		place("Lights", "lantern_hanging", Vector3(WIDTH - 1.0, 0, z), 0)
 	# The iwan's single lamp, hung from its apex (7.45 m).
 	place("Lights", "lantern_hanging", Vector3(6, 3.5, -21.5), 0)
+	for fill: Array in FILLS:
+		groups["Lights"].add_child(fill_light(fill))
+		groups["Lights"].get_child(-1).owner = room
+
+
+## Authored fills (step 4, ART_DIRECTION.md rule 4: never a black area): a
+## warm glow low in the iwan (its apex lamp is 6 m up) and cool teal fills over
+## the back half, the warm/cool split of the prototype's archive fill.
+## [name, position, colour, energy, range]
+const FILLS: Array = [
+	["IwanGlow", Vector3(6, 2.4, -21.0), Color("ffcf8a"), 1.2, 5.0],
+	["CoolFillWest", Vector3(2.0, 6.5, -14.0), Color("2c74e6"), 1.0, 9.0],
+	["CoolFillEast", Vector3(10.0, 6.5, -14.0), Color("2c74e6"), 1.0, 9.0],
+]
+
+
+static func fill_light(spec: Array) -> OmniLight3D:
+	var light := OmniLight3D.new()
+	light.name = spec[0]
+	light.position = spec[1]
+	light.light_color = spec[2]
+	light.light_energy = spec[3]
+	light.omni_range = spec[4]
+	light.shadow_enabled = false
+	return light
 
 
 ## Room-level door markers for the area assembler; -Z points out of the room.
@@ -173,25 +198,14 @@ func add_safety_floor() -> void:
 	shape.owner = room
 
 
-## Editor preview only: replaced by the Atmosphere node in phase 1 step 4.
-func add_preview_environment() -> void:
-	var env := Environment.new()
-	env.background_mode = Environment.BG_COLOR
-	env.background_color = Color(0.03, 0.05, 0.06)
-	env.ambient_light_source = Environment.AMBIENT_SOURCE_COLOR
-	env.ambient_light_color = Color(0.45, 0.55, 0.62)
-	env.ambient_light_energy = 0.35
-	env.tonemap_mode = Environment.TONE_MAPPER_AGX
-	env.glow_enabled = true
-	env.glow_hdr_threshold = 1.0
-	env.volumetric_fog_enabled = true
-	env.volumetric_fog_density = 0.012
-	env.volumetric_fog_albedo = Color(0.7, 0.75, 0.8)
-	var we := WorldEnvironment.new()
-	we.name = "PreviewEnvironment"
-	we.environment = env
-	room.add_child(we)
-	we.owner = room
+## The room's look (phase 1 step 4): builds its own environment unless an area
+## or the game world already supplies one.
+func add_atmosphere() -> void:
+	var atmo := Atmosphere.new()
+	atmo.name = "Atmosphere"
+	atmo.profile = load("res://kit/atmosphere/reading_room.tres")
+	room.add_child(atmo)
+	atmo.owner = room
 
 
 func place(group: String, module_name: String, pos: Vector3, yaw_deg: float) -> void:

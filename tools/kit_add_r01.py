@@ -249,28 +249,37 @@ def table(r):
     marker("SOCKET_table_props__table", r, (0.0, 0.0, 0.78), TABLE_SOCKET)
 
 
-def lantern(bm, cx, cy, z0, half, height):
-    """Brass lantern frame (mat 0) around a glowing body (mat 1)."""
+def lantern(bm, glass, cx, cy, z0, half, height):
+    """Brass lantern frame (into bm) around a glowing body (into glass). The glass
+    is its own mesh so it casts no shadow: a shadowed light inside it would be
+    boxed in (step 4: the chandelier lit nothing)."""
     p = half * 0.8
     for (sx, sy) in ((-1, -1), (1, -1), (1, 1), (-1, 1)):
         add_box(bm, cx + sx * p - 0.02, cx + sx * p + 0.02, cy + sy * p - 0.02, cy + sy * p + 0.02, z0, z0 + height)
-    add_box(bm, cx - half, cx + half, cy - half, cy + half, z0 - 0.05, z0 + 0.01)
-    add_box(bm, cx - half, cx + half, cy - half, cy + half, z0 + height - 0.01, z0 + height + 0.05)
-    add_box(bm, cx - half * 0.55, cx + half * 0.55, cy - half * 0.55, cy + half * 0.55, z0 + 0.05, z0 + height - 0.05, 1)
+    # Open ring caps: solid caps under a shadowed light threw a ~10 m shadow disc.
+    w = 0.05
+    for (za, zb) in ((z0 - 0.05, z0 + 0.01), (z0 + height - 0.01, z0 + height + 0.05)):
+        add_box(bm, cx - half, cx + half, cy - half, cy - half + w, za, zb)
+        add_box(bm, cx - half, cx + half, cy + half - w, cy + half, za, zb)
+        add_box(bm, cx - half, cx - half + w, cy - half + w, cy + half - w, za, zb)
+        add_box(bm, cx + half - w, cx + half, cy - half + w, cy + half - w, za, zb)
+    add_box(glass, cx - half * 0.55, cx + half * 0.55, cy - half * 0.55, cy + half * 0.55, z0 + 0.05, z0 + height - 0.05)
 
 
 def lantern_cluster(r):
     crown = 14.6     # intrados crown of vault_hall_12m placed one storey up
     bm = bmesh.new()
-    lantern(bm, 0.0, 0.0, 5.5, 0.26, 0.65)
+    glass = bmesh.new()
+    lantern(bm, glass, 0.0, 0.0, 5.5, 0.26, 0.65)
     add_box(bm, -0.025, 0.025, -0.025, 0.025, 6.2, 6.4)
     for k in range(4):
         a = k * math.pi / 2
         cx, cy = math.cos(a) * 0.6, math.sin(a) * 0.6
-        lantern(bm, cx, cy, 5.25, 0.1, 0.3)
+        lantern(bm, glass, cx, cy, 5.25, 0.1, 0.3)
         add_box(bm, cx - 0.01, cx + 0.01, cy - 0.01, cy + 0.01, 5.6, 6.35)
         add_box(bm, min(0.0, cx) - 0.02, max(0.0, cx) + 0.02, min(0.0, cy) - 0.02, max(0.0, cy) + 0.02, 6.33, 6.38)
-    mesh_object("lantern_cluster__body", bm, ["brass", "emit_lantern"], r)
+    mesh_object("lantern_cluster__body", bm, ["brass"], r)
+    mesh_object("lantern_cluster__glass", glass, ["emit_lantern"], r)
     bm = bmesh.new()
     add_box(bm, -0.02, 0.02, -0.02, 0.02, 6.38, crown + 0.2)
     mesh_object("lantern_cluster__chain", bm, ["iron"], r)
@@ -300,7 +309,7 @@ MODULES = [
     ("M_stair_gallery_8m", props("edge", [2, 1, 0], "stair", "stone,vertical"), stair),
     ("M_post_pier_corbel", props("post", [0, 1, 0], "", "stone,structure,gallery"), pier_corbel),
     ("M_table_reading", props("free", [0, 1, 0], "", "wood,furniture"), table),
-    ("M_lantern_cluster", props("free", [0, 4, 0], "", "brass,light,hall_12m"), lantern_cluster),
+    ("M_lantern_cluster", dict(props("free", [0, 4, 0], "", "brass,light,hall_12m"), kit_rev=2), lantern_cluster),
     ("M_rug_runner", props("free", [0, 0, 0], "", "cloth,floor"), rug_runner),
     # Step 2b: one continuous gallery (side runs + end-wall run, stairs both ways).
     ("M_stair_gallery_8m_r", props("edge", [2, 1, 0], "stair", "stone,vertical"), stair_reversed),
@@ -321,8 +330,28 @@ ADD_MARKERS = [
 ]
 
 
+# Generated modules whose layout changed: rebuilt in place (same location and
+# custom properties) when the root's "kit_rev" is below the listed rev. Only for modules that
+# are still script-made; a hand-edited one would lose its edits, so list
+# nothing here that you have changed in Blender.
+REBUILD = [("M_lantern_cluster", 2)]   # rev 2 (step 4): glass split from the frame, open ring caps
+
+
+def rebuild(name, rev):
+    root = bpy.data.objects.get(name)
+    if root is None or int(root.get("kit_rev", 1)) >= rev:
+        return False
+    loc, saved = root.location.copy(), {k: root[k] for k in root.keys()}
+    saved["kit_rev"] = rev
+    for ob in reversed([root] + list(root.children_recursive)):
+        bpy.data.objects.remove(ob, do_unlink=True)
+    build = {n: b for (n, _p, b) in MODULES}[name]
+    build(module(name, tuple(loc), saved))
+    return True
+
+
 def upgrade():
-    done = []
+    done = ["rebuilt %s (rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v)]
     for name in REMOVE:
         ob = bpy.data.objects.get(name)
         if ob is not None:
