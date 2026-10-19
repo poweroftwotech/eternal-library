@@ -27,3 +27,4 @@ tags = PackedStringArray()
 [resource]
 script = ExtResource("5_1kcfk")
 entries = Array[ExtResource("1_kv770")]([SubResource("Resource_dh356"), SubResource("Resource_yrcc7"), SubResource("Resource_qp18i")])
+slot_bounds = AABB(-2.25, 0, -1.65, 4.5, 3.5, 3.3)

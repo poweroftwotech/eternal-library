@@ -39,7 +39,7 @@ import bmesh
 import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kit_blender import (H, T, add_box, add_plan_prism, add_prism, arch_outline,  # noqa: E402
+from kit_blender import (H, T, add_box, add_plan_prism, add_prism, arch_outline, rebuild,  # noqa: E402
                          arch_ring, cut, marker, mesh_object, module)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -337,21 +337,9 @@ ADD_MARKERS = [
 REBUILD = [("M_lantern_cluster", 2)]   # rev 2 (step 4): glass split from the frame, open ring caps
 
 
-def rebuild(name, rev):
-    root = bpy.data.objects.get(name)
-    if root is None or int(root.get("kit_rev", 1)) >= rev:
-        return False
-    loc, saved = root.location.copy(), {k: root[k] for k in root.keys()}
-    saved["kit_rev"] = rev
-    for ob in reversed([root] + list(root.children_recursive)):
-        bpy.data.objects.remove(ob, do_unlink=True)
-    build = {n: b for (n, _p, b) in MODULES}[name]
-    build(module(name, tuple(loc), saved))
-    return True
-
 
 def upgrade():
-    done = ["rebuilt %s (rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v)]
+    done = ["rebuilt %s (rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
     for name in REMOVE:
         ob = bpy.data.objects.get(name)
         if ob is not None:

@@ -52,3 +52,4 @@ tags = PackedStringArray()
 [resource]
 script = ExtResource("8_upmrw")
 entries = Array[ExtResource("1_ci6vl")]([SubResource("Resource_j0ksw"), SubResource("Resource_cbkm3"), SubResource("Resource_713wn"), SubResource("Resource_r1cjq"), SubResource("Resource_y3okg"), SubResource("Resource_q0f1g")])
+slot_bounds = AABB(-0.7, 0, -2.2, 1.4, 0.45, 4.4)

@@ -8,6 +8,10 @@ extends Resource
 ## the normal case for STATE sets, whose labels are the states.
 
 @export var entries: Array[SocketEntry] = []
+## The slot every candidate must fit, in socket space (Godot axes: the room is
+## -Z). Validate Room checks each candidate against it and the slot against the
+## room's other modules. Size zero = not checked (e.g. STATE sets).
+@export var slot_bounds: AABB = AABB()
 
 
 ## Weighted pick; returns an index into entries, or -1 if nothing is pickable.

@@ -20,6 +20,10 @@ extends MultiMeshInstance3D
 	Color(0.54, 0.42, 0.17), Color(0.29, 0.16, 0.29), Color(0.64, 0.33, 0.23), Color(0.78, 0.71, 0.54)]
 
 static var _material: StandardMaterial3D
+## Instance transforms of the last build(), kept on the CPU: MultiMesh data
+## lives in the rendering server and reads back empty under the headless
+## dummy renderer, so Validate Room measures these instead.
+var built_transforms: Array[Transform3D] = []
 
 
 func _ready() -> void:
@@ -47,11 +51,13 @@ func build(seed_value: int) -> void:
 			colors.append(palette[rng.randi() % palette.size()] * rng.randf_range(0.8, 1.15))
 			x += w + 0.004
 	if fallen:
+		# Inset by a rotated book's reach (<= 0.18 m) so spill stays inside the opening.
+		var reach: float = half_width - 0.18
 		for i: int in rng.randi_range(25, 45):
 			var w: float = rng.randf_range(0.14, 0.24)
 			var t: float = rng.randf_range(0.03, 0.07)
 			var d: float = rng.randf_range(0.18, 0.26)
-			var p := Vector3(rng.randf_range(-half_width, half_width), t * 0.5 + rng.randf() * 0.12 * float(i % 3),
+			var p := Vector3(rng.randf_range(-reach, reach), t * 0.5 + rng.randf() * 0.12 * float(i % 3),
 				rng.randf_range(front_z - 0.9, back_z - 0.1))
 			var basis := Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(w, t, d))
 			xforms.append(Transform3D(basis, p))
@@ -67,6 +73,7 @@ func build(seed_value: int) -> void:
 		mm.set_instance_transform(i, xforms[i])
 		mm.set_instance_color(i, colors[i])
 	multimesh = mm
+	built_transforms = xforms
 	material_override = book_material()
 
 

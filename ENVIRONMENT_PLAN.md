@@ -703,9 +703,64 @@ ported (no room uses them yet).
 2b. ~~**Gallery corner / end-wall gallery**~~ (done, see above).
 3. ~~**More socket sets**~~ (done, see above). Follow-up: age conditions on lamp and recess weights.
 4. ~~**Atmosphere**~~ (done, see above).
-5. **Validate Room** in the Kit dock: extend `KitValidate` with edge-gap checks
-   (every cell edge closed by an edge module or connector) and a socket fit check.
+5. ~~**Validate Room**~~ (done, see below).
 6. ~~**Swap R01 into the game**~~ (done as a selectable room by decision, see below).
+
+**Step 5 done (2026-10-19): Validate Room.** The Kit dock's button is now
+**Validate room**. On any scene it runs the existing module checks (grid,
+rotation, scale). On a `RoomTemplate` it adds the room checks below. Errors
+go to the Output panel as errors and warnings as warnings, with a count in
+the dock.
+
+| Check | Severity | How |
+|---|---|---|
+| Open edges | error | Cells come from CELL modules per storey (floors give storey 0; the hall vault, placed one storey up, gives storey 1). Every perimeter edge, in 2 m segments, needs a *closing* EDGE module (anything but `gallery`, `gallery_end`, `stair`, `gable`) or a room connector marker on it. Multi-storey edges (the iwan) cover each storey. |
+| Vault ends | error | A ceiling CELL's ends (edges across its barrel, with no vault beyond) need a `gable` edge module |
+| Connectors | error | Markers under `Connectors` must lie on a cell-boundary line (x or z a multiple of 4 m) |
+| Candidate fit | error | `SocketSet.slot_bounds` (new): every candidate's visual bounds must fit; ShelfFill is built with a fixed seed to measure it |
+| Slot clearance | warning | Each socket's slot must not run into another module's collision |
+
+Files: `scripts/world/kit_validate_room.gd` (`KitValidateRoom.run(root)`),
+`scripts/world/socket_set.gd` (`slot_bounds`), and
+`addons/kit_palette/plugin.gd`. Slots for `recess_library`, `iwan_centre` and
+`table_props` are set by `tools/seed_sockets.gd` (only when empty).
+`tools/kit_blender.py` gains the shared `rebuild()` for `kit_rev` bumps.
+
+**What it found right away:** (1) a real misfit: a fallen board in the
+"collapsed" recess candidate stuck 8 cm past the 3 m opening into the wall
+(`recess_shelves_broken` is now rev 2). (2) Warnings, also real: in
+upper-storey recesses fronted by a gallery (or a stair near its head), a
+collapsed recess's spill (books and boards on the recess floor at 4.0 m)
+sinks into the gallery slab, whose top is at 4.15 m. 9 in the reading room,
+7 in the graybox. These are left as warnings; the fix is the first item of
+the weathering slice below.
+
+**Verified:** `tests/validate_room_test.gd` passes 17 checks. Both rooms
+show no errors, and every warning is spill vs gallery or stair. Broken copies
+fail as they should: a removed 4 m wall gives exactly two open 2 m segments; a
+gallery slab on that edge still leaves it open; a removed gable gives both
+halves of the vault end; removing the west door arch leaves only the half
+the door connector doesn't mark; an off-grid connector is reported; and an
+oversized candidate is flagged. All other gates pass (kit 444, socket modes
+56, room 28, atmosphere 32, room playtest 11, camp playtest 43), the
+240-frame gates are clean, and the editor loads the room headless without
+errors.
+
+**Found in the editor, missed headless (fixed 2026-10-19):** the first
+click of Validate room in the editor reported "collapsed does not fit its
+slot", which the headless test had passed. `MultiMesh.get_aabb()` and the
+instance transforms live in the rendering server, which reads back empty
+under the headless dummy renderer, so the test never saw the fallen books.
+Now `ShelfFill` keeps `built_transforms` on the CPU and Validate Room
+measures those, over 16 seeds since the spill varies. That showed the spill
+reaching x ±1.6 (past the 3 m opening) and 1.3 m into the room. Fixes: the
+spill is inset by a rotated book's reach (`ShelfFill`), and the recess slot
+now reaches 1.35 m into the room (`recess_library.tres`, intended spill). The
+test checks that the spill is measured. **Lesson:** any bound read back from
+the renderer is invisible to headless gates; measure on the CPU. The user
+re-ran Validate room in the editor: no errors, only the spill warnings.
+
+**Phase 1 is complete** (steps 0-6, 2b).
 
 **Step 6 done (2026-10-19): the reading room is playable in the game.**
 **Decision (user, 2026-10-19):** R01 does *not* replace the code-built camp.
@@ -734,7 +789,7 @@ playtest still passes (43 checks), as do the prototype atmosphere test and
 every room and kit gate. The 240-frame gates are clean for the camp, the
 graybox, the room scene and `main` with `--room`. GPU captures of the real
 game with HUD: `previews/game_reading_room_{spawn,gallery,iwan}.png`
-(`tests/room_game_capture.gd`). **Not verified:** the menu round trip in a
+(`tests/room_game_capture.gd`). The menu round trip in a
 real window was checked by the user (Esc → Visit the reading room).
 
 **Phase 1 status:** done except step 5 (Validate Room in the Kit dock). Of
@@ -744,6 +799,12 @@ centrepiece and lamps. The capture-vs-concept criterion was dropped with the
 decision above.
 
 ### Next: the weathering slice (planned 2026-10-19, after step 5)
+
+0. **Spill lands on the floor that is there** (from Validate Room): collapsed
+   recess spill must not sink into a gallery slab or stair in front of an
+   upper recess. Either ShelfFill drops spill onto the surface below (a ray
+   per item at build time), or sockets get `exclude_tags` so a room can rule
+   out "spill" candidates there. The 16 warnings should then clear.
 
 Agreed scope: only the parts that existing tools carry, so phase 3's
 `AgeRules` can later just shift their weights. Order:

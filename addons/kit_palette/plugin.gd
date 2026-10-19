@@ -76,8 +76,8 @@ func _build_dock() -> VBoxContainer:
 	refresh.pressed.connect(_on_refresh)
 	row.add_child(refresh)
 	var validate := Button.new()
-	validate.text = "Validate scene"
-	validate.tooltip_text = "Check kit modules in the open scene: grid alignment, rotation, scale."
+	validate.text = "Validate room"
+	validate.tooltip_text = "Check the open scene: module grid, rotation and scale; for a RoomTemplate also open edges, vault gables, connectors and socket slots."
 	validate.pressed.connect(_on_validate)
 	row.add_child(validate)
 	top.add_child(row)
@@ -136,14 +136,23 @@ func _on_validate() -> void:
 	if root == null:
 		_status.text = "Open a scene first."
 		return
-	var problems: PackedStringArray = KitValidate.scene(root)
+	var errors: PackedStringArray = KitValidate.scene(root)
+	var warnings: PackedStringArray = []
+	var room_checks: bool = root is RoomTemplate
+	if room_checks:
+		var r: Dictionary = KitValidateRoom.run(root)
+		errors.append_array(r["errors"])
+		warnings = r["warnings"]
 	var count: int = KitValidate.count_modules(root)
-	if problems.is_empty():
-		_status.text = "Validate: %d modules, no problems." % count
+	var what: String = "Validate room" if room_checks else "Validate scene"
+	if errors.is_empty() and warnings.is_empty():
+		_status.text = "%s: %d modules, no problems." % [what, count]
 	else:
-		_status.text = "Validate: %d problem(s) in %d modules. See Output." % [problems.size(), count]
-		for p: String in problems:
-			push_warning("Kit validate: " + p)
+		_status.text = "%s: %d error(s), %d warning(s) in %d modules. See Output." % [what, errors.size(), warnings.size(), count]
+	for e: String in errors:
+		push_error("Kit validate: " + e)
+	for w: String in warnings:
+		push_warning("Kit validate: " + w)
 
 
 # --- placement -----------------------------------------------------------------

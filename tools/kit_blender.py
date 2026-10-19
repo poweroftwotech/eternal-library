@@ -204,3 +204,20 @@ def add_ngon_prism(bm, n, radius, z0, z1, cx=0.0, cy=0.0, mat=0, phase=None):
     pts = [(cx + radius * math.cos(ph + 2 * math.pi * i / n), cy + radius * math.sin(ph + 2 * math.pi * i / n))
            for i in range(n)]
     add_plan_prism(bm, pts, z0, z1, mat)
+
+
+def rebuild(name, rev, modules):
+    """Rebuild a script-made module in place (same location and custom
+    properties) when its root's "kit_rev" is below `rev`. `modules` is the
+    caller's [(name, props, build)] list. Hand edits to that module are lost, so
+    only list modules nobody has changed in Blender. Returns True if rebuilt."""
+    root = bpy.data.objects.get(name)
+    if root is None or int(root.get("kit_rev", 1)) >= rev:
+        return False
+    loc, saved = root.location.copy(), {k: root[k] for k in root.keys()}
+    saved["kit_rev"] = rev
+    for ob in reversed([root] + list(root.children_recursive)):
+        bpy.data.objects.remove(ob, do_unlink=True)
+    build = {n: b for (n, _p, b) in modules}[name]
+    build(module(name, tuple(loc), saved))
+    return True

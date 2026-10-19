@@ -22,7 +22,7 @@ import bmesh
 import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kit_blender import (add_box, add_lathe, add_ngon_prism, add_obox, add_prism,  # noqa: E402
+from kit_blender import (add_box, add_lathe, add_ngon_prism, add_obox, add_prism, rebuild,  # noqa: E402
                          arch_outline, mesh_object, module)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -52,7 +52,8 @@ def recess_shelves_broken(r):
     # One board dropped at its left end, one snapped and lying on the floor.
     add_obox(bm, (0.05, -0.02, 0.78), (2.9, 0.47, 0.05), (0.0, math.radians(9.5), 0.0))
     add_obox(bm, (-0.55, 0.45, 0.03), (1.7, 0.45, 0.05), (0.0, 0.0, math.radians(28)))
-    add_obox(bm, (0.95, 0.25, 0.09), (1.2, 0.45, 0.05), (math.radians(8), 0.0, math.radians(-12)))
+    # rev 2: centre 0.95 -> 0.82, so the board stays inside the 3 m opening (Validate Room).
+    add_obox(bm, (0.82, 0.25, 0.09), (1.2, 0.45, 0.05), (math.radians(8), 0.0, math.radians(-12)))
     mesh_object("recess_shelves_broken__boards", bm, ["wood"], r)
 
 
@@ -243,7 +244,7 @@ def prop_inkwell(r):
 
 MODULES = [
     ("M_recess_shelves", props("wood,storage,recess"), recess_shelves),
-    ("M_recess_shelves_broken", props("wood,storage,recess,ruin"), recess_shelves_broken),
+    ("M_recess_shelves_broken", dict(props("wood,storage,recess,ruin"), kit_rev=2), recess_shelves_broken),
     ("M_recess_tile_panel", props("tile,recess"), recess_tile_panel),
     ("M_recess_sealed_door", props("brick,wood,recess,door"), recess_sealed_door),
     ("M_iwan_lectern", props("wood,iwan,centrepiece"), iwan_lectern),
@@ -268,6 +269,8 @@ def main():
         if bpy.data.objects.get(name) is None:
             build(module(name, ((i % 7) * 4.0, (i // 7) * 5.0, 0.0), p))
             added.append(name)
+    REBUILD = [("M_recess_shelves_broken", 2)]   # rev 2: board inside the opening
+    added += ["%s (rebuilt rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
     if not added:
         print("kit_add_dressing: all modules already present; nothing to do.")
         return
