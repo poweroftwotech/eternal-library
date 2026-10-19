@@ -251,26 +251,15 @@ func check_seam_settle() -> void:
 		await process_frame
 
 
-## Weathering item 2: ivy hangs from gallery rails; plant cards sway.
+## Weathering item 2 (plant cards sway); polish B item 4: no vines on the gallery
+## rails. The rail_growth set stays for reuse, but no gallery module carries it.
 func check_rail_ivy() -> void:
-	var pair: Array = await module_socket("res://kit/modules/walls/gallery_slab_4m.tscn", "rail_growth")
-	var node: Node3D = pair[0]
-	var socket: VariantSocket = pair[1]
-	if socket != null:
-		check(socket.mode == VariantSocket.Mode.EDGE_SCATTER and not socket.settle, "rail socket hangs (EDGE_SCATTER, no settle)")
-		check(socket.position.is_equal_approx(Vector3(0.65, 5.0, -1.51)), "rail socket sits on the rail top centre line (%s)" % socket.position)
-		var ivy: int = socket.socket_set.index_of("ivy")
-		socket.resolve(2, ivy)
-		var items: Array[Node] = internal(socket)
-		check(not items.is_empty() and items.all(func(n: Node) -> bool: return n.scene_file_path.ends_with("plant_ivy_hang.tscn")),
-			"pinned to ivy, the rail grows ivy (%d)" % items.size())
-		var low: float = INF
-		for n: Node in items:
-			for m: Node in n.find_children("*", "MeshInstance3D", true, false):
-				var box: AABB = (m as MeshInstance3D).global_transform * (m as MeshInstance3D).get_aabb()
-				low = minf(low, box.position.y)
-		check(low < 4.6 and low > 3.6, "ivy hangs down the gallery edge (lowest leaf %.2f)" % low)
-	node.queue_free()
+	for g: String in ["gallery_slab_4m", "gallery_slab_4m_open_end", "gallery_slab_4m_open_start", "gallery_end_12m"]:
+		var node: Node3D = (load("res://kit/modules/walls/%s.tscn" % g) as PackedScene).instantiate()
+		var rails: Array[Node] = node.find_children("*", "VariantSocket", true, false).filter(
+			func(s: Node) -> bool: return (s as VariantSocket).socket_set != null and (s as VariantSocket).socket_set.resource_path.ends_with("/rail_growth.tres"))
+		check(rails.is_empty(), "%s has no rail_growth socket (found %d)" % [g, rails.size()])
+		node.free()
 	for plant: String in ["plant_crack_tuft", "plant_fern", "plant_ivy_hang"]:
 		var p: Node = (load("res://kit/modules/dressing/%s.tscn" % plant) as PackedScene).instantiate()
 		var swaying: bool = false

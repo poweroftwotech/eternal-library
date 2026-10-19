@@ -44,7 +44,7 @@ func capture() -> void:
 		room.preview_seed = int(args[3])
 	# option -> [[set, entry], ...]: pin every socket of that set to that entry.
 	var pin_all: Dictionary = {"collapse": [["recess_library", "collapsed"]], "seams": [["seam_debris", "rubble"]],
-		"growth": [["seam_debris", "fern"], ["rail_growth", "ivy"]],
+		"growth": [["seam_debris", "fern"]],
 		"decals": [["wall_stains", "water stain"], ["floor_wear", "crack"], ["lamp_soot", "soot"]],
 		"nodecals": [["wall_stains", "nothing"], ["floor_wear", "nothing"], ["lamp_soot", "nothing"]],
 		"open_stairs": [["stair_style", "open wood"]]}

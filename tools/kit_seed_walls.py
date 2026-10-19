@@ -115,8 +115,6 @@ def build():
     add_box(bm, 0, 4, 1.46, 1.56, H + 0.92, H + 1.0)
     mesh_object("gallery_slab_4m__rail-colonly", bm, ["wood"], r)
     marker("ANCHOR_lookout__gallery", r, (2.0, 1.0, H + 0.15))
-    marker("SOCKET_rail_growth__slab", r, (0.65, 1.51, H + 1.0), {"socket_set": "rail_growth", "socket_mode": "edge_scatter",
-           "scatter_count": [1, 3], "scatter_spacing": 0.8, "edge_length": 2.7, "edge_depth": 0.0})
 
     # 7b. Vault gable: fills the pointed end of a vault bay above the wall top --
     r = module("M_wall_gable_4m", 8, {"kit_shape": "edge", "kit_family": "walls",

@@ -1231,6 +1231,18 @@ reviewed in the editor before the next one starts.
 **B. Growth where it grows (matching the prototype's Reading Garden, `previews/garden_v011.png`)**
 4. **No vines on the wooden gallery rails.** The `rail_growth` sockets are
    removed from the gallery modules. The set stays for reuse elsewhere.
+   - **Done 2026-10-19.** `kit_add_r01.py` has a new `REMOVE_MARKERS` list
+     (module, marker name prefix) that deleted the four `SOCKET_rail_growth__*`
+     markers from `kit_walls.blend`. The ADD_MARKERS entries, the fresh-build
+     markers and `rail_socket()` are gone, and `kit_seed_walls.py` no longer
+     seeds one. `seed_sockets.gd` still makes `rail_growth`.
+   - **Verified:** `kit_test` 775 (graybox 35 sockets), `reading_room_test`
+     71 (no rail sockets), `validate_room_test` 25, `socket_modes_test` 195
+     (the old rail-ivy check now asserts that no gallery module carries
+     `rail_growth`), and all three 240-frame gates. The `growth` capture
+     option pins ferns only. GPU: `previews/reading_room_b4_{entrance,
+     gallery,end_gallery}.png` show bare balustrades. The garden's
+     balustrade ivy comes back through `parapet_growth` (item 5).
 5. **New growth sockets and candidates** (dressing family, swaying foliage
    material). They're built like the prototype's `arch_head_ivy`,
    `pier_ivy` and clinging `vine()`: a thin vine tube that traces the stone,
