@@ -449,9 +449,12 @@ def stair_box(bm, x0, x1, y0, y1, z0, z1, reverse):
 
 def stair_claim(r, name, x0, x1, z1, reverse):
     """CLAIM_ empty: while this look is picked, other sockets' items whose origin
-    is in the box (from the wall line to the open edge) are cleared."""
+    is in the box are cleared. It starts 0.1 m off the wall line, so it takes the
+    wall-base seams (0.3 m out) but never a socket on the wall line itself: the
+    gallery look socket of the slab at the stair head sits at its module origin,
+    on the corner of this box (polish 1c fix)."""
     a, b = sorted((stair_x(x0, reverse), stair_x(x1, reverse)))
-    y0, y1 = STAIR_WALL, STAIR_HALF
+    y0, y1 = STAIR_WALL + 0.1, STAIR_HALF
     marker("CLAIM_" + name, r, ((a + b) / 2, (y0 + y1) / 2, z1 / 2), {"claim_size": [b - a, y1 - y0, z1]})
 
 
@@ -975,10 +978,10 @@ MODULES = [
     ("M_prop_oil_lamp", props("brass,light,table_prop"), prop_oil_lamp),
     ("M_prop_scroll", props("linen,table_prop"), prop_scroll),
     ("M_prop_inkwell", props("iron,table_prop"), prop_inkwell),
-    ("M_stair_steps_masonry", dict(props("stone,stair"), kit_rev=5), stair_steps_masonry),
-    ("M_stair_steps_open", dict(props("wood,stair"), kit_rev=2), stair_steps_open),
-    ("M_stair_steps_masonry_r", dict(props("stone,stair"), kit_rev=5), stair_steps_masonry_r),
-    ("M_stair_steps_open_r", dict(props("wood,stair"), kit_rev=2), stair_steps_open_r),
+    ("M_stair_steps_masonry", dict(props("stone,stair"), kit_rev=6), stair_steps_masonry),
+    ("M_stair_steps_open", dict(props("wood,stair"), kit_rev=3), stair_steps_open),
+    ("M_stair_steps_masonry_r", dict(props("stone,stair"), kit_rev=6), stair_steps_masonry_r),
+    ("M_stair_steps_open_r", dict(props("wood,stair"), kit_rev=3), stair_steps_open_r),
     # Polish 1c: gallery looks and column supports.
     ("M_gallery_wood_slab", props("wood,gallery"), gallery_wood_slab),
     ("M_gallery_masonry_slab", props("stone,brick,gallery"), gallery_masonry_slab),
@@ -1014,8 +1017,8 @@ def main():
             build(module(name, ((i % 7) * 4.0, (i // 7) * 5.0, 0.0), p))
             added.append(name)
     REBUILD = [("M_recess_shelves_broken", 5),   # rev 3: floor boards split out as __spill; rev 5: roots (polish B)
-               ("M_stair_steps_masonry", 5), ("M_stair_steps_open", 2),   # rev 2: railings, fill, claims (polish A)
-               ("M_stair_steps_masonry_r", 5)]                          # rev 4: stone balustrade (1b); rev 5: head claim (1c)
+               ("M_stair_steps_masonry", 6), ("M_stair_steps_open", 3),   # rev 2: railings, fill, claims (polish A)
+               ("M_stair_steps_masonry_r", 6), ("M_stair_steps_open_r", 3)]   # 1b balustrade, 1c head claim; rev 6/3: claims start off the wall line
     added += ["%s (rebuilt rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
     if not added:
         print("kit_add_dressing: all modules already present; nothing to do.")

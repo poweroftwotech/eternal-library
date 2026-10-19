@@ -1222,6 +1222,15 @@ reviewed in the editor before the next one starts.
        against the pre-1c previews.
      - The `rail_growth` ivy still hangs on the stone handrails (item 4 removes
        those sockets).
+     - **Fixed after review (user playtest):** the west slab over the side door
+       (z -8..-4) walked as an invisible slab. Its look socket sits at the
+       module origin, on the wall line at the stair head, which was the corner
+       of the masonry stair's `under` claim, so the claim cleared the look and
+       left the collision. `stair_claim()` now starts 0.1 m off the wall line
+       (the seams it hides are 0.3 m out). Stair candidates are masonry rev 6
+       and open rev 3. `reading_room_test` 73 adds "every gallery draws its
+       look" in both stair passes; it fails on the old exports and names that
+       slab. Capture: `previews/reading_room_1c_fix_arcade.png`.
      - Gotcha (again): new socket sets must exist before `kit_walls.glb`
        imports. After seeding, delete the module's `.godot/imported/<name>.glb-*`
        files and run `--import`, or the socket comes in without its set.

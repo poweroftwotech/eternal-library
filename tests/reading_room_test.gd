@@ -121,6 +121,15 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 				behind += s.last_count
 		check((behind > 0) == open_stairs, "seams behind the stairs: %d items (%s)" % [behind,
 			"open wood shows them" if open_stairs else "masonry claims them"])
+		# Polish 1c fix: every gallery draws its look. No stair claim may clear
+		# one (the slab at the west stair head sat on the corner of the masonry
+		# stair's claim and walked as an invisible slab).
+		var bare: PackedStringArray = []
+		for s: VariantSocket in tmpl.sockets():
+			if s.socket_set != null and s.socket_set.resource_path.get_file().begins_with("gallery_style_") \
+					and s.get_children(true).is_empty():
+				bare.append(tmpl.socket_key(s))
+		check(bare.is_empty(), "every gallery draws its look (bare: %s)" % [bare])
 		# Polish 1c: a masonry stair carries the arcade itself and claims the
 		# column point at its head; an open wooden stair needs the column.
 		var head_columns: int = 0
