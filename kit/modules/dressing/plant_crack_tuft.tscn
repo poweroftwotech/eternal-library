@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_4bcjw"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/plant_crack_tuft.glb" id="2_p02bl"]
+
+[node name="plant_crack_tuft" type="Node3D" unique_id=532679175]
+script = ExtResource("1_4bcjw")
+family = "dressing"
+tags = PackedStringArray("plant", "moss", "seam")
+source_glb = "res://assets/kit/dressing/plant_crack_tuft.glb"
+
+[node name="Mesh" parent="." unique_id=482260299 instance=ExtResource("2_p02bl")]

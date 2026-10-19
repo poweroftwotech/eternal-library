@@ -34,10 +34,15 @@ func _initialize() -> void:
 	slot("recess_library", AABB(Vector3(-1.5, 0.0, -0.3), Vector3(3.0, 3.7, 0.6)), AABB(Vector3(-1.5, 0.0, -1.35), Vector3(3.0, 0.6, 1.05)))
 	slot("iwan_centre", AABB(Vector3(-2.25, 0.0, -1.65), Vector3(4.5, 3.5, 3.3)))   # lectern rug is the widest
 	slot("table_props", AABB(Vector3(-0.7, 0.0, -2.2), Vector3(1.4, 0.45, 4.4)))    # the table top
-	# Weathering item 1: wall-base seams (EDGE_SCATTER); "nothing" keeps most spots bare.
+	# Weathering items 1-2: what gathers at a wall base (EDGE_SCATTER): debris and the
+	# plants rooting in it; "nothing" keeps most spots bare.
 	socket_set("seam_debris", [["nothing", "", 6.0], ["rubble", DRESS + "debris_rubble.tscn", 2.0],
-		["fallen brick", DRESS + "debris_brick.tscn", 1.0]])
-	slot("seam_debris", AABB(Vector3(-0.35, 0.0, -0.35), Vector3(0.7, 0.25, 0.7)))   # one item
+		["fallen brick", DRESS + "debris_brick.tscn", 1.0], ["crack tuft", DRESS + "plant_crack_tuft.tscn", 2.0],
+		["moss", DRESS + "plant_moss_cushion.tscn", 1.5], ["fern", DRESS + "plant_fern.tscn", 1.0]])
+	slot("seam_debris", AABB(Vector3(-0.35, 0.0, -0.35), Vector3(0.7, 0.4, 0.7)))   # one item (fern is the tallest)
+	# Item 2: ivy hanging from gallery rails (EDGE_SCATTER along the rail top).
+	socket_set("rail_growth", [["nothing", "", 5.0], ["ivy", DRESS + "plant_ivy_hang.tscn", 2.0]])
+	slot("rail_growth", AABB(Vector3(-0.35, -1.35, -0.3), Vector3(0.7, 1.4, 0.4)))   # one strand bunch, hanging
 	print("seed_sockets: ", "; ".join(made) if not made.is_empty() else "nothing to do")
 	quit()
 

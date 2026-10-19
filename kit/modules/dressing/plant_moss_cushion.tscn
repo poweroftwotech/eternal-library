@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_vivfy"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/plant_moss_cushion.glb" id="2_7ednn"]
+
+[node name="plant_moss_cushion" type="Node3D" unique_id=1948234669]
+script = ExtResource("1_vivfy")
+family = "dressing"
+tags = PackedStringArray("plant", "moss", "seam")
+source_glb = "res://assets/kit/dressing/plant_moss_cushion.glb"
+
+[node name="Mesh" parent="." unique_id=1067764281 instance=ExtResource("2_7ednn")]

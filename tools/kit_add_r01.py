@@ -49,6 +49,17 @@ ROW_Y = -24.0
 HALL = 12.0      # hall width: three bays
 HALL_K = 0.58    # vault pointedness (atlas R01)
 LAMP_SOCKET = {"socket_set": "lamp_state", "socket_mode": "state"}
+def rail_socket(length, most):
+    """Ivy hanging from a gallery rail (weathering item 2), on the rail-top centre
+    line. Kept 0.65 m from slab ends that meet a wall (wall half-thickness plus
+    an ivy footprint) and clear of corner newels. Items hang; no settle."""
+    return {"socket_set": "rail_growth", "socket_mode": "edge_scatter", "scatter_count": [1, most],
+            "scatter_spacing": 0.8, "edge_length": length, "edge_depth": 0.0}
+
+
+RAIL = (1.51, H + 1.0)   # rail top centre line (Blender y, z)
+
+
 def seam_socket(length):
     """Wall-base debris seam (weathering item 1): starts 0.85 m in so items (up to
     ~0.3 m across) stay clear of
@@ -196,6 +207,8 @@ def gallery_open(r, name, rail_x0, rail_x1):
     balustrade(bm, rail_x0, rail_x1)
     mesh_object(name + "__rail-col", bm, ["wood"], r)
     marker("ANCHOR_lookout__" + name, r, (2.0, 1.0, H + 0.15))
+    start, length = (0.65, 1.35) if rail_x0 < 0.5 else (2.0, 1.35)
+    marker("SOCKET_rail_growth__" + name.replace("gallery_slab_4m_", ""), r, (start, RAIL[0], RAIL[1]), rail_socket(length, 2))
 
 
 def gallery_open_end(r):
@@ -225,6 +238,7 @@ def gallery_end(r):
         add_box(bm, x - 0.15, x + 0.15, GAL_Y0 + 0.25, GAL_Y0 + 0.45, H - 0.35, H - 0.15)
     mesh_object("gallery_end_12m__corbels", bm, ["arch_stone"], r)
     marker("ANCHOR_lookout__gallery_end", r, (HALL / 2, 1.0, H + 0.15))
+    marker("SOCKET_rail_growth__end", r, (2.0, RAIL[0], RAIL[1]), rail_socket(8.0, 6))
 
 
 def pier_corbel(r):
@@ -339,6 +353,10 @@ ADD_MARKERS = [
     ("M_lantern_hanging", "SOCKET_lamp_state__hanging", (0.0, 0.0, 2.8), LAMP_SOCKET),
     ("M_lantern_cluster", "SOCKET_lamp_state__cluster", (0.0, 0.0, 5.8), LAMP_SOCKET),
     ("M_wall_plain_4m", "SOCKET_seam_debris__plain", (0.85, T, 0.0), seam_socket(2.3)),
+    ("M_gallery_slab_4m", "SOCKET_rail_growth__slab", (0.65, RAIL[0], RAIL[1]), rail_socket(2.7, 3)),
+    ("M_gallery_slab_4m_open_end", "SOCKET_rail_growth__open_end", (0.65, RAIL[0], RAIL[1]), rail_socket(1.35, 2)),
+    ("M_gallery_slab_4m_open_start", "SOCKET_rail_growth__open_start", (2.0, RAIL[0], RAIL[1]), rail_socket(1.35, 2)),
+    ("M_gallery_end_12m", "SOCKET_rail_growth__end", (2.0, RAIL[0], RAIL[1]), rail_socket(8.0, 6)),
     ("M_wall_iwan_12m", "SOCKET_seam_debris__iwan_l", (0.85, T, 0.0), seam_socket(1.3)),
     ("M_wall_iwan_12m", "SOCKET_seam_debris__iwan_r", (HALL - 2.15, T, 0.0), seam_socket(1.2)),
 ]

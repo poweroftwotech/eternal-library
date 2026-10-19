@@ -197,7 +197,7 @@ func check_sockets(room: Node3D) -> void:
 	var sockets: Array[VariantSocket] = tmpl.sockets()
 	var recess: int = sockets.filter(func(s: VariantSocket) -> bool: return s.socket_set != null and s.socket_set.resource_path.ends_with("recess_library.tres")).size()
 	check(recess == 10, "graybox has 10 recess sockets (found %d)" % recess)
-	check(sockets.size() == 18, "graybox has 18 sockets: 10 recesses, 3 lamp states, 5 wall seams (found %d)" % sockets.size())
+	check(sockets.size() == 24, "graybox has 24 sockets: 10 recesses, 3 lamp states, 5 wall seams, 6 rails (found %d)" % sockets.size())
 	var a: Dictionary = tmpl.resolve_sockets(1)
 	var b: Dictionary = tmpl.resolve_sockets(1)
 	check(a == b, "same seed gives the same socket picks")

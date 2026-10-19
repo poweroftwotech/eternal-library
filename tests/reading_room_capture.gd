@@ -4,7 +4,8 @@ extends SceneTree
 ## Views: entrance, iwan, gallery, stair, vault, end_gallery, table, recesses.
 ## seed: the room's preview_seed (default: as saved; "-" keeps it). A fifth argument
 ## "collapse" pins every recess to "collapsed" (to inspect settled spill);
-## "seams" pins every wall-base seam to "rubble".
+## "seams" pins every wall-base seam to "rubble"; "growth" pins seams to "fern"
+## and gallery rails to "ivy".
 ## Run `godot --headless --import` first.
 
 const VIEWS: Dictionary = {
@@ -32,15 +33,18 @@ func capture() -> void:
 	var room: RoomTemplate = (load("res://rooms/authored/reading_room.tscn") as PackedScene).instantiate()
 	if args.size() > 3 and args[3] != "-":
 		room.preview_seed = int(args[3])
-	var pin_all: Dictionary = {"collapse": ["recess_library", "collapsed"], "seams": ["seam_debris", "rubble"]}
+	# option -> [[set, entry], ...]: pin every socket of that set to that entry.
+	var pin_all: Dictionary = {"collapse": [["recess_library", "collapsed"]], "seams": [["seam_debris", "rubble"]],
+		"growth": [["seam_debris", "fern"], ["rail_growth", "ivy"]]}
 	if args.size() > 4 and pin_all.has(args[4]):
-		var lib: SocketSet = load("res://kit/sockets/%s.tres" % pin_all[args[4]][0])
+
 		var pins: Dictionary[String, int] = {}
 		pins.assign(room.socket_pins)
 		root.add_child(room)
 		for s: VariantSocket in room.sockets():
-			if s.socket_set == lib:
-				pins[room.socket_key(s)] = lib.index_of(pin_all[args[4]][1])
+			for rule: Array in pin_all[args[4]]:
+				if s.socket_set != null and s.socket_set.resource_path.ends_with("/%s.tres" % rule[0]):
+					pins[room.socket_key(s)] = s.socket_set.index_of(rule[1])
 		room.socket_pins = pins
 		room.resolve_sockets(room.preview_seed)
 	else:

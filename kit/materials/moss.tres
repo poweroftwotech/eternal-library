@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://ccpdnth72myfx"]
+
+[ext_resource type="Texture2D" uid="uid://tri68vdfgpq8" path="res://assets/textures/px/moss.png" id="1_hdowq"]
+[ext_resource type="Texture2D" uid="uid://dws7335xbvs4l" path="res://assets/textures/px/moss_normal.png" id="2_dj0m6"]
+[ext_resource type="Texture2D" uid="uid://damyw825k1e2k" path="res://assets/textures/px/moss_rough.png" id="3_dlva6"]
+
+[resource]
+resource_name = "moss"
+albedo_texture = ExtResource("1_hdowq")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_dlva6")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_dj0m6")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_0holq"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/plant_ivy_hang.glb" id="2_016r1"]
+
+[node name="plant_ivy_hang" type="Node3D" unique_id=1288481744]
+script = ExtResource("1_0holq")
+family = "dressing"
+tags = PackedStringArray("plant", "ivy", "rail")
+source_glb = "res://assets/kit/dressing/plant_ivy_hang.glb"
+
+[node name="Mesh" parent="." unique_id=1922322448 instance=ExtResource("2_016r1")]

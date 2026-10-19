@@ -7,7 +7,8 @@ const SETS: Dictionary = {
 	"iwan_centre": ["lectern", "reading tree", "fountain"],
 	"lamp_state": ["lit", "failing", "dark"],
 	"table_props": ["book stack", "open book", "pot", "oil lamp", "scroll", "inkwell"],
-	"seam_debris": ["nothing", "rubble", "fallen brick"],
+	"seam_debris": ["nothing", "rubble", "fallen brick", "crack tuft", "moss", "fern"],
+	"rail_growth": ["nothing", "ivy"],
 }
 
 var failures: PackedStringArray = []
@@ -32,6 +33,7 @@ func run() -> void:
 	await check_iwan()
 	await check_edge_scatter()
 	await check_seam_settle()
+	await check_rail_ivy()
 	print("socket_modes_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -233,3 +235,34 @@ func check_seam_settle() -> void:
 				"seam on %s: items rest at %.2f (%s)" % [case[0], case[3], heights])
 		rig.queue_free()
 		await process_frame
+
+
+## Weathering item 2: ivy hangs from gallery rails; plant cards sway.
+func check_rail_ivy() -> void:
+	var pair: Array = await module_socket("res://kit/modules/walls/gallery_slab_4m.tscn", "rail_growth")
+	var node: Node3D = pair[0]
+	var socket: VariantSocket = pair[1]
+	if socket != null:
+		check(socket.mode == VariantSocket.Mode.EDGE_SCATTER and not socket.settle, "rail socket hangs (EDGE_SCATTER, no settle)")
+		check(socket.position.is_equal_approx(Vector3(0.65, 5.0, -1.51)), "rail socket sits on the rail top centre line (%s)" % socket.position)
+		var ivy: int = socket.socket_set.index_of("ivy")
+		socket.resolve(2, ivy)
+		var items: Array[Node] = internal(socket)
+		check(not items.is_empty() and items.all(func(n: Node) -> bool: return n.scene_file_path.ends_with("plant_ivy_hang.tscn")),
+			"pinned to ivy, the rail grows ivy (%d)" % items.size())
+		var low: float = INF
+		for n: Node in items:
+			for m: Node in n.find_children("*", "MeshInstance3D", true, false):
+				var box: AABB = (m as MeshInstance3D).global_transform * (m as MeshInstance3D).get_aabb()
+				low = minf(low, box.position.y)
+		check(low < 4.6 and low > 3.6, "ivy hangs down the gallery edge (lowest leaf %.2f)" % low)
+	node.queue_free()
+	for plant: String in ["plant_crack_tuft", "plant_fern", "plant_ivy_hang"]:
+		var p: Node = (load("res://kit/modules/dressing/%s.tscn" % plant) as PackedScene).instantiate()
+		var swaying: bool = false
+		for m: Node in p.find_children("*", "MeshInstance3D", true, false):
+			var mat: Material = (m as MeshInstance3D).mesh.surface_get_material(0)
+			swaying = swaying or (mat is ShaderMaterial and (mat as ShaderMaterial).shader.resource_path.ends_with("kit_foliage.gdshader"))
+		check(swaying, "%s cards use the swaying foliage material" % plant)
+		p.free()
+	await process_frame

@@ -52,6 +52,42 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "plant_crack_tuft",
+"scene": "res://kit/modules/dressing/plant_crack_tuft.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "moss", "seam"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "plant_fern",
+"scene": "res://kit/modules/dressing/plant_fern.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "seam"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "plant_ivy_hang",
+"scene": "res://kit/modules/dressing/plant_ivy_hang.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "ivy", "rail"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "plant_moss_cushion",
+"scene": "res://kit/modules/dressing/plant_moss_cushion.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "moss", "seam"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "prop_book_open",
 "scene": "res://kit/modules/dressing/prop_book_open.tscn",
 "shape": "free",

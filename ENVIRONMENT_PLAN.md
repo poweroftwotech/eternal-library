@@ -875,11 +875,39 @@ Agreed scope: only the parts that existing tools carry, so phase 3's
      `previews/reading_room_seams.png` (capture option `seams` pins every
      seam to rubble) shows chips along the wall base on the floor. The user
      checked the seams in the editor; the rubble is small and subtle by design.
-2. **Plants as dressing.** Crack tufts, moss cushions, hanging ivy (rail) and
-   a root clump for collapsed recesses, in `kit_dressing.blend`. Port the
-   prototype's `shaders/foliage_wind.gdshader` as a library material so cards
-   sway. Socket sets `seam_growth` and `rail_growth`, mostly "nothing" at
-   today's weights.
+2. ~~**Plants as dressing**~~ (done 2026-10-19).
+   - **Swaying foliage:** `shaders/kit_foliage.gdshader` is the prototype's
+     wind shader on engine `TIME`, so no script drives it. The card library
+     materials (`tree_leaf`, `leaf`, `ivy_leaf`, `fern`) are now
+     ShaderMaterials on it (`tools/seed_foliage.gd`; additive, keeps UIDs),
+     so the iwan's reading tree sways too. The prototype's own materials are
+     untouched.
+   - **Plants** (dressing family, 40 modules): `plant_crack_tuft` (grass
+     blades over a moss line, as in the prototype), `plant_moss_cushion`,
+     `plant_fern`, and `plant_ivy_hang`, which drapes over a rail top and
+     hangs 0.12 m out on the hall side. Cards use the `add_card()` helper in
+     `kit_blender.py`.
+   - **Sets:** the wall-base seam set keeps its name `seam_debris` (renaming
+     would churn socket names and room pins) and now holds what gathers at a
+     wall base: crack tuft 2, moss 1.5, fern 1, plus the debris. Its slot is
+     0.4 m tall for the fern. New `rail_growth` (nothing 5, ivy 2) as a
+     non-settling `EDGE_SCATTER` on every gallery rail: `gallery_slab_4m`,
+     both corner slabs and `gallery_end_12m`. Sockets stay 0.65 m from slab
+     ends that meet a wall and clear of corner newels; Validate Room found
+     both (graybox end walls, the reading room's west newel).
+   - **Verified:** `socket_modes_test` has 86 checks (set contents, rail
+     socket on the rail top, ivy pinned and hanging down the gallery edge,
+     and plant cards using the swaying material). Kit test 493, room 28 (now
+     43 sockets incl. 5 rails), validate room 21 (the reading room has no
+     warnings), spill 6, atmosphere 32, both playtests and the prototype
+     atmosphere test pass, and all three 240-frame gates are clean. GPU
+     (capture option `growth`): `previews/reading_room_growth_{seam,gallery,end_gallery}.png`
+     show ferns at the wall base and ivy trailing over both galleries'
+     balustrades. **Caveats:** at hall distance the ivy is a modest accent,
+     and it trails over the balustrade rather than below the slab; longer
+     strands would read more. The user checked the plants in the editor. **Not done:**
+     the root clump for collapsed recesses (deferred, it needs a recess
+     candidate change).
 3. **Decals.** Water stains, soot above lamps, moss patches and floor cracks
    as `Decal` scenes using the pixel palette (32 tx/m). A `SCATTER` socket on
    wall bays picks 0-2.

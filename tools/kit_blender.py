@@ -221,3 +221,20 @@ def rebuild(name, rev, modules):
     build = {n: b for (n, _p, b) in modules}[name]
     build(module(name, tuple(loc), saved))
     return True
+
+
+def add_card(bm, uv, base, width, height, yaw=0.0, tilt=0.0, mat=0):
+    """Upright foliage card (a quad with UVs 0..1) rising from `base`: width
+    along the yaw direction, height up, leaned by `tilt` radians toward its
+    face normal. The pixel map's top is the card's top (UV v = 1), so
+    kit_foliage.gdshader sways the top more than the base."""
+    from mathutils import Matrix, Vector
+    rot = Matrix.Rotation(yaw, 3, "Z") @ Matrix.Rotation(tilt, 3, "X")
+    b = Vector(base)
+    corners = [Vector((-width / 2, 0, 0)), Vector((width / 2, 0, 0)),
+               Vector((width / 2, 0, height)), Vector((-width / 2, 0, height))]
+    f = bm.faces.new([bm.verts.new(b + rot @ c) for c in corners])
+    f.material_index = mat
+    for loop, t in zip(f.loops, ((0, 0), (1, 0), (1, 1), (0, 1))):
+        loop[uv].uv = t
+    return f

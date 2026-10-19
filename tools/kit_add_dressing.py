@@ -22,7 +22,7 @@ import bmesh
 import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kit_blender import (add_box, add_lathe, add_ngon_prism, add_obox, add_prism, rebuild,  # noqa: E402
+from kit_blender import (add_box, add_card, add_lathe, add_ngon_prism, add_obox, add_prism, rebuild,  # noqa: E402
                          arch_outline, mesh_object, module)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -208,6 +208,61 @@ def debris_brick(r):
     mesh_object("debris_brick__bricks", bm, ["brick"], r)
 
 
+# --- plants (weathering slice item 2) ----------------------------------------
+# Cards use the swaying foliage materials (kit_foliage.gdshader). Seam plants
+# have their origin on the floor; ivy hangs from a gallery rail top.
+
+def plant_crack_tuft(r):
+    rng = random.Random(31)
+    bm = bmesh.new()
+    add_obox(bm, (0.0, 0.0, 0.004), (0.55, 0.035, 0.012), (0.0, 0.0, 0.0))
+    mesh_object("plant_crack_tuft__moss", bm, ["moss"], r)
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    for _ in range(11):
+        s = rng.uniform(0.6, 1.1)
+        add_card(bm, uv, (rng.uniform(-0.26, 0.26), rng.uniform(-0.02, 0.02), 0.0), 0.05 * s, 0.13 * s,
+                 rng.uniform(0, math.tau), rng.uniform(-0.35, 0.35))
+    mesh_object("plant_crack_tuft__blades", bm, ["leaf"], r, recalc=False)
+
+
+def plant_moss_cushion(r):
+    rng = random.Random(37)
+    bm = bmesh.new()
+    for _ in range(3):
+        rad, h = rng.uniform(0.09, 0.17), rng.uniform(0.04, 0.07)
+        add_lathe(bm, [(0.0, -0.005), (rad, -0.005), (rad * 0.85, h * 0.6), (rad * 0.45, h), (0.0, h * 1.02)],
+                  cx=rng.uniform(-0.12, 0.12), cy=rng.uniform(-0.08, 0.08), segs=8)
+    mesh_object("plant_moss_cushion__moss", bm, ["moss"], r)
+
+
+def plant_fern(r):
+    rng = random.Random(41)
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    for k in range(7):
+        add_card(bm, uv, (0.0, 0.0, 0.0), 0.12, rng.uniform(0.28, 0.38), k * math.tau / 7 + rng.uniform(-0.2, 0.2),
+                 math.radians(rng.uniform(45, 62)))
+    mesh_object("plant_fern__fronds", bm, ["fern"], r, recalc=False)
+
+
+def plant_ivy_hang(r):
+    """Origin on the rail top centre line; the room is +Y (Godot -Z). A few leaves
+    drape over the rail and strands hang 0.12 m out, clear of the slab edge."""
+    rng = random.Random(43)
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    for i in range(3):     # draped over the rail top, lying flat
+        add_card(bm, uv, (rng.uniform(-0.2, 0.2), -0.06, 0.012), 0.14, 0.2, math.radians(rng.uniform(-20, 20)), math.radians(-90))
+    for _ in range(rng.randint(3, 5)):
+        x, length = rng.uniform(-0.22, 0.22), rng.uniform(0.6, 1.15)
+        z = 0.0
+        while z > -length:
+            add_card(bm, uv, (x + rng.uniform(-0.03, 0.03), 0.12, z - 0.14), 0.14, 0.14, rng.uniform(-0.5, 0.5), rng.uniform(-0.3, 0.3))
+            z -= rng.uniform(0.09, 0.13)
+    mesh_object("plant_ivy_hang__leaves", bm, ["ivy_leaf"], r, recalc=False)
+
+
 # --- table props (origin = table top) -----------------------------------------------
 
 def prop_book_stack(r):
@@ -279,6 +334,10 @@ MODULES = [
     ("M_iwan_fountain", props("stone,water,iwan,centrepiece"), iwan_fountain),
     ("M_debris_rubble", props("stone,debris,seam"), debris_rubble),
     ("M_debris_brick", props("brick,debris,seam"), debris_brick),
+    ("M_plant_crack_tuft", props("plant,moss,seam"), plant_crack_tuft),
+    ("M_plant_moss_cushion", props("plant,moss,seam"), plant_moss_cushion),
+    ("M_plant_fern", props("plant,seam"), plant_fern),
+    ("M_plant_ivy_hang", props("plant,ivy,rail"), plant_ivy_hang),
     ("M_prop_book_stack", props("books,table_prop"), prop_book_stack),
     ("M_prop_book_open", props("books,table_prop"), prop_book_open),
     ("M_prop_pot", props("earthenware,table_prop"), prop_pot),

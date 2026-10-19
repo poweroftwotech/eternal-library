@@ -1,9 +1,12 @@
 [gd_resource type="Resource" script_class="SocketSet" format=3 uid="uid://bq6246sg1l3j0"]
 
-[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_sqfgw"]
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_sqfgw"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/debris_rubble.tscn" id="2_yiskx"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/debris_brick.tscn" id="3_gsece"]
-[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="4_1wokc"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="4_1wokc"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/plant_crack_tuft.tscn" id="4_nh0is"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/plant_moss_cushion.tscn" id="5_m8vy5"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/plant_fern.tscn" id="6_783o0"]
 
 [sub_resource type="Resource" id="Resource_nh0is"]
 script = ExtResource("1_sqfgw")
@@ -24,7 +27,27 @@ label = "fallen brick"
 scene = ExtResource("3_gsece")
 tags = PackedStringArray()
 
+[sub_resource type="Resource" id="Resource_o0pqm"]
+script = ExtResource("1_sqfgw")
+label = "crack tuft"
+scene = ExtResource("4_nh0is")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_x1mfn"]
+script = ExtResource("1_sqfgw")
+label = "moss"
+scene = ExtResource("5_m8vy5")
+weight = 1.5
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_vxmcw"]
+script = ExtResource("1_sqfgw")
+label = "fern"
+scene = ExtResource("6_783o0")
+tags = PackedStringArray()
+
 [resource]
 script = ExtResource("4_1wokc")
-entries = Array[ExtResource("1_sqfgw")]([SubResource("Resource_nh0is"), SubResource("Resource_m8vy5"), SubResource("Resource_783o0")])
-slot_bounds = AABB(-0.35, 0, -0.35, 0.7, 0.25, 0.7)
+entries = Array[ExtResource("1_sqfgw")]([SubResource("Resource_nh0is"), SubResource("Resource_m8vy5"), SubResource("Resource_783o0"), SubResource("Resource_o0pqm"), SubResource("Resource_x1mfn"), SubResource("Resource_vxmcw")])
+slot_bounds = AABB(-0.35, 0, -0.35, 0.7, 0.4, 0.7)
