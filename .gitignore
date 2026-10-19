@@ -1,1 +1,3 @@
 .godot/
+# Blender autosave backups
+*.blend1

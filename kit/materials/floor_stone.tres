@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://dbvl3h1s0ks18"]
+
+[ext_resource type="Texture2D" uid="uid://c4vix25472moi" path="res://assets/textures/px/floor_stone.png" id="1_um16t"]
+[ext_resource type="Texture2D" uid="uid://ek3uyqthknbc" path="res://assets/textures/px/floor_stone_normal.png" id="2_w76sk"]
+[ext_resource type="Texture2D" uid="uid://bk1gll5g62wt7" path="res://assets/textures/px/floor_stone_rough.png" id="3_btacr"]
+
+[resource]
+resource_name = "floor_stone"
+albedo_texture = ExtResource("1_um16t")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_btacr")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_w76sk")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(0.5, 0.5, 0.5)

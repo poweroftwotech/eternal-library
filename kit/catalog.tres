@@ -1,0 +1,88 @@
+[gd_resource type="Resource" script_class="KitCatalog" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_catalog.gd" id="1_wnug1"]
+
+[resource]
+script = ExtResource("1_wnug1")
+modules = Array[Dictionary]([{
+"edge": "",
+"family": "walls",
+"name": "floor_4m",
+"scene": "res://kit/modules/walls/floor_4m.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("stone", "floor"),
+"weight": 1.0
+}, {
+"edge": "gallery",
+"family": "walls",
+"name": "gallery_slab_4m",
+"scene": "res://kit/modules/walls/gallery_slab_4m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("wood", "vertical"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lantern_hanging",
+"scene": "res://kit/modules/walls/lantern_hanging.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brass", "light"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "post_pier",
+"scene": "res://kit/modules/walls/post_pier.tscn",
+"shape": "post",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("stone", "structure"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "vault_bay_4m",
+"scene": "res://kit/modules/walls/vault_bay_4m.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("plaster", "ceiling"),
+"weight": 1.0
+}, {
+"edge": "opening_3m",
+"family": "walls",
+"name": "wall_arch_3m",
+"scene": "res://kit/modules/walls/wall_arch_3m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("brick", "structure", "passage"),
+"weight": 2.0
+}, {
+"edge": "gable",
+"family": "walls",
+"name": "wall_gable_4m",
+"scene": "res://kit/modules/walls/wall_gable_4m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("brick", "structure", "ceiling"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
+"name": "wall_plain_4m",
+"scene": "res://kit/modules/walls/wall_plain_4m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("brick", "structure"),
+"weight": 3.0
+}, {
+"edge": "recess",
+"family": "walls",
+"name": "wall_shelfbay_4m",
+"scene": "res://kit/modules/walls/wall_shelfbay_4m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("brick", "structure", "storage"),
+"weight": 8.0
+}])

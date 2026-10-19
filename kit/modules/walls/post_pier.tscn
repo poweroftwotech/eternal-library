@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ve5r7"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/post_pier.glb" id="2_mdyky"]
+
+[node name="post_pier" type="Node3D" unique_id=679985679]
+script = ExtResource("1_ve5r7")
+shape = 2
+family = "walls"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("stone", "structure")
+source_glb = "res://assets/kit/walls/post_pier.glb"
+
+[node name="Mesh" parent="." unique_id=644198295 instance=ExtResource("2_mdyky")]

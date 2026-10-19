@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://qyi02f8hjjoo"]
+
+[ext_resource type="Texture2D" uid="uid://dekiemc04e04u" path="res://assets/textures/px/tile.png" id="1_627ag"]
+[ext_resource type="Texture2D" uid="uid://c5mam2wuq8vvb" path="res://assets/textures/px/tile_normal.png" id="2_hkpnw"]
+[ext_resource type="Texture2D" uid="uid://b45yieomyp8uv" path="res://assets/textures/px/tile_rough.png" id="3_luikr"]
+
+[resource]
+resource_name = "tile"
+albedo_texture = ExtResource("1_627ag")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_luikr")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_hkpnw")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

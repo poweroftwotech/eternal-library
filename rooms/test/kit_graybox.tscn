@@ -1,0 +1,180 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://kit/modules/walls/floor_4m.tscn" id="1_4csa5"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/vault_bay_4m.tscn" id="2_ke1um"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_shelfbay_4m.tscn" id="3_uw0lc"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/gallery_slab_4m.tscn" id="4_viura"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_plain_4m.tscn" id="5_gf7ee"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_hanging.tscn" id="6_gem4p"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_arch_3m.tscn" id="7_lfdsn"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_gable_4m.tscn" id="8_alh84"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/post_pier.tscn" id="9_sm8sv"]
+
+[sub_resource type="Environment" id="Environment_ke2r1"]
+background_mode = 1
+background_color = Color(0.03, 0.05, 0.06, 1)
+ambient_light_source = 2
+ambient_light_color = Color(0.45, 0.55, 0.62, 1)
+ambient_light_energy = 0.35
+tonemap_mode = 4
+glow_enabled = true
+volumetric_fog_enabled = true
+volumetric_fog_density = 0.012
+volumetric_fog_albedo = Color(0.7, 0.75, 0.8, 1)
+
+[node name="KitGraybox" type="Node3D" unique_id=1253884582]
+
+[node name="Shell" type="Node3D" parent="." unique_id=877017525]
+
+[node name="floor_4m" parent="Shell" unique_id=1917552914 instance=ExtResource("1_4csa5")]
+
+[node name="vault_bay_4m" parent="Shell" unique_id=1516469231 instance=ExtResource("2_ke1um")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+
+[node name="wall_shelfbay_4m" parent="Shell" unique_id=1081835777 instance=ExtResource("3_uw0lc")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, -4)
+
+[node name="wall_shelfbay_4m2" parent="Shell" unique_id=1656647352 instance=ExtResource("3_uw0lc")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4, 0, 0)
+
+[node name="gallery_slab_4m" parent="Shell" unique_id=1569977751 instance=ExtResource("4_viura")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, -4)
+
+[node name="gallery_slab_4m2" parent="Shell" unique_id=1042076087 instance=ExtResource("4_viura")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4, 0, 0)
+
+[node name="wall_shelfbay_4m3" parent="Shell" unique_id=1102739543 instance=ExtResource("3_uw0lc")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 4, -4)
+
+[node name="wall_plain_4m" parent="Shell" unique_id=2069859375 instance=ExtResource("5_gf7ee")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4, 4, 0)
+
+[node name="lantern_hanging" parent="Shell" unique_id=668699186 instance=ExtResource("6_gem4p")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3, -2)
+
+[node name="floor_4m2" parent="Shell" unique_id=421317885 instance=ExtResource("1_4csa5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+
+[node name="vault_bay_4m2" parent="Shell" unique_id=1028549138 instance=ExtResource("2_ke1um")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -4)
+
+[node name="wall_plain_4m2" parent="Shell" unique_id=160151378 instance=ExtResource("5_gf7ee")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, -8)
+
+[node name="wall_shelfbay_4m4" parent="Shell" unique_id=74046833 instance=ExtResource("3_uw0lc")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4, 0, -4)
+
+[node name="gallery_slab_4m3" parent="Shell" unique_id=504515828 instance=ExtResource("4_viura")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, -8)
+
+[node name="gallery_slab_4m4" parent="Shell" unique_id=102192076 instance=ExtResource("4_viura")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4, 0, -4)
+
+[node name="wall_plain_4m3" parent="Shell" unique_id=1689994728 instance=ExtResource("5_gf7ee")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 4, -8)
+
+[node name="wall_shelfbay_4m5" parent="Shell" unique_id=1380062305 instance=ExtResource("3_uw0lc")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4, 4, -4)
+
+[node name="lantern_hanging2" parent="Shell" unique_id=2067134596 instance=ExtResource("6_gem4p")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3, -6)
+
+[node name="floor_4m3" parent="Shell" unique_id=1217758905 instance=ExtResource("1_4csa5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)
+
+[node name="vault_bay_4m3" parent="Shell" unique_id=1074001883 instance=ExtResource("2_ke1um")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -8)
+
+[node name="wall_shelfbay_4m6" parent="Shell" unique_id=1418114079 instance=ExtResource("3_uw0lc")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, -12)
+
+[node name="wall_shelfbay_4m7" parent="Shell" unique_id=2080280620 instance=ExtResource("3_uw0lc")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4, 0, -8)
+
+[node name="gallery_slab_4m5" parent="Shell" unique_id=1014209580 instance=ExtResource("4_viura")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, -12)
+
+[node name="gallery_slab_4m6" parent="Shell" unique_id=1531345353 instance=ExtResource("4_viura")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4, 0, -8)
+
+[node name="wall_shelfbay_4m8" parent="Shell" unique_id=1146397562 instance=ExtResource("3_uw0lc")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 4, -12)
+
+[node name="wall_plain_4m4" parent="Shell" unique_id=233671157 instance=ExtResource("5_gf7ee")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 4, 4, -8)
+
+[node name="lantern_hanging3" parent="Shell" unique_id=1357664186 instance=ExtResource("6_gem4p")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 3, -10)
+
+[node name="wall_arch_3m" parent="Shell" unique_id=4878044 instance=ExtResource("7_lfdsn")]
+
+[node name="wall_plain_4m5" parent="Shell" unique_id=153932931 instance=ExtResource("5_gf7ee")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+
+[node name="wall_gable_4m" parent="Shell" unique_id=607125384 instance=ExtResource("8_alh84")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+
+[node name="wall_shelfbay_4m9" parent="Shell" unique_id=594846955 instance=ExtResource("3_uw0lc")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4, 0, -12)
+
+[node name="wall_shelfbay_4m10" parent="Shell" unique_id=231432819 instance=ExtResource("3_uw0lc")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4, 4, -12)
+
+[node name="wall_gable_4m2" parent="Shell" unique_id=872738991 instance=ExtResource("8_alh84")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4, 4, -12)
+
+[node name="post_pier" parent="Shell" unique_id=679985679 instance=ExtResource("9_sm8sv")]
+
+[node name="post_pier2" parent="Shell" unique_id=32485856 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 0)
+
+[node name="post_pier3" parent="Shell" unique_id=2134243545 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+
+[node name="post_pier4" parent="Shell" unique_id=2121466523 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, 0)
+
+[node name="post_pier5" parent="Shell" unique_id=1919907333 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+
+[node name="post_pier6" parent="Shell" unique_id=151796562 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -4)
+
+[node name="post_pier7" parent="Shell" unique_id=2028111408 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -4)
+
+[node name="post_pier8" parent="Shell" unique_id=981292354 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, -4)
+
+[node name="post_pier9" parent="Shell" unique_id=177562100 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)
+
+[node name="post_pier10" parent="Shell" unique_id=1572730014 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -8)
+
+[node name="post_pier11" parent="Shell" unique_id=1999187703 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -8)
+
+[node name="post_pier12" parent="Shell" unique_id=675733192 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, -8)
+
+[node name="post_pier13" parent="Shell" unique_id=1319618115 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+
+[node name="post_pier14" parent="Shell" unique_id=63126821 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -12)
+
+[node name="post_pier15" parent="Shell" unique_id=168713576 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -12)
+
+[node name="post_pier16" parent="Shell" unique_id=1246017786 instance=ExtResource("9_sm8sv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, -12)
+
+[node name="WorldEnvironment" type="WorldEnvironment" parent="." unique_id=1750088276]
+environment = SubResource("Environment_ke2r1")
+
+[node name="EntranceFill" type="OmniLight3D" parent="." unique_id=623430350]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 2.5, 1.5)
+light_color = Color(1, 0.75, 0.45, 1)
+light_energy = 1.2
+omni_range = 9.0

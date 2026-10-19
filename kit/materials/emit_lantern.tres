@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://blp1br2nxd3ni"]
+
+[resource]
+resource_name = "emit_lantern"
+shading_mode = 0
+albedo_color = Color(1, 0.72, 0.38, 1)
+texture_filter = 4

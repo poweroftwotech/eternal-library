@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://1v6phcanf8vm"]
+
+[ext_resource type="Texture2D" uid="uid://dxd10kgynmnjl" path="res://assets/textures/px/book_leather.png" id="1_kj1rt"]
+[ext_resource type="Texture2D" uid="uid://cjgftuofqbh0o" path="res://assets/textures/px/book_leather_normal.png" id="2_kreb2"]
+[ext_resource type="Texture2D" uid="uid://b8adak43cmyr7" path="res://assets/textures/px/book_leather_rough.png" id="3_ujfcx"]
+
+[resource]
+resource_name = "book_leather"
+albedo_texture = ExtResource("1_kj1rt")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_ujfcx")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_kreb2")
+uv1_scale = Vector3(2, 2, 2)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(2, 2, 2)

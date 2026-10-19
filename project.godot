@@ -28,6 +28,16 @@ window/stretch/mode="canvas_items"
 
 project/assembly_name="The Eternal Library — Reading Garden"
 
+[editor_plugins]
+
+enabled=PackedStringArray("res://addons/kit_palette/plugin.cfg")
+
+[importer_defaults]
+
+scene={
+"import_script/path": "res://tools/kit_import.gd"
+}
+
 [rendering]
 
 renderer/rendering_method.mobile="gl_compatibility"

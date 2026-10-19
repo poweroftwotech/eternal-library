@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bnj7xaqb212jg"]
+
+[ext_resource type="Texture2D" uid="uid://de5di7qeferfh" path="res://assets/textures/px/arch_stone.png" id="1_dysnu"]
+[ext_resource type="Texture2D" uid="uid://gvah3gdtot81" path="res://assets/textures/px/arch_stone_normal.png" id="2_32gb5"]
+[ext_resource type="Texture2D" uid="uid://dc4wpcbfbfgcm" path="res://assets/textures/px/arch_stone_rough.png" id="3_anqc2"]
+
+[resource]
+resource_name = "arch_stone"
+albedo_texture = ExtResource("1_dysnu")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_anqc2")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_32gb5")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(0.5, 0.5, 0.5)

@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_q7e1v"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/lantern_hanging.glb" id="2_45sp7"]
+
+[node name="lantern_hanging" type="Node3D" unique_id=668699186]
+script = ExtResource("1_q7e1v")
+family = "walls"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("brass", "light")
+source_glb = "res://assets/kit/walls/lantern_hanging.glb"
+
+[node name="Mesh" parent="." unique_id=1426296274 instance=ExtResource("2_45sp7")]
