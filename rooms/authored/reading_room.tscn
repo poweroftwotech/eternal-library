@@ -1,27 +1,27 @@
-[gd_scene format=3]
+[gd_scene format=3 uid="uid://dpnj68feaf72l"]
 
-[ext_resource type="Script" path="res://scripts/world/room_template.gd" id="1_kokae"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/floor_4m.tscn" id="2_tl6rt"]
+[ext_resource type="Script" uid="uid://bfw8g300scd8s" path="res://scripts/world/room_template.gd" id="1_kokae"]
+[ext_resource type="PackedScene" uid="uid://15b4ufkmyodi" path="res://kit/modules/walls/floor_4m.tscn" id="2_tl6rt"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/vault_hall_12m.tscn" id="3_jkhh2"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_shelfbay_4m.tscn" id="4_mhd57"]
+[ext_resource type="PackedScene" uid="uid://c8e5h02w1i28q" path="res://kit/modules/walls/wall_shelfbay_4m.tscn" id="4_mhd57"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/gallery_slab_4m_open_end.tscn" id="5_d1agq"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/gallery_slab_4m_open_start.tscn" id="6_b4kl8"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_arch_3m.tscn" id="7_ew3lb"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/gallery_slab_4m.tscn" id="8_uqnjx"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_plain_4m.tscn" id="9_5euji"]
+[ext_resource type="PackedScene" uid="uid://dpr1axb4lin02" path="res://kit/modules/walls/wall_arch_3m.tscn" id="7_ew3lb"]
+[ext_resource type="PackedScene" uid="uid://bqijilnkq01cg" path="res://kit/modules/walls/gallery_slab_4m.tscn" id="8_uqnjx"]
+[ext_resource type="PackedScene" uid="uid://cymyyfj1r5yfp" path="res://kit/modules/walls/wall_plain_4m.tscn" id="9_5euji"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/stair_gallery_8m.tscn" id="10_qkest"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/stair_gallery_8m_r.tscn" id="11_vtdkf"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/wall_gable_12m.tscn" id="12_fnx8k"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/gallery_end_12m.tscn" id="13_mra6x"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/wall_iwan_12m.tscn" id="14_rjsm5"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/post_pier_corbel.tscn" id="15_bj6lf"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/post_pier.tscn" id="16_rbbdx"]
+[ext_resource type="PackedScene" uid="uid://kod60r0y57w" path="res://kit/modules/walls/post_pier.tscn" id="16_rbbdx"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/rug_runner.tscn" id="17_jomih"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/table_reading.tscn" id="18_3e3ao"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_cluster.tscn" id="19_xadva"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_hanging.tscn" id="20_ncy22"]
-[ext_resource type="Script" path="res://scripts/world/atmosphere.gd" id="21_jkhh2"]
-[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="22_mhd57"]
+[ext_resource type="PackedScene" uid="uid://cpydak8e2r1kv" path="res://kit/modules/walls/lantern_hanging.tscn" id="20_ncy22"]
+[ext_resource type="Script" uid="uid://cl6c2w4g1uv71" path="res://scripts/world/atmosphere.gd" id="21_jkhh2"]
+[ext_resource type="Resource" uid="uid://ias1025mcpkx" path="res://kit/atmosphere/reading_room.tres" id="22_mhd57"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_gml7e"]
 size = Vector3(12, 15, 23.3)
@@ -35,7 +35,22 @@ room_id = "reading_room"
 display_name = "The Reading Room"
 socket_pins = Dictionary[String, int]({
 "Lights/lantern_cluster/Mesh/M_lantern_cluster/SOCKET_lamp_state": 0,
-"Lights/lantern_cluster2/Mesh/M_lantern_cluster/SOCKET_lamp_state": 0
+"Lights/lantern_cluster2/Mesh/M_lantern_cluster/SOCKET_lamp_state": 0,
+"Shell/wall_plain_4m/Mesh/M_wall_plain_4m/SOCKET_seam_debris": 0,
+"Shell/wall_plain_4m2/Mesh/M_wall_plain_4m/SOCKET_seam_debris": 0,
+"Shell/wall_plain_4m3/Mesh/M_wall_plain_4m/SOCKET_seam_debris": 0,
+"Shell/wall_plain_4m4/Mesh/M_wall_plain_4m/SOCKET_seam_debris": 0,
+"Shell/wall_shelfbay_4m/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 0,
+"Shell/wall_shelfbay_4m10/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 3,
+"Shell/wall_shelfbay_4m12/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 0,
+"Shell/wall_shelfbay_4m13/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 3,
+"Shell/wall_shelfbay_4m14/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 3,
+"Shell/wall_shelfbay_4m15/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 2,
+"Shell/wall_shelfbay_4m2/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 0,
+"Shell/wall_shelfbay_4m4/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 0,
+"Shell/wall_shelfbay_4m5/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 0,
+"Shell/wall_shelfbay_4m6/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 0,
+"Shell/wall_shelfbay_4m8/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 1
 })
 
 [node name="Shell" type="Node3D" parent="." unique_id=191676557]

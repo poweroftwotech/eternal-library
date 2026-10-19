@@ -194,7 +194,7 @@ func check_spill_inside_solid() -> void:
 	pier.position = Vector3(1.0, 0, -2.0)
 	room.get_node("Shell").add_child(pier)
 	warnings = KitValidateRoom.run(room)["warnings"]
-	check(Array(warnings).any(func(w: String) -> bool: return w.contains("spill zone runs into") and w.contains("post_pier")),
+	check(Array(warnings).any(func(w: String) -> bool: return w.contains("items would rest inside") and w.contains("post_pier")),
 		"a pier inside the spill zone is reported (got %s)" % [warnings])
 	room.free()
 

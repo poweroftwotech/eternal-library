@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3 uid="uid://bq6246sg1l3j0"]
+
+[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_sqfgw"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/debris_rubble.tscn" id="2_yiskx"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/debris_brick.tscn" id="3_gsece"]
+[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="4_1wokc"]
+
+[sub_resource type="Resource" id="Resource_nh0is"]
+script = ExtResource("1_sqfgw")
+label = "nothing"
+weight = 6.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_m8vy5"]
+script = ExtResource("1_sqfgw")
+label = "rubble"
+scene = ExtResource("2_yiskx")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_783o0"]
+script = ExtResource("1_sqfgw")
+label = "fallen brick"
+scene = ExtResource("3_gsece")
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("4_1wokc")
+entries = Array[ExtResource("1_sqfgw")]([SubResource("Resource_nh0is"), SubResource("Resource_m8vy5"), SubResource("Resource_783o0")])
+slot_bounds = AABB(-0.35, 0, -0.35, 0.7, 0.25, 0.7)

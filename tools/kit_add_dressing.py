@@ -188,6 +188,26 @@ def iwan_fountain(r):
     mesh_object("iwan_fountain__water", bm, ["water"], r)
 
 
+# --- seam debris (wall-base EDGE_SCATTER, weathering slice item 1) -------------
+# Origin on the floor; pieces sit on z = 0 (sunk 1 cm so they never float).
+
+def debris_rubble(r):
+    rng = random.Random(23)
+    bm = bmesh.new()
+    for _ in range(6):
+        s = rng.uniform(0.05, 0.14)
+        add_obox(bm, (rng.uniform(-0.2, 0.2), rng.uniform(-0.12, 0.12), s * 0.35 - 0.01), (s, s * rng.uniform(0.6, 1.0), s * 0.7),
+                 (rng.uniform(-0.3, 0.3), rng.uniform(-0.3, 0.3), rng.uniform(0, math.tau)))
+    mesh_object("debris_rubble__chips", bm, ["arch_stone"], r)
+
+
+def debris_brick(r):
+    bm = bmesh.new()
+    add_obox(bm, (0.0, 0.0, 0.025), (0.23, 0.11, 0.07), (0.0, math.radians(6), math.radians(20)))
+    add_obox(bm, (0.17, 0.09, 0.02), (0.11, 0.1, 0.06), (math.radians(-8), 0.0, math.radians(-35)))
+    mesh_object("debris_brick__bricks", bm, ["brick"], r)
+
+
 # --- table props (origin = table top) -----------------------------------------------
 
 def prop_book_stack(r):
@@ -257,6 +277,8 @@ MODULES = [
     ("M_iwan_lectern", props("wood,iwan,centrepiece"), iwan_lectern),
     ("M_iwan_tree", props("tree,iwan,centrepiece"), iwan_tree),
     ("M_iwan_fountain", props("stone,water,iwan,centrepiece"), iwan_fountain),
+    ("M_debris_rubble", props("stone,debris,seam"), debris_rubble),
+    ("M_debris_brick", props("brick,debris,seam"), debris_brick),
     ("M_prop_book_stack", props("books,table_prop"), prop_book_stack),
     ("M_prop_book_open", props("books,table_prop"), prop_book_open),
     ("M_prop_pot", props("earthenware,table_prop"), prop_pot),

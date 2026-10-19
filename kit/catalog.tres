@@ -7,6 +7,24 @@ script = ExtResource("1_wnug1")
 modules = Array[Dictionary]([{
 "edge": "",
 "family": "dressing",
+"name": "debris_brick",
+"scene": "res://kit/modules/dressing/debris_brick.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brick", "debris", "seam"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "debris_rubble",
+"scene": "res://kit/modules/dressing/debris_rubble.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "debris", "seam"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "iwan_fountain",
 "scene": "res://kit/modules/dressing/iwan_fountain.tscn",
 "shape": "free",

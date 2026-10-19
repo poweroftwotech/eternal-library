@@ -36,6 +36,7 @@ import os
 import sys
 
 import bmesh
+from mathutils import Vector
 import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
@@ -48,6 +49,14 @@ ROW_Y = -24.0
 HALL = 12.0      # hall width: three bays
 HALL_K = 0.58    # vault pointedness (atlas R01)
 LAMP_SOCKET = {"socket_set": "lamp_state", "socket_mode": "state"}
+def seam_socket(length):
+    """Wall-base debris seam (weathering item 1): starts 0.85 m in so items (up to
+    ~0.3 m across) stay clear of
+    the corner piers; on the wall face; items settle or vanish if nothing is below."""
+    return {"socket_set": "seam_debris", "socket_mode": "edge_scatter", "scatter_count": [2, 5],
+            "scatter_spacing": 0.45, "edge_length": length, "edge_depth": 0.25, "settle": 1, "settle_max_drop": 0.3}
+
+
 TABLE_SOCKET = {"socket_set": "table_props", "socket_mode": "scatter", "scatter_count": [2, 5],
                 "scatter_extent": [0.5, 1.9], "scatter_spacing": 0.35}
 
@@ -109,6 +118,8 @@ def iwan(r):
     marker("SOCKET_recess_fill__iwan", r, (6.0, sy, 0.0), {"socket_set": "recess_library"})
     marker("ANCHOR_study__iwan", r, (6.0, -1.2, 0.0))
     marker("SOCKET_iwan_centre__iwan", r, (6.0, -1.2, 0.0), {"socket_set": "iwan_centre"})
+    marker("SOCKET_seam_debris__iwan_l", r, (0.85, T, 0.0), seam_socket(1.3))
+    marker("SOCKET_seam_debris__iwan_r", r, (HALL - 2.15, T, 0.0), seam_socket(1.2))
 
 
 def stair(r, name="stair_gallery_8m", reverse=False):
@@ -327,6 +338,9 @@ ADD_MARKERS = [
     ("M_table_reading", "SOCKET_table_props__table", (0.0, 0.0, 0.78), TABLE_SOCKET),
     ("M_lantern_hanging", "SOCKET_lamp_state__hanging", (0.0, 0.0, 2.8), LAMP_SOCKET),
     ("M_lantern_cluster", "SOCKET_lamp_state__cluster", (0.0, 0.0, 5.8), LAMP_SOCKET),
+    ("M_wall_plain_4m", "SOCKET_seam_debris__plain", (0.85, T, 0.0), seam_socket(2.3)),
+    ("M_wall_iwan_12m", "SOCKET_seam_debris__iwan_l", (0.85, T, 0.0), seam_socket(1.3)),
+    ("M_wall_iwan_12m", "SOCKET_seam_debris__iwan_r", (HALL - 2.15, T, 0.0), seam_socket(1.2)),
 ]
 
 
@@ -345,11 +359,26 @@ def upgrade():
         if ob is not None:
             bpy.data.objects.remove(ob, do_unlink=True)
             done.append("removed " + name)
+    # Script-owned markers: added when missing, and kept in sync (position and
+    # custom properties) so tuning a socket here reaches an existing .blend.
     for (mod, name, loc, p) in ADD_MARKERS:
         root = bpy.data.objects.get(mod)
-        if root is not None and not any(c.name.startswith(name) for c in root.children):
+        if root is None:
+            continue
+        existing = [c for c in root.children if c.name.startswith(name)]
+        if not existing:
             marker(name, root, loc, p)
             done.append("%s += %s" % (mod, name))
+            continue
+        e = existing[0]
+        stale = (e.location - Vector(loc)).length > 1e-4 or any(
+            k not in e.keys() or (list(e[k]) if hasattr(e[k], "__len__") and not isinstance(e[k], str) else e[k]) != v
+            for (k, v) in p.items())
+        if stale:
+            e.location = loc
+            for (k, v) in p.items():
+                e[k] = v
+            done.append("%s: synced %s" % (mod, name))
     return done
 
 

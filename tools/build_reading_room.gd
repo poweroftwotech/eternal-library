@@ -42,6 +42,7 @@ func _initialize() -> void:
 		groups[g] = n
 	build_shell()
 	build_dressing()
+	pin_hidden_seams(room)
 	build_lights()
 	build_connectors()
 	add_spawn()
@@ -227,3 +228,28 @@ func add_spawn() -> void:
 	room.add_child(m)
 	m.owner = room
 	m.add_to_group("player_spawn", true)
+
+
+## The plain walls behind the stairs (bays 2-3, both sides) are hidden by the
+## masonry, so their wall-base seams are pinned to "nothing" in the room
+## (weathering item 1; Validate Room flags them otherwise). Static so a patch
+## script can apply it to an existing room.
+const HIDDEN_SEAM_WALLS: Array[Vector3] = [Vector3(0, 0, -12), Vector3(0, 0, -16), Vector3(WIDTH, 0, -8), Vector3(WIDTH, 0, -12)]
+
+
+static func pin_hidden_seams(target: RoomTemplate) -> int:
+	var lib: SocketSet = load("res://kit/sockets/seam_debris.tres")
+	var nothing: int = lib.index_of("nothing")
+	var pins: Dictionary[String, int] = {}
+	pins.assign(target.socket_pins)
+	var count: int = 0
+	for m: Node in target.get_node("Shell").get_children():
+		var n := m as Node3D
+		if n == null or not n.scene_file_path.ends_with("wall_plain_4m.tscn"):
+			continue
+		if not HIDDEN_SEAM_WALLS.any(func(p: Vector3) -> bool: return n.position.is_equal_approx(p)):
+			continue
+		pins["%s/Mesh/M_wall_plain_4m/SOCKET_seam_debris" % str(target.get_path_to(n))] = nothing
+		count += 1
+	target.socket_pins = pins
+	return count

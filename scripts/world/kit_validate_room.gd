@@ -171,6 +171,8 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 		var s := socket as VariantSocket
 		if s.socket_set == null or not s.socket_set.slot_bounds.has_volume():
 			continue
+		if _pinned_to_nothing(root, s):
+			continue      # the room (or socket) chose "nothing" here: no slot to check
 		var path: String = s.socket_set.resource_path
 		if not checked_sets.has(path):
 			checked_sets[path] = true
@@ -179,13 +181,24 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 		var host: Node = _host_module(s)
 		var label: String = str(root.get_path_to(host)) if host != null else str(root.get_path_to(s))
 		var socket_xf: Transform3D = _relative(root, s)
-		var slot: AABB = (socket_xf * s.socket_set.slot_bounds).grow(-SLOT_MARGIN)
-		for item: Array in bodies:
-			if item[0] != host and slot.intersects(item[1]) and not seen.has([s, item[0]]):
-				seen[[s, item[0]]] = true
-				warnings.append("socket %s: its %s slot runs into %s" % [label, path.get_file().get_basename(), str(root.get_path_to(item[0]))])
+		var local_slot: AABB = s.socket_set.slot_bounds
+		if s.mode == VariantSocket.Mode.EDGE_SCATTER:
+			# The strip items can reach: the line plus an item's footprint, out into
+			# the room only (behind the line is the host wall).
+			local_slot = AABB(Vector3(local_slot.position.x, local_slot.position.y, local_slot.position.z - s.edge_depth),
+				Vector3(local_slot.size.x + s.edge_length, local_slot.size.y, s.edge_depth - local_slot.position.z))
+		if s.settle and (s.mode == VariantSocket.Mode.SCATTER or s.mode == VariantSocket.Mode.EDGE_SCATTER):
+			# Settling items rest on whatever is below (a gallery is fine) and vanish
+			# if nothing is in reach, so only a solid inside the strip is a problem.
+			_spill_probe(root, s, socket_xf, bodies, label, warnings, local_slot, true)
+		else:
+			var slot: AABB = (socket_xf * local_slot).grow(-SLOT_MARGIN)
+			for item: Array in bodies:
+				if item[0] != host and slot.intersects(item[1]) and not seen.has([s, item[0]]):
+					seen[[s, item[0]]] = true
+					warnings.append("socket %s: its %s slot runs into %s" % [label, path.get_file().get_basename(), str(root.get_path_to(item[0]))])
 		if s.socket_set.spill_bounds.has_volume():
-			_spill_probe(root, s, socket_xf, bodies, label, warnings)
+			_spill_probe(root, s, socket_xf, bodies, label, warnings, s.socket_set.spill_bounds)
 
 
 ## Spill settles on whatever is below it (ShelfFill.settle(), rays starting at
@@ -195,8 +208,7 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 ## spill there would rest inside it. Furniture whose top is above the zone is
 ## fine, spill lands under it.
 static func _spill_probe(root: Node, s: VariantSocket, socket_xf: Transform3D, bodies: Array,
-		label: String, warnings: PackedStringArray) -> void:
-	var zone: AABB = s.socket_set.spill_bounds
+		label: String, warnings: PackedStringArray, zone: AABB, missing_ok: bool = false) -> void:
 	var up: Vector3 = socket_xf.basis.y.normalized()
 	var column: AABB = (socket_xf * zone).merge(socket_xf * AABB(zone.position - Vector3(0, SPILL_DROP, 0), zone.size))
 	# The host counts here: spill may land on its own module (the iwan's alcove floor).
@@ -221,10 +233,10 @@ static func _spill_probe(root: Node, s: VariantSocket, socket_xf: Transform3D, b
 					inside[item[0]] = true
 			if best > zone.end.y + SPILL_DROP:
 				nothing += 1
-	if nothing > 0:
+	if nothing > 0 and not missing_ok:
 		warnings.append("socket %s: %d of %d spill probes find nothing to land on" % [label, nothing, SPILL_PROBES.x * SPILL_PROBES.y])
 	for body: Node in inside:
-		warnings.append("socket %s: its spill zone runs into %s (spill would rest inside it)" % [label, str(root.get_path_to(body))])
+		warnings.append("socket %s: %s items would rest inside %s" % [label, s.socket_set.resource_path.get_file().get_basename(), str(root.get_path_to(body))])
 
 
 ## Room-space triangles of a body entry [module, aabb, transform, shape], cached.
@@ -352,3 +364,13 @@ static func transforms_bounds(xforms: Array[Transform3D]) -> AABB:
 ## Other multimeshes: the renderer's bounds (empty when headless).
 static func multimesh_bounds(mm: MultiMesh) -> AABB:
 	return mm.get_aabb() if mm != null else AABB()
+
+
+## True when the room's pin (or the socket's own) picks an entry without a
+## scene, e.g. a seam hidden behind a stair pinned to "nothing".
+static func _pinned_to_nothing(root: Node, s: VariantSocket) -> bool:
+	var pin: int = s.pinned
+	if root is RoomTemplate:
+		pin = (root as RoomTemplate).socket_pins.get((root as RoomTemplate).socket_key(s), pin)
+	return pin >= 0 and pin < s.socket_set.entries.size() and s.socket_set.entries[pin] != null \
+		and s.socket_set.entries[pin].scene == null

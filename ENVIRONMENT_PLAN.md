@@ -839,10 +839,42 @@ decision above.
 Agreed scope: only the parts that existing tools carry, so phase 3's
 `AgeRules` can later just shift their weights. Order:
 
-1. **Edge scatter.** A new `VariantSocket` mode `EDGE_SCATTER`: N items along
-   a line, such as the wall-to-floor seam of a bay or the top of a balustrade,
-   with spacing and jitter. Modules get `SOCKET_seam` empties along their base
-   (shelf bay, plain wall, iwan flanks) and gallery rails.
+1. ~~**Edge scatter**~~ (done 2026-10-19, first with debris; plants are item 2).
+   - **`EDGE_SCATTER` mode** (`VariantSocket`): items along local +X for
+     `edge_length`, up to `edge_depth` out into the room, `scatter_spacing`
+     apart, with random yaw. Picks without a scene leave gaps, so the set's
+     weights set the density. `SCATTER`'s random draw order is unchanged, so
+     tables keep their layout.
+   - **Generic settle** (`settle`, `settle_max_drop`) for scatter modes: after
+     two physics frames each item rests on the surface below, or is removed
+     if nothing is within reach. Seams in front of upper walls sit on the
+     gallery (4.15) and never float.
+   - **First candidates:** `debris_rubble` and `debris_brick` (dressing
+     family, 36 modules) in `kit/sockets/seam_debris.tres` (nothing 6,
+     rubble 2, fallen brick 1).
+   - **Seam sockets:** `SOCKET_seam_debris` on `wall_plain_4m` (from 0.85 m,
+     2.3 m long, clear of the corner piers) and on both iwan flanks. The
+     importer reads `edge_scatter`, `edge_length`, `edge_depth`, `settle` and
+     `settle_max_drop`. The upgrade pass in `kit_add_r01.py` now also keeps
+     script-owned markers in sync (position and properties), so retuning a
+     socket reaches an existing `.blend`.
+   - **Validate Room:** an `EDGE_SCATTER` slot is the strip the items can
+     reach (the line plus an item footprint, room side only). Settling
+     sockets get the spill-style probe ("items would rest inside X"), with
+     nothing-below allowed by design. Sockets pinned to a scene-less entry
+     are skipped.
+   - **Reading room:** the four plain walls hidden behind the stairs have
+     their seams pinned to "nothing" (`build_reading_room.gd`
+     `pin_hidden_seams()`, patched in place). It validates with no warnings
+     again, and now has 38 sockets (10 seams).
+   - **Verified:** `socket_modes_test` has 71 checks: items on the strip,
+     spacing, gaps, determinism, and settling on the floor (0.00), on a
+     gallery slab one storey up (4.15), and removed over nothing. Kit test
+     463, room 28, validate room 21, spill 6, atmosphere 32, room playtest
+     11, camp playtest 43, and all three 240-frame gates are clean.
+     `previews/reading_room_seams.png` (capture option `seams` pins every
+     seam to rubble) shows chips along the wall base on the floor. The user
+     checked the seams in the editor; the rubble is small and subtle by design.
 2. **Plants as dressing.** Crack tufts, moss cushions, hanging ivy (rail) and
    a root clump for collapsed recesses, in `kit_dressing.blend`. Port the
    prototype's `shaders/foliage_wind.gdshader` as a library material so cards

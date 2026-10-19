@@ -83,7 +83,7 @@ func check_module(entry: Dictionary) -> void:
 			var sets: Array = parts.filter(func(n: Node) -> bool: return n is VariantSocket and (n as VariantSocket).socket_set != null) \
 				.map(func(n: Node) -> String: return (n as VariantSocket).socket_set.resource_path.get_file())
 			sets.sort()
-			check(sets == ["iwan_centre.tres", "recess_library.tres"], "iwan has its back-wall recess and centrepiece sockets (found %s)" % [sets])
+			check(sets == ["iwan_centre.tres", "recess_library.tres", "seam_debris.tres", "seam_debris.tres"], "iwan has its back-wall recess, centrepiece and two flank seam sockets (found %s)" % [sets])
 			check(module.size_cells == Vector3i(3, 2, 0) and module.edge == "iwan", "iwan is a 3-bay, 2-storey edge")
 		"stair_gallery_8m":
 			check(has_in_group(parts, "kit_snap", "SNAP_stair_head") and has_in_group(parts, "kit_snap", "SNAP_stair_foot"),
@@ -197,7 +197,7 @@ func check_sockets(room: Node3D) -> void:
 	var sockets: Array[VariantSocket] = tmpl.sockets()
 	var recess: int = sockets.filter(func(s: VariantSocket) -> bool: return s.socket_set != null and s.socket_set.resource_path.ends_with("recess_library.tres")).size()
 	check(recess == 10, "graybox has 10 recess sockets (found %d)" % recess)
-	check(sockets.size() == 13, "graybox has 13 sockets: 10 recesses, 3 lamp states (found %d)" % sockets.size())
+	check(sockets.size() == 18, "graybox has 18 sockets: 10 recesses, 3 lamp states, 5 wall seams (found %d)" % sockets.size())
 	var a: Dictionary = tmpl.resolve_sockets(1)
 	var b: Dictionary = tmpl.resolve_sockets(1)
 	check(a == b, "same seed gives the same socket picks")

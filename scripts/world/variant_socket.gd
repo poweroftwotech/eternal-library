@@ -10,13 +10,16 @@ extends Node3D
 ##   TOGGLE   like REPLACE, but present only with toggle_chance
 ##   SCATTER  scatter_count items inside a box on the socket's floor plane
 ##            (books and pots on a table); a pin makes every item that entry
+##   EDGE_SCATTER  like SCATTER, but along a line: local +X from the origin for
+##            edge_length, pushed up to edge_depth into the room (-Z); for
+##            wall-base seams. Picks without a scene leave a gap (density).
 ##   STATE    no scene: the entry's label is a state applied to the socket's
 ##            parent (LampState: lit, failing, dark)
 ##
 ## Inside a RoomTemplate the room resolves its sockets (seed = room seed + this
 ## socket's path). Opened on its own, a socket previews with seed 0.
 
-enum Mode { REPLACE, TOGGLE, SCATTER, STATE }
+enum Mode { REPLACE, TOGGLE, SCATTER, STATE, EDGE_SCATTER }
 
 @export var socket_set: SocketSet:
 	set(value):
@@ -41,9 +44,18 @@ enum Mode { REPLACE, TOGGLE, SCATTER, STATE }
 @export var scatter_extent: Vector2 = Vector2(0.5, 0.5)
 ## SCATTER: minimum distance between item origins.
 @export var scatter_spacing: float = 0.3
+## EDGE_SCATTER: length of the line along local +X, and how far items may sit
+## out from it into the room (local -Z).
+@export var edge_length: float = 4.0
+@export var edge_depth: float = 0.25
+## SCATTER / EDGE_SCATTER: after the first physics frames, rest each item on
+## the surface below it, or remove it if nothing is within settle_max_drop
+## (seam items in front of an upper wall sit on a gallery, never float).
+@export var settle: bool = false
+@export var settle_max_drop: float = 0.5
 
 var last_pick: int = -1
-## SCATTER: number of items placed.
+## SCATTER / EDGE_SCATTER: number of items placed (gaps not counted).
 var last_count: int = 0
 var _seed: int = 0
 ## Pin set by the owning room (RoomTemplate.socket_pins); wins over `pinned`.
@@ -83,7 +95,7 @@ func resolve(seed_value: int, room_pin_value: int = -1) -> int:
 			if rng.randf() > toggle_chance:
 				idx = -1
 			_spawn(idx, Transform3D.IDENTITY, rng)
-		Mode.SCATTER:
+		Mode.SCATTER, Mode.EDGE_SCATTER:
 			_scatter(force, rng)
 		Mode.STATE:
 			var flicker: LampState = LampState.apply(get_parent(), socket_set.entries[idx].label if idx >= 0 else "lit")
@@ -105,7 +117,7 @@ func clear() -> void:
 
 
 func picked_label() -> String:
-	if mode == Mode.SCATTER:
+	if mode == Mode.SCATTER or mode == Mode.EDGE_SCATTER:
 		var pin: int = effective_pin()
 		return "%d × %s" % [last_count, entry_label(pin)] if pin >= 0 else "%d items" % last_count
 	return entry_label(last_pick)
@@ -122,15 +134,22 @@ func _spawn(idx: int, xf: Transform3D, rng: RandomNumberGenerator) -> void:
 	_children.append(node)
 
 
-## Rejection-sampled positions, so items keep scatter_spacing apart.
+## Rejection-sampled positions, so items keep scatter_spacing apart. SCATTER
+## samples a box around the origin, EDGE_SCATTER a strip along local +X.
 func _scatter(force: int, rng: RandomNumberGenerator) -> void:
+	var edge: bool = mode == Mode.EDGE_SCATTER
 	var want: int = rng.randi_range(scatter_count.x, maxi(scatter_count.x, scatter_count.y))
 	var spots: Array[Vector3] = []
+	var placed: int = 0
 	for _try: int in want * 12:
 		if spots.size() >= want:
 			break
-		var p := Vector3(rng.randf_range(-scatter_extent.x, scatter_extent.x), 0.0,
-			rng.randf_range(-scatter_extent.y, scatter_extent.y))
+		var p: Vector3
+		if edge:
+			p = Vector3(rng.randf_range(0.0, edge_length), 0.0, -rng.randf_range(0.0, edge_depth))
+		else:     # draw order kept as before, so existing tables keep their layout
+			p = Vector3(rng.randf_range(-scatter_extent.x, scatter_extent.x), 0.0,
+				rng.randf_range(-scatter_extent.y, scatter_extent.y))
 		var clear_spot: bool = true
 		for q: Vector3 in spots:
 			if p.distance_to(q) < scatter_spacing:
@@ -140,8 +159,46 @@ func _scatter(force: int, rng: RandomNumberGenerator) -> void:
 			continue
 		spots.append(p)
 		var idx: int = force if force >= 0 else socket_set.pick(rng)
+		var before: int = _children.size()
 		_spawn(idx, Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p), rng)
-	last_count = spots.size()
+		placed += _children.size() - before
+	last_count = placed
+	if settle and placed > 0:
+		_settle_when_ready()
+
+
+## Bodies join the physics space only after a physics step, so wait two.
+func _settle_when_ready() -> void:
+	if not is_inside_tree():
+		return
+	var batch: Array[Node] = _children.duplicate()
+	await get_tree().physics_frame
+	await get_tree().physics_frame
+	if is_inside_tree() and _children == batch:     # not re-resolved meanwhile
+		settle_items()
+
+
+## Rests each spawned item on the surface below it; removes items with nothing
+## within settle_max_drop. Returns how many were removed.
+func settle_items() -> int:
+	var space: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+	var up: Vector3 = global_basis.y.normalized()
+	var removed: int = 0
+	for c: Node in _children.duplicate():
+		if not c is Node3D:
+			continue
+		var item := c as Node3D
+		var from: Vector3 = item.global_position + up * 0.5
+		var hit: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(from, item.global_position - up * settle_max_drop, 1))
+		if hit.is_empty():
+			_children.erase(item)
+			remove_child(item)
+			item.queue_free()
+			removed += 1
+		else:
+			item.global_position = hit["position"]
+	last_count -= removed
+	return removed
 
 
 func _pin_next() -> void:

@@ -38,6 +38,9 @@ def build():
     r = module("M_wall_plain_4m", 0, {"kit_shape": "edge", "kit_family": "walls",
                "size_cells": [1, 1, 0], "edge": "solid", "tags": "brick,structure", "weight": 3.0})
     wall_body("wall_plain_4m__body-col", r)
+    marker("SOCKET_seam_debris__plain", r, (0.85, T, 0.0), {"socket_set": "seam_debris", "socket_mode": "edge_scatter",
+           "scatter_count": [2, 5], "scatter_spacing": 0.45, "edge_length": 2.3, "edge_depth": 0.25,
+           "settle": 1, "settle_max_drop": 0.3})
 
     # 2. Shelf-recess bay -------------------------------------------------------
     r = module("M_wall_shelfbay_4m", 1, {"kit_shape": "edge", "kit_family": "walls",

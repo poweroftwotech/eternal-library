@@ -3,7 +3,8 @@ extends SceneTree
 ##   godot --path . --resolution 1600x900 --script res://tests/reading_room_capture.gd -- <out.png> [view] [frames] [seed]
 ## Views: entrance, iwan, gallery, stair, vault, end_gallery, table, recesses.
 ## seed: the room's preview_seed (default: as saved; "-" keeps it). A fifth argument
-## "collapse" pins every recess to "collapsed" (to inspect settled spill).
+## "collapse" pins every recess to "collapsed" (to inspect settled spill);
+## "seams" pins every wall-base seam to "rubble".
 ## Run `godot --headless --import` first.
 
 const VIEWS: Dictionary = {
@@ -15,6 +16,7 @@ const VIEWS: Dictionary = {
 	"end_gallery": [Vector3(6.0, 2.2, -13.0), Vector3(6.0, 4.6, 0.0), 72.0],
 	"table": [Vector3(4.6, 1.9, -4.6), Vector3(3.0, 0.7, -6.8), 60.0],
 	"recesses": [Vector3(6.5, 1.8, -10.0), Vector3(0.0, 2.6, -17.0), 66.0],
+	"seam": [Vector3(3.6, 1.3, -3.2), Vector3(2.2, 0.15, -0.3), 64.0],
 }
 
 
@@ -30,14 +32,15 @@ func capture() -> void:
 	var room: RoomTemplate = (load("res://rooms/authored/reading_room.tscn") as PackedScene).instantiate()
 	if args.size() > 3 and args[3] != "-":
 		room.preview_seed = int(args[3])
-	if args.size() > 4 and args[4] == "collapse":
-		var lib: SocketSet = load("res://kit/sockets/recess_library.tres")
+	var pin_all: Dictionary = {"collapse": ["recess_library", "collapsed"], "seams": ["seam_debris", "rubble"]}
+	if args.size() > 4 and pin_all.has(args[4]):
+		var lib: SocketSet = load("res://kit/sockets/%s.tres" % pin_all[args[4]][0])
 		var pins: Dictionary[String, int] = {}
 		pins.assign(room.socket_pins)
 		root.add_child(room)
 		for s: VariantSocket in room.sockets():
 			if s.socket_set == lib:
-				pins[room.socket_key(s)] = lib.index_of("collapsed")
+				pins[room.socket_key(s)] = lib.index_of(pin_all[args[4]][1])
 		room.socket_pins = pins
 		room.resolve_sockets(room.preview_seed)
 	else:
