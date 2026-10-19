@@ -1,11 +1,13 @@
 extends SceneTree
 ## GPU capture of rooms/authored/reading_room.tscn (needs a real display, not --headless).
 ##   godot --path . --resolution 1600x900 --script res://tests/reading_room_capture.gd -- <out.png> [view] [frames] [seed]
-## Views: entrance, iwan, gallery, stair, vault, end_gallery, table, recesses.
+## Views: entrance, iwan, gallery, stair, vault, end_gallery, table, recesses, seam,
+## soot, crown.
 ## seed: the room's preview_seed (default: as saved; "-" keeps it). A fifth argument
 ## "collapse" pins every recess to "collapsed" (to inspect settled spill);
 ## "seams" pins every wall-base seam to "rubble"; "growth" pins seams to "fern"
-## and gallery rails to "ivy".
+## and gallery rails to "ivy"; "decals" pins wall stains to "water stain", floor
+## wear to "crack" and lamp soot to "soot"; "nodecals" pins all three to "nothing".
 ## Run `godot --headless --import` first.
 
 const VIEWS: Dictionary = {
@@ -18,6 +20,8 @@ const VIEWS: Dictionary = {
 	"table": [Vector3(4.6, 1.9, -4.6), Vector3(3.0, 0.7, -6.8), 60.0],
 	"recesses": [Vector3(6.5, 1.8, -10.0), Vector3(0.0, 2.6, -17.0), 66.0],
 	"seam": [Vector3(3.6, 1.3, -3.2), Vector3(2.2, 0.15, -0.3), 64.0],
+	"soot": [Vector3(3.2, 1.5, -6.0), Vector3(0.9, 3.85, -6.0), 60.0],     # gallery underside over a lantern
+	"crown": [Vector3(6.0, 9.5, -9.0), Vector3(6.0, 14.6, -14.0), 50.0],  # vault crown over a chandelier
 }
 
 
@@ -35,9 +39,10 @@ func capture() -> void:
 		room.preview_seed = int(args[3])
 	# option -> [[set, entry], ...]: pin every socket of that set to that entry.
 	var pin_all: Dictionary = {"collapse": [["recess_library", "collapsed"]], "seams": [["seam_debris", "rubble"]],
-		"growth": [["seam_debris", "fern"], ["rail_growth", "ivy"]]}
+		"growth": [["seam_debris", "fern"], ["rail_growth", "ivy"]],
+		"decals": [["wall_stains", "water stain"], ["floor_wear", "crack"], ["lamp_soot", "soot"]],
+		"nodecals": [["wall_stains", "nothing"], ["floor_wear", "nothing"], ["lamp_soot", "nothing"]]}
 	if args.size() > 4 and pin_all.has(args[4]):
-
 		var pins: Dictionary[String, int] = {}
 		pins.assign(room.socket_pins)
 		root.add_child(room)

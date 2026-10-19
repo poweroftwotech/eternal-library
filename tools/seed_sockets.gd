@@ -43,6 +43,29 @@ func _initialize() -> void:
 	# Item 2: ivy hanging from gallery rails (EDGE_SCATTER along the rail top).
 	socket_set("rail_growth", [["nothing", "", 5.0], ["ivy", DRESS + "plant_ivy_hang.tscn", 2.0]])
 	slot("rail_growth", AABB(Vector3(-0.35, -1.35, -0.3), Vector3(0.7, 1.4, 0.4)))   # one strand bunch, hanging
+	# Item 3: decals (40 x 80 maps = 1.25 x 2.5 m on walls, 40 x 40 = 1.25 m on
+	# floors). Wall sockets are turned so their Y comes out of the wall and Z
+	# points up; the scene turns the Decal so the image top is up. Slots are one
+	# decal (slot_is_item); Validate Room adds each socket's scatter_extent.
+	var wall := Vector3(1.25, 0.4, 2.5)
+	socket_set("wall_stains", [["nothing", "", 3.0],
+		["water stain", decal("stain_water_a", wall, true), 2.0],
+		["water stain b", decal("stain_water_b", wall, true), 2.0],
+		["damp and moss", decal("stain_damp_moss", wall, true), 1.5]])
+	slot("wall_stains", AABB(-wall * 0.5, wall), AABB(), true, true)
+	var floor := Vector3(1.25, 0.3, 1.25)
+	socket_set("floor_wear", [["nothing", "", 4.0],
+		["crack", decal("crack_floor_a", floor, false, true), 2.0],
+		["crack b", decal("crack_floor_b", floor, false, true), 2.0],
+		["damp patch", decal("damp_floor", floor), 1.5],
+		["moss", decal("moss_floor", floor), 1.0]])
+	# Floor decals turn at random, so the slot is the circle a 1.25 m square sweeps.
+	slot("floor_wear", AABB(Vector3(-0.885, -0.15, -0.885), Vector3(1.77, 0.3, 1.77)), AABB(), true, true)
+	# Soot on whatever is above a lamp (the socket's Y points down).
+	var plume := Vector3(1.25, 0.7, 1.25)   # clears the wall line from a lamp 1 m out
+	socket_set("lamp_soot", [["soot", decal("soot_plume", plume), 3.0],
+		["faint soot", decal("soot_plume", plume, false, false, 0.55, "soot_faint"), 2.0], ["nothing", "", 1.0]])
+	slot("lamp_soot", AABB(-plume * 0.5, plume), AABB(), false, true)
 	print("seed_sockets: ", "; ".join(made) if not made.is_empty() else "nothing to do")
 	quit()
 
@@ -103,14 +126,51 @@ func socket_set(set_name: String, specs: Array) -> void:
 	made.append("%s += %s" % [path, ", ".join(added)])
 
 
+## A decal scene kit/decals/<scene_name>.tscn (default: the map's name), unless
+## it exists: a Node3D whose Decal marks only KitModule.DECAL_LAYER. `upright`
+## turns the Decal half a turn about Y, so on a wall socket (Y out, Z up) the
+## image top is up.
+func decal(map: String, size: Vector3, upright: bool = false, normal: bool = false,
+		alpha: float = 1.0, scene_name: String = "") -> String:
+	var path: String = "res://kit/decals/%s.tscn" % (scene_name if scene_name != "" else map)
+	if ResourceLoader.exists(path):
+		return path
+	var root := Node3D.new()
+	root.name = path.get_file().get_basename()
+	var d := Decal.new()
+	d.name = "Decal"
+	d.size = size
+	d.texture_albedo = load("res://assets/textures/decals/%s.png" % map)
+	if normal:
+		d.texture_normal = load("res://assets/textures/decals/%s_normal.png" % map)
+	d.modulate = Color(1, 1, 1, alpha)
+	d.cull_mask = KitModule.DECAL_LAYER
+	d.normal_fade = 0.8       # surfaces turned away from the decal don't smear
+	d.upper_fade = 0.3
+	d.lower_fade = 0.3
+	if upright:
+		d.rotation_degrees = Vector3(0, 180, 0)
+	root.add_child(d)
+	d.owner = root
+	var packed := PackedScene.new()
+	packed.pack(root)
+	DirAccess.make_dir_recursive_absolute(path.get_base_dir())
+	ResourceSaver.save(packed, path)
+	root.free()
+	made.append("wrote " + path)
+	return path
+
+
 ## Sets the slot Validate Room checks candidates against, unless one is set.
-func slot(set_name: String, bounds: AABB, spill: AABB = AABB()) -> void:
+func slot(set_name: String, bounds: AABB, spill: AABB = AABB(), item: bool = false, decals: bool = false) -> void:
 	var path: String = "res://kit/sockets/%s.tres" % set_name
 	var set: SocketSet = load(path)
 	if set == null or set.slot_bounds.has_volume():
 		return
 	set.slot_bounds = bounds
 	set.spill_bounds = spill
+	set.slot_is_item = item
+	set.decals = decals
 	var uid: int = KitCatalogBuilder.header_uid(path)
 	ResourceSaver.save(set, path)
 	if uid != ResourceUID.INVALID_ID:

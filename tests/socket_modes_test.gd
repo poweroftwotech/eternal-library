@@ -1,5 +1,6 @@
 extends SceneTree
-## Phase 1 step 3 gate: socket sets and the STATE / SCATTER / REPLACE modes.
+## Phase 1 step 3 gate: socket sets and the STATE / SCATTER / REPLACE modes;
+## weathering items 1-3 (edge scatter, settle, plants, decals).
 ##   godot --headless --path . --script res://tests/socket_modes_test.gd
 
 const SETS: Dictionary = {
@@ -9,6 +10,9 @@ const SETS: Dictionary = {
 	"table_props": ["book stack", "open book", "pot", "oil lamp", "scroll", "inkwell"],
 	"seam_debris": ["nothing", "rubble", "fallen brick", "crack tuft", "moss", "fern"],
 	"rail_growth": ["nothing", "ivy"],
+	"wall_stains": ["nothing", "water stain", "water stain b", "damp and moss"],
+	"floor_wear": ["nothing", "crack", "crack b", "damp patch", "moss"],
+	"lamp_soot": ["soot", "faint soot", "nothing"],
 }
 
 var failures: PackedStringArray = []
@@ -34,6 +38,7 @@ func run() -> void:
 	await check_edge_scatter()
 	await check_seam_settle()
 	await check_rail_ivy()
+	await check_decals()
 	print("socket_modes_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -266,3 +271,81 @@ func check_rail_ivy() -> void:
 		check(swaying, "%s cards use the swaying foliage material" % plant)
 		p.free()
 	await process_frame
+
+
+## Weathering item 3: decal sets, scenes on the 32 texel/m rule, socket frames
+## (wall stains upright and projecting into the wall, floor wear down, soot up)
+## and the decal render layer on architecture only.
+func check_decals() -> void:
+	for set_name: String in ["wall_stains", "floor_wear", "lamp_soot"]:
+		var set: SocketSet = load("res://kit/sockets/%s.tres" % set_name)
+		check(set.decals and set.slot_is_item == (set_name != "lamp_soot"), "%s is a decal set (slot per item: %s)" % [set_name, set.slot_is_item])
+		for e: SocketEntry in set.entries:
+			if e.scene == null:
+				continue
+			var n: Node = e.scene.instantiate()
+			var d := n.get_node_or_null("Decal") as Decal
+			check(d != null and d.cull_mask == KitModule.DECAL_LAYER and d.texture_albedo != null,
+				"%s '%s' is a Decal on the decal layer only" % [set_name, e.label])
+			if d != null and d.texture_albedo != null:
+				var px := Vector2(d.texture_albedo.get_width(), d.texture_albedo.get_height())
+				check(px.is_equal_approx(Vector2(d.size.x, d.size.z) * 32.0), "%s '%s' is 32 texels/m (%s px over %s m)" % [set_name, e.label, px, d.size])
+			n.free()
+	# Wall stains: socket Y out of the wall (-Z), Z up; items unspun, image top up.
+	var pair: Array = await module_socket("res://kit/modules/walls/wall_plain_4m.tscn", "wall_stains")
+	var socket: VariantSocket = pair[1]
+	if socket != null:
+		check(socket.global_basis.y.is_equal_approx(Vector3(0, 0, -1)) and socket.global_basis.z.is_equal_approx(Vector3.UP),
+			"wall stain socket faces the room with Z up (%s)" % socket.global_basis)
+		check(not socket.scatter_spin and socket.scatter_count == Vector2i(0, 2), "wall stains: 0-2, unspun")
+		var decals: Array[Decal] = await first_decals(socket, "water stain")
+		check(not decals.is_empty(), "pinned to water stain, the wall gets a stain")
+		for d: Decal in decals:
+			check(d.global_basis.y.dot(Vector3(0, 0, -1)) > 0.99 and d.global_basis.z.dot(Vector3.UP) < -0.99,
+				"the stain projects into the wall with its image top up (%s)" % d.global_basis)
+			check(absf(d.global_position.z + 0.3) < 0.01 and d.global_position.y > 1.2 and d.global_position.y < 2.8,
+				"the stain sits on the wall face, mid-wall (%s)" % d.global_position)
+	pair[0].queue_free()
+	pair = await module_socket("res://kit/modules/walls/floor_4m.tscn", "floor_wear")
+	socket = pair[1]
+	if socket != null:
+		check(socket.scatter_spin, "floor wear turns at random")
+		for d: Decal in await first_decals(socket, "crack"):
+			check(d.global_basis.y.dot(Vector3.UP) > 0.99 and d.texture_normal != null, "a floor crack projects down and has a groove normal map")
+	pair[0].queue_free()
+	for lamp: String in ["lantern_hanging", "lantern_cluster"]:
+		pair = await module_socket("res://kit/modules/walls/%s.tscn" % lamp, "lamp_soot")
+		socket = pair[1]
+		if socket != null:
+			socket.resolve(1, socket.socket_set.index_of("soot"))
+			var d: Decal = internal(socket)[0].get_node("Decal") if not internal(socket).is_empty() else null
+			check(d != null and d.global_basis.y.dot(Vector3.DOWN) > 0.99, "%s soot projects up" % lamp)
+			check(d != null and is_equal_approx(d.global_position.y, 4.0 if lamp == "lantern_hanging" else 14.6),
+				"%s soot sits at the chain top (%s)" % [lamp, d.global_position if d != null else "none"])
+		pair[0].queue_free()
+	for m: String in ["walls/wall_plain_4m", "walls/floor_4m", "walls/vault_hall_12m", "walls/post_pier", "walls/table_reading",
+			"walls/rug_runner", "walls/lantern_hanging", "dressing/recess_shelves", "dressing/iwan_lectern"]:
+		var n: Node = (load("res://kit/modules/%s.tscn" % m) as PackedScene).instantiate()
+		var meshes: Array[Node] = n.find_children("*", "MeshInstance3D", true, false)
+		var structural: bool = (n as KitModule).shape != KitModule.Shape.FREE
+		check(not meshes.is_empty() and meshes.all(func(x: Node) -> bool:
+				return (((x as MeshInstance3D).layers & KitModule.DECAL_LAYER) != 0) == structural and ((x as MeshInstance3D).layers & 1) != 0),
+			"%s meshes are %son the decal layer" % [m, "" if structural else "not "])
+		n.free()
+	await process_frame
+
+
+## Decals a scatter socket places when pinned to `label`, trying seeds until
+## the 0-2 count gives at least one.
+func first_decals(socket: VariantSocket, label: String) -> Array[Decal]:
+	var out: Array[Decal] = []
+	for seed_value: int in range(1, 20):
+		socket.resolve(seed_value, socket.socket_set.index_of(label))
+		if socket.last_count > 0:
+			break
+	await process_frame
+	for n: Node in internal(socket):
+		var d := n.get_node_or_null("Decal") as Decal
+		if d != null:
+			out.append(d)
+	return out

@@ -17,6 +17,15 @@ extends Resource
 ## so Validate Room only checks that it has something to land on and that
 ## no other solid stands inside the zone. Size zero = no spill.
 @export var spill_bounds: AABB = AABB()
+## slot_bounds is one item's footprint, not the whole area: Validate Room
+## widens it by each SCATTER socket's scatter_extent (EDGE_SCATTER sockets
+## always widen it along their line). Lets one set serve sockets of any size.
+@export var slot_is_item: bool = false
+## Candidates are Decals (weathering item 3). They mark only kit architecture
+## (KitModule.DECAL_LAYER), so Validate Room checks their box for other
+## architecture surfaces facing the decal (which it would stain too) instead
+## of checking it against every module's collision.
+@export var decals: bool = false
 
 
 ## Weighted pick; returns an index into entries, or -1 if nothing is pickable.

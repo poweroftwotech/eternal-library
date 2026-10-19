@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/decals/crack_floor_a.png" id="1_m7clv"]
+[ext_resource type="Texture2D" path="res://assets/textures/decals/crack_floor_a_normal.png" id="2_hyllp"]
+
+[node name="crack_floor_a" type="Node3D" unique_id=1816486375]
+
+[node name="Decal" type="Decal" parent="." unique_id=1641255411]
+size = Vector3(1.25, 0.3, 1.25)
+texture_albedo = ExtResource("1_m7clv")
+texture_normal = ExtResource("2_hyllp")
+normal_fade = 0.8
+cull_mask = 524288

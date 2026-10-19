@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3 uid="uid://ctbipvgfbbyhg"]
+
+[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_dkedi"]
+[ext_resource type="PackedScene" path="res://kit/decals/soot_plume.tscn" id="2_ixs84"]
+[ext_resource type="PackedScene" path="res://kit/decals/soot_faint.tscn" id="3_5fxau"]
+[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="4_jt8pc"]
+
+[sub_resource type="Resource" id="Resource_q1dht"]
+script = ExtResource("1_dkedi")
+label = "soot"
+scene = ExtResource("2_ixs84")
+weight = 3.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_s1vdt"]
+script = ExtResource("1_dkedi")
+label = "faint soot"
+scene = ExtResource("3_5fxau")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_a5xcu"]
+script = ExtResource("1_dkedi")
+label = "nothing"
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("4_jt8pc")
+entries = Array[ExtResource("1_dkedi")]([SubResource("Resource_q1dht"), SubResource("Resource_s1vdt"), SubResource("Resource_a5xcu")])
+slot_bounds = AABB(-0.625, -0.35, -0.625, 1.25, 0.7, 1.25)
+decals = true

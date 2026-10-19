@@ -1,0 +1,48 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3 uid="uid://rr4un6gdlc3e"]
+
+[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_nc1ey"]
+[ext_resource type="PackedScene" path="res://kit/decals/crack_floor_a.tscn" id="2_1gf14"]
+[ext_resource type="PackedScene" path="res://kit/decals/crack_floor_b.tscn" id="3_iiy7b"]
+[ext_resource type="PackedScene" path="res://kit/decals/damp_floor.tscn" id="4_an6ae"]
+[ext_resource type="PackedScene" path="res://kit/decals/moss_floor.tscn" id="5_avg1o"]
+[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="6_riw0e"]
+
+[sub_resource type="Resource" id="Resource_qash0"]
+script = ExtResource("1_nc1ey")
+label = "nothing"
+weight = 4.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_m4yei"]
+script = ExtResource("1_nc1ey")
+label = "crack"
+scene = ExtResource("2_1gf14")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_hkywf"]
+script = ExtResource("1_nc1ey")
+label = "crack b"
+scene = ExtResource("3_iiy7b")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_75r1r"]
+script = ExtResource("1_nc1ey")
+label = "damp patch"
+scene = ExtResource("4_an6ae")
+weight = 1.5
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_evryk"]
+script = ExtResource("1_nc1ey")
+label = "moss"
+scene = ExtResource("5_avg1o")
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("6_riw0e")
+entries = Array[ExtResource("1_nc1ey")]([SubResource("Resource_qash0"), SubResource("Resource_m4yei"), SubResource("Resource_hkywf"), SubResource("Resource_75r1r"), SubResource("Resource_evryk")])
+slot_bounds = AABB(-0.885, -0.15, -0.885, 1.77, 0.3, 1.77)
+slot_is_item = true
+decals = true

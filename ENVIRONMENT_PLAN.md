@@ -908,9 +908,78 @@ Agreed scope: only the parts that existing tools carry, so phase 3's
      strands would read more. The user checked the plants in the editor. **Not done:**
      the root clump for collapsed recesses (deferred, it needs a recess
      candidate change).
-3. **Decals.** Water stains, soot above lamps, moss patches and floor cracks
-   as `Decal` scenes using the pixel palette (32 tx/m). A `SCATTER` socket on
-   wall bays picks 0-2.
+3. ~~**Decals**~~ (done 2026-10-19).
+   - **Maps:** 8 pixel decal maps in `assets/textures/decals/`, written by a
+     `decals` pass in `tools/pixel_materials_ext.gd` (`-- decals` runs only
+     that pass). They follow the px rules: 32 tx/m, small palettes, Bayer
+     dithering, and alpha in 5 dithered steps, so edges stay texel steps.
+     - Walls, 40 × 80 px (1.25 × 2.5 m): two water stains (seep in at the top,
+       drips, tide line, salt bloom at the foot) and damp with a moss cushion.
+     - Floors, 40 px (1.25 m): two cracks, with the groove in a normal map
+       because floor decals spin, plus a dried puddle and moss.
+     - Lamps: one soot plume, 1.25 m, so a lamp 1 m out clears the wall line.
+     - Imported lossless with mipmaps; the normal maps are flagged as normal
+       maps. `rendering/textures/decals/filter` is nearest-mipmap-anisotropic.
+   - **Only architecture takes decals:** render layer 20
+     (`KitModule.DECAL_LAYER`, named `decal_receivers`) is added at import to
+     the meshes of edge, cell and post modules. Every decal's `cull_mask` is
+     that layer alone, so rugs, tables, lanterns, books and plants never take
+     a stain (the GPU captures show a clean rug over cracked cells).
+     `normal_fade` is 0.8, so faces turned away don't smear.
+   - **Scenes and sets** (`tools/seed_sockets.gd`, additive): `kit/decals/*.tscn`
+     is a Node3D with a Decal child.
+     - `wall_stains`: nothing 3, water stain 2, water stain b 2, damp and moss 1.5.
+     - `floor_wear`: nothing 4, crack 2, crack b 2, damp patch 1.5, moss 1.
+     - `lamp_soot`: soot 3, faint soot 2 (same map at 55%), nothing 1.
+     - New `SocketSet` flags: `slot_is_item` (the slot is one item; Validate Room
+       widens it by a SCATTER socket's `scatter_extent`, so one set serves sockets
+       of any size) and `decals`.
+   - **Sockets** (`kit_add_r01.py` ADD_MARKERS, which now sync rotation too):
+     - Wall sockets on `wall_plain_4m` and `wall_gable_12m` are turned -90° about
+       X, so the socket's Y comes out of the wall and Z points up. SCATTER places
+       0-2 items with the new `VariantSocket.scatter_spin` off (imported from
+       `scatter_spin`). The scene turns the Decal half a turn so the image top is up.
+     - `floor_4m` gets a spun SCATTER (0-2).
+     - Lanterns get a REPLACE socket turned half a turn, projecting up from the
+       chain top: 4.0 m in the gallery slab for `lantern_hanging`, 14.6 m at the
+       vault crown for `lantern_cluster`.
+   - **Validate Room** (decal sets): a decal is meant for one surface, the
+     facing surface nearest the socket's plane. It warns when the box a socket's
+     decals can cover also reaches a facing architecture surface of another
+     module more than 0.1 m off that plane, such as a crack climbing a stair
+     tread or a stain over a pier face. Facing uses the collision triangles'
+     outward normal (`-(b-a)×(c-a)`), dot ≥ 0.6. It caught the soot plume
+     catching lintel undersides in the wall line, then a gallery-end corbel; the
+     plume was shrunk to 1.25 m and the hanging socket moved up to the chain top.
+     The graybox has one more known warning (a side-gallery baluster stands in
+     front of its upper plain end wall).
+   - **Reading room:** 75 sockets, adding 10 wall stain, 15 floor and 7 soot
+     sockets. It validates with no warnings. No pins were needed: the
+     stair-covered walls show their stains above the stair.
+   - **Verified:**
+     - Headless: `socket_modes_test` 149 checks (sets and flags; every decal on
+       the decal layer at 32 tx/m; wall stain upright, projecting into the wall
+       at mid-wall; floor crack down with a normal map; soot up at the chain
+       top; architecture meshes on the layer, furniture and dressing not).
+       `validate_room_test` 22 (new: a floor raised 0.12 m into a cell's reach
+       is reported). Kit test 498 (graybox 35 sockets), room 28, spill 6,
+       atmosphere 32, room playtest 11, camp playtest 43 and the prototype
+       atmosphere test pass. All three 240-frame gates are clean.
+     - GPU: the capture option `decals` pins stains, cracks and soot, and
+       `nodecals` pins all three to nothing (for image_diff). New views `soot`
+       and `crown`. Files: `previews/reading_room_decals_{entrance,end_gallery,seam,soot}.png`
+       and `reading_room_weathered_{end_gallery,table}.png` (default seed).
+   - **Caveats:**
+     - The first stain colour vanished on lamp-lit sandstone (as in vista slice
+       8), so the body palette is now near-black umber at 40-85% alpha. The
+       stains read as streaks with tide lines, but they're modest at hall distance.
+     - Chandelier soot lands on the dark tiled crown and doesn't register
+       (image_diff stays at noise). It's honest, but invisible.
+     - Under the galleries the camera sits inside the plume, so the soot reads
+       as darker wood, not a plume shape.
+     - Changing `tools/kit_import.gd` doesn't reimport unchanged `.glb` files.
+       Delete their `.godot/imported/<name>.glb-*` caches and run `--import`
+       twice (done here for the decal layer).
 4. **Open wooden stair.** `stair_gallery_8m_open` (and `_r`): a stringer
    stair with open risers, the same footprint, ramp and snaps as the masonry
    one, so a room can swap them in the editor.

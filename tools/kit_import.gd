@@ -8,6 +8,7 @@ extends EditorScenePostImport
 ## 2. Puts generated collision on layer 1 (world static).
 ## 3. Turns SNAP_/SOCKET_/LIGHT_/ANCHOR_ empties into Marker3D / lights.
 ## 4. Copies the module's Blender custom properties into meta "kit" on the root.
+## 5. Puts the meshes of edge, cell and post modules on KitModule.DECAL_LAYER too.
 
 const KIT_DIR: String = "res://assets/kit/"
 const LIGHT_PROFILES: Dictionary = {
@@ -45,6 +46,8 @@ func _post_import(scene: Node) -> Object:
 	for node: Node in nodes:
 		if node is MeshInstance3D:
 			_fix_materials(node as MeshInstance3D)
+			if kit["shape"] in ["edge", "cell", "post"]:
+				(node as MeshInstance3D).layers |= KitModule.DECAL_LAYER
 		elif node is StaticBody3D:
 			var body := node as StaticBody3D
 			body.collision_layer = 1
@@ -154,7 +157,7 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 				_warnings.append("socket %s: no socket set at %s" % [kind, set_path])
 			# Optional Blender properties: socket_mode (replace|toggle|scatter|state|edge_scatter),
 			# scatter_count [min, max], scatter_extent [half x, half depth], scatter_spacing,
-			# edge_length, edge_depth, settle (0/1), settle_max_drop.
+			# edge_length, edge_depth, scatter_spin (0/1), settle (0/1), settle_max_drop.
 			var modes: Dictionary = {"replace": VariantSocket.Mode.REPLACE, "toggle": VariantSocket.Mode.TOGGLE,
 				"scatter": VariantSocket.Mode.SCATTER, "state": VariantSocket.Mode.STATE,
 				"edge_scatter": VariantSocket.Mode.EDGE_SCATTER}
@@ -169,6 +172,8 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 			for key: String in ["edge_length", "edge_depth", "settle_max_drop"]:
 				if extras.has(key):
 					socket.set(key, float(extras[key]))
+			if extras.has("scatter_spin"):
+				socket.scatter_spin = bool(int(extras["scatter_spin"]))
 			if extras.has("settle"):
 				socket.settle = bool(int(extras["settle"]))
 			if extras.has("scatter_spacing"):

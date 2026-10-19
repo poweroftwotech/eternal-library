@@ -14,6 +14,10 @@ extends Node3D
 
 const BAY: float = 4.0
 const STOREY: float = 4.0
+## Render layer 20: meshes of edge, cell and post modules (the architecture)
+## are on it as well as layer 1; weathering decals project only onto it, so
+## rugs, tables, lanterns and dressing never take a stain.
+const DECAL_LAYER: int = 1 << 19
 
 enum Shape { EDGE, CELL, POST, FREE }
 

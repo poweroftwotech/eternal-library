@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="SocketSet" format=3 uid="uid://bq6246sg1l3j0"]
 
-[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_sqfgw"]
+[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_sqfgw"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/debris_rubble.tscn" id="2_yiskx"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/debris_brick.tscn" id="3_gsece"]
-[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="4_1wokc"]
+[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="4_1wokc"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/plant_crack_tuft.tscn" id="4_nh0is"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/plant_moss_cushion.tscn" id="5_m8vy5"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/plant_fern.tscn" id="6_783o0"]

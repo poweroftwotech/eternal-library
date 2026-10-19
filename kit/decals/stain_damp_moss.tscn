@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/decals/stain_damp_moss.png" id="1_angd6"]
+
+[node name="stain_damp_moss" type="Node3D" unique_id=769319947]
+
+[node name="Decal" type="Decal" parent="." unique_id=679860563]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
+size = Vector3(1.25, 0.4, 2.5)
+texture_albedo = ExtResource("1_angd6")
+normal_fade = 0.8
+cull_mask = 524288

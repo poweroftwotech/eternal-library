@@ -30,6 +30,7 @@ func run() -> void:
 	check_candidate_misfit()
 	check_spill_inside_solid()
 	check_spill_over_nothing()
+	check_decal_second_surface()
 	print("validate_room_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -54,9 +55,10 @@ func check_clean_rooms() -> void:
 			check(warnings.is_empty(), "the reading room has no warnings (%s)" % [warnings])
 		else:
 			# Known graybox layout conflict: its side galleries run to the end wall,
-			# so the slab ends pass in front of the upper end-wall recess.
-			check(warnings.size() == 2 and Array(warnings).all(func(w: String) -> bool: return w.contains("wall_shelfbay_4m10") and w.contains("gallery_slab")),
-				"graybox warns only about galleries meeting its upper end recess (%s)" % [warnings])
+			# so the slab ends pass in front of the upper end-wall recess, and a rail
+			# baluster stands in reach of the upper plain end wall's stains (item 3).
+			check(warnings.size() == 3 and Array(warnings).all(func(w: String) -> bool: return w.contains("gallery_slab") and (w.contains("wall_shelfbay_4m10") or w.contains("wall_plain_4m5"))),
+				"graybox warns only about galleries meeting its upper end wall (%s)" % [warnings])
 		room.free()
 
 
@@ -210,4 +212,18 @@ func check_spill_over_nothing() -> void:
 	var warnings: PackedStringArray = KitValidateRoom.run(room)["warnings"]
 	check(Array(warnings).any(func(w: String) -> bool: return w.contains("find nothing to land on")),
 		"spill over a missing floor is reported (got %s)" % [warnings])
+	room.free()
+
+
+## Item 3: a floor raised 0.12 m into a cell's decal reach is another surface
+## facing the decals, so cracks would climb onto it; level floors are fine.
+func check_decal_second_surface() -> void:
+	var room: Node3D = fresh(ROOM)
+	var step: Node3D = (load("res://kit/modules/walls/floor_4m.tscn") as PackedScene).instantiate()
+	step.name = "floor_raised"
+	step.position = Vector3(5.5, 0.12, -10.0)
+	room.get_node("Shell").add_child(step)
+	var warnings: PackedStringArray = KitValidateRoom.run(room)["warnings"]
+	check(Array(warnings).any(func(w: String) -> bool: return w.contains("floor_wear decals would also mark Shell/floor_raised")),
+		"a raised floor in a cell's decal reach is reported (got %s)" % [warnings])
 	room.free()

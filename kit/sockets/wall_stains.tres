@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3 uid="uid://dh8vht2ysyjwy"]
+
+[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_uj825"]
+[ext_resource type="PackedScene" path="res://kit/decals/stain_water_a.tscn" id="2_x8ps6"]
+[ext_resource type="PackedScene" path="res://kit/decals/stain_water_b.tscn" id="3_0k84m"]
+[ext_resource type="PackedScene" path="res://kit/decals/stain_damp_moss.tscn" id="4_1c5so"]
+[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="5_4bx4l"]
+
+[sub_resource type="Resource" id="Resource_gly8j"]
+script = ExtResource("1_uj825")
+label = "nothing"
+weight = 3.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_no0n4"]
+script = ExtResource("1_uj825")
+label = "water stain"
+scene = ExtResource("2_x8ps6")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_r8377"]
+script = ExtResource("1_uj825")
+label = "water stain b"
+scene = ExtResource("3_0k84m")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_kpqgy"]
+script = ExtResource("1_uj825")
+label = "damp and moss"
+scene = ExtResource("4_1c5so")
+weight = 1.5
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("5_4bx4l")
+entries = Array[ExtResource("1_uj825")]([SubResource("Resource_gly8j"), SubResource("Resource_no0n4"), SubResource("Resource_r8377"), SubResource("Resource_kpqgy")])
+slot_bounds = AABB(-0.625, -0.2, -1.25, 1.25, 0.4, 2.5)
+slot_is_item = true
+decals = true

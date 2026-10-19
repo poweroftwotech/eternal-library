@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/decals/soot_plume.png" id="1_vd4wm"]
+
+[node name="soot_plume" type="Node3D" unique_id=987275856]
+
+[node name="Decal" type="Decal" parent="." unique_id=1988526302]
+size = Vector3(1.25, 0.7, 1.25)
+texture_albedo = ExtResource("1_vd4wm")
+normal_fade = 0.8
+cull_mask = 524288

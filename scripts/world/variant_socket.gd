@@ -44,6 +44,9 @@ enum Mode { REPLACE, TOGGLE, SCATTER, STATE, EDGE_SCATTER }
 @export var scatter_extent: Vector2 = Vector2(0.5, 0.5)
 ## SCATTER: minimum distance between item origins.
 @export var scatter_spacing: float = 0.3
+## SCATTER / EDGE_SCATTER: turn each item at random about the socket's Y. Off
+## for wall decals, whose water has to run down.
+@export var scatter_spin: bool = true
 ## EDGE_SCATTER: length of the line along local +X, and how far items may sit
 ## out from it into the room (local -Z).
 @export var edge_length: float = 4.0
@@ -160,7 +163,8 @@ func _scatter(force: int, rng: RandomNumberGenerator) -> void:
 		spots.append(p)
 		var idx: int = force if force >= 0 else socket_set.pick(rng)
 		var before: int = _children.size()
-		_spawn(idx, Transform3D(Basis(Vector3.UP, rng.randf() * TAU), p), rng)
+		var spin: float = rng.randf() * TAU     # drawn either way: same picks as before
+		_spawn(idx, Transform3D(Basis(Vector3.UP, spin if scatter_spin else 0.0), p), rng)
 		placed += _children.size() - before
 	last_count = placed
 	if settle and placed > 0:

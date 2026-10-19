@@ -48,8 +48,9 @@ func audit(room: Node3D) -> void:
 		for s: VariantSocket in sockets:
 			var key: String = s.socket_set.resource_path.get_file().get_basename() if s.socket_set != null else "(none)"
 			by_set[key] = int(by_set.get(key, 0)) + 1
-		check(by_set == {"recess_library": 16, "iwan_centre": 1, "table_props": 4, "lamp_state": 7, "seam_debris": 10, "rail_growth": 5},
-			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps, 10 wall seams, 5 rails (found %s)" % by_set)
+		check(by_set == {"recess_library": 16, "iwan_centre": 1, "table_props": 4, "lamp_state": 7, "seam_debris": 10, "rail_growth": 5,
+				"wall_stains": 10, "floor_wear": 15, "lamp_soot": 7},
+			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps, 10 seams, 5 rails, 10 wall stains, 15 floors, 7 soot (found %s)" % by_set)
 		check(tmpl.resolve_sockets(7) == tmpl.resolve_sockets(7), "socket picks are deterministic")
 	check(room.get_node("Connectors").get_child_count() == 3, "three door connectors")
 	await physics_frame

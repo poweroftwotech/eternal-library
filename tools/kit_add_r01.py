@@ -68,6 +68,20 @@ def seam_socket(length):
             "scatter_spacing": 0.45, "edge_length": length, "edge_depth": 0.25, "settle": 1, "settle_max_drop": 0.3}
 
 
+def wall_decals(extent, spacing):
+    """Stains on a wall face (weathering item 3): 0-2 unspun decals around the
+    marker; extent is [half along the wall, half up the wall]."""
+    return {"socket_set": "wall_stains", "socket_mode": "scatter", "scatter_count": [0, 2],
+            "scatter_extent": extent, "scatter_spacing": spacing, "scatter_spin": 0}
+
+
+FLOOR_DECALS = {"socket_set": "floor_wear", "socket_mode": "scatter", "scatter_count": [0, 2],
+                "scatter_extent": [0.7, 0.7], "scatter_spacing": 1.2}
+SOOT = {"socket_set": "lamp_soot"}
+WALL_TURN = (-math.pi / 2, 0.0, 0.0)
+UP_TURN = (math.pi, 0.0, 0.0)
+
+
 TABLE_SOCKET = {"socket_set": "table_props", "socket_mode": "scatter", "scatter_count": [2, 5],
                 "scatter_extent": [0.5, 1.9], "scatter_spacing": 0.35}
 
@@ -359,6 +373,14 @@ ADD_MARKERS = [
     ("M_gallery_end_12m", "SOCKET_rail_growth__end", (2.0, RAIL[0], RAIL[1]), rail_socket(8.0, 6)),
     ("M_wall_iwan_12m", "SOCKET_seam_debris__iwan_l", (0.85, T, 0.0), seam_socket(1.3)),
     ("M_wall_iwan_12m", "SOCKET_seam_debris__iwan_r", (HALL - 2.15, T, 0.0), seam_socket(1.2)),
+    # Weathering item 3 (decals). Wall sockets are turned -90 deg about X so the
+    # socket's Godot Y comes out of the wall and Z points up; soot sockets half a
+    # turn so Y points down and the decal projects up onto what is overhead.
+    ("M_wall_plain_4m", "SOCKET_wall_stains__plain", (2.0, T, 2.0), wall_decals([0.75, 0.45], 1.0), WALL_TURN),
+    ("M_wall_gable_12m", "SOCKET_wall_stains__gable", (HALL / 2, T, H + 3.4), wall_decals([2.2, 0.6], 1.4), WALL_TURN),
+    ("M_floor_4m", "SOCKET_floor_wear__cell", (2.0, 2.0, 0.0), FLOOR_DECALS),
+    ("M_lantern_hanging", "SOCKET_lamp_soot__hanging", (0.0, 0.0, H), SOOT, UP_TURN),   # chain top, in the slab
+    ("M_lantern_cluster", "SOCKET_lamp_soot__cluster", (0.0, 0.0, 14.6), SOOT, UP_TURN),      # vault crown
 ]
 
 
@@ -378,22 +400,26 @@ def upgrade():
             bpy.data.objects.remove(ob, do_unlink=True)
             done.append("removed " + name)
     # Script-owned markers: added when missing, and kept in sync (position and
-    # custom properties) so tuning a socket here reaches an existing .blend.
-    for (mod, name, loc, p) in ADD_MARKERS:
+    # custom properties, rotation) so tuning a socket here reaches an existing .blend.
+    # Entries are (module, marker, location, properties[, rotation]).
+    for entry in ADD_MARKERS:
+        (mod, name, loc, p) = entry[:4]
+        rot = Vector(entry[4] if len(entry) > 4 else (0.0, 0.0, 0.0))
         root = bpy.data.objects.get(mod)
         if root is None:
             continue
         existing = [c for c in root.children if c.name.startswith(name)]
         if not existing:
-            marker(name, root, loc, p)
+            marker(name, root, loc, p).rotation_euler = rot
             done.append("%s += %s" % (mod, name))
             continue
         e = existing[0]
-        stale = (e.location - Vector(loc)).length > 1e-4 or any(
+        stale = (e.location - Vector(loc)).length > 1e-4 or (Vector(e.rotation_euler) - rot).length > 1e-4 or any(
             k not in e.keys() or (list(e[k]) if hasattr(e[k], "__len__") and not isinstance(e[k], str) else e[k]) != v
             for (k, v) in p.items())
         if stale:
             e.location = loc
+            e.rotation_euler = rot
             for (k, v) in p.items():
                 e[k] = v
             done.append("%s: synced %s" % (mod, name))

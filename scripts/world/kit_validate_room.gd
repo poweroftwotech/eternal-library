@@ -12,6 +12,8 @@ extends RefCounted
 ## - Socket fit: every candidate of a SocketSet with slot_bounds fits inside
 ##   it (error), and each socket's slot doesn't run into another module's
 ##   collision (warning: e.g. fallen books clipping a gallery slab).
+## - Decal sockets: a decal box that reaches another architecture surface
+##   facing it would stain that too (warning: a wall stain over a pier).
 ##
 ## Returns {"errors": PackedStringArray, "warnings": PackedStringArray}.
 
@@ -23,6 +25,8 @@ const SLOT_MARGIN: float = 0.03
 const FILL_SEEDS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
 const SPILL_PROBES: Vector2i = Vector2i(7, 3)   # spill-zone probe grid (x, depth)
 const SPILL_DROP: float = 12.0                  # how far below the zone spill may fall
+const DECAL_FACING: float = 0.6                 # cos at which a surface takes a decal (normal_fade 0.8)
+const DECAL_DEPTH: float = 0.1                  # surfaces this far off the decal's target are another surface
 
 static var _fit_cache: Dictionary = {}     # set path -> PackedStringArray of misfits
 
@@ -187,7 +191,12 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 			# the room only (behind the line is the host wall).
 			local_slot = AABB(Vector3(local_slot.position.x, local_slot.position.y, local_slot.position.z - s.edge_depth),
 				Vector3(local_slot.size.x + s.edge_length, local_slot.size.y, s.edge_depth - local_slot.position.z))
-		if s.settle and (s.mode == VariantSocket.Mode.SCATTER or s.mode == VariantSocket.Mode.EDGE_SCATTER):
+		elif s.mode == VariantSocket.Mode.SCATTER and s.socket_set.slot_is_item:
+			var reach := Vector3(s.scatter_extent.x, 0.0, s.scatter_extent.y)
+			local_slot = AABB(local_slot.position - reach, local_slot.size + reach * 2.0)
+		if s.socket_set.decals:
+			_decal_probe(root, s, socket_xf, bodies, label, warnings, local_slot, host)
+		elif s.settle and (s.mode == VariantSocket.Mode.SCATTER or s.mode == VariantSocket.Mode.EDGE_SCATTER):
 			# Settling items rest on whatever is below (a gallery is fine) and vanish
 			# if nothing is in reach, so only a solid inside the strip is a problem.
 			_spill_probe(root, s, socket_xf, bodies, label, warnings, local_slot, true)
@@ -237,6 +246,56 @@ static func _spill_probe(root: Node, s: VariantSocket, socket_xf: Transform3D, b
 		warnings.append("socket %s: %d of %d spill probes find nothing to land on" % [label, nothing, SPILL_PROBES.x * SPILL_PROBES.y])
 	for body: Node in inside:
 		warnings.append("socket %s: %s items would rest inside %s" % [label, s.socket_set.resource_path.get_file().get_basename(), str(root.get_path_to(body))])
+
+
+## Decals mark only architecture (edge, cell and post modules), and only
+## surfaces facing back along their projection (toward the socket's +Y). A
+## decal is meant for one surface: the facing surface nearest the socket's own
+## plane (its wall, its floor, the slab or vault over a lamp). Warn when the box
+## a socket's decals can cover also reaches a facing surface of another module
+## at a different depth: a floor crack climbing a stair tread, a wall stain
+## over a pier face. Surfaces level with the target (two slabs meeting) are fine.
+static func _decal_probe(root: Node, s: VariantSocket, socket_xf: Transform3D, bodies: Array,
+		label: String, warnings: PackedStringArray, zone: AABB, _host: Node) -> void:
+	var axis: Vector3 = socket_xf.basis.y.normalized()
+	var box: AABB = (socket_xf * zone).grow(-SLOT_MARGIN)
+	var hits: Array = []      # [module, depth along the axis from the socket]
+	for item: Array in bodies:
+		var m: KitModule = item[0]
+		if m.shape == KitModule.Shape.FREE or not box.intersects(item[1]):
+			continue
+		for tri: PackedVector3Array in _triangles(item):
+			# Collision faces wind so that the outward normal is -(b-a)x(c-a).
+			var n: Vector3 = (tri[0] - tri[1]).cross(tri[2] - tri[0])
+			if n.length_squared() < 1e-10:
+				continue
+			n = n.normalized()
+			if n.dot(axis) >= DECAL_FACING and _tri_meets_box(tri, n, box):
+				hits.append([m, axis.dot((tri[0] + tri[1] + tri[2]) / 3.0 - socket_xf.origin)])
+	if hits.is_empty():
+		return
+	var target: Array = hits[0]
+	for h: Array in hits:
+		if absf(h[1]) < absf(target[1]):
+			target = h
+	var seen: Dictionary = {target[0]: true}    # the target's own curve (a vault) is one surface
+	for h: Array in hits:
+		if not seen.has(h[0]) and absf(h[1] - target[1]) > DECAL_DEPTH:
+			seen[h[0]] = true
+			warnings.append("socket %s: its %s decals would also mark %s (%.2f m off %s)" % [label,
+				s.socket_set.resource_path.get_file().get_basename(), str(root.get_path_to(h[0])),
+				absf(h[1] - target[1]), str(root.get_path_to(target[0]))])
+
+
+## Triangle against an axis-aligned box: bounding boxes overlap and the
+## triangle's plane passes through the box (enough for the flat faces here).
+static func _tri_meets_box(tri: PackedVector3Array, n: Vector3, box: AABB) -> bool:
+	var tb := AABB(tri[0], Vector3.ZERO).expand(tri[1]).expand(tri[2]).grow(0.001)
+	if not tb.intersects(box):
+		return false
+	var half: Vector3 = box.size * 0.5
+	var r: float = absf(n.x) * half.x + absf(n.y) * half.y + absf(n.z) * half.z
+	return absf(n.dot(box.get_center() - tri[0])) <= r
 
 
 ## Room-space triangles of a body entry [module, aabb, transform, shape], cached.
@@ -298,6 +357,8 @@ static func visual_bounds(node: Node) -> AABB:
 			local = multimesh_bounds((n as MultiMeshInstance3D).multimesh)
 		elif n is MeshInstance3D and (n as MeshInstance3D).mesh != null:
 			local = (n as MeshInstance3D).mesh.get_aabb()
+		elif n is Decal:
+			local = AABB((n as Decal).size * -0.5, (n as Decal).size)
 		if local.has_volume() or local.size.length() > 0.0:
 			box = xf * local if first else box.merge(xf * local)
 			first = false
