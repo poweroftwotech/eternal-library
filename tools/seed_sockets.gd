@@ -75,6 +75,17 @@ func _initialize() -> void:
 	# Same labels and order, so a pin means the same look on either stair.
 	socket_set("stair_style_r", [["masonry", DRESS + "stair_steps_masonry_r.tscn", 2.0],
 		["open wood", DRESS + "stair_steps_open_r.tscn", 1.0]])
+	# Polish 1c: gallery looks (one set per gallery module) and the columns that
+	# carry the masonry arcade (nothing under a wooden gallery). Same order as
+	# the stairs, and one style group, so a room builds all of them alike.
+	for part: String in ["slab", "open_end", "open_start", "end"]:
+		socket_set("gallery_style_" + part, [["masonry", DRESS + "gallery_masonry_%s.tscn" % part, 2.0],
+			["wood", DRESS + "gallery_wood_%s.tscn" % part, 1.0]])
+	socket_set("gallery_support", [["masonry", DRESS + "gallery_column.tscn", 2.0], ["wood", "", 1.0]])
+	socket_set("gallery_support_corner", [["masonry", DRESS + "gallery_column_corner.tscn", 2.0], ["wood", "", 1.0]])
+	for set_name: String in ["stair_style", "stair_style_r", "gallery_style_slab", "gallery_style_open_end",
+			"gallery_style_open_start", "gallery_style_end", "gallery_support", "gallery_support_corner"]:
+		style_group(set_name, "gallery_build")
 	print("seed_sockets: ", "; ".join(made) if not made.is_empty() else "nothing to do")
 	quit()
 
@@ -171,6 +182,20 @@ func decal(map: String, size: Vector3, upright: bool = false, normal: bool = fal
 
 
 ## Sets the slot Validate Room checks candidates against, unless one is set.
+## Puts a set in a style group (SocketSet.style_group) unless it already has one.
+func style_group(set_name: String, group: String) -> void:
+	var path: String = "res://kit/sockets/%s.tres" % set_name
+	var set: SocketSet = load(path)
+	if set == null or set.style_group != "":
+		return
+	set.style_group = group
+	var uid: int = KitCatalogBuilder.header_uid(path)
+	ResourceSaver.save(set, path)
+	if uid != ResourceUID.INVALID_ID:
+		ResourceSaver.set_uid(path, uid)
+	made.append("%s style_group = %s" % [path, group])
+
+
 func slot(set_name: String, bounds: AABB, spill: AABB = AABB(), item: bool = false, decals: bool = false) -> void:
 	var path: String = "res://kit/sockets/%s.tres" % set_name
 	var set: SocketSet = load(path)

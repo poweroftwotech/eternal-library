@@ -473,6 +473,8 @@ static func _pick_of(root: Node, s: VariantSocket) -> int:
 		var tmpl := root as RoomTemplate
 		var key: String = tmpl.socket_key(s)
 		pin = tmpl.socket_pins.get(key, pin)
+		if (pin < 0 or pin >= n) and s.socket_set.style_group != "":
+			pin = tmpl.style_picks(tmpl.preview_seed).get(s.socket_set.style_group, -1)
 		if pin < 0 or pin >= n:
 			var rng := RandomNumberGenerator.new()
 			rng.seed = tmpl.socket_seed(tmpl.preview_seed, key)

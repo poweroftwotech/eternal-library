@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_hx8hd"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/gallery_masonry_open_end.tscn" id="2_u7w6c"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/gallery_wood_open_end.tscn" id="3_h5ms5"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="4_6e8il"]
+
+[sub_resource type="Resource" id="Resource_hf13a"]
+script = ExtResource("1_hx8hd")
+label = "masonry"
+scene = ExtResource("2_u7w6c")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_xevpy"]
+script = ExtResource("1_hx8hd")
+label = "wood"
+scene = ExtResource("3_h5ms5")
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("4_6e8il")
+entries = Array[ExtResource("1_hx8hd")]([SubResource("Resource_hf13a"), SubResource("Resource_xevpy")])
+style_group = "gallery_build"

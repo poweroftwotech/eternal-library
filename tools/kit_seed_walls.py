@@ -106,14 +106,14 @@ def build():
                "size_cells": [1, 1, 0], "edge": "gallery", "tags": "wood,vertical", "weight": 1.0})
     bm = bmesh.new()
     add_box(bm, 0, 4, T, 1.6, H - 0.15, H + 0.15, 0)
-    mesh_object("gallery_slab_4m__slab-col", bm, ["wood"], r)
+    mesh_object("gallery_slab_4m__slab-colonly", bm, ["wood"], r)   # visible slab: gallery_style look (1c)
     bm = bmesh.new()
     x = 0.05
     while x < 4.0:
         add_box(bm, x, x + 0.06, 1.48, 1.54, H + 0.15, H + 0.95)
         x += 0.5
     add_box(bm, 0, 4, 1.46, 1.56, H + 0.92, H + 1.0)
-    mesh_object("gallery_slab_4m__rail-col", bm, ["wood"], r)
+    mesh_object("gallery_slab_4m__rail-colonly", bm, ["wood"], r)
     marker("ANCHOR_lookout__gallery", r, (2.0, 1.0, H + 0.15))
     marker("SOCKET_rail_growth__slab", r, (0.65, 1.51, H + 1.0), {"socket_set": "rail_growth", "socket_mode": "edge_scatter",
            "scatter_count": [1, 3], "scatter_spacing": 0.8, "edge_length": 2.7, "edge_depth": 0.0})

@@ -216,10 +216,10 @@ def gallery_open(r, name, rail_x0, rail_x1):
     corner square under it opens onto an end-wall gallery."""
     bm = bmesh.new()
     add_box(bm, 0, 4, GAL_Y0, GAL_Y1, H - 0.15, H + 0.15)
-    mesh_object(name + "__slab-col", bm, ["wood"], r)
+    mesh_object(name + "__slab-colonly", bm, ["wood"], r)
     bm = bmesh.new()
     balustrade(bm, rail_x0, rail_x1)
-    mesh_object(name + "__rail-col", bm, ["wood"], r)
+    mesh_object(name + "__rail-colonly", bm, ["wood"], r)
     marker("ANCHOR_lookout__" + name, r, (2.0, 1.0, H + 0.15))
     start, length = (0.65, 1.35) if rail_x0 < 0.5 else (2.0, 1.35)
     marker("SOCKET_rail_growth__" + name.replace("gallery_slab_4m_", ""), r, (start, RAIL[0], RAIL[1]), rail_socket(length, 2))
@@ -239,12 +239,12 @@ def gallery_end(r):
     x0, x1 = GAL_Y1, HALL - GAL_Y1
     bm = bmesh.new()
     add_box(bm, x0, x1, GAL_Y0, GAL_Y1, H - 0.15, H + 0.15)
-    mesh_object("gallery_end_12m__slab-col", bm, ["wood"], r)
+    mesh_object("gallery_end_12m__slab-colonly", bm, ["wood"], r)
     bm = bmesh.new()
     balustrade(bm, x0 - 0.04, x1 + 0.04)
     newel(bm, x0 - 0.09)
     newel(bm, x1 + 0.09)
-    mesh_object("gallery_end_12m__rail-col", bm, ["wood"], r)
+    mesh_object("gallery_end_12m__rail-colonly", bm, ["wood"], r)
     # Wall corbels under the slab, clear of a central 3 m arch (x 4.5-7.5).
     bm = bmesh.new()
     for x in (2.4, 3.9, 7.9, 9.4):
@@ -253,6 +253,23 @@ def gallery_end(r):
     mesh_object("gallery_end_12m__corbels", bm, ["arch_stone"], r)
     marker("ANCHOR_lookout__gallery_end", r, (HALL / 2, 1.0, H + 0.15))
     marker("SOCKET_rail_growth__end", r, (2.0, RAIL[0], RAIL[1]), rail_socket(8.0, 6))
+
+
+COL_Y = 1.4    # gallery column centre line, from the wall line (polish 1c)
+
+
+def gallery_column(r):
+    """Column point under a gallery's open edge (polish 1c). The origin is on the
+    wall line (on the grid, like a pier); the socket stands at the column centre,
+    COL_Y into the room. Nothing visible of its own: the gallery_support socket
+    brings the column and its arch to the wall when the gallery is masonry, and
+    nothing when it is wood. The socket is an ADD_MARKERS entry (kept in sync)."""
+
+
+def gallery_column_corner(r):
+    """As post_gallery_column at the inner corner of an L of galleries: the origin
+    is the corner of the two wall lines, the column (COL_Y, COL_Y) from it, with
+    arches to both walls (-Y and -X)."""
 
 
 def pier_corbel(r):
@@ -355,7 +372,18 @@ MODULES = [
     ("M_gallery_slab_4m_open_end", props("edge", [1, 1, 0], "gallery", "wood,vertical,gallery_corner"), gallery_open_end),
     ("M_gallery_slab_4m_open_start", props("edge", [1, 1, 0], "gallery", "wood,vertical,gallery_corner"), gallery_open_start),
     ("M_gallery_end_12m", props("edge", [3, 1, 0], "gallery_end", "wood,vertical,hall_12m"), gallery_end),
+    # Polish 1c: column points for the masonry gallery's arcade.
+    ("M_post_gallery_column", props("free", [0, 1, 0], "", "stone,gallery"), gallery_column),
+    ("M_post_gallery_column_corner", props("free", [0, 1, 0], "", "stone,gallery"), gallery_column_corner),
 ]
+
+# Polish 1c: the gallery's visible slab and rail come from its gallery_style
+# look, so the modules keep them as collision only (renamed in place: hand edits
+# to the shapes survive).
+GALLERIES = ["gallery_slab_4m", "gallery_slab_4m_open_end", "gallery_slab_4m_open_start", "gallery_end_12m"]
+RENAME = [("%s__%s-col" % (g, part), "%s__%s-colonly" % (g, part)) for g in GALLERIES for part in ("slab", "rail")]
+# Root properties kept in sync with MODULES (the column points were first made as "post").
+SYNC_PROPS = [(n, {"kit_shape": p["kit_shape"], "tags": p["tags"]}) for (n, p, _b) in MODULES if n.startswith("M_post_gallery_column")]
 
 
 # Step 3 upgrades for modules that already exist in a hand-edited .blend
@@ -388,6 +416,15 @@ ADD_MARKERS = [
     # Item 4: stair looks.
     ("M_stair_gallery_8m", "SOCKET_stair_style__stair_gallery_8m", STAIR_SOCKET, {"socket_set": "stair_style"}),
     ("M_stair_gallery_8m_r", "SOCKET_stair_style__stair_gallery_8m_r", STAIR_SOCKET, {"socket_set": "stair_style_r"}),
+    # Polish 1c: gallery looks, at the module origin (the candidates share its space).
+    ("M_gallery_slab_4m", "SOCKET_gallery_style__slab", (0.0, 0.0, 0.0), {"socket_set": "gallery_style_slab"}),
+    ("M_gallery_slab_4m_open_end", "SOCKET_gallery_style__open_end", (0.0, 0.0, 0.0), {"socket_set": "gallery_style_open_end"}),
+    ("M_gallery_slab_4m_open_start", "SOCKET_gallery_style__open_start", (0.0, 0.0, 0.0),
+     {"socket_set": "gallery_style_open_start"}),
+    ("M_gallery_end_12m", "SOCKET_gallery_style__end", (0.0, 0.0, 0.0), {"socket_set": "gallery_style_end"}),
+    ("M_post_gallery_column", "SOCKET_gallery_support__column", (0.0, COL_Y, 0.0), {"socket_set": "gallery_support"}),
+    ("M_post_gallery_column_corner", "SOCKET_gallery_support__corner", (COL_Y, COL_Y, 0.0),
+     {"socket_set": "gallery_support_corner"}),
 ]
 
 
@@ -402,6 +439,18 @@ REBUILD = [("M_lantern_cluster", 2),   # rev 2 (step 4): glass split from the fr
 
 def upgrade():
     done = ["rebuilt %s (rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
+    for (mod, p) in SYNC_PROPS:
+        root = bpy.data.objects.get(mod)
+        stale = {k: v for (k, v) in p.items() if root is not None and root.get(k) != v}
+        for (k, v) in stale.items():
+            root[k] = v
+        if stale:
+            done.append("%s: synced %s" % (mod, ", ".join(stale)))
+    for (old, new) in RENAME:
+        ob = bpy.data.objects.get(old)
+        if ob is not None and bpy.data.objects.get(new) is None:
+            ob.name = new
+            done.append("renamed %s -> %s" % (old, new))
     for name in REMOVE:
         ob = bpy.data.objects.get(name)
         if ob is not None:

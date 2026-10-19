@@ -1,9 +1,9 @@
 [gd_resource type="Resource" script_class="SocketSet" format=3 uid="uid://cctcbx320hd0w"]
 
-[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_jfew1"]
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_jfew1"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/stair_steps_masonry_r.tscn" id="2_rud2d"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/stair_steps_open_r.tscn" id="3_d6b1b"]
-[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="4_mjfwj"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="4_mjfwj"]
 
 [sub_resource type="Resource" id="Resource_dc3is"]
 script = ExtResource("1_jfew1")
@@ -21,3 +21,4 @@ tags = PackedStringArray()
 [resource]
 script = ExtResource("4_mjfwj")
 entries = Array[ExtResource("1_jfew1")]([SubResource("Resource_dc3is"), SubResource("Resource_dg0kd")])
+style_group = "gallery_build"

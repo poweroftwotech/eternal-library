@@ -22,6 +22,8 @@
 [ext_resource type="PackedScene" uid="uid://cpydak8e2r1kv" path="res://kit/modules/walls/lantern_hanging.tscn" id="20_ncy22"]
 [ext_resource type="Script" uid="uid://cl6c2w4g1uv71" path="res://scripts/world/atmosphere.gd" id="21_jkhh2"]
 [ext_resource type="Resource" uid="uid://ias1025mcpkx" path="res://kit/atmosphere/reading_room.tres" id="22_mhd57"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/post_gallery_column.tscn" id="23_gcol"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/post_gallery_column_corner.tscn" id="24_gcorn"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_gml7e"]
 size = Vector3(12, 15, 23.3)
@@ -34,6 +36,19 @@ script = ExtResource("1_kokae")
 room_id = "reading_room"
 display_name = "The Reading Room"
 socket_pins = Dictionary[String, int]({
+"Shell/gallery_slab_4m/Mesh/M_gallery_slab_4m/SOCKET_gallery_style": 0,
+"Shell/gallery_slab_4m2/Mesh/M_gallery_slab_4m/SOCKET_gallery_style": 0,
+"Shell/gallery_slab_4m_open_end/Mesh/M_gallery_slab_4m_open_end/SOCKET_gallery_style": 0,
+"Shell/gallery_slab_4m_open_start/Mesh/M_gallery_slab_4m_open_start/SOCKET_gallery_style": 0,
+"Shell/gallery_end_12m/Mesh/M_gallery_end_12m/SOCKET_gallery_style": 0,
+"Shell/post_gallery_column_corner/Mesh/M_post_gallery_column_corner/SOCKET_gallery_support": 0,
+"Shell/post_gallery_column_corner2/Mesh/M_post_gallery_column_corner/SOCKET_gallery_support": 0,
+"Shell/post_gallery_column/Mesh/M_post_gallery_column/SOCKET_gallery_support": 0,
+"Shell/post_gallery_column2/Mesh/M_post_gallery_column/SOCKET_gallery_support": 0,
+"Shell/post_gallery_column3/Mesh/M_post_gallery_column/SOCKET_gallery_support": 0,
+"Shell/post_gallery_column4/Mesh/M_post_gallery_column/SOCKET_gallery_support": 0,
+"Shell/post_gallery_column5/Mesh/M_post_gallery_column/SOCKET_gallery_support": 0,
+"Shell/post_gallery_column6/Mesh/M_post_gallery_column/SOCKET_gallery_support": 0,
 "Lights/lantern_cluster/Mesh/M_lantern_cluster/SOCKET_lamp_state": 0,
 "Lights/lantern_cluster2/Mesh/M_lantern_cluster/SOCKET_lamp_state": 0,
 "Shell/stair_gallery_8m/Mesh/M_stair_gallery_8m/SOCKET_stair_style": 0,
@@ -282,6 +297,30 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -20)
 
 [node name="post_pier_corbel10" parent="Shell" unique_id=1913502573 instance=ExtResource("15_bj6lf")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 0, -20)
+
+[node name="post_gallery_column_corner" parent="Shell" instance=ExtResource("24_gcorn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0)
+
+[node name="post_gallery_column_corner2" parent="Shell" instance=ExtResource("24_gcorn")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12, 0, 0)
+
+[node name="post_gallery_column" parent="Shell" instance=ExtResource("23_gcol")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, -4)
+
+[node name="post_gallery_column2" parent="Shell" instance=ExtResource("23_gcol")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, -8)
+
+[node name="post_gallery_column3" parent="Shell" instance=ExtResource("23_gcol")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12, 0, -4)
+
+[node name="post_gallery_column4" parent="Shell" instance=ExtResource("23_gcol")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12, 0, -8)
+
+[node name="post_gallery_column5" parent="Shell" instance=ExtResource("23_gcol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 0)
+
+[node name="post_gallery_column6" parent="Shell" instance=ExtResource("23_gcol")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 0)
 
 [node name="post_pier13" parent="Shell" unique_id=1475321244 instance=ExtResource("16_rbbdx")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -20)

@@ -25,6 +25,96 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "gallery_column",
+"scene": "res://kit/modules/dressing/gallery_column.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "brick", "gallery", "structure"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "gallery_column_corner",
+"scene": "res://kit/modules/dressing/gallery_column_corner.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "brick", "gallery", "structure"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "gallery_masonry_end",
+"scene": "res://kit/modules/dressing/gallery_masonry_end.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "brick", "gallery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "gallery_masonry_open_end",
+"scene": "res://kit/modules/dressing/gallery_masonry_open_end.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "brick", "gallery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "gallery_masonry_open_start",
+"scene": "res://kit/modules/dressing/gallery_masonry_open_start.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "brick", "gallery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "gallery_masonry_slab",
+"scene": "res://kit/modules/dressing/gallery_masonry_slab.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "brick", "gallery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "gallery_wood_end",
+"scene": "res://kit/modules/dressing/gallery_wood_end.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "gallery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "gallery_wood_open_end",
+"scene": "res://kit/modules/dressing/gallery_wood_open_end.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "gallery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "gallery_wood_open_start",
+"scene": "res://kit/modules/dressing/gallery_wood_open_start.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "gallery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "gallery_wood_slab",
+"scene": "res://kit/modules/dressing/gallery_wood_slab.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "gallery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "iwan_fountain",
 "scene": "res://kit/modules/dressing/iwan_fountain.tscn",
 "shape": "free",
@@ -273,6 +363,24 @@ modules = Array[Dictionary]([{
 "shape": "free",
 "size_cells": Vector3i(0, 1, 0),
 "tags": PackedStringArray("brass", "light"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "post_gallery_column",
+"scene": "res://kit/modules/walls/post_gallery_column.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("stone", "gallery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "post_gallery_column_corner",
+"scene": "res://kit/modules/walls/post_gallery_column_corner.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("stone", "gallery"),
 "weight": 1.0
 }, {
 "edge": "",

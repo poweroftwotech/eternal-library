@@ -49,11 +49,26 @@ func socket_key(s: VariantSocket) -> String:
 func resolve_sockets(seed_value: int) -> Dictionary:
 	_last_seed = seed_value
 	var picks: Dictionary = {}
+	var styles: Dictionary = style_picks(seed_value)
 	for s: VariantSocket in sockets():
 		var key: String = socket_key(s)
-		picks[key] = s.resolve(socket_seed(seed_value, key), socket_pins.get(key, -1))
+		var group: String = s.socket_set.style_group if s.socket_set != null else ""
+		picks[key] = s.resolve(socket_seed(seed_value, key), socket_pins.get(key, -1), styles.get(group, -1))
 	apply_claims()
 	return picks
+
+
+## {style group: entry index}, rolled once per room from the seed with the
+## weights of the first set found in that group (SocketSet.style_group).
+func style_picks(seed_value: int) -> Dictionary:
+	var out: Dictionary = {}
+	for s: VariantSocket in sockets():
+		if s.socket_set == null or s.socket_set.style_group == "" or out.has(s.socket_set.style_group):
+			continue
+		var rng := RandomNumberGenerator.new()
+		rng.seed = socket_seed(seed_value, "style:" + s.socket_set.style_group)
+		out[s.socket_set.style_group] = s.socket_set.pick(rng)
+	return out
 
 
 ## Picks can claim space (CLAIM_ markers: the wall base behind a masonry

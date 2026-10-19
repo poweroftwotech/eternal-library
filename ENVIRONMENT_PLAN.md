@@ -1133,7 +1133,100 @@ reviewed in the editor before the next one starts.
      across the balusters as dark bands. It reads as turned rings at play
      distance; a plain-stone variant would need a separate material.
 
-**A is complete.** Next: B (growth), starting with item 4.
+1c. **Masonry galleries on an arcade** (user request 2026-10-19). The
+   galleries get a masonry look with the stair's stone balustrade. The heavy
+   stone platform has to read as carried. The user chose an arcade on columns
+   over wall-only arches.
+   - **Look socket:** `gallery_style` on `gallery_slab_4m`,
+     `_open_end`, `_open_start` and `gallery_end_12m` (masonry, wood). As
+     with the stairs, the modules keep only collision (`__slab-colonly`,
+     `__rail-colonly`, renamed in place so hand edits survive), and each look
+     brings its visuals. Wood is today's slab and balustrade. Masonry is a
+     stone slab, the stone balustrade (plinth, balusters on a 0.4 m pitch,
+     handrail, corner newels) and the **arcade**: one arch per span along the
+     open edge, brick spandrels and `arch_stone` voussoirs.
+   - **Supports:** two new post modules stand at every column point.
+     `post_gallery_column` carries one transverse arch to its wall and
+     `post_gallery_column_corner` carries two, one to each wall. Both have a
+     `gallery_support(_corner)` socket (masonry: column and arches with a wall
+     respond; wood: nothing). The column is 0.5 m square at base and abacus
+     with a turned shaft, centred 1.4 m from the wall line. All arches spring
+     at 1.85 m (capsule 1.75 m). The arcade reaches 3.55 m: 4 m bays are
+     round, shorter spans pointed. The transverse arches are stilted to
+     3.3 m, so the pier corbels stay buried in their spandrels.
+   - **One build per room:** `SocketSet.style_group`. Sets in a group share
+     their entry order (0 masonry, 1 wood). The room picks one index per
+     group from its seed, and every unpinned socket in the group takes it, so
+     a gallery run never mixes stone and wood. stair_style(_r) joins the
+     group. Pins still win. Validate Room follows the same rule.
+   - **Stair heads:** a masonry stair's solid end carries the arcade's last
+     arch. Its look gets a `head` claim, so the column placed there is cleared.
+     An open wood stair keeps the column.
+   - **Reading Room:** 8 support points: corners (1.4, -1.4) and (10.6, -1.4);
+     sides x 1.4 / 10.6 at z -4 and -8; end wall x 4 and 8 at z -1.4
+     (clear of the entrance arch). The galleries and supports are pinned to
+     masonry. The stairs keep their pins (west masonry, east open wood).
+   - **Done 2026-10-19.** How it landed:
+     - Candidates in `kit_add_dressing.py`: `gallery_{wood,masonry}_{slab,
+       open_end,open_start,end}` and `gallery_column(_corner)`. The masonry
+       spandrels are brick, with `arch_stone` voussoir rings 2 cm proud. The
+       stone slab is `floor_stone` with an `arch_stone` cornice on the edge.
+       Spandrels and columns have collision. The arcade's 4 m bays come out
+       round (crown 3.53 m). The 2.6 m spans and the wall arms are k 0.75
+       arches stilted to 3.55 / 3.3 m.
+     - `post_gallery_column(_corner)` are `free` modules whose origin is on the
+       wall line (or the corner of two wall lines), so they sit on the grid like
+       piers. The socket stands 1.4 m out. They draw nothing of their own.
+     - The gallery modules' `__slab-col` / `__rail-col` were renamed in place
+       to `-colonly` (`kit_add_r01.py` `RENAME`; `kit_seed_walls.py` seeds the
+       new names). The masonry stairs are rev 5 with the `head` claim.
+     - Style group: `SocketSet.style_group`, `RoomTemplate.style_picks()`,
+       `VariantSocket.resolve(seed, room_pin, style_pick)`, and
+       `KitValidateRoom._pick_of` follows it. Precedence: room pin, socket
+       pin, group pick, own roll. `seed_sockets.gd` makes the six sets and
+       puts all eight in `gallery_build` (masonry 2, wood 1).
+     - Reading Room: 8 column points as text in the `.tscn`; the 5 gallery
+       looks and 8 supports are pinned to masonry. The stairs keep their pins
+       (west masonry, east open wood: an editor change by the user, committed
+       with 1b), so the east stair-head column stands and the west one is
+       claimed. `build_reading_room.gd` places the same 8 points, and
+       `pin_masonry()` pins the whole group (checked with a fresh build to
+       `user://`: 15 pins, KitValidate clean).
+   - **Verified:**
+     - `kit_test` 779 (new: each gallery module draws nothing but corbels and
+       keeps its collision; set, group and order; wood without collision;
+       masonry arcade spans the column points on the column line from 1.85 to
+       3.85 m; supports on the wall line with the column 0-1.85 m and arches
+       reaching the wall; masonry stairs claim 2 boxes).
+     - `reading_room_test` 71: the first pass now pins both stairs to masonry
+       explicitly. New: through the west and east arcades to the wall, under
+       the end arcade to the entrance, and the stair-head columns are claimed
+       by masonry and kept with open wood.
+     - `validate_room_test` 25 (claim spans 0.6, 0.6, 8, 8).
+     - `socket_modes_test` 196 (new sets; 12 seeds each build all 15 group
+       sockets alike, both builds occur, and a pin beats the group).
+     - Spill 6, room atmosphere 32, room playtest 11, camp playtest 43,
+       prototype atmosphere 9, two-process pin persistence, and all three
+       240-frame gates pass.
+     - GPU: `previews/reading_room_masonry_gallery_{end_gallery,entrance,gallery,
+       arcade,under_gallery,stair}.png`. New capture views: `arcade` and
+       `under_gallery`.
+   - **Caveats:**
+     - Along the wall, the walkway under a gallery narrows to about 0.65 m at
+       each column (base to pier or respond). The test capsule (radius 0.35)
+       can't pass and the player (0.32) barely fits. Recesses are reached
+       through the arcade instead.
+     - The old `stair` capture view now stands beside the x 8 column, so it's
+       mostly column. Use `arcade` or `entrance` for that side.
+     - The wood look reproduces the old geometry, but it wasn't image-diffed
+       against the pre-1c previews.
+     - The `rail_growth` ivy still hangs on the stone handrails (item 4 removes
+       those sockets).
+     - Gotcha (again): new socket sets must exist before `kit_walls.glb`
+       imports. After seeding, delete the module's `.godot/imported/<name>.glb-*`
+       files and run `--import`, or the socket comes in without its set.
+
+**A is complete (items 1-3, 1b, 1c).** Next session: B (growth), starting with item 4.
 
 **B. Growth where it grows (matching the prototype's Reading Garden, `previews/garden_v011.png`)**
 4. **No vines on the wooden gallery rails.** The `rail_growth` sockets are

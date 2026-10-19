@@ -42,7 +42,7 @@ func _initialize() -> void:
 		groups[g] = n
 	build_shell()
 	build_dressing()
-	pin_masonry_stairs(room)
+	pin_masonry(room)
 	build_lights()
 	build_connectors()
 	add_spawn()
@@ -88,6 +88,16 @@ func build_shell() -> void:
 	place("Shell", "wall_plain_4m", Vector3(2 * BAY, BAY, 0), 0)
 	place("Shell", "wall_gable_12m", Vector3(0, BAY, 0), 0)
 	place("Shell", "gallery_end_12m", Vector3(0, 0, 0), 0)   # over the entrance arch
+	# Polish 1c: column points for the masonry arcade (origins on the wall lines):
+	# the inner corners, the side-wall joints up to the stair heads, and either
+	# side of the entrance arch. A masonry stair claims the one at its head.
+	place("Shell", "post_gallery_column_corner", Vector3(0, 0, 0), 0)
+	place("Shell", "post_gallery_column_corner", Vector3(WIDTH, 0, 0), 90)
+	for z: float in [-BAY, -2 * BAY]:
+		place("Shell", "post_gallery_column", Vector3(0, 0, z), -90)
+		place("Shell", "post_gallery_column", Vector3(WIDTH, 0, z), 90)
+	for x: float in [BAY, 2 * BAY]:
+		place("Shell", "post_gallery_column", Vector3(x, 0, 0), 0)
 	# North end: the iwan faces back toward +Z, so it is turned 180 degrees.
 	var zn: float = -BAYS * BAY
 	place("Shell", "wall_iwan_12m", Vector3(WIDTH, 0, zn), 180)
@@ -234,17 +244,16 @@ func add_spawn() -> void:
 ## seed picks; this authored room keeps its masonry stairs. The masonry look
 ## claims the wall base behind it (polish slice A), so those seams clear by
 ## themselves. Cycle a stair in the Sockets panel to try the open wooden one.
-static func pin_masonry_stairs(target: RoomTemplate) -> int:
-	var masonry: int = (load("res://kit/sockets/stair_style.tres") as SocketSet).index_of("masonry")
+static func pin_masonry(target: RoomTemplate) -> int:
+	# Polish 1c: every socket of the "gallery_build" style group (stairs,
+	# galleries, column points) pinned to masonry, so the room looks the same
+	# whatever its seed rolls.
 	var pins: Dictionary[String, int] = {}
 	pins.assign(target.socket_pins)
 	var count: int = 0
-	for m: Node in target.get_node("Shell").get_children():
-		var n := m as Node3D
-		if n == null or not n.scene_file_path.get_file().begins_with("stair_gallery_8m"):
-			continue
-		var module: String = n.scene_file_path.get_file().get_basename()
-		pins["%s/Mesh/M_%s/SOCKET_stair_style" % [str(target.get_path_to(n)), module]] = masonry
-		count += 1
+	for s: VariantSocket in target.sockets():
+		if s.socket_set != null and s.socket_set.style_group == "gallery_build":
+			pins[target.socket_key(s)] = s.socket_set.index_of("masonry")
+			count += 1
 	target.socket_pins = pins
 	return count

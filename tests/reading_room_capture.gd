@@ -2,7 +2,7 @@ extends SceneTree
 ## GPU capture of rooms/authored/reading_room.tscn (needs a real display, not --headless).
 ##   godot --path . --resolution 1600x900 --script res://tests/reading_room_capture.gd -- <out.png> [view] [frames] [seed]
 ## Views: entrance, iwan, gallery, stair, vault, end_gallery, table, recesses, seam,
-## soot, crown, west_stair, stair_foot.
+## soot, crown, west_stair, stair_foot, under_gallery, arcade.
 ## seed: the room's preview_seed (default: as saved; "-" keeps it). A fifth argument
 ## "collapse" pins every recess to "collapsed" (to inspect settled spill);
 ## "seams" pins every wall-base seam to "rubble"; "growth" pins seams to "fern"
@@ -25,6 +25,8 @@ const VIEWS: Dictionary = {
 	"crown": [Vector3(6.0, 9.5, -9.0), Vector3(6.0, 14.6, -14.0), 50.0],  # vault crown over a chandelier
 	"west_stair": [Vector3(5.2, 1.6, -15.5), Vector3(0.8, 2.0, -11.0), 70.0],  # side-on to the west stair
 	"stair_foot": [Vector3(4.6, 1.5, -19.6), Vector3(1.4, 0.9, -15.0), 60.0],  # the west stair's foot newel (polish 1b)
+	"under_gallery": [Vector3(0.75, 1.5, -0.75), Vector3(1.0, 2.3, -7.0), 70.0],    # along the west wall under the gallery (1c)
+	"arcade": [Vector3(7.0, 1.6, -2.6), Vector3(1.0, 2.6, -5.0), 70.0],           # side-on to the west arcade (1c)
 }
 
 

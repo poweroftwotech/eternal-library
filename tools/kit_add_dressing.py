@@ -14,6 +14,10 @@ Every module's origin is the socket it fills (Blender axes; Godot -Z = +Y):
   prop_*       a table-top SCATTER socket: the table surface (z = 0).
   stair_steps_* a stair_style(_r) socket: the middle of a stair_gallery_8m(_r) footprint
                (floor level, lane centre); the stair rises along +X.
+  gallery_wood_*, gallery_masonry_* a gallery_style_* socket at its gallery module's origin
+               (wall line, floor level; the slab lane is y 0.3..1.6).
+  gallery_column(_corner) a gallery_support(_corner) socket: the column centre
+               (floor level); the wall is -Y (and -X for the corner).
 """
 import math
 import os
@@ -25,7 +29,7 @@ import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from kit_blender import (add_box, add_card, add_lathe, add_ngon_prism, add_obox, add_prism, rebuild,  # noqa: E402
-                         H, T, arch_outline, marker, mesh_object, module)
+                         H, T, arch_outline, arch_ring, marker, mesh_object, module)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BLEND = os.path.join(ROOT, "art_src", "kit", "kit_dressing.blend")
@@ -420,6 +424,7 @@ def stair_steps_masonry(r, reverse=False):
                 -STAIR_HALF, STAIR_HALF, reverse)
     mesh_object(name + "__fill-colonly", bm, ["arch_stone"], r)
     stair_claim(r, "under", 0.0, run, 0.6, reverse)      # the wall base behind it is hidden
+    stair_head_claim(r, reverse)
 
 
 def stair_steps_open(r, reverse=False):
@@ -461,8 +466,229 @@ def stair_steps_masonry_r(r):
     stair_steps_masonry(r, True)
 
 
+def stair_head_claim(r, reverse):
+    """Masonry only: the column a room places under the gallery at the stair head
+    (post_gallery_column, 1.4 m from the wall line) is cleared, because the solid
+    stair carries the arcade's last arch (polish 1c). Covers the open half of the
+    lane only, so the gallery look socket on the wall line is never claimed."""
+    a, b = sorted((stair_x(STAIR_RUN - 0.2, reverse), stair_x(STAIR_RUN + 0.4, reverse)))
+    marker("CLAIM_head", r, ((a + b) / 2, STAIR_HALF / 2, 0.3), {"claim_size": [b - a, STAIR_HALF, 0.8]})
+
+
 def stair_steps_open_r(r):
     stair_steps_open(r, True)
+
+
+# --- gallery candidates (polish 1c) -------------------------------------------
+# The look of gallery_slab_4m / _open_end / _open_start / gallery_end_12m is a
+# gallery_style_* socket at the module's origin (wall line, floor level; the
+# room is +Y, the slab lane y T..1.6). The module keeps only the slab and rail
+# collision. Wood is the old visible slab and balustrade. Masonry is a stone
+# slab, the stair's stone balustrade and an arcade along the open edge between
+# the column points; post_gallery_column(_corner) brings the columns and the
+# arches back to the wall (gallery_support(_corner) candidates below).
+GAL_Y0, GAL_Y1, GAL_TOP, GAL_SOFFIT = T, 1.6, H + 0.15, H - 0.15
+COL_Y = 1.4                     # column centre line, from the wall line
+SPRING = 1.85                   # abacus top: every arch springs here (capsule 1.75 m)
+ARCADE_APEX, ARM_APEX = 3.55, 3.3
+ABACUS = 0.32                   # abacus half width
+RING = 0.18                     # voussoir depth
+ARCADE = (COL_Y - 0.2, COL_Y + 0.2)
+BAL_Y = 1.49                    # stone balustrade centre line
+PLINTH_TOP, RAIL_LO, RAIL_HI = GAL_TOP + 0.15, GAL_TOP + 0.8, GAL_TOP + 0.92   # handrail top as the stair head
+CORNER = 1.6 - 0.11             # corner newel centre (both lines), as the wooden newel
+
+
+def wood_balustrade(bm, x0, x1):
+    """Balusters every 0.5 m and a top rail between x0 and x1 (gallery_slab_4m's)."""
+    x = x0 + 0.05
+    while x < x1 - 0.02:
+        add_box(bm, x, x + 0.06, 1.48, 1.54, H + 0.15, H + 0.95)
+        x += 0.5
+    add_box(bm, x0, x1, 1.46, 1.56, H + 0.92, H + 1.0)
+
+
+def gallery_wood(r, name, slab, rail, newels=()):
+    """The wooden look, as the modules carried it before (visual only)."""
+    bm = bmesh.new()
+    add_box(bm, slab[0], slab[1], GAL_Y0, GAL_Y1, H - 0.15, H + 0.15)
+    mesh_object(name + "__slab", bm, ["wood"], r)
+    bm = bmesh.new()
+    wood_balustrade(bm, rail[0], rail[1])
+    for x in newels:
+        add_box(bm, x - 0.06, x + 0.06, 1.45, 1.57, H + 0.15, H + 1.06)
+    mesh_object(name + "__rail", bm, ["wood"], r)
+
+
+def intrados(x0, x1, z0, apex, n=8):
+    """Arch curve from (x0, z0) up and over to (x1, z0), its crown near `apex`:
+    round when the span is wide enough, pointed up to k = 0.75, beyond that a
+    k = 0.75 arch stilted on vertical sides (arch_outline's construction)."""
+    s, rise = x1 - x0, apex - z0
+    k, stilt = min(max(0.25 + (rise / s) ** 2, 0.5), 0.75), 0.0
+    if 0.25 + (rise / s) ** 2 > 0.75:
+        stilt = rise - s * math.sqrt(0.5)
+    rr = s * k
+    left = [(x0, z0)] + ([(x0, z0 + stilt)] if stilt > 0 else [])
+    left += [(x0 + u, z0 + stilt + math.sqrt(max(0.0, rr * rr - (u - rr) ** 2)))
+             for u in (s / 2 * i / n for i in range(1, n + 1))]
+    return left + [(x0 + x1 - u, v) for (u, v) in reversed(left[:-1])]
+
+
+def offset(pts, d):
+    """Offset an arch curve away from its opening by d (negative: into it)."""
+    out = []
+    for i, (x, z) in enumerate(pts):
+        a, b = pts[max(i - 1, 0)], pts[min(i + 1, len(pts) - 1)]
+        tx, tz = b[0] - a[0], b[1] - a[1]
+        ln = math.hypot(tx, tz)
+        out.append((x - tz / ln * d, z + tx / ln * d))
+    return out
+
+
+def arch_span(bm_wall, bm_ring, xa, x0, x1, xb, y0, y1, apex):
+    """One arch in the XZ plane, extruded y0..y1: a solid wall from xa to xb
+    between the springing and the slab soffit with the opening x0..x1 cut out,
+    and a voussoir ring standing 2 cm proud of both faces."""
+    curve = intrados(x0, x1, SPRING, apex)
+    add_prism(bm_wall, [(xa, SPRING)] + curve + [(xb, SPRING), (xb, GAL_SOFFIT), (xa, GAL_SOFFIT)], 0.0, 0.0, y0, y1)
+    arch_ring(bm_ring, offset(curve, -0.01), offset(curve, RING), y0 - 0.02, y1 + 0.02, smooth=False)
+
+
+def stone_balustrade(bm_plinth, bm_bal, bm_rail, x0, x1):
+    """The stair's stone balustrade, level, on the gallery edge from x0 to x1:
+    balusters on the 0.4 m grid (x = 0.2 + 0.4 k), so runs line up across modules."""
+    add_box(bm_plinth, x0, x1, BAL_Y - 0.09, BAL_Y + 0.09, GAL_TOP - 0.01, PLINTH_TOP)
+    add_box(bm_rail, x0, x1, BAL_Y - 0.11, BAL_Y + 0.1, RAIL_LO, RAIL_HI)
+    k = math.ceil((x0 + 0.1 - 0.2) / 0.4)
+    while 0.2 + 0.4 * k < x1 - 0.1:
+        z0, z1 = PLINTH_TOP - 0.07, RAIL_LO + 0.07
+        add_lathe(bm_bal, [(rr, z0 + t * (z1 - z0)) for (rr, t) in BALUSTER], cx=0.2 + 0.4 * k, cy=BAL_Y, segs=12)
+        k += 1
+
+
+def stone_newel(bm, x, y):
+    """Corner newel swallowing the meeting rail ends: shaft, cap, ball finial."""
+    h = RAIL_HI + 0.06
+    add_box(bm, x - 0.14, x + 0.14, y - 0.14, y + 0.14, GAL_TOP - 0.01, h)
+    add_box(bm, x - 0.17, x + 0.17, y - 0.17, y + 0.17, h, h + 0.08)
+    add_lathe(bm, [(rr, h + 0.07 + z) for (rr, z) in FINIAL], cx=x, cy=y, segs=10)
+
+
+def gallery_masonry(r, name, slab, rail, cols, cornice, newels=()):
+    """Stone slab, stone balustrade on `rail` (x0, x1), an arcade between the
+    column centres `cols` on the COL_Y line, and a cornice along the open edge."""
+    bm = bmesh.new()
+    add_box(bm, slab[0], slab[1], GAL_Y0, GAL_Y1, GAL_SOFFIT, GAL_TOP)
+    mesh_object(name + "__slab", bm, ["floor_stone"], r)
+    bm = bmesh.new()
+    add_box(bm, cornice[0], cornice[1], GAL_Y1 - 0.05, GAL_Y1 + 0.06, GAL_SOFFIT - 0.08, GAL_SOFFIT + 0.07)
+    mesh_object(name + "__cornice", bm, ["arch_stone"], r)
+    bp, bb, br = bmesh.new(), bmesh.new(), bmesh.new()
+    stone_balustrade(bp, bb, br, rail[0], rail[1])
+    for (x, y) in newels:
+        stone_newel(br, x, y)
+    mesh_object(name + "__plinth", bp, ["arch_stone"], r)
+    mesh_object(name + "__balusters", bb, ["arch_stone"], r)
+    mesh_object(name + "__handrail", br, ["arch_stone"], r)
+    bw, bv = bmesh.new(), bmesh.new()
+    for (a, b) in zip(cols, cols[1:]):
+        arch_span(bw, bv, a, a + ABACUS, b - ABACUS, b, ARCADE[0], ARCADE[1], ARCADE_APEX)
+    mesh_object(name + "__spandrels-col", bw, ["brick"], r)
+    mesh_object(name + "__voussoirs", bv, ["arch_stone"], r)
+
+
+def gallery_wood_slab(r):
+    gallery_wood(r, "gallery_wood_slab", (0.0, 4.0), (0.0, 4.0))
+
+
+def gallery_masonry_slab(r):
+    gallery_masonry(r, "gallery_masonry_slab", (0.0, 4.0), (0.0, 4.0), (0.0, 4.0), (0.0, 4.0))
+
+
+def gallery_wood_open_end(r):
+    gallery_wood(r, "gallery_wood_open_end", (0.0, 4.0), (0.0, 4.0 - GAL_Y1 + 0.04))
+
+
+def gallery_masonry_open_end(r):
+    """The corner square (x 2.4..4) opens onto the end-wall gallery; the corner
+    column stands at x 4 - COL_Y and gallery_end_12m owns the corner newel."""
+    gallery_masonry(r, "gallery_masonry_open_end", (0.0, 4.0), (0.0, 4.0 - CORNER), (0.0, 4.0 - COL_Y),
+                    (0.0, 4.0 - GAL_Y1 + 0.05))
+
+
+def gallery_wood_open_start(r):
+    gallery_wood(r, "gallery_wood_open_start", (0.0, 4.0), (GAL_Y1 - 0.04, 4.0))
+
+
+def gallery_masonry_open_start(r):
+    gallery_masonry(r, "gallery_masonry_open_start", (0.0, 4.0), (CORNER, 4.0), (COL_Y, 4.0),
+                    (GAL_Y1 - 0.05, 4.0))
+
+
+HALL = 12.0
+
+
+def gallery_wood_end(r):
+    x0, x1 = GAL_Y1, HALL - GAL_Y1
+    gallery_wood(r, "gallery_wood_end", (x0, x1), (x0 - 0.04, x1 + 0.04), (x0 - 0.09, x1 + 0.09))
+
+
+def gallery_masonry_end(r):
+    """Columns at both corners and either side of the 3 m entrance arch (x 4, 8)."""
+    gallery_masonry(r, "gallery_masonry_end", (GAL_Y1, HALL - GAL_Y1), (CORNER, HALL - CORNER),
+                    (COL_Y, 4.0, 8.0, HALL - COL_Y), (GAL_Y1 + 0.06, HALL - GAL_Y1 - 0.06),
+                    ((CORNER, CORNER), (HALL - CORNER, CORNER)))
+
+
+# Supports: a post_gallery_column(_corner) socket at the column point (floor
+# level). The wall is -Y, COL_Y away (the corner's second wall is -X).
+def stone_column(bm):
+    """Square base, turned shaft, flared capital, abacus (top at SPRING)."""
+    add_box(bm, -0.28, 0.28, -0.28, 0.28, 0.0, 0.22)
+    add_lathe(bm, [(0.0, 0.22), (0.23, 0.22), (0.23, 0.28), (0.19, 0.36), (0.17, 0.44), (0.16, 1.44), (0.2, 1.47),
+                   (0.2, 1.52), (0.17, 1.55), (0.3, 1.72), (0.0, 1.72)], segs=12)
+    add_box(bm, -ABACUS, ABACUS, -ABACUS, ABACUS, 1.72, SPRING)
+
+
+def wall_arm(bm_wall, bm_ring, bm_respond, half, angle):
+    """Arch from the column to the wall face (COL_Y - T away), springing from the
+    abacus and from a two-tier respond corbel on the wall, stilted to ARM_APEX.
+    Built along +X, then turned by `angle` about Z (-90: toward -Y)."""
+    length = COL_Y - T
+    marks = [len(bm.verts) for bm in (bm_wall, bm_ring, bm_respond)]
+    arch_span(bm_wall, bm_ring, 0.0, ABACUS, length - 0.25, length + 0.05, -half, half, ARM_APEX)
+    add_box(bm_respond, length - 0.25, length + 0.05, -half - 0.03, half + 0.03, SPRING - 0.13, SPRING)
+    add_box(bm_respond, length - 0.15, length + 0.05, -half + 0.03, half - 0.03, SPRING - 0.4, SPRING - 0.13)
+    c, s = math.cos(math.radians(angle)), math.sin(math.radians(angle))
+    for bm, start in zip((bm_wall, bm_ring, bm_respond), marks):
+        bm.verts.ensure_lookup_table()
+        for i in range(start, len(bm.verts)):
+            v = bm.verts[i]
+            v.co.x, v.co.y = v.co.x * c - v.co.y * s, v.co.x * s + v.co.y * c
+
+
+def gallery_support(r, name, arms, half):
+    bm = bmesh.new()
+    stone_column(bm)
+    mesh_object(name + "__column-col", bm, ["arch_stone"], r)
+    bw, bv, bc = bmesh.new(), bmesh.new(), bmesh.new()
+    for angle in arms:
+        wall_arm(bw, bv, bc, half, angle)
+    mesh_object(name + "__spandrels-col", bw, ["brick"], r)
+    mesh_object(name + "__voussoirs", bv, ["arch_stone"], r)
+    mesh_object(name + "__responds", bc, ["arch_stone"], r)
+
+
+def gallery_column(r):
+    """One transverse arch to the wall, 0.6 m thick: it buries the wall pier's
+    corbel (post_pier_corbel) where there is one."""
+    gallery_support(r, "gallery_column", (-90,), 0.3)
+
+
+def gallery_column_corner(r):
+    """Two arches, one to each wall (-Y and -X), continuing the arcade lines."""
+    gallery_support(r, "gallery_column_corner", (-90, 180), 0.2)
 
 
 MODULES = [
@@ -485,10 +711,21 @@ MODULES = [
     ("M_prop_oil_lamp", props("brass,light,table_prop"), prop_oil_lamp),
     ("M_prop_scroll", props("linen,table_prop"), prop_scroll),
     ("M_prop_inkwell", props("iron,table_prop"), prop_inkwell),
-    ("M_stair_steps_masonry", dict(props("stone,stair"), kit_rev=4), stair_steps_masonry),
+    ("M_stair_steps_masonry", dict(props("stone,stair"), kit_rev=5), stair_steps_masonry),
     ("M_stair_steps_open", dict(props("wood,stair"), kit_rev=2), stair_steps_open),
-    ("M_stair_steps_masonry_r", dict(props("stone,stair"), kit_rev=4), stair_steps_masonry_r),
+    ("M_stair_steps_masonry_r", dict(props("stone,stair"), kit_rev=5), stair_steps_masonry_r),
     ("M_stair_steps_open_r", dict(props("wood,stair"), kit_rev=2), stair_steps_open_r),
+    # Polish 1c: gallery looks and column supports.
+    ("M_gallery_wood_slab", props("wood,gallery"), gallery_wood_slab),
+    ("M_gallery_masonry_slab", props("stone,brick,gallery"), gallery_masonry_slab),
+    ("M_gallery_wood_open_end", props("wood,gallery"), gallery_wood_open_end),
+    ("M_gallery_masonry_open_end", props("stone,brick,gallery"), gallery_masonry_open_end),
+    ("M_gallery_wood_open_start", props("wood,gallery"), gallery_wood_open_start),
+    ("M_gallery_masonry_open_start", props("stone,brick,gallery"), gallery_masonry_open_start),
+    ("M_gallery_wood_end", props("wood,gallery"), gallery_wood_end),
+    ("M_gallery_masonry_end", props("stone,brick,gallery"), gallery_masonry_end),
+    ("M_gallery_column", props("stone,brick,gallery,structure"), gallery_column),
+    ("M_gallery_column_corner", props("stone,brick,gallery,structure"), gallery_column_corner),
 ]
 
 
@@ -503,8 +740,8 @@ def main():
             build(module(name, ((i % 7) * 4.0, (i // 7) * 5.0, 0.0), p))
             added.append(name)
     REBUILD = [("M_recess_shelves_broken", 3),   # rev 3: floor boards split out as __spill
-               ("M_stair_steps_masonry", 4), ("M_stair_steps_open", 2),   # rev 2: railings, fill, claims (polish A)
-               ("M_stair_steps_masonry_r", 4)]                          # rev 4: open stone balustrade (polish 1b)
+               ("M_stair_steps_masonry", 5), ("M_stair_steps_open", 2),   # rev 2: railings, fill, claims (polish A)
+               ("M_stair_steps_masonry_r", 5)]                          # rev 4: stone balustrade (1b); rev 5: head claim (1c)
     added += ["%s (rebuilt rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
     if not added:
         print("kit_add_dressing: all modules already present; nothing to do.")

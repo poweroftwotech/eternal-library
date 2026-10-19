@@ -236,16 +236,22 @@ func check_open_stairs() -> void:
 	var room: RoomTemplate = fresh(ROOM)
 	var lib: SocketSet = load("res://kit/sockets/stair_style.tres")
 	var pins: Dictionary[String, int] = {}
+	var stone: Dictionary[String, int] = {}
 	pins.assign(room.socket_pins)
+	stone.assign(room.socket_pins)
 	var pinned: int = 0
 	for key: String in room.socket_pins:
 		if key.ends_with("/SOCKET_stair_style"):
 			pins[key] = lib.index_of("open wood")
+			stone[key] = lib.index_of("masonry")
 			pinned += 1
-	# Polish slice A: as saved (masonry) each stair claims its whole wall base;
-	# open wood claims only its low end, where nothing fits under it.
-	var spans: Array = KitValidateRoom._claims(room).map(func(c: Array) -> float: return (c[1] as AABB).size.z)
-	check(spans.size() == 2 and spans.all(func(z: float) -> bool: return is_equal_approx(z, 8.0)), "masonry stairs each claim 8 m of wall base (%s)" % [spans])
+	# Polish slice A: masonry claims its whole wall base (and, polish 1c, the
+	# 0.6 m at its head where a gallery column would stand); open wood claims only
+	# its low end, where nothing fits under it.
+	room.socket_pins = stone
+	var spans: Array = KitValidateRoom._claims(room).map(func(c: Array) -> float: return snappedf((c[1] as AABB).size.z, 0.01))
+	spans.sort()
+	check(spans == [0.6, 0.6, 8.0, 8.0], "masonry stairs each claim 8 m of wall base and their head (%s)" % [spans])
 	room.socket_pins = pins
 	spans = KitValidateRoom._claims(room).map(func(c: Array) -> float: return (c[1] as AABB).size.z)
 	check(spans.size() == 2 and spans.all(func(z: float) -> bool: return is_equal_approx(z, 1.6)), "open stairs each claim only their 1.6 m low end (%s)" % [spans])

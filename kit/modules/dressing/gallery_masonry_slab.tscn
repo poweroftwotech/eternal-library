@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_cpbf0"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/gallery_masonry_slab.glb" id="2_dnuur"]
+
+[node name="gallery_masonry_slab" type="Node3D" unique_id=488250540]
+script = ExtResource("1_cpbf0")
+family = "dressing"
+tags = PackedStringArray("stone", "brick", "gallery")
+source_glb = "res://assets/kit/dressing/gallery_masonry_slab.glb"
+
+[node name="Mesh" parent="." unique_id=528106863 instance=ExtResource("2_dnuur")]

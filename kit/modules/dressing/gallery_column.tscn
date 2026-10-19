@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_f7ukv"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/gallery_column.glb" id="2_q0qtl"]
+
+[node name="gallery_column" type="Node3D" unique_id=612057446]
+script = ExtResource("1_f7ukv")
+family = "dressing"
+tags = PackedStringArray("stone", "brick", "gallery", "structure")
+source_glb = "res://assets/kit/dressing/gallery_column.glb"
+
+[node name="Mesh" parent="." unique_id=840992115 instance=ExtResource("2_q0qtl")]

@@ -26,6 +26,11 @@ extends Resource
 ## architecture surfaces facing the decal (which it would stain too) instead
 ## of checking it against every module's collision.
 @export var decals: bool = false
+## Sets that build one structure together (stairs, gallery slabs, columns:
+## "gallery_build") share a style group and their entry order (0 masonry,
+## 1 wood). A room picks one index per group and every unpinned socket in the
+## group takes it, so a gallery run never mixes stone and wood (polish 1c).
+@export var style_group: String = ""
 
 
 ## Weighted pick; returns an index into entries, or -1 if nothing is pickable.

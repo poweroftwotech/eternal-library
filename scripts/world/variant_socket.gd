@@ -82,7 +82,8 @@ func room() -> Node:
 	return null
 
 
-func resolve(seed_value: int, room_pin_value: int = -1) -> int:
+## style_pick: the room's pick for this set's style group (-1 = none); pins win.
+func resolve(seed_value: int, room_pin_value: int = -1, style_pick: int = -1) -> int:
 	_seed = seed_value
 	_generation += 1
 	room_pin = room_pin_value
@@ -94,6 +95,8 @@ func resolve(seed_value: int, room_pin_value: int = -1) -> int:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
 	var force: int = effective_pin()
+	if force < 0 and style_pick >= 0 and style_pick < socket_set.entries.size():
+		force = style_pick
 	var idx: int = force if force >= 0 else socket_set.pick(rng)
 	match mode:
 		Mode.TOGGLE:

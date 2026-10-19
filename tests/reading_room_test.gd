@@ -4,7 +4,8 @@ extends SceneTree
 ## Kit validation, sockets, floor in every cell, and a route audit with the
 ## player capsule (radius 0.35, height 1.8): doors open, walls closed, the
 ## hall walkable into the iwan, and both stairs up onto their galleries. Runs
-## twice: as saved (masonry stairs), and with both stairs pinned to open wood.
+## twice: with both stairs pinned to masonry, then to open wood. The galleries are
+## masonry as saved (polish 1c), so both passes walk through the arcade.
 
 const ROOM: String = "res://rooms/authored/reading_room.tscn"
 
@@ -26,7 +27,10 @@ func run() -> void:
 	var packed: PackedScene = load(ROOM)
 	check(packed != null, "reading room loads")
 	if packed != null:
-		await audit(packed.instantiate() as Node3D, false)
+		# Polish 1c: pin the stairs, so the pass does not depend on the saved pins.
+		var masonry: RoomTemplate = packed.instantiate()
+		check(pin_stairs(masonry, "masonry") == 2, "both stairs pin to the masonry look")
+		await audit(masonry, false)
 		# Weathering item 4: the stair look is a socket. Pin both stairs to open
 		# wood and run the whole audit again, routes up both stairs included.
 		var open: RoomTemplate = packed.instantiate()
@@ -55,8 +59,10 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 			var key: String = s.socket_set.resource_path.get_file().get_basename() if s.socket_set != null else "(none)"
 			by_set[key] = int(by_set.get(key, 0)) + 1
 		check(by_set == {"recess_library": 16, "iwan_centre": 1, "table_props": 4, "lamp_state": 7, "seam_debris": 10, "rail_growth": 5,
-				"wall_stains": 10, "floor_wear": 15, "lamp_soot": 7, "stair_style": 1, "stair_style_r": 1},
-			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps, 10 seams, 5 rails, 10 wall stains, 15 floors, 7 soot, 2 stairs (found %s)" % by_set)
+				"wall_stains": 10, "floor_wear": 15, "lamp_soot": 7, "stair_style": 1, "stair_style_r": 1,
+				"gallery_style_slab": 2, "gallery_style_open_end": 1, "gallery_style_open_start": 1, "gallery_style_end": 1,
+				"gallery_support": 6, "gallery_support_corner": 2},
+			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps, 10 seams, 5 rails, 10 wall stains, 15 floors, 7 soot, 2 stairs, 5 gallery looks, 8 column points (found %s)" % by_set)
 		check(tmpl.resolve_sockets(7) == tmpl.resolve_sockets(7), "socket picks are deterministic")
 	check(room.get_node("Connectors").get_child_count() == 3, "three door connectors")
 	await physics_frame
@@ -114,6 +120,15 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 				behind += s.last_count
 		check((behind > 0) == open_stairs, "seams behind the stairs: %d items (%s)" % [behind,
 			"open wood shows them" if open_stairs else "masonry claims them"])
+		# Polish 1c: a masonry stair carries the arcade itself and claims the
+		# column point at its head; an open wooden stair needs the column.
+		var head_columns: int = 0
+		for s: VariantSocket in tmpl.sockets():
+			if s.socket_set != null and s.socket_set.resource_path.ends_with("gallery_support.tres") \
+					and absf(s.global_position.z + 8.0) < 0.01:
+				head_columns += s.get_children(true).size()
+		check(head_columns == (2 if open_stairs else 0), "columns at the stair heads: %d (%s)" % [head_columns,
+			"open wood needs them" if open_stairs else "masonry claims them"])
 	# Step 2b: the galleries are one U. From the west stair head, round both
 	# corners along the entrance wall and back down the east side.
 	await walk(body, Vector3(0.95, 0.95, -18.5), Vector3(0, 0, 3), func(p: Vector3) -> bool: return p.z > -4.0)
@@ -127,6 +142,14 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 	# Out through the west door onto the temporary safety floor.
 	feet = await walk(body, Vector3(1.5, 0.95, -6), Vector3(-3, 0, 0), func(p: Vector3) -> bool: return p.x < -3.0)
 	check(feet.x < -2.5 and feet.y > -0.4, "safety floor catches the player outside a side door (feet at %s)" % feet)
+	# Polish 1c: the masonry arcade. From the hall through the arches to the
+	# walls under the side galleries (bay 0) and to the entrance under the end one.
+	feet = await walk(body, Vector3(6, 0.95, -2.7), Vector3(-2, 0, 0), func(p: Vector3) -> bool: return p.x < 0.9)
+	check(feet.x < 1.0, "through the west arcade to the wall (feet at %s)" % feet)
+	feet = await walk(body, Vector3(6, 0.95, -2.7), Vector3(2, 0, 0), func(p: Vector3) -> bool: return p.x > 11.1)
+	check(feet.x > 11.0, "through the east arcade to the wall (feet at %s)" % feet)
+	feet = await walk(body, Vector3(6, 0.95, -5), Vector3(0, 0, 2), func(p: Vector3) -> bool: return p.z > -0.9)
+	check(feet.z > -1.0, "under the end arcade to the entrance (feet at %s)" % feet)
 	room.queue_free()
 	await process_frame
 

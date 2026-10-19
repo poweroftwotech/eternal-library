@@ -15,6 +15,12 @@ const SETS: Dictionary = {
 	"lamp_soot": ["soot", "faint soot", "nothing"],
 	"stair_style": ["masonry", "open wood"],
 	"stair_style_r": ["masonry", "open wood"],
+	"gallery_style_slab": ["masonry", "wood"],
+	"gallery_style_open_end": ["masonry", "wood"],
+	"gallery_style_open_start": ["masonry", "wood"],
+	"gallery_style_end": ["masonry", "wood"],
+	"gallery_support": ["masonry", "wood"],
+	"gallery_support_corner": ["masonry", "wood"],
 }
 
 var failures: PackedStringArray = []
@@ -41,6 +47,7 @@ func run() -> void:
 	await check_seam_settle()
 	await check_rail_ivy()
 	await check_decals()
+	await check_style_groups()
 	print("socket_modes_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -56,7 +63,7 @@ func check_sets() -> void:
 		var labels: Array = set.entries.map(func(e: SocketEntry) -> String: return e.label)
 		check(labels == SETS[set_name], "%s entries are %s (found %s)" % [set_name, SETS[set_name], labels])
 		for e: SocketEntry in set.entries:
-			if set_name == "lamp_state" or e.label == "nothing":
+			if set_name == "lamp_state" or e.label == "nothing" or (set_name.begins_with("gallery_support") and e.label == "wood"):
 				check(e.scene == null, "%s '%s' has no scene (a state or a gap)" % [set_name, e.label])
 			else:
 				check(e.scene != null and e.scene.can_instantiate(), "%s '%s' has a scene" % [set_name, e.label])
@@ -351,3 +358,39 @@ func first_decals(socket: VariantSocket, label: String) -> Array[Decal]:
 		if d != null:
 			out.append(d)
 	return out
+
+
+## Polish 1c: a room builds its stairs, galleries and columns alike. Every
+## unpinned socket in the "gallery_build" style group takes the room's one
+## pick, seeds still vary it, and a pin still wins over the group.
+func check_style_groups() -> void:
+	var room: RoomTemplate = (load("res://rooms/authored/reading_room.tscn") as PackedScene).instantiate()
+	var pins: Dictionary[String, int] = {}
+	for key: String in room.socket_pins:
+		if not (key.contains("SOCKET_stair_style") or key.contains("SOCKET_gallery_")):
+			pins[key] = room.socket_pins[key]
+	room.socket_pins = pins
+	root.add_child(room)
+	var members: Array[VariantSocket] = room.sockets().filter(
+		func(s: VariantSocket) -> bool: return s.socket_set != null and s.socket_set.style_group == "gallery_build")
+	check(members.size() == 15, "reading room has 15 gallery_build sockets: 2 stairs, 5 galleries, 8 columns (%d)" % members.size())
+	var seen: Dictionary = {}
+	var stone_seed: int = -1
+	for seed_value: int in range(1, 13):
+		var picks: Dictionary = room.resolve_sockets(seed_value)
+		var group: Dictionary = {}
+		for s: VariantSocket in members:
+			group[picks[room.socket_key(s)]] = true
+		check(group.size() == 1, "seed %d builds stairs, galleries and columns alike (%s)" % [seed_value, group.keys()])
+		seen.merge(group)
+		if group.has(0) and stone_seed < 0:
+			stone_seed = seed_value
+	check(seen.has(0) and seen.has(1), "seeds vary the build (%s)" % [seen.keys()])
+	var stair_key: String = "Shell/stair_gallery_8m/Mesh/M_stair_gallery_8m/SOCKET_stair_style"
+	pins[stair_key] = 1
+	room.socket_pins = pins
+	var pinned: Dictionary = room.resolve_sockets(stone_seed)
+	check(pinned[stair_key] == 1 and pinned["Shell/gallery_end_12m/Mesh/M_gallery_end_12m/SOCKET_gallery_style"] == 0,
+		"a pin wins over the group; the rest keep the room's pick (seed %d)" % stone_seed)
+	room.queue_free()
+	await process_frame
