@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_abjek"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/recess_sealed_door.glb" id="2_4y305"]
+
+[node name="recess_sealed_door" type="Node3D" unique_id=1791888605]
+script = ExtResource("1_abjek")
+family = "dressing"
+tags = PackedStringArray("brick", "wood", "recess", "door")
+source_glb = "res://assets/kit/dressing/recess_sealed_door.glb"
+
+[node name="Mesh" parent="." unique_id=1715914859 instance=ExtResource("2_4y305")]

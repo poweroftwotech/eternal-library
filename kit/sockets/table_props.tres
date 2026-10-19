@@ -1,0 +1,54 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_ci6vl"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_book_stack.tscn" id="2_0yf3m"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_book_open.tscn" id="3_x2upo"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_pot.tscn" id="4_ut81p"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_oil_lamp.tscn" id="5_h7lnd"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_scroll.tscn" id="6_67e0h"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_inkwell.tscn" id="7_3llcs"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="8_upmrw"]
+
+[sub_resource type="Resource" id="Resource_j0ksw"]
+script = ExtResource("1_ci6vl")
+label = "book stack"
+scene = ExtResource("2_0yf3m")
+weight = 3.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_cbkm3"]
+script = ExtResource("1_ci6vl")
+label = "open book"
+scene = ExtResource("3_x2upo")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_713wn"]
+script = ExtResource("1_ci6vl")
+label = "pot"
+scene = ExtResource("4_ut81p")
+weight = 1.5
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_r1cjq"]
+script = ExtResource("1_ci6vl")
+label = "oil lamp"
+scene = ExtResource("5_h7lnd")
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_y3okg"]
+script = ExtResource("1_ci6vl")
+label = "scroll"
+scene = ExtResource("6_67e0h")
+weight = 1.5
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_q0f1g"]
+script = ExtResource("1_ci6vl")
+label = "inkwell"
+scene = ExtResource("7_3llcs")
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("8_upmrw")
+entries = Array[ExtResource("1_ci6vl")]([SubResource("Resource_j0ksw"), SubResource("Resource_cbkm3"), SubResource("Resource_713wn"), SubResource("Resource_r1cjq"), SubResource("Resource_y3okg"), SubResource("Resource_q0f1g")])

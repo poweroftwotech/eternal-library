@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://gnd47i72lvsd"]
+
+[ext_resource type="Texture2D" uid="uid://b8vwblqidehb2" path="res://assets/textures/px/earthenware.png" id="1_466m6"]
+[ext_resource type="Texture2D" uid="uid://b466w053q1nm3" path="res://assets/textures/px/earthenware_rough.png" id="2_0owl3"]
+
+[resource]
+resource_name = "earthenware"
+albedo_texture = ExtResource("1_466m6")
+metallic_specular = 0.65
+roughness_texture = ExtResource("2_0owl3")
+texture_filter = 4

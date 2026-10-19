@@ -149,6 +149,20 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 				socket.socket_set = load(set_path)
 			else:
 				_warnings.append("socket %s: no socket set at %s" % [kind, set_path])
+			# Optional Blender properties: socket_mode (replace|toggle|scatter|state),
+			# scatter_count [min, max], scatter_extent [half x, half depth], scatter_spacing.
+			var modes: Dictionary = {"replace": VariantSocket.Mode.REPLACE, "toggle": VariantSocket.Mode.TOGGLE,
+				"scatter": VariantSocket.Mode.SCATTER, "state": VariantSocket.Mode.STATE}
+			var mode_name: String = str(extras.get("socket_mode", "replace"))
+			if not modes.has(mode_name):
+				_warnings.append("socket %s: unknown socket_mode '%s'" % [kind, mode_name])
+			socket.mode = modes.get(mode_name, VariantSocket.Mode.REPLACE)
+			if extras.get("scatter_count") is Array:
+				socket.scatter_count = Vector2i(int(extras["scatter_count"][0]), int(extras["scatter_count"][1]))
+			if extras.get("scatter_extent") is Array:
+				socket.scatter_extent = Vector2(float(extras["scatter_extent"][0]), float(extras["scatter_extent"][1]))
+			if extras.has("scatter_spacing"):
+				socket.scatter_spacing = float(extras["scatter_spacing"])
 			replacement = socket
 		_:
 			replacement = Marker3D.new()

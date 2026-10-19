@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_db3xf"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/prop_oil_lamp.glb" id="2_pcibq"]
+
+[node name="prop_oil_lamp" type="Node3D" unique_id=849506514]
+script = ExtResource("1_db3xf")
+family = "dressing"
+tags = PackedStringArray("brass", "light", "table_prop")
+source_glb = "res://assets/kit/dressing/prop_oil_lamp.glb"
+
+[node name="Mesh" parent="." unique_id=291537167 instance=ExtResource("2_pcibq")]

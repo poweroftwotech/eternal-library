@@ -617,14 +617,51 @@ short of that end, for the corner square), and `stair_gallery_8m_r` (the
 stair mirrored, so it rises toward its origin). `kit_test` passes 312 checks,
 including rail extents and the reversed stair's head position.
 
+**Step 3 done (2026-10-18): socket sets and modes.**
+
+| Piece | File |
+|---|---|
+| `SCATTER` mode (N weighted items in a box, kept `scatter_spacing` apart; a pin makes every item that entry) and `STATE` mode (the entry label is a state applied to the socket's parent) | `scripts/world/variant_socket.gd` |
+| Lamp states `lit` / `failing` (dimmed, flickering internal node) / `dark` (light off, glass unlit) on every light and `emit_*` surface of a lamp module | `scripts/world/lamp_state.gd` |
+| An entry without a scene is now a valid pick ("nothing", or a state) | `scripts/world/socket_set.gd` |
+| Blender properties `socket_mode`, `scatter_count`, `scatter_extent`, `scatter_spacing` on `SOCKET_` empties configure the socket | `tools/kit_import.gd` |
+| New family `dressing` (13 modules): recess boards (whole and broken), tile panel with bench, sealed door, iwan lectern (with rug), reading tree in a tiled planter, fountain, and six table props | `art_src/kit/kit_dressing.blend` via the additive `tools/kit_add_dressing.py` → `kit/modules/dressing/` |
+| Sets: `recess_library` (+ tile panel 1, sealed door 0.7), `iwan_centre` (lectern, reading tree, fountain), `lamp_state` (lit 6, failing 2, dark 1), `table_props` (book stack, open book, pot, oil lamp, scroll, inkwell) | `kit/sockets/*.tres`, from the additive `tools/seed_sockets.gd` |
+| `water` library material (hand-written; no pixel map) | `kit/materials/water.tres` |
+
+**Shelf boards moved out of the shelf-bay and iwan meshes** into the recess
+candidates (`Boards` child in `kit/dressing/recess_books_*.tscn`), so a tile
+panel or sealed door can replace them. `tools/kit_add_r01.py` gained an
+idempotent upgrade pass that removes the baked boards and adds the new sockets
+to existing modules: `SOCKET_iwan_centre` in the iwan, `SOCKET_table_props`
+(scatter, 2-5 items) on the reading table, and `SOCKET_lamp_state` in both
+lantern modules. The seed scripts match for fresh builds. The reading room now
+has 28 sockets: 16 recesses, the iwan centrepiece, 4 table tops and 7 lamps.
+Order matters when rebuilding: export `kit_dressing.blend`, then run
+`seed_sockets.gd`, then export `kit_walls.blend` (the importer links sets that
+already exist).
+
+**Verified:** `tests/socket_modes_test.gd` passes 56 checks: set contents,
+every candidate instancing, boards in shelf candidates, lamp lit/failing/dark
+(energy, visibility, glass material, flicker cleanup), scatter count, bounds,
+spacing, determinism and pinning, and the iwan centrepiece varying by seed.
+`kit_test` passes 443 checks and `reading_room_test` 28 (socket counts by
+set; the hall walk now steps around the centrepiece, which has collision).
+Pin persistence holds across processes, and all three 240-frame gates are
+clean. Captures: `previews/reading_room_iwan_{tree,lectern,fountain}.png`
+(seeds 1-3), `reading_room_table.png`, `reading_room_recesses.png`.
+**Caveats:** at these weights about a third of the lamps fail or go dark,
+which makes the room noticeably dimmer; the plan wants that only with age, so
+weights should drop once age conditions exist. Table props are small and read
+poorly at hall distance. The sealed door hasn't shown up in a capture yet
+(the test instances it). Age, stratum and faction conditions are still unused. The user checked Reroll and the Sockets panel in the editor.
+
 **Next steps for phase 1, in order:**
 0. ~~**Socket panel in the Kit dock**~~ (done, see above).
 1. ~~**More modules for R01**~~ (done, see above).
 2. ~~**Build `rooms/authored/reading_room.tscn`**~~ (drafted by script, see above; tweak it by hand).
 2b. ~~**Gallery corner / end-wall gallery**~~ (done, see above).
-3. **More socket sets:** iwan centrepiece (lectern, tree, fountain), lamp state
-   (`STATE` mode: lit, failing, dark), and recess variants such as a tile panel
-   or sealed door. Add a `SCATTER` mode (books and pots on tables).
+3. ~~**More socket sets**~~ (done, see above). Follow-up: age conditions on lamp and recess weights.
 4. **Atmosphere:** port `art_direction.gd` and `atmosphere.gd` into an
    `Atmosphere` node with an `AtmosphereProfile` resource, so authored rooms get
    the prototype's grade, glow and fog.

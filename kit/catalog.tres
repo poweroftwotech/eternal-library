@@ -6,6 +6,123 @@
 script = ExtResource("1_wnug1")
 modules = Array[Dictionary]([{
 "edge": "",
+"family": "dressing",
+"name": "iwan_fountain",
+"scene": "res://kit/modules/dressing/iwan_fountain.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "water", "iwan", "centrepiece"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "iwan_lectern",
+"scene": "res://kit/modules/dressing/iwan_lectern.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "iwan", "centrepiece"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "iwan_tree",
+"scene": "res://kit/modules/dressing/iwan_tree.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("tree", "iwan", "centrepiece"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "prop_book_open",
+"scene": "res://kit/modules/dressing/prop_book_open.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("books", "table_prop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "prop_book_stack",
+"scene": "res://kit/modules/dressing/prop_book_stack.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("books", "table_prop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "prop_inkwell",
+"scene": "res://kit/modules/dressing/prop_inkwell.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("iron", "table_prop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "prop_oil_lamp",
+"scene": "res://kit/modules/dressing/prop_oil_lamp.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brass", "light", "table_prop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "prop_pot",
+"scene": "res://kit/modules/dressing/prop_pot.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("earthenware", "table_prop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "prop_scroll",
+"scene": "res://kit/modules/dressing/prop_scroll.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("linen", "table_prop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "recess_sealed_door",
+"scene": "res://kit/modules/dressing/recess_sealed_door.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brick", "wood", "recess", "door"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "recess_shelves",
+"scene": "res://kit/modules/dressing/recess_shelves.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "storage", "recess"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "recess_shelves_broken",
+"scene": "res://kit/modules/dressing/recess_shelves_broken.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "storage", "recess", "ruin"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "recess_tile_panel",
+"scene": "res://kit/modules/dressing/recess_tile_panel.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("tile", "recess"),
+"weight": 1.0
+}, {
+"edge": "",
 "family": "walls",
 "name": "floor_4m",
 "scene": "res://kit/modules/walls/floor_4m.tscn",

@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_1vbon"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/recess_shelves_broken.glb" id="2_cggbm"]
+
+[node name="recess_shelves_broken" type="Node3D" unique_id=475083783]
+script = ExtResource("1_1vbon")
+family = "dressing"
+tags = PackedStringArray("wood", "storage", "recess", "ruin")
+source_glb = "res://assets/kit/dressing/recess_shelves_broken.glb"
+
+[node name="Mesh" parent="." unique_id=5864139 instance=ExtResource("2_cggbm")]

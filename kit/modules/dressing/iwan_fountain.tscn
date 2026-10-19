@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_v1g6k"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/iwan_fountain.glb" id="2_kleba"]
+
+[node name="iwan_fountain" type="Node3D" unique_id=365271831]
+script = ExtResource("1_v1g6k")
+family = "dressing"
+tags = PackedStringArray("stone", "water", "iwan", "centrepiece")
+source_glb = "res://assets/kit/dressing/iwan_fountain.glb"
+
+[node name="Mesh" parent="." unique_id=12044188 instance=ExtResource("2_kleba")]

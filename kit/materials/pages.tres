@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://i55cikmt5ao3"]
+
+[ext_resource type="Texture2D" uid="uid://s5rmfg7d7p6j" path="res://assets/textures/px/pages.png" id="1_sqm8u"]
+[ext_resource type="Texture2D" uid="uid://b3jvu3a05ajnd" path="res://assets/textures/px/pages_normal.png" id="2_xtx5i"]
+[ext_resource type="Texture2D" uid="uid://cw7vmfl1la20a" path="res://assets/textures/px/pages_rough.png" id="3_ksqof"]
+
+[resource]
+resource_name = "pages"
+albedo_texture = ExtResource("1_sqm8u")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_ksqof")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_xtx5i")
+uv1_scale = Vector3(4, 4, 4)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(4, 4, 4)

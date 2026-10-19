@@ -1,9 +1,12 @@
 [gd_scene format=3]
 
 [ext_resource type="Script" path="res://scripts/world/shelf_fill.gd" id="1_eeucw"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/recess_shelves_broken.tscn" id="2_ah0o3"]
 
 [node name="recess_books_fallen" type="MultiMeshInstance3D" unique_id=108080278]
 script = ExtResource("1_eeucw")
 shelf_levels = PackedFloat32Array(0.17, 0.59, 1.01, 1.43)
 fallen = true
 palette = PackedColorArray(0.48, 0.17, 0.13, 1, 0.17, 0.25, 0.42, 1, 0.42, 0.29, 0.12, 1, 0.18, 0.36, 0.29, 1, 0.54, 0.42, 0.17, 1, 0.29, 0.16, 0.29, 1, 0.64, 0.33, 0.23, 1, 0.78, 0.71, 0.54, 1)
+
+[node name="Boards" parent="." unique_id=475083783 instance=ExtResource("2_ah0o3")]

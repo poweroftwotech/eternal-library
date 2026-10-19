@@ -28,7 +28,7 @@ func build() -> KitCatalog:
 	var err: Error = OK
 	var old: KitCatalog = ResourceLoader.load(CATALOG_PATH, "", ResourceLoader.CACHE_MODE_IGNORE) as KitCatalog if ResourceLoader.exists(CATALOG_PATH) else null
 	if old == null or var_to_str(old.modules) != var_to_str(catalog.modules):
-		var uid: int = _header_uid(CATALOG_PATH) if old != null else ResourceUID.INVALID_ID
+		var uid: int = header_uid(CATALOG_PATH) if old != null else ResourceUID.INVALID_ID
 		err = ResourceSaver.save(catalog, CATALOG_PATH)
 		if err == OK and uid != ResourceUID.INVALID_ID:
 			ResourceSaver.set_uid(CATALOG_PATH, uid)
@@ -126,7 +126,7 @@ func _wrap(glb_path: String) -> Dictionary:
 
 ## UID from a text resource's header. ResourceLoader.get_resource_uid returns
 ## -1 for .tres files in headless --script runs (the UID cache isn't loaded).
-static func _header_uid(path: String) -> int:
+static func header_uid(path: String) -> int:
 	var f: FileAccess = FileAccess.open(path, FileAccess.READ)
 	if f == null:
 		return ResourceUID.INVALID_ID

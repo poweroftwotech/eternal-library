@@ -24,6 +24,9 @@ ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 OUT = os.path.join(ROOT, "art_src", "kit", "kit_walls.blend")
 
 
+LAMP_SOCKET = {"socket_set": "lamp_state", "socket_mode": "state"}
+
+
 def module(name, slot, props):
     return _module(name, (slot * 7.0, 0.0, 0.0), props)
 
@@ -44,10 +47,7 @@ def build():
     add_prism(bm, arch_outline(3.0, 1.9), 0.5, 0.0, -0.25, T + 0.2)
     cutter = mesh_object("cutter", bm, ["wood"], r)
     cut(body, cutter)
-    bm = bmesh.new()
-    for z in (0.12, 0.54, 0.96, 1.38, 1.80):   # boards only; books come from the socket (ShelfFill)
-        add_box(bm, 0.52, 3.48, -0.25, 0.22, z, z + 0.05, 0)
-    mesh_object("wall_shelfbay_4m__shelves", bm, ["wood"], r)
+    # Boards and books both come from the recess socket (kit/sockets/recess_library.tres).
     marker("SOCKET_recess_fill__shelfbay", r, (2.0, 0.0, 0.0), {"socket_set": "recess_library"})
     marker("ANCHOR_browse__shelfbay", r, (2.0, 1.2, 0.0))
 
@@ -133,6 +133,7 @@ def build():
     add_box(bm, -0.1, 0.1, -0.1, 0.1, 2.6, 2.98, 1)
     mesh_object("lantern_hanging__body", bm, ["brass", "emit_lantern"], r)
     marker("LIGHT_lantern__hanging", r, (0.0, 0.0, 2.8))
+    marker("SOCKET_lamp_state__hanging", r, (0.0, 0.0, 2.8), LAMP_SOCKET)
 
 
 def main():

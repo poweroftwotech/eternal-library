@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://snadm8s0tclv"]
+
+[ext_resource type="Texture2D" uid="uid://7aow7l1vbp50" path="res://assets/textures/px/soil.png" id="1_m3vyk"]
+[ext_resource type="Texture2D" uid="uid://l7mjwgofq476" path="res://assets/textures/px/soil_normal.png" id="2_jmhen"]
+[ext_resource type="Texture2D" uid="uid://dm04i76g1kdom" path="res://assets/textures/px/soil_rough.png" id="3_2syma"]
+
+[resource]
+resource_name = "soil"
+albedo_texture = ExtResource("1_m3vyk")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_2syma")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_jmhen")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

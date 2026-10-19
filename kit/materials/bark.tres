@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bghcm551xh0fy"]
+
+[ext_resource type="Texture2D" uid="uid://cuw50rpgnhqnt" path="res://assets/textures/px/bark.png" id="1_hwf4a"]
+[ext_resource type="Texture2D" uid="uid://cihqum7jlmqof" path="res://assets/textures/px/bark_normal.png" id="2_p80w1"]
+[ext_resource type="Texture2D" uid="uid://cm5c5lk5dqs73" path="res://assets/textures/px/bark_rough.png" id="3_q2xkt"]
+
+[resource]
+resource_name = "bark"
+albedo_texture = ExtResource("1_hwf4a")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_q2xkt")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_p80w1")
+uv1_scale = Vector3(1, 0.5, 1)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 0.5, 1)

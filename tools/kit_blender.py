@@ -160,3 +160,47 @@ def arch_ring(bm, inner, outer, y0, y1, mat_for=None, smooth=True):
         bm.faces.new((i1[i], i1[i + 1], o1[i + 1], o1[i]))           # back cap
     for a in (0, n - 1):                                             # springing strips
         bm.faces.new((i0[a], i1[a], o1[a], o0[a]))
+
+
+def add_obox(bm, center, size, rot, mat=0):
+    """Box of `size` rotated by Euler XYZ radians `rot`, centred on `center`."""
+    from mathutils import Euler, Vector
+    m = Euler(rot, "XYZ").to_matrix()
+    hx, hy, hz = size[0] / 2, size[1] / 2, size[2] / 2
+    c = Vector(center)
+    vs = [bm.verts.new(c + m @ Vector((sx * hx, sy * hy, sz * hz)))
+          for (sx, sy, sz) in ((-1, -1, -1), (1, -1, -1), (1, 1, -1), (-1, 1, -1),
+                               (-1, -1, 1), (1, -1, 1), (1, 1, 1), (-1, 1, 1))]
+    for f in ((0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (2, 3, 7, 6), (3, 0, 4, 7)):
+        bm.faces.new([vs[i] for i in f]).material_index = mat
+
+
+def add_lathe(bm, profile, cx=0.0, cy=0.0, segs=12, mat=0, uv=None):
+    """Closed solid of revolution. profile: [(radius, z), ...] from bottom to
+    top; first and last radius may be 0 (pole) or > 0 (capped). With a UV
+    layer, u wraps around and v runs up the profile (for uv-mapped maps)."""
+    rings = []
+    for (r, z) in profile:
+        rings.append([bm.verts.new((cx + r * math.cos(2 * math.pi * i / segs),
+                                    cy + r * math.sin(2 * math.pi * i / segs), z)) for i in range(segs)])
+    zs = [z for (_, z) in profile]
+    z0, z1 = min(zs), max(zs)
+    for k in range(len(rings) - 1):
+        for i in range(segs):
+            j = (i + 1) % segs
+            f = bm.faces.new((rings[k][i], rings[k][j], rings[k + 1][j], rings[k + 1][i]))
+            f.material_index = mat
+            if uv is not None:
+                for loop, (u, kk) in zip(f.loops, ((i, k), (i + 1, k), (i + 1, k + 1), (i, k + 1))):
+                    loop[uv].uv = (u / segs, (profile[kk][1] - z0) / max(z1 - z0, 1e-6))
+    for ring in (rings[0], rings[-1]):
+        bm.faces.new(ring if ring is rings[-1] else list(reversed(ring))).material_index = mat
+    bmesh.ops.remove_doubles(bm, verts=[v for ring in rings for v in ring], dist=1e-5)
+
+
+def add_ngon_prism(bm, n, radius, z0, z1, cx=0.0, cy=0.0, mat=0, phase=None):
+    """Closed n-sided prism (octagonal basins, planters)."""
+    ph = math.pi / n if phase is None else phase
+    pts = [(cx + radius * math.cos(ph + 2 * math.pi * i / n), cy + radius * math.sin(ph + 2 * math.pi * i / n))
+           for i in range(n)]
+    add_plan_prism(bm, pts, z0, z1, mat)

@@ -47,6 +47,9 @@ BLEND = os.path.join(ROOT, "art_src", "kit", "kit_walls.blend")
 ROW_Y = -24.0
 HALL = 12.0      # hall width: three bays
 HALL_K = 0.58    # vault pointedness (atlas R01)
+LAMP_SOCKET = {"socket_set": "lamp_state", "socket_mode": "state"}
+TABLE_SOCKET = {"socket_set": "table_props", "socket_mode": "scatter", "scatter_count": [2, 5],
+                "scatter_extent": [0.5, 1.9], "scatter_spacing": 0.35}
 
 
 def props(shape, size, edge, tags, weight=1.0):
@@ -101,16 +104,11 @@ def iwan(r):
     bm = bmesh.new()
     add_box(bm, 3.0, 9.0, -depth, 0.0, -0.2, 0.0)
     mesh_object("wall_iwan_12m__floor-col", bm, ["floor_stone"], r)
-    # Back shelves: same board layout as the shelf bay, so recess_library fits.
+    # Back wall: a recess_library socket; its candidates bring their own boards.
     sy = -depth + 0.25
-    bm = bmesh.new()
-    for z in (0.12, 0.54, 0.96, 1.38, 1.80):
-        add_box(bm, 4.52, 7.48, sy - 0.25, sy + 0.22, z, z + 0.05)
-    for x in (4.44, 7.48):
-        add_box(bm, x, x + 0.08, sy - 0.25, sy + 0.22, 0.0, 1.9)
-    mesh_object("wall_iwan_12m__shelves", bm, ["wood"], r)
     marker("SOCKET_recess_fill__iwan", r, (6.0, sy, 0.0), {"socket_set": "recess_library"})
     marker("ANCHOR_study__iwan", r, (6.0, -1.2, 0.0))
+    marker("SOCKET_iwan_centre__iwan", r, (6.0, -1.2, 0.0), {"socket_set": "iwan_centre"})
 
 
 def stair(r, name="stair_gallery_8m", reverse=False):
@@ -248,6 +246,7 @@ def table(r):
     for sx in (-1, 1):
         for y in (-1.4, 0.0, 1.4):
             marker("ANCHOR_seat__t%d%d" % (sx + 1, int(y * 10) + 20), r, (sx * 1.05, y, 0.0))
+    marker("SOCKET_table_props__table", r, (0.0, 0.0, 0.78), TABLE_SOCKET)
 
 
 def lantern(bm, cx, cy, z0, half, height):
@@ -276,6 +275,7 @@ def lantern_cluster(r):
     add_box(bm, -0.02, 0.02, -0.02, 0.02, 6.38, crown + 0.2)
     mesh_object("lantern_cluster__chain", bm, ["iron"], r)
     marker("LIGHT_chandelier__cluster", r, (0.0, 0.0, 5.8))
+    marker("SOCKET_lamp_state__cluster", r, (0.0, 0.0, 5.8), LAMP_SOCKET)
 
 
 def rug_runner(r):
@@ -310,6 +310,32 @@ MODULES = [
 ]
 
 
+# Step 3 upgrades for modules that already exist in a hand-edited .blend
+# (fresh builds above already match). Each is idempotent.
+REMOVE = ["wall_shelfbay_4m__shelves", "wall_iwan_12m__shelves"]   # boards now come from recess candidates
+ADD_MARKERS = [
+    ("M_wall_iwan_12m", "SOCKET_iwan_centre__iwan", (6.0, -1.2, 0.0), {"socket_set": "iwan_centre"}),
+    ("M_table_reading", "SOCKET_table_props__table", (0.0, 0.0, 0.78), TABLE_SOCKET),
+    ("M_lantern_hanging", "SOCKET_lamp_state__hanging", (0.0, 0.0, 2.8), LAMP_SOCKET),
+    ("M_lantern_cluster", "SOCKET_lamp_state__cluster", (0.0, 0.0, 5.8), LAMP_SOCKET),
+]
+
+
+def upgrade():
+    done = []
+    for name in REMOVE:
+        ob = bpy.data.objects.get(name)
+        if ob is not None:
+            bpy.data.objects.remove(ob, do_unlink=True)
+            done.append("removed " + name)
+    for (mod, name, loc, p) in ADD_MARKERS:
+        root = bpy.data.objects.get(mod)
+        if root is not None and not any(c.name.startswith(name) for c in root.children):
+            marker(name, root, loc, p)
+            done.append("%s += %s" % (mod, name))
+    return done
+
+
 def main():
     if not os.path.exists(BLEND):
         print("kit_add_r01: %s not found; run kit_seed_walls.py first." % BLEND)
@@ -322,11 +348,12 @@ def main():
             build(module(name, (x, ROW_Y, 0.0), p))
             added.append(name)
         x += 16.0
-    if not added:
-        print("kit_add_r01: all modules already present; nothing to do.")
+    changes = ["added " + n for n in added] + upgrade()
+    if not changes:
+        print("kit_add_r01: everything already present; nothing to do.")
         return
     bpy.ops.wm.save_as_mainfile(filepath=BLEND)
-    print("kit_add_r01: added %s" % ", ".join(added))
+    print("kit_add_r01: " + "; ".join(changes))
 
 
 main()

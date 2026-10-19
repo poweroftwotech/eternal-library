@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://c7sebubsvsbrf"]
+
+[ext_resource type="Texture2D" uid="uid://bx78wp3iylaml" path="res://assets/textures/px/pomegranate.png" id="1_dslqs"]
+[ext_resource type="Texture2D" uid="uid://cksyn3qebyffn" path="res://assets/textures/px/pomegranate_normal.png" id="2_x26iw"]
+[ext_resource type="Texture2D" uid="uid://dl11dq0d23gga" path="res://assets/textures/px/pomegranate_rough.png" id="3_h2cmj"]
+
+[resource]
+resource_name = "pomegranate"
+albedo_texture = ExtResource("1_dslqs")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_h2cmj")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_x26iw")
+uv1_scale = Vector3(2, 2, 2)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(2, 2, 2)

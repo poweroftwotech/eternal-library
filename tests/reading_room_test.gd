@@ -44,7 +44,12 @@ func audit(room: Node3D) -> void:
 	check(problems.is_empty(), "passes KitValidate (%d modules)" % KitValidate.count_modules(room))
 	if tmpl != null:
 		var sockets: Array[VariantSocket] = tmpl.sockets()
-		check(sockets.size() == 16, "16 recess sockets, as in the atlas (found %d)" % sockets.size())
+		var by_set: Dictionary = {}
+		for s: VariantSocket in sockets:
+			var key: String = s.socket_set.resource_path.get_file().get_basename() if s.socket_set != null else "(none)"
+			by_set[key] = int(by_set.get(key, 0)) + 1
+		check(by_set == {"recess_library": 16, "iwan_centre": 1, "table_props": 4, "lamp_state": 7},
+			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps (found %s)" % by_set)
 		check(tmpl.resolve_sockets(7) == tmpl.resolve_sockets(7), "socket picks are deterministic")
 	check(room.get_node("Connectors").get_child_count() == 3, "three door connectors")
 	await physics_frame
@@ -67,9 +72,12 @@ func audit(room: Node3D) -> void:
 	check(await blocked(body, Vector3(1.5, 0.95, -18), Vector3(-3, 0, 0)), "west wall blocks (bay 4)")
 	check(await blocked(body, Vector3(10.5, 0.95, -2), Vector3(3, 0, 0)), "east wall blocks (bay 0)")
 	check(await blocked(body, Vector3(3, 0.95, -1.5), Vector3(0, 0, 3)), "south wall blocks beside the entrance")
-	# Walk the hall down the runner into the iwan.
-	var feet: Vector3 = await walk(body, Vector3(6, 0.95, -1.0), Vector3(0, 0, -3), func(p: Vector3) -> bool: return p.z < -21.8)
-	check(feet.z < -21.5 and absf(feet.y) < 0.1, "walk the hall into the iwan alcove (feet at %s)" % feet)
+	# Walk the hall down the runner, then step aside (the iwan centrepiece has
+	# collision on the centre line) and into the alcove.
+	await walk(body, Vector3(6, 0.95, -1.0), Vector3(0, 0, -3), func(p: Vector3) -> bool: return p.z < -17.5)
+	await walk(body, Vector3.INF, Vector3(-2, 0, 0), func(p: Vector3) -> bool: return p.x < 4.0)
+	var feet: Vector3 = await walk(body, Vector3.INF, Vector3(0, 0, -2), func(p: Vector3) -> bool: return p.z < -21.8)
+	check(feet.z < -21.5 and absf(feet.y) < 0.1, "walk the hall into the iwan alcove beside the centrepiece (feet at %s)" % feet)
 	# West stair: foot at z -16 in bay 4, rises toward the entrance.
 	feet = await walk(body, Vector3(0.95, 0.95, -18.5), Vector3(0, 0, 3), func(p: Vector3) -> bool: return p.z > -4.0)
 	check(feet.z > -5.0 and absf(feet.y - 4.15) < 0.1, "west stair reaches the west gallery (feet at %s)" % feet)

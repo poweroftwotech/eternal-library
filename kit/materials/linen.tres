@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://fativhttvrev"]
+
+[ext_resource type="Texture2D" uid="uid://b6im6pq15luqm" path="res://assets/textures/px/linen.png" id="1_g7q2f"]
+[ext_resource type="Texture2D" uid="uid://dnrtpbdawwin3" path="res://assets/textures/px/linen_normal.png" id="2_x4c6t"]
+[ext_resource type="Texture2D" uid="uid://c7ncq38gk77ho" path="res://assets/textures/px/linen_rough.png" id="3_3mskg"]
+
+[resource]
+resource_name = "linen"
+albedo_texture = ExtResource("1_g7q2f")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_3mskg")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_x4c6t")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

@@ -1,0 +1,29 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_kv770"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/iwan_lectern.tscn" id="2_hrmv3"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/iwan_tree.tscn" id="3_q1kqg"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/iwan_fountain.tscn" id="4_ou8wk"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="5_1kcfk"]
+
+[sub_resource type="Resource" id="Resource_dh356"]
+script = ExtResource("1_kv770")
+label = "lectern"
+scene = ExtResource("2_hrmv3")
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_yrcc7"]
+script = ExtResource("1_kv770")
+label = "reading tree"
+scene = ExtResource("3_q1kqg")
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_qp18i"]
+script = ExtResource("1_kv770")
+label = "fountain"
+scene = ExtResource("4_ou8wk")
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("5_1kcfk")
+entries = Array[ExtResource("1_kv770")]([SubResource("Resource_dh356"), SubResource("Resource_yrcc7"), SubResource("Resource_qp18i")])

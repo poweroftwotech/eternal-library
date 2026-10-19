@@ -1,0 +1,13 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://us7aqdhruyex"]
+
+[ext_resource type="Texture2D" uid="uid://b1vdlkgjbvr4t" path="res://assets/textures/px/tree_leaf.png" id="1_rtj75"]
+
+[resource]
+resource_name = "tree_leaf"
+transparency = 2
+alpha_scissor_threshold = 0.5
+alpha_antialiasing_mode = 0
+cull_mode = 2
+albedo_texture = ExtResource("1_rtj75")
+metallic_specular = 0.65
+texture_filter = 4
