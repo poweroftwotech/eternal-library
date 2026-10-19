@@ -17,18 +17,34 @@ var audio: AudioStreamPlayer
 var elapsed: float = 0
 var modal_context: String = ""
 
+## Authored rooms you can visit instead of the code-built camp (ENVIRONMENT_PLAN.md
+## phase 1 step 6). Pick one with `-- --room=<res path>` or from the Esc menu.
+const READING_ROOM: String = "res://rooms/authored/reading_room.tscn"
+## Set by the menu before a reload; survives reload_current_scene().
+static var room_override: String = ""
+
 func _ready() -> void:
 	install_inputs()
-	world = World.new()
+	var room_path: String = requested_room()
+	if room_path.is_empty():
+		world = World.new()
+	else:
+		world = (load(room_path) as PackedScene).instantiate()
 	world.name = "Environment"
 	add_child(world)
 	player = Player.new()
 	add_child(player)
 	player.walking_speed = 3.3
 	player.camera.fov = 68
-	# v0.11: spawn on the concept-art framing (see tests/capture.gd 'concept').
-	player.teleport(Vector3(-1.05,.08,9.2))
-	look_toward(Vector3(-1.1,1.4,-2.4))
+	if in_room():
+		var spawn: Node3D = world.get_node_or_null("PlayerSpawn")
+		var pose: Transform3D = spawn.global_transform if spawn != null else Transform3D(Basis(), Vector3(0, .1, 0))
+		player.teleport(pose.origin, pose.basis.get_euler().y)
+		player.respawn_point = pose.origin
+	else:
+		# v0.11: spawn on the concept-art framing (see tests/capture.gd 'concept').
+		player.teleport(Vector3(-1.05,.08,9.2))
+		look_toward(Vector3(-1.1,1.4,-2.4))
 	player.blocked = false
 	player.interact_requested.connect(interact)
 	hud = Hud.new()
@@ -48,6 +64,31 @@ func _ready() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	hud.update_values(inventory,nourishment,warmth)
 	hud.notify("WASD explore  ·  E interact  ·  J field notes  ·  Esc menu")
+	if in_room():
+		hud.zone_label.text = room_title()
+
+## "" = the camp. The menu's choice wins over the command line.
+func requested_room() -> String:
+	if room_override != "":
+		return "" if room_override == "camp" else room_override
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("--room="):
+			var path: String = arg.trim_prefix("--room=")
+			if ResourceLoader.exists(path):
+				return path
+			push_warning("main: no room at %s, starting the camp" % path)
+	return ""
+
+func in_room() -> bool:
+	return world is RoomTemplate
+
+func room_title() -> String:
+	var title: String = (world as RoomTemplate).display_name
+	return (title if title != "" else String(world.name)).to_upper()
+
+func travel(path: String) -> void:
+	room_override = path
+	get_tree().reload_current_scene()
 
 func install_inputs() -> void:
 	var actions = {"forward":[KEY_W,KEY_UP],"back":[KEY_S,KEY_DOWN],"left":[KEY_A,KEY_LEFT],"right":[KEY_D,KEY_RIGHT],"interact":[KEY_E],"jump":[KEY_SPACE],"sprint":[KEY_SHIFT],"notes":[KEY_J],"fullscreen":[KEY_F11]}
@@ -66,6 +107,8 @@ func look_toward(target: Vector3) -> void:
 
 func interact(target) -> void:
 	var id: String = target.get_interaction_id()
+	if in_room():
+		return     # authored rooms get interactable props in phase 3 (WorldProp)
 	if id == "pot":
 		show_pot()
 	elif id == "vista":
@@ -127,11 +170,16 @@ func eat() -> bool:
 	return true
 
 func show_notes() -> void:
+	if in_room():
+		open_panel("Field notes","[color=#dfbd7b]%s[/color]\nA two-storey hall of shelf recesses under a tiled vault. Stairs at the far end of each side climb to a gallery that runs round to the entrance wall. A tiled iwan closes the hall; what stands in it changes from visit to visit.\n\nNothing to gather here yet. Esc → Return to the camp." % room_title().capitalize(),[{"text":"Close notes","action":"close"}],"notes")
+		return
 	open_panel("Field notes","[color=#dfbd7b]The reading garden[/color]\nA cooking fire, a tree growing through the archive, and a stair to the upper gallery. Water still follows the old irrigation channel.\n\n[color=#dfbd7b]Ingredients[/color]\nAmberroot grows beside the garden's water. Filling.\nHearthleaf grows in sunny patches. Aromatic and warming.\nShelf mushrooms grow in the damp archive. Good roasted.\n\n[color=#dfbd7b]A route worth trying[/color]\nThe stairs east of the tree lead to the upper bookshelves. Follow the lamp-lit doorway through the gallery to the balcony. The Eternal Library continues far below the cavern roof.",[{"text":"Close notes","action":"close"}],"notes")
 
 func show_menu() -> void:
-	open_panel("The reading garden","A moment by the shelves.",[
+	var trip: Dictionary = {"text":"Return to the camp","action":"go_camp"} if in_room() else {"text":"Visit the reading room","action":"go_reading_room"}
+	open_panel(room_title().capitalize() if in_room() else "The reading garden","A moment by the shelves.",[
 		{"text":"Resume exploring","action":"close"},
+		trip,
 		{"text":"Controls & settings","action":"controls"},
 		{"text":"Begin another outing","action":"restart"},
 		{"text":"Quit","action":"quit"}],"menu")
@@ -161,6 +209,8 @@ func on_choice(action: String) -> void:
 		"restart":
 			open_panel("Another outing?","Start again with an empty satchel and fresh ingredients in the garden?",[{"text":"Begin again","action":"restart_confirm"},{"text":"Keep this outing","action":"menu"}],"restart")
 		"restart_confirm": get_tree().reload_current_scene()
+		"go_reading_room": travel(READING_ROOM)
+		"go_camp": travel("camp")
 		"quit": get_tree().quit()
 		"roast", "broth":
 			if cook(action):
@@ -176,6 +226,11 @@ func _process(delta: float) -> void:
 	elapsed += delta
 	var target = player.get_target()
 	hud.set_prompt(target.title if target != null else "")
+	if in_room():
+		# No hearth or cold archive here; only the slow nourishment drain.
+		nourishment = maxf(0,nourishment-delta*.013)
+		hud.update_values(inventory,nourishment,warmth)
+		return
 	var cold: bool = player.position.x > 5 and player.position.z < 0
 	hud.zone_label.text = "THE DAMP ARCHIVE" if cold else "THE READING GARDEN"
 	if player.position.z < -20:

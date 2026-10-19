@@ -7,6 +7,8 @@ var sensitivity: float = 0.0024
 var invert_y: bool = false
 var walking_speed: float = 3.7
 var elapsed: float = 0.0
+## Where a fall below the world puts you back (the camp default; rooms set their spawn).
+var respawn_point: Vector3 = Vector3(0, 0.2, 11.5)
 
 func _ready() -> void:
 	name = "Player"
@@ -61,7 +63,7 @@ func _physics_process(delta: float) -> void:
 	elapsed += delta
 	# Minimal, subtle movement: no compulsory camera shake or strong head bob.
 	if position.y < -8.0:
-		position = Vector3(0, 0.2, 11.5)
+		position = respawn_point
 		velocity = Vector3.ZERO
 
 func get_target():

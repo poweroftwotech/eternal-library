@@ -45,7 +45,7 @@ What carries over from the prototype:
 | `tools/build_props.py` Blender pipeline | Grows into `tools/export_kit.py`. |
 | `vista.gd`, `cavern.gd`, `vista_cliff.gd` | Later, the R10 Chasm Spans generator (phase 5). |
 | `tests/` capture, playtest and audit scripts | Reused as gates for every phase. |
-| Hand-placed geometry in `world.gd` and the passes | Replaced by the authored R01 scene in phase 1. The old builder stays runnable until R01 matches it. |
+| Hand-placed geometry in `world.gd` and the passes | Stays as the camp, which holds the gameplay loop. Authored rooms such as R01 are played alongside it (phase 1 step 6 decision); the camp is rebuilt from kit modules once props carry gameplay (phase 3). |
 
 ---
 
@@ -705,8 +705,69 @@ ported (no room uses them yet).
 4. ~~**Atmosphere**~~ (done, see above).
 5. **Validate Room** in the Kit dock: extend `KitValidate` with edge-gap checks
    (every cell edge closed by an edge module or connector) and a socket fit check.
-6. **Swap R01 into the game** in place of the code-built interior, capture it
-   against `previews/concept_v011.png`, and run the route audit.
+6. ~~**Swap R01 into the game**~~ (done as a selectable room by decision, see below).
+
+**Step 6 done (2026-10-19): the reading room is playable in the game.**
+**Decision (user, 2026-10-19):** R01 does *not* replace the code-built camp.
+The camp (`world.gd`) holds the whole gameplay loop (hearth, cooking pot,
+gathering, vista balcony), and R01 is a different place: the atlas reading
+hall, not the campfire concept. So `previews/concept_v011.png` doesn't apply
+as R01's target. Instead the game can boot either one:
+
+- **How to play it:** Esc menu → **Visit the reading room** (and **Return to
+  the camp**), or start with `-- --room=res://rooms/authored/reading_room.tscn`.
+  The camp stays the default.
+- `scripts/main.gd` loads any `RoomTemplate` scene as the world, spawns at its
+  `PlayerSpawn` marker, shows its `display_name` in the HUD, and skips the
+  camp-only logic (warmth, harvesting, zones, balcony) in rooms. The choice
+  is a static `room_override`, so it survives `reload_current_scene()`.
+  `player.gd` gains `respawn_point` (a fall puts you back at the room's spawn).
+- `RoomTemplate.display_name`. The reading room gets "The Reading Room" and a
+  `PlayerSpawn` (patched in place; the builder makes both).
+
+**Verified:** `tests/room_playtest.gd` passes 11 checks with the real
+`main.tscn` player driven by input actions. It boots into the room on the
+spawn with the room's environment, then walks the hall into the iwan, climbs
+the west stair, rounds the whole U gallery, and comes down the east stair. It
+never drops below the floor, and the menu offers the way back. The camp
+playtest still passes (43 checks), as do the prototype atmosphere test and
+every room and kit gate. The 240-frame gates are clean for the camp, the
+graybox, the room scene and `main` with `--room`. GPU captures of the real
+game with HUD: `previews/game_reading_room_{spawn,gallery,iwan}.png`
+(`tests/room_game_capture.gd`). **Not verified:** the menu round trip in a
+real window was checked by the user (Esc → Visit the reading room).
+
+**Phase 1 status:** done except step 5 (Validate Room in the Kit dock). Of
+the roadmap's "done when": R01 is playable in the game (as a selectable room,
+by decision), and re-rolling the preview seed changes recesses, the iwan
+centrepiece and lamps. The capture-vs-concept criterion was dropped with the
+decision above.
+
+### Next: the weathering slice (planned 2026-10-19, after step 5)
+
+Agreed scope: only the parts that existing tools carry, so phase 3's
+`AgeRules` can later just shift their weights. Order:
+
+1. **Edge scatter.** A new `VariantSocket` mode `EDGE_SCATTER`: N items along
+   a line, such as the wall-to-floor seam of a bay or the top of a balustrade,
+   with spacing and jitter. Modules get `SOCKET_seam` empties along their base
+   (shelf bay, plain wall, iwan flanks) and gallery rails.
+2. **Plants as dressing.** Crack tufts, moss cushions, hanging ivy (rail) and
+   a root clump for collapsed recesses, in `kit_dressing.blend`. Port the
+   prototype's `shaders/foliage_wind.gdshader` as a library material so cards
+   sway. Socket sets `seam_growth` and `rail_growth`, mostly "nothing" at
+   today's weights.
+3. **Decals.** Water stains, soot above lamps, moss patches and floor cracks
+   as `Decal` scenes using the pixel palette (32 tx/m). A `SCATTER` socket on
+   wall bays picks 0-2.
+4. **Open wooden stair.** `stair_gallery_8m_open` (and `_r`): a stringer
+   stair with open risers, the same footprint, ramp and snaps as the masonry
+   one, so a room can swap them in the editor.
+
+Deferred, on purpose: a material-level wear/grime shader and age-driven
+overgrowth (phase 3, `AgeRules`); floor-cell garden sockets and the R05
+courtyard (phase 5); stair *layout* variants as seeded sub-assemblies
+(phase 2, with stair cells in generators).
 
 **Known issues to keep in mind:**
 - Saving a `kit/dressing/*.tscn` from the editor while a `ShelfFill` has run

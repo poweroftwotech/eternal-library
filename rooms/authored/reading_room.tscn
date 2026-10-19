@@ -32,6 +32,7 @@ size = Vector3(60, 0.5, 60)
 [node name="ReadingRoom" type="Node3D" unique_id=1456888310]
 script = ExtResource("1_kokae")
 room_id = "reading_room"
+display_name = "The Reading Room"
 socket_pins = Dictionary[String, int]({
 "Lights/lantern_cluster/Mesh/M_lantern_cluster/SOCKET_lamp_state": 0,
 "Lights/lantern_cluster2/Mesh/M_lantern_cluster/SOCKET_lamp_state": 0
@@ -347,6 +348,9 @@ metadata/snap_kind = "door"
 [node name="SNAP_door_east" type="Marker3D" parent="Connectors" unique_id=1913077202 groups=["room_connector"]]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 12, 0, -6)
 metadata/snap_kind = "door"
+
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=1766653834 groups=["player_spawn"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.05, -1.5)
 
 [node name="Atmosphere" type="Node" parent="." unique_id=134238818]
 script = ExtResource("21_jkhh2")

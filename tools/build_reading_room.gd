@@ -33,6 +33,7 @@ func _initialize() -> void:
 	room = RoomTemplate.new()
 	room.name = "ReadingRoom"
 	room.room_id = "reading_room"
+	room.display_name = "The Reading Room"
 	for g: String in ["Shell", "Sockets", "Props", "Dressing", "Lights", "Connectors"]:
 		var n := Node3D.new()
 		n.name = g
@@ -43,6 +44,7 @@ func _initialize() -> void:
 	build_dressing()
 	build_lights()
 	build_connectors()
+	add_spawn()
 	build_bounds()
 	add_safety_floor()
 	add_atmosphere()
@@ -214,3 +216,14 @@ func place(group: String, module_name: String, pos: Vector3, yaw_deg: float) -> 
 	node.transform = Transform3D(Basis(Vector3.UP, deg_to_rad(yaw_deg)), pos)
 	groups[group].add_child(node, true)
 	node.owner = room
+
+
+## Where main.gd puts the player when the room is played on its own: inside
+## the entrance on the runner, looking down the hall (-Z).
+func add_spawn() -> void:
+	var m := Marker3D.new()
+	m.name = "PlayerSpawn"
+	m.position = Vector3(WIDTH / 2, 0.05, -1.5)
+	room.add_child(m)
+	m.owner = room
+	m.add_to_group("player_spawn", true)

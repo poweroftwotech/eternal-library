@@ -12,6 +12,8 @@ extends Node3D
 ## Sockets panel edits it. A room pin wins over the socket's own `pinned`.
 
 @export var room_id: String = ""
+## Shown in the HUD and menus when the room is played on its own.
+@export var display_name: String = ""
 @export var preview_seed: int = 1:
 	set(value):
 		preview_seed = value
