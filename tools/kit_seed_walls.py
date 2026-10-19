@@ -155,15 +155,9 @@ def build():
     cutter = mesh_object("cutter", bm, ["wood"], r)
     cut(body, cutter)
     bm = bmesh.new()
-    for i, z in enumerate((0.12, 0.54, 0.96, 1.38, 1.80)):
+    for z in (0.12, 0.54, 0.96, 1.38, 1.80):   # boards only; books come from the socket (ShelfFill)
         add_box(bm, 0.52, 3.48, -0.25, 0.22, z, z + 0.05, 0)
-        x = 0.58
-        while i < 4 and x < 3.3:           # book blocks: one per run of spines
-            w = 0.35 + ((x * 7.3) % 0.5)
-            h = 0.26 + ((x * 3.1) % 0.1)
-            add_box(bm, x, min(x + w, 3.42), -0.22, 0.12, z + 0.05, z + 0.05 + h, 1)
-            x += w + 0.08
-    mesh_object("wall_shelfbay_4m__shelves", bm, ["wood", "book_leather"], r)
+    mesh_object("wall_shelfbay_4m__shelves", bm, ["wood"], r)
     marker("SOCKET_recess_fill__shelfbay", r, (2.0, 0.0, 0.0), {"socket_set": "recess_library"})
     marker("ANCHOR_browse__shelfbay", r, (2.0, 1.2, 0.0))
 

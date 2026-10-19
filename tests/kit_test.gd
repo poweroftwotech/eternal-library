@@ -65,7 +65,9 @@ func check_module(entry: Dictionary) -> void:
 		check(bodies > 0, "%s (structural) has collision" % name)
 	match name:
 		"wall_shelfbay_4m":
-			check(has_in_group(parts, "kit_socket", "SOCKET_recess_fill"), "shelf bay has its recess socket")
+			var sockets: Array = parts.filter(func(n: Node) -> bool: return n is VariantSocket and n.is_in_group("kit_socket"))
+			check(sockets.size() == 1 and (sockets[0] as VariantSocket).socket_set != null,
+				"shelf bay has a VariantSocket linked to its socket set")
 			check(has_in_group(parts, "npc_anchor", "ANCHOR_browse"), "shelf bay has its NPC anchor")
 		"wall_arch_3m":
 			check(has_in_group(parts, "kit_snap", "SNAP_door"), "arch has its door connector")
@@ -124,6 +126,7 @@ func check_graybox() -> void:
 	for p: String in problems:
 		print("  validate: ", p)
 	check(problems.is_empty(), "graybox passes KitValidate (%d modules)" % KitValidate.count_modules(room))
+	check_sockets(room)
 	await physics_frame
 	await physics_frame
 	var space: PhysicsDirectSpaceState3D = room.get_world_3d().direct_space_state
@@ -152,6 +155,40 @@ func check_graybox() -> void:
 	check(motion_blocked(body, Vector3(-3, 0, 0)), "player capsule is stopped by the west wall")
 	room.queue_free()
 	await process_frame
+
+
+## Phase 1 sockets: deterministic per seed, varied across seeds, pinnable, and
+## the picked dressing actually builds books.
+func check_sockets(room: Node3D) -> void:
+	var tmpl := room as RoomTemplate
+	check(tmpl != null, "graybox root is a RoomTemplate")
+	if tmpl == null:
+		return
+	var sockets: Array[VariantSocket] = tmpl.sockets()
+	check(sockets.size() == 10, "graybox has 10 recess sockets (found %d)" % sockets.size())
+	var a: Dictionary = tmpl.resolve_sockets(1)
+	var b: Dictionary = tmpl.resolve_sockets(1)
+	check(a == b, "same seed gives the same socket picks")
+	var varied: bool = false
+	for s: int in range(2, 8):
+		if tmpl.resolve_sockets(s) != a:
+			varied = true
+	check(varied, "different seeds give different socket picks")
+	var books: int = 0
+	for s: VariantSocket in sockets:
+		for c: Node in s.get_children(true):
+			if c is ShelfFill and (c as ShelfFill).multimesh != null:
+				books += (c as ShelfFill).multimesh.instance_count
+	check(books > 300, "picked dressing builds books (%d)" % books)
+	var first: VariantSocket = sockets[0]
+	first.pinned = 2
+	var pinned_ok: bool = true
+	for s: int in range(1, 6):
+		tmpl.resolve_sockets(s)
+		pinned_ok = pinned_ok and first.last_pick == 2
+	check(pinned_ok, "a pinned socket keeps its candidate across seeds")
+	first.pinned = -1
+	tmpl.resolve_sockets(1)
 
 
 func ray(space: PhysicsDirectSpaceState3D, from: Vector3, to: Vector3) -> Dictionary:

@@ -19,7 +19,8 @@ func _initialize() -> void:
 		print("build_graybox: %s exists; edit it in the editor (or pass --force)." % OUT)
 		quit()
 		return
-	room = Node3D.new()
+	room = RoomTemplate.new()
+	(room as RoomTemplate).room_id = "kit_graybox"
 	room.name = "KitGraybox"
 	shell = Node3D.new()
 	shell.name = "Shell"

@@ -484,3 +484,53 @@ Import never needs Blender (`art_src/` has a `.gdignore`).
   not in yet.
 - The shelf-recess bay's back protrudes 0.25 m past the standard wall face.
   That is fine against rock, but two recess bays back to back would overlap.
+
+### Phase 1: authored R01 (in progress, started 2026-10-18)
+
+**Done this session: the socket system.**
+
+| Piece | File |
+|---|---|
+| Candidate list and entry (weights, labels, tags) | `scripts/world/socket_set.gd`, `socket_entry.gd` |
+| Variation point: picks by seed, internal child never saved, Pin, "Next candidate" button | `scripts/world/variant_socket.gd` |
+| Room root: resolves all sockets from `preview_seed` (key = seed + room_id + socket path), "Reroll sockets" button | `scripts/world/room_template.gd` |
+| Book dressing as one MultiMesh (full, sparse or fallen), seeded by its socket | `scripts/world/shelf_fill.gd`, `kit/dressing/recess_books_*.tscn` |
+| Recess socket set (full 6, sparse 3, collapsed 1) | `kit/sockets/recess_library.tres` (created by `tools/seed_sockets.gd`) |
+| Importer turns `SOCKET_<set>` empties into `VariantSocket` linked to `kit/sockets/<set>.tres` | `tools/kit_import.gd` |
+
+The shelf-bay mesh now has boards only; books come from the socket. The
+graybox root is a `RoomTemplate`. Select it and press **Reroll sockets** in the
+Inspector, or select one recess socket (inside a shelf-bay instance) and press
+**Next candidate** or set **Pinned**.
+
+**Verified:** `tests/kit_test.gd` passes 126 checks: 10 sockets in the graybox,
+the same seed gives the same picks, different seeds vary, pinning holds, and
+more than 300 books get built. Both 240-frame headless gates are clean. The GPU
+capture `previews/kit_graybox_entrance.png` shows books on the shelves.
+Reroll and Pin haven't been clicked in the editor yet.
+
+**Next steps for phase 1, in order:**
+1. **More modules for R01** (in `kit_walls.blend`): a 12 m-wide hall needs
+   walls on 3-bay runs, a wide iwan end-wall module (6 m arch, deep), a stair to
+   the gallery, a reading table, a lantern cluster and a carpet runner. Corner
+   pier variants for gallery level.
+2. **Build `rooms/authored/reading_room.tscn` by hand in the editor** with the Kit
+   dock (3 × 5 bays, two storeys, vault), as a `RoomTemplate` with
+   `Shell / Sockets / Props / Dressing / Lights / Connectors / Bounds` children.
+3. **More socket sets:** iwan centrepiece (lectern, tree, fountain), lamp state
+   (`STATE` mode: lit, failing, dark), and recess variants such as a tile panel
+   or sealed door. Add a `SCATTER` mode (books and pots on tables).
+4. **Atmosphere:** port `art_direction.gd` and `atmosphere.gd` into an
+   `Atmosphere` node with an `AtmosphereProfile` resource, so authored rooms get
+   the prototype's grade, glow and fog.
+5. **Validate Room** in the Kit dock: extend `KitValidate` with edge-gap checks
+   (every cell edge closed by an edge module or connector) and a socket fit check.
+6. **Swap R01 into the game** in place of the code-built interior, capture it
+   against `previews/concept_v011.png`, and run the route audit.
+
+**Known issues to keep in mind:**
+- Saving a `kit/dressing/*.tscn` from the editor while a `ShelfFill` has run
+  will store its generated MultiMesh in the file. Harmless, but it bloats the
+  file; consider clearing `multimesh` before saving, or not exporting it.
+- `VariantSocket` instances are internal children, so they don't appear in the
+  Scene dock. That's intended (never saved), but it may surprise you.

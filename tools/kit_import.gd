@@ -140,6 +140,15 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 			light.shadow_enabled = profile["shadow"]
 			light.set_meta("light_profile", kind)
 			replacement = light
+		"SOCKET_":
+			var socket := VariantSocket.new()
+			var set_name: String = str(extras.get("socket_set", kind))
+			var set_path: String = "res://kit/sockets/%s.tres" % set_name
+			if ResourceLoader.exists(set_path):
+				socket.socket_set = load(set_path)
+			else:
+				_warnings.append("socket %s: no socket set at %s" % [kind, set_path])
+			replacement = socket
 		_:
 			replacement = Marker3D.new()
 	replacement.name = prefix + kind

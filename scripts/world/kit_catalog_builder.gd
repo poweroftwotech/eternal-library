@@ -24,7 +24,11 @@ func build() -> KitCatalog:
 	catalog.modules.sort_custom(func(a: Dictionary, b: Dictionary) -> bool:
 		return str(a["family"]) + str(a["name"]) < str(b["family"]) + str(b["name"]))
 	DirAccess.make_dir_recursive_absolute(CATALOG_PATH.get_base_dir())
-	var err: Error = ResourceSaver.save(catalog, CATALOG_PATH)
+	# Only rewrite the catalog when its contents change, so the editor's UID stays.
+	var err: Error = OK
+	var old: KitCatalog = ResourceLoader.load(CATALOG_PATH, "", ResourceLoader.CACHE_MODE_IGNORE) as KitCatalog if ResourceLoader.exists(CATALOG_PATH) else null
+	if old == null or var_to_str(old.modules) != var_to_str(catalog.modules):
+		err = ResourceSaver.save(catalog, CATALOG_PATH)
 	if err != OK:
 		log_lines.append("ERROR saving catalog: %s" % error_string(err))
 	log_lines.append("catalog: %d modules" % catalog.modules.size())
@@ -72,16 +76,19 @@ func _wrap(glb_path: String) -> Dictionary:
 		root = KitModuleScript.new()
 		root.name = module_name
 		created = true
+	var before: Array = [root.shape, root.family, root.size_cells, root.edge, root.tags, root.source_glb]
 	root.shape = KitModule.shape_from_string(kit["shape"])
 	root.family = family
 	root.size_cells = kit["size_cells"]
 	root.edge = kit["edge"]
 	root.tags = kit["tags"]
 	root.source_glb = glb_path
+	var changed: bool = created or before != [root.shape, root.family, root.size_cells, root.edge, root.tags, root.source_glb]
 	if created:
 		root.weight = kit["weight"]   # after creation the Inspector value wins
 	var mesh_node: Node = root.get_node_or_null("Mesh")
 	if mesh_node == null or mesh_node.scene_file_path != glb_path:
+		changed = true
 		if mesh_node != null:
 			root.remove_child(mesh_node)
 			mesh_node.free()
@@ -90,16 +97,23 @@ func _wrap(glb_path: String) -> Dictionary:
 		root.add_child(mesh_node)
 		root.move_child(mesh_node, 0)
 		mesh_node.owner = root
-	var out := PackedScene.new()
-	var err: Error = out.pack(root)
+	# Unchanged wrappers are not re-saved, so the editor's UIDs and your edits
+	# don't churn on every export. Changed ones keep their existing UID.
+	var err: Error = OK
+	if changed:
+		var uid: int = ResourceLoader.get_resource_uid(scene_path) if not created else ResourceUID.INVALID_ID
+		var out := PackedScene.new()
+		err = out.pack(root)
+		if err == OK:
+			DirAccess.make_dir_recursive_absolute(scene_path.get_base_dir())
+			err = ResourceSaver.save(out, scene_path)
+		if err == OK and uid != ResourceUID.INVALID_ID:
+			ResourceSaver.set_uid(scene_path, uid)
 	root.free()
-	if err == OK:
-		DirAccess.make_dir_recursive_absolute(scene_path.get_base_dir())
-		err = ResourceSaver.save(out, scene_path)
 	if err != OK:
 		log_lines.append("ERROR saving %s: %s" % [scene_path, error_string(err)])
 		return {}
-	log_lines.append("%s %s%s" % ["created" if created else "updated", scene_path,
+	log_lines.append("%s %s%s" % ["created" if created else ("updated" if changed else "unchanged"), scene_path,
 		("  WARN: " + "; ".join(warnings)) if not warnings.is_empty() else ""])
 	return {
 		"name": module_name, "scene": scene_path, "family": family, "shape": kit["shape"],
