@@ -1,0 +1,1072 @@
+<title>Library Room Atlas</title>
+<meta name="claude:viewport-fit-sides" content="cover">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Alegreya:ital,wght@0,400;0,600;1,400&family=VT323&display=swap">
+<style>
+/* Layout: a field atlas. One long column of room plates; each plate is a pixel painting on the left and a spec sheet on the right, with plans drawn on the 4 m grid. */
+:root{
+  --bg:#10161b; --panel:#17212a; --ink:#ece3cf; --muted:#a59a86; --line:#2a3641;
+  --amber:#e4a65a; --turq:#4fb3a8; --lapis:#7aa0dc; --brick:#c9825a;
+  --plan-shell:#8d7c64; --plan-floor:#24303a; --plan-void:#0a0e11; --water:#2f7d8c;
+  --display:'Marcellus',Georgia,'Times New Roman',serif;
+  --body:'Alegreya',Georgia,'Times New Roman',serif;
+  --mono:'VT323',ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#eee6d4; --panel:#e5dac4; --ink:#1f2328; --muted:#5c5445; --line:#cbbd9e;
+  --amber:#985814; --turq:#1d6f66; --lapis:#2c579b; --brick:#9a4e26;
+  --plan-shell:#8f7c60; --plan-floor:#d6caaf; --plan-void:#b5a68a; --water:#3b8794; color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#eee6d4; --panel:#e5dac4; --ink:#1f2328; --muted:#5c5445; --line:#cbbd9e;
+  --amber:#985814; --turq:#1d6f66; --lapis:#2c579b; --brick:#9a4e26;
+  --plan-shell:#8f7c60; --plan-floor:#d6caaf; --plan-void:#b5a68a; --water:#3b8794; color-scheme:light}
+:root[data-theme="dark"]{
+  --bg:#10161b; --panel:#17212a; --ink:#ece3cf; --muted:#a59a86; --line:#2a3641;
+  --amber:#e4a65a; --turq:#4fb3a8; --lapis:#7aa0dc; --brick:#c9825a;
+  --plan-shell:#8d7c64; --plan-floor:#24303a; --plan-void:#0a0e11; --water:#2f7d8c; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px));padding-block:0}
+.wrap{max-width:1180px;margin:0 auto;padding-block:48px 96px}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.3rem,5vw,3.6rem);line-height:1.05;letter-spacing:.01em}
+h2{font-size:clamp(1.6rem,3vw,2.1rem);line-height:1.15}
+h3{font-size:1.55rem;line-height:1.15}
+p{margin:0}
+.eyebrow,.mono{font-family:var(--mono);font-size:1.15rem;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.lede{max-width:66ch;color:var(--ink);font-size:1.12rem;margin-top:18px}
+.lede + .lede{margin-top:12px}
+header{display:grid;gap:6px;padding-bottom:36px;border-bottom:1px solid var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:22px}
+.chip{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:1.15rem;letter-spacing:.05em;text-transform:uppercase}
+.dot{width:11px;height:11px;border-radius:2px;display:inline-block}
+.m-authored{--m:var(--amber)} .m-hybrid{--m:var(--turq)} .m-generated{--m:var(--lapis)}
+.dot{background:var(--m)}
+section{padding-block:44px;border-bottom:1px solid var(--line)}
+section > h2{margin-bottom:10px}
+.section-intro{max-width:68ch;color:var(--muted);margin-bottom:26px}
+.modes{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:18px}
+.mode{border-top:3px solid var(--m);padding-top:14px;display:grid;gap:8px;align-content:start}
+.mode h3{font-size:1.3rem}
+.mode p{color:var(--ink);font-size:1rem}
+.mode .godot{color:var(--muted);font-size:.95rem}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.86em;background:var(--panel);padding:1px 5px;border-radius:3px}
+.table-wrap{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.98rem}
+th,td{text-align:left;vertical-align:top;padding:9px 12px 9px 0;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-weight:400;font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.id{font-family:var(--mono);font-size:1.15rem;color:var(--muted);white-space:nowrap}
+td a{color:var(--ink);text-decoration-color:var(--line);text-underline-offset:3px}
+td a:hover{text-decoration-color:var(--amber)}
+.grid-spec{display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:14px;margin-bottom:26px}
+.spec{background:var(--panel);padding:14px 16px;border-radius:3px;display:grid;gap:2px}
+.spec b{font-family:var(--mono);font-weight:400;font-size:2rem;line-height:1;color:var(--amber);font-variant-numeric:tabular-nums}
+.spec span{font-size:.95rem;color:var(--muted)}
+
+.room{display:grid;grid-template-columns:minmax(0,1.3fr) minmax(0,1fr);gap:30px;padding-block:46px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+.room-title{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+.room-title .rid{font-family:var(--mono);font-size:1.4rem;color:var(--muted)}
+.room-title .fa{font-style:italic;color:var(--muted);font-size:1.05rem}
+.badge{font-family:var(--mono);font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m);border:1px solid var(--m);padding:0 8px;border-radius:2px}
+figure{margin:0;display:grid;gap:10px;align-content:start;min-width:0}
+canvas.mock{width:100%;max-width:100%;aspect-ratio:384/216;image-rendering:pixelated;image-rendering:crisp-edges;display:block;background:#0b0e10;border-radius:2px}
+.figbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
+button{font:inherit;font-family:var(--mono);font-size:1.15rem;letter-spacing:.05em;text-transform:uppercase;color:var(--ink);background:var(--panel);border:1px solid var(--line);border-radius:3px;padding:3px 12px;cursor:pointer}
+button:hover{border-color:var(--amber)}
+button:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.seed{font-family:var(--mono);font-size:1.15rem;color:var(--muted);font-variant-numeric:tabular-nums}
+.roll{font-family:var(--mono);font-size:1.1rem;line-height:1.25;color:var(--muted);min-height:1.3em}
+.roll b{font-weight:400;color:var(--turq)}
+.sheet{display:grid;gap:16px;align-content:start;min-width:0}
+.facts{display:flex;flex-wrap:wrap;gap:4px 18px;font-family:var(--mono);font-size:1.1rem;color:var(--muted);letter-spacing:.03em}
+.facts span b{font-weight:400;color:var(--ink)}
+.desc{max-width:62ch}
+dl{margin:0;display:grid;gap:12px}
+dt{font-family:var(--mono);font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+dd{margin:2px 0 0;font-size:.98rem}
+.plan-row{display:grid;grid-template-columns:minmax(0,1fr);gap:8px}
+.plan svg{width:100%;max-width:300px;height:auto;display:block}
+.refs{font-size:.92rem;color:var(--muted)}
+details{border-top:1px solid var(--line);padding-top:10px}
+summary{cursor:pointer;font-family:var(--mono);font-size:1.15rem;letter-spacing:.05em;text-transform:uppercase;color:var(--ink)}
+summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
+.prompt{margin-top:10px;font-family:ui-monospace,Consolas,monospace;font-size:.82rem;line-height:1.5;background:var(--panel);padding:12px 14px;border-radius:3px;white-space:pre-wrap;word-break:break-word}
+.prompt-bar{display:flex;gap:12px;align-items:center;margin-top:8px}
+.copied{font-family:var(--mono);color:var(--turq);font-size:1.1rem}
+.plan-legend{display:flex;flex-wrap:wrap;gap:6px 16px;font-family:var(--mono);font-size:1.05rem;color:var(--muted)}
+.plan-legend i{display:inline-block;width:10px;height:10px;margin-right:6px;vertical-align:-1px}
+.next{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 28px;padding:0;margin:0;list-style:none}
+.next li{display:grid;gap:2px;border-top:1px solid var(--line);padding-top:10px}
+.next b{font-family:var(--display);font-weight:400;font-size:1.15rem}
+.next span{color:var(--muted);font-size:.95rem}
+.note{max-width:70ch;color:var(--muted);font-size:.98rem}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.toc a{font-family:var(--mono);font-size:1.1rem;letter-spacing:.04em;color:var(--ink);text-decoration:none;border:1px solid var(--line);border-left:3px solid var(--m);padding:2px 10px;border-radius:2px}
+.toc a:hover{border-color:var(--m)}
+.batch-head{padding-top:56px;padding-bottom:4px;border-bottom:1px solid var(--line);color:var(--muted)}
+@media (max-width:860px){
+  .room{grid-template-columns:minmax(0,1fr)}
+  .modes{grid-template-columns:minmax(0,1fr)}
+  .grid-spec{grid-template-columns:repeat(2,minmax(0,1fr))}
+  .next{grid-template-columns:minmax(0,1fr)}
+}
+@media (prefers-reduced-motion:no-preference){canvas.mock{transition:opacity .2s}}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">The Eternal Library · environment design · draft 0.1 · 2026-10-18</p>
+  <h1>Library Room Atlas</h1>
+  <p class="lede">Twenty room types for the Library, in two batches, built from one shared kit of modules on a 4 m grid. Each plate shows a mock of the room, which parts are hand-placed in the Godot editor and which are picked or laid out at generation time, the modules it needs, and a prompt for producing a painted concept.</p>
+  <p class="lede">The mocks are drawn live in this page at the game's texel scale. <b>Reroll sockets</b> re-seeds the variation points, so each click shows another version of the same room.</p>
+  <div class="legend">
+    <span class="chip m-authored"><i class="dot"></i>Authored · built by hand, few variants</span>
+    <span class="chip m-hybrid"><i class="dot"></i>Hybrid · authored shell, generated fill</span>
+    <span class="chip m-generated"><i class="dot"></i>Generated · layout and fill from rules</span>
+  </div>
+  <nav class="toc" id="toc" aria-label="Rooms"></nav>
+</header>
+
+<section>
+  <h2>One kit, three ways to build</h2>
+  <p class="section-intro">Every room uses the same modules. What changes is who decides where they go: you in the editor, the generator, or both. The mode is a property of the room template, not of the modules.</p>
+  <div class="modes">
+    <div class="mode m-authored">
+      <h3>Authored</h3>
+      <p>Landmarks and key rooms. You place every module by hand. A few sockets swap dressing (plants, lamp state, damage) so return visits show time passing.</p>
+      <p class="godot">Godot: a normal <code>.tscn</code> built from module scenes with grid snapping. Sockets are a small <code>VariantSocket</code> node.</p>
+    </div>
+    <div class="mode m-hybrid">
+      <h3>Hybrid</h3>
+      <p>Settlement hubs and recurring room types. You build the shell and mark sockets; the generator fills each socket from a weighted list filtered by stratum, faction and age.</p>
+      <p class="godot">Godot: <code>VariantSocket</code> exports an array of candidate scenes with weights and tags; it previews candidate 0 in the editor and picks by seed at load.</p>
+    </div>
+    <div class="mode m-generated">
+      <h3>Generated</h3>
+      <p>Connective tissue and large repetitive spaces. A layout grammar fills a cell grid, then picks a module for each cell edge (wall, opening, connector). Layouts stay simple on purpose.</p>
+      <p class="godot">Godot: modules carry <code>Marker3D</code> connectors (<code>conn_*</code>). The area seed is saved, so a revisited area rebuilds the same, then ages.</p>
+    </div>
+  </div>
+</section>
+
+<section>
+  <h2>The grid and the kit</h2>
+  <p class="section-intro">The prototype's facade arcades already use 4 m bays. Fixing that as the grid lets a shelf bay from the Reading Room drop straight into a generated corridor.</p>
+  <div class="grid-spec">
+    <div class="spec"><b>4 m</b><span>one bay, the plan cell</span></div>
+    <div class="spec"><b>4 m</b><span>one storey, floor to floor</span></div>
+    <div class="spec"><b>2 m</b><span>half bay, for lanes and niches</span></div>
+    <div class="spec"><b>32 tx/m</b><span>texel density on every module</span></div>
+  </div>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Family</th><th>Modules</th><th>Used by</th></tr></thead>
+    <tbody>
+      <tr><td>Structure</td><td>Wall bay (plaster, brick, ashlar, tile-clad), pier, corner, half bay, rock-cut wall, parapet with merlons</td><td>All rooms</td></tr>
+      <tr><td>Openings</td><td>Pointed arch (1.2, 2, 3, 4 m spans), round arch, iwan (deep arch), plank door, orosi window, jali screen, taqcheh niche</td><td>All rooms</td></tr>
+      <tr><td>Vaults and ceilings</td><td>Barrel vault bay, dome cell on squinches, muqarnas half-dome cap, timber beam ceiling, oculus / light-well cap, cavern ceiling patch</td><td>R01–R05, R08, R09</td></tr>
+      <tr><td>Vertical</td><td>Straight stair (one storey over 2 bays), spiral stair run, ladder, gallery slab with balustrade, light-well ring segment</td><td>R01, R05, R06, R09, R10</td></tr>
+      <tr><td>Spans and cliffs</td><td>Bridge deck bay, aqueduct pier (1 and 2 tier), cliff ledge, loggia facade bay, sabat (room over a lane), waterfall emitter</td><td>R06, R10</td></tr>
+      <tr><td>Storage</td><td>Shelf recess (fits a 3 m arch), freestanding case, scroll rack, book pile, collapsed shelf</td><td>R01–R03, R09</td></tr>
+      <tr><td>Dressing</td><td>Hanging, wall and table lamps; carpets and hung rugs; pottery and copper; planting beds; water channel; fountain; pennant line</td><td>All rooms</td></tr>
+      <tr><td>Water</td><td>Water plane, causeway bay, water steps, pier bay, boathouse bay, boat, pool (3 forms), cascade channel</td><td>R07, R11, R13, R15, R20</td></tr>
+      <tr><td>Craft and service</td><td>Workshop cell, dye vat, loom, kiln, forge, samovar counter, takht bench, training pit, mirror-mosaic panel, lattice cage</td><td>R14, R16, R18, R19</td></tr>
+      <tr><td>Gameplay anchors</td><td>Hearth / camp spot, NPC post, loot socket, spirit anchor, connector (door, stair head, bridge end)</td><td>All rooms</td></tr>
+    </tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>The twenty room types</h2>
+  <p class="section-intro">Nine of the twenty are fully generated, seven are hybrid and four are built by hand. The generated layouts reduce to corridors, grids, lanes, rings, terraces or spans, which a grammar can produce without looking random. The authored and hybrid rooms are the ones players will navigate by. Most of the second batch reuses a first-batch generator: the cistern is R03's grid with water, the ossuary is R02's corridor at half scale, and the yard shares R05's courtyard.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>ID</th><th>Room</th><th>Mode</th><th>Role</th><th>Layout</th></tr></thead>
+    <tbody id="overview"></tbody>
+  </table>
+  </div>
+</section>
+
+<div id="rooms"></div>
+
+<section>
+  <h2>Candidates for a third batch</h2>
+  <p class="section-intro">Each of these reuses most of the kit above and adds one or two modules.</p>
+  <ul class="next">
+    <li><b>Audience Hall (Talar)</b><span>A faction's seat of power: columned porch, throne iwan, petitioners. Authored, one per faction.</span></li>
+    <li><b>Map Archive</b><span>Rooms of route maps and survey tables; where the player buys and corrects maps. Hybrid.</span></li>
+    <li><b>Wind-tower Hall (Badgir)</b><span>Air shafts that move cold air and sound; airflow as a navigation and stealth rule. Hybrid.</span></li>
+    <li><b>Kitchens and Granary</b><span>Settlement food stores and big hearths; cooking techniques taught here. Generated from R05 cells.</span></li>
+    <li><b>Lamp Observatory</b><span>A domed hall of suspended lamps mapping something nobody agrees on. Authored landmark.</span></li>
+    <li><b>Creature Warren</b><span>Shelves and stacks taken over by nesting creatures; ecology as a room. Generated overlay on R02 and R03.</span></li>
+    <li><b>Prison Cells</b><span>Faction cells and an oubliette; capture, escape and possession of guards. Generated from R17 niches at room scale.</span></li>
+    <li><b>Collapsed Stacks</b><span>A ruin pass that can age any generated room: fallen vaults, rubble ramps, new routes. Generated overlay.</span></li>
+  </ul>
+</section>
+
+<section style="border-bottom:0">
+  <h2>About these mocks</h2>
+  <p class="note">This session has no image generator, so the mocks are painted by a small renderer in this page: flat-shaded polygons, lamp falloff, haze, then a palette quantise with ordered dither to match the 32 texels-per-metre look. They show layout, light and module rhythm, not final art. Each plate's prompt is written for an image model; it states the room, the camera and the modules, and excludes modern elements. Reference images in <code>design/reference images/</code> are cited by filename and not reproduced here.</p>
+</section>
+</div>
+
+<script>
+/* ---------- colour + rng ---------- */
+const W=384,H=216;
+function hex(h){h=h.replace('#','');return[parseInt(h.slice(0,2),16)/255,parseInt(h.slice(2,4),16)/255,parseInt(h.slice(4,6),16)/255]}
+function C(c){return typeof c==='string'?hex(c):c}
+function sc(c,k){c=C(c);return[c[0]*k,c[1]*k,c[2]*k]}
+function mix(a,b,t){return[a[0]+(b[0]-a[0])*t,a[1]+(b[1]-a[1])*t,a[2]+(b[2]-a[2])*t]}
+function jit(c,r,a){c=C(c);const k=1+(r()-.5)*a;return[c[0]*k*(1+(r()-.5)*a*.3),c[1]*k,c[2]*k*(1+(r()-.5)*a*.3)]}
+function rgb(c,a){const f=v=>Math.round(Math.max(0,Math.min(1,v))*255);return(a==null||a>=1)?`rgb(${f(c[0])},${f(c[1])},${f(c[2])})`:`rgba(${f(c[0])},${f(c[1])},${f(c[2])},${a})`}
+function RNG(seed){let s=(Math.imul(seed|0,2654435761)^0x9e3779b9)>>>0;if(!s)s=1;return()=>{s^=s<<13;s>>>=0;s^=s>>>17;s^=s<<5;s>>>=0;return s/4294967296}}
+const pick=(a,r)=>a[Math.floor(r()*a.length)];
+
+/* ---------- tiny painter's renderer ---------- */
+class Scene{
+  constructor(o){
+    this.o=Object.assign({eye:1.7,F:180,vx:W/2,vy:H*.55,haze:'#161e24',fog:.035,amb:.26,ambCol:'#9fb3c4'},o);
+    this.hz=hex(this.o.haze);this.ac=hex(this.o.ambCol);
+    this.P=[];this.A=[];this.L=[];this.g=null;this.n=0;this.post=[];this.notes=[];
+  }
+  group(k,fn){const p=this.g;this.g=k;fn();this.g=p}
+  poly(pts,col,o={}){
+    for(const p of pts)if(p[2]<.2)return null;
+    const P={pts,c:C(col),holes:o.holes||null,em:o.em||0,a:o.a==null?1:o.a,line:o.line||0};
+    let x=0,y=0,z=0;for(const p of pts){x+=p[0];y+=p[1];z+=p[2]}const n=pts.length;P.m=[x/n,y/n,z/n];
+    if(o.add){this.A.push(P);return P}
+    P.g=this.g!=null?this.g:P.m[2]+(o.k||0);P.s=this.n++;this.P.push(P);return P;
+  }
+  line(a,b,col,w=1){return this.poly([a,b],col,{line:w})}
+  lamp(p,col,i=1.2,r=3,glow=.8){this.L.push({p,c:C(col),i,r,glow})}
+  pr(p){return[this.o.vx+p[0]*this.o.F/p[2],this.o.vy-(p[1]-this.o.eye)*this.o.F/p[2]]}
+  shade(P){
+    const m=P.m,d=Math.hypot(m[0],m[1]-this.o.eye,m[2]);let c;
+    if(P.em)c=sc(P.c,P.em);
+    else{const b=P.c,a=this.o.amb;c=[b[0]*a*this.ac[0],b[1]*a*this.ac[1],b[2]*a*this.ac[2]];
+      for(const L of this.L){const dx=m[0]-L.p[0],dy=m[1]-L.p[1],dz=m[2]-L.p[2];const f=L.i/(1+(dx*dx+dy*dy+dz*dz)/(L.r*L.r));
+        c[0]+=b[0]*L.c[0]*f;c[1]+=b[1]*L.c[1]*f;c[2]+=b[2]*L.c[2]*f}}
+    const t=1-Math.exp(-d*this.o.fog);return mix(c,this.hz,P.em?t*.55:t);
+  }
+  path(ctx,pts){pts.forEach((p,i)=>{const q=this.pr(p);i?ctx.lineTo(q[0],q[1]):ctx.moveTo(q[0],q[1])});ctx.closePath()}
+  render(cv){
+    cv.width=W;cv.height=H;const ctx=cv.getContext('2d');
+    ctx.fillStyle=rgb(this.hz);ctx.fillRect(0,0,W,H);
+    this.P.sort((a,b)=>(b.g-a.g)||(a.s-b.s));
+    for(const P of this.P){const c=this.shade(P);
+      if(P.line){const a=this.pr(P.pts[0]),b=this.pr(P.pts[1]);ctx.beginPath();ctx.moveTo(a[0],a[1]);ctx.lineTo(b[0],b[1]);ctx.strokeStyle=rgb(c,P.a);ctx.lineWidth=P.line;ctx.stroke();continue}
+      ctx.beginPath();this.path(ctx,P.pts);if(P.holes)for(const h of P.holes)this.path(ctx,h);ctx.fillStyle=rgb(c,P.a);ctx.fill('evenodd')}
+    ctx.globalCompositeOperation='lighter';
+    for(const P of this.A){ctx.beginPath();this.path(ctx,P.pts);const t=1-Math.exp(-P.m[2]*this.o.fog*.5);ctx.fillStyle=rgb(sc(P.c,1-t),P.a);ctx.fill()}
+    for(const L of this.L){if(!L.glow||L.p[2]<.4)continue;const q=this.pr(L.p),rad=Math.min(70,L.glow*this.o.F/L.p[2]);if(rad<.6)continue;
+      const t=Math.exp(-L.p[2]*this.o.fog*.6),g=ctx.createRadialGradient(q[0],q[1],0,q[0],q[1],rad);
+      g.addColorStop(0,rgb(L.c,.55*t));g.addColorStop(.35,rgb(L.c,.18*t));g.addColorStop(1,rgb(L.c,0));ctx.fillStyle=g;ctx.fillRect(q[0]-rad,q[1]-rad,rad*2,rad*2)}
+    ctx.globalCompositeOperation='source-over';
+    for(const f of this.post)f(ctx);
+    const v=ctx.createRadialGradient(W/2,H/2,H*.35,W/2,H/2,W*.62);v.addColorStop(0,'rgba(0,0,0,0)');v.addColorStop(1,'rgba(0,0,0,.5)');ctx.fillStyle=v;ctx.fillRect(0,0,W,H);
+    const im=ctx.getImageData(0,0,W,H),d=im.data,B=[0,8,2,10,12,4,14,6,3,11,1,9,15,7,13,5],q=255/23;
+    for(let y=0;y<H;y++)for(let x=0;x<W;x++){const i=(y*W+x)*4,o=(B[(y&3)*4+(x&3)]/16-.5)*q;for(let k=0;k<3;k++)d[i+k]=Math.round((d[i+k]+o)/q)*q}
+    ctx.putImageData(im,0,0);
+  }
+}
+
+/* ---------- geometry modules ---------- */
+const TEAL='#2f8f8a',LAPIS='#2a4f86',OCHRE='#c99a3b',CREAM='#e2d6bb',WOOD='#5a3b24',FLAG='#6f5d4b';
+const BOOKS=['#7a2a22','#2c3f6b','#6b4a1f','#2f5d4a','#8a6a2a','#4a2a4a','#a4553a','#28485a','#c8b48a'];
+const ROBES=['#3a2c2a','#2a3446','#5a2a22','#3d3d30','#6a5232','#1f2a2a','#4a3a5a'];
+const RUG=[['#7a2622','#22304e','#c58b3a','#a33a2a'],['#24304e','#7a2622','#d6b46a','#355a7a'],['#8a4a22','#2a2a3a','#e0c080','#6a2a2a']];
+const GLASS=['#e0402e','#2d6ee0','#f0c43a','#33b06a','#a04ad8','#f08a2a'];
+
+function archPts(span,spring,k=.6,n=6){const r=span*k,pts=[[0,0],[0,spring]],top=[];
+  for(let i=1;i<=n;i++){const u=span/2*i/n,dx=u-r;top.push([u,spring+Math.sqrt(Math.max(0,r*r-dx*dx))])}
+  pts.push(...top);for(let i=n-2;i>=0;i--)pts.push([span-top[i][0],top[i][1]]);pts.push([span,spring],[span,0]);return pts}
+function archTop(span,spring,k,u){const r=span*k,uu=Math.min(u,span-u),dx=uu-r;return spring+Math.sqrt(Math.max(0,r*r-dx*dx))}
+function archRise(span,k){return Math.sqrt(Math.max(0,k*k-(.5-k)**2))*span}
+function pm(O,U,N){return(u,v,d=0)=>[O[0]+U[0]*u+N[0]*d,O[1]+v,O[2]+U[2]*u+N[2]*d]}
+const sideM=(side,x,y,z)=>pm([side*x,y,z],[0,0,1],[side,0,0]);
+const frontM=(x,y,z)=>pm([x,y,z],[1,0,0],[0,0,1]);
+
+/* a wall bay with arched openings; each opening may carry a recess and a fill */
+function bay(s,M,L,Hh,ops,wall,o={}){const holes=[];
+  for(const op of ops){const k=op.k==null?.6:op.k,pts=archPts(op.span,op.spring,k),sill=op.sill||0,at=(u,v,d=0)=>M(op.u+u,sill+v,d);
+    if(op.depth){
+      if(!op.open){s.poly([at(0,0),at(op.span,0),at(op.span,0,op.depth),at(0,0,op.depth)],sill?sc(wall,1.05):sc(wall,.5));
+        s.poly(pts.map(p=>at(p[0],p[1],op.depth)),op.back||sc(wall,.42),op.backEm?{em:op.backEm}:{});
+        if(op.fill)op.fill(s,(u,v,dd=0)=>at(u,v,op.depth-dd),op)}
+      const rc=op.reveal||sc(wall,.78);
+      for(let i=0;i<pts.length-1;i++){const a=pts[i],b=pts[i+1];s.poly([at(a[0],a[1]),at(b[0],b[1]),at(b[0],b[1],op.depth),at(a[0],a[1],op.depth)],rc)}}
+    holes.push(pts.map(p=>at(p[0],p[1])))}
+  const outer=o.outer?o.outer.map(p=>M(p[0],p[1])):[M(0,0),M(L,0),M(L,Hh),M(0,Hh)];
+  s.poly(outer,wall,{holes});
+  if(o.band)s.poly([M(0,Hh-o.band[0]),M(L,Hh-o.band[0]),M(L,Hh),M(0,Hh)],o.band[1]);
+}
+function shelves(r,opt={}){return(s,at,op)=>{const top=op.spring-.12,step=opt.step||.42,co=opt.coarse||1,gap=opt.gap||.07;
+  for(let y=.12;y<top-.25;y+=step){s.poly([at(.02,y),at(op.span-.02,y),at(op.span-.02,y+.05),at(.02,y+.05)],'#3b2618');
+    let u=.04;while(u<op.span-.08){const bw=(.05+r()*.07)*co,bh=.24+r()*.12;if(r()<gap){u+=bw*3;continue}
+      s.poly([at(u,y+.05,.02),at(u+bw,y+.05,.02),at(u+bw,y+.05+bh,.02),at(u,y+.05+bh,.02)],jit(pick(BOOKS,r),r,.35));u+=bw+.006}}}}
+function tilesFill(pal,r,o={}){return(s,at,op)=>{const k=op.k==null?.6:op.k,st=o.cell||.3,top=op.spring+archRise(op.span,k),v0=o.from||0;
+  for(let u=0,i=0;u<op.span-1e-6;u+=st,i++)for(let v=v0,j=0;v<top-1e-6;v+=st,j++){const uc=u+st/2,vc=v+st/2;if(vc>archTop(op.span,op.spring,k,uc))continue;
+    const dd=Math.abs(uc-op.span/2),c=((i+j)%4===0)?pal[1]:((i+2*j)%6===0)?pal[2]:(Math.floor(dd/st)%3===0?(pal[3]||pal[0]):pal[0]);
+    s.poly([at(u,v,.01),at(u+st,v,.01),at(u+st,v+st,.01),at(u,v+st,.01)],jit(c,r,.14))}}}
+function glass(r,o={}){return(s,at,op)=>{const k=op.k==null?.6:op.k,st=o.cell||.28,topY=op.spring+archRise(op.span,k),cx=op.span/2,cy=op.spring;
+  for(let u=.04;u<op.span-.05;u+=st)for(let v=.04;v<topY-.05;v+=st){const uc=u+st/2,vc=v+st/2;if(vc>archTop(op.span,op.spring,k,uc)-.06)continue;
+    let ci;if(o.radial){const d=Math.hypot(uc-cx,vc-cy),an=Math.atan2(vc-cy,uc-cx);ci=vc>cy?Math.floor(d/.42)+(Math.floor(an*4/Math.PI)%2):(Math.floor(uc/.56)+Math.floor(vc/.56))%3+(Math.floor(uc/.28)%2)}
+    else ci=Math.floor(r()*GLASS.length);
+    s.poly([at(u+.025,v+.025,.01),at(u+st-.025,v+.025,.01),at(u+st-.025,v+st-.025,.01),at(u+.025,v+st-.025,.01)],GLASS[Math.abs(ci)%GLASS.length],{em:o.em||.85})}}}
+function vault(s,x0,w,y0,k,z0,z1,dz,fn){const prof=archPts(w,0,k,7).slice(1,-1);let j=0;
+  for(let z=z0;z<z1-1e-6;z+=dz,j++){const ze=Math.min(z+dz,z1);
+    for(let i=0;i<prof.length-1;i++){const a=prof[i],b=prof[i+1],res=fn(i,j,prof.length,z),isC=Array.isArray(res)||typeof res==='string';
+      s.poly([[x0+a[0],y0+a[1],z],[x0+b[0],y0+b[1],z],[x0+b[0],y0+b[1],ze],[x0+a[0],y0+a[1],ze]],isC?res:res.c,isC?{}:{em:res.em})}}}
+function rib(s,x0,w,y0,k,z,t,col){const prof=archPts(w,0,k,7).slice(1,-1);
+  for(let i=0;i<prof.length-1;i++){const a=prof[i],b=prof[i+1];s.poly([[x0+a[0],y0+a[1]-.03,z],[x0+b[0],y0+b[1]-.03,z],[x0+b[0],y0+b[1]-.03,z+t],[x0+a[0],y0+a[1]-.03,z+t]],col,{k:-.6})}}
+function floor(s,x0,x1,z0,z1,st,col,r,a=.2,y=0){for(let x=x0;x<x1-1e-6;x+=st)for(let z=z0;z<z1-1e-6;z+=st){const xe=Math.min(x+st,x1),ze=Math.min(z+st,z1);
+  let c=col,o={};if(typeof col==='function'){const res=col((x+xe)/2,(z+ze)/2);if(!res)continue;if(res.c){c=res.c;o={em:res.em}}else c=res}
+  s.poly([[x,y,z],[xe,y,z],[xe,y,ze],[x,y,ze]],jit(c,r,a),o)}}
+function carpet(s,x0,x1,z0,z1,nx,nz,pal,r,y=.02,kk=-.35){const dx=(x1-x0)/nx,dz=(z1-z0)/nz;
+  for(let i=0;i<nx;i++)for(let j=0;j<nz;j++){const u=(i+.5)/nx,v=(j+.5)/nz,br=u<.14||u>.86||v<.05||v>.95,ed=u<.22||u>.78||v<.09||v>.91,md=((u-.5)**2*3+(v-.5)**2*1.2)<.04;
+    const c=br?pal[1]:ed?pal[3]:md?pal[2]:((i+j*2)%5===0?pal[3]:pal[0]),x=x0+i*dx,z=z0+j*dz;
+    s.poly([[x,y,z],[x+dx,y,z],[x+dx,y,z+dz],[x,y,z+dz]],jit(c,r,.12),{k:kk})}}
+function box(s,x0,x1,y0,y1,z0,z1,col,o={}){const c=C(col),ey=s.o.eye;s.group(o.g!=null?o.g:z1-.01,()=>{
+  if(x0>0)s.poly([[x0,y0,z1],[x0,y0,z0],[x0,y1,z0],[x0,y1,z1]],sc(c,.75));
+  if(x1<0)s.poly([[x1,y0,z0],[x1,y0,z1],[x1,y1,z1],[x1,y1,z0]],sc(c,.75));
+  if(y1<ey)s.poly([[x0,y1,z0],[x1,y1,z0],[x1,y1,z1],[x0,y1,z1]],o.top||sc(c,1.1));
+  if(y0>ey)s.poly([[x0,y0,z0],[x1,y0,z0],[x1,y0,z1],[x0,y0,z1]],sc(c,.6));
+  s.poly([[x0,y0,z0],[x1,y0,z0],[x1,y1,z0],[x0,y1,z0]],c)})}
+function hex6(x,y,z,hw,hh){return[[x,y+hh,z],[x+hw,y+hh*.35,z],[x+hw,y-hh*.45,z],[x,y-hh,z],[x-hw,y-hh*.45,z],[x-hw,y+hh*.35,z]]}
+function lantern(s,x,y,z,o={}){const col=o.col||'#ffb45a',sz=o.size||1;
+  if(o.top!=null)s.line([x,y+.24*sz,z],[x,o.top,z],'#24180f',1);
+  if(o.off){s.poly(hex6(x,y,z,.13*sz,.22*sz),'#3a2a1c');return}
+  s.poly(hex6(x,y,z,.13*sz,.22*sz),col,{em:1.15});s.lamp([x,y,z],col,o.i==null?1.3:o.i,o.r||3.2,o.glow==null?.9:o.glow)}
+function figure(s,x,z,h,col,y=0,g=null){const w=h*.19;s.group(g!=null?g:z,()=>{
+  s.poly([[x-w,y,z],[x+w,y,z],[x+w*.55,y+h*.8,z],[x-w*.55,y+h*.8,z]],col);
+  s.poly([[x-w*.38,y+h*.78,z],[x+w*.38,y+h*.78,z],[x+w*.32,y+h,z],[x-w*.32,y+h,z]],sc(col,.9))})}
+function ell(at,uc,vc,ru,rv,dd,n=8){const p=[];for(let i=0;i<n;i++){const a=i/n*Math.PI*2;p.push(at(uc+Math.cos(a)*ru,vc+Math.sin(a)*rv,dd))}return p}
+function vrug(s,at,u0,u1,v0,v1,dd,pal,r){const nx=6,ny=9;for(let i=0;i<nx;i++)for(let j=0;j<ny;j++){const a=(i+.5)/nx,b=(j+.5)/ny,br=a<.17||a>.83||b<.1||b>.9,md=((a-.5)**2*2+(b-.5)**2)<.04;
+  const c=br?pal[1]:md?pal[2]:((i+j)%3===0?pal[3]:pal[0]),ua=u0+(u1-u0)*i/nx,ub=u0+(u1-u0)*(i+1)/nx,va=v0+(v1-v0)*j/ny,vb=v0+(v1-v0)*(j+1)/ny;
+  s.poly([at(ua,va,dd),at(ub,va,dd),at(ub,vb,dd),at(ua,vb,dd)],jit(c,r,.12))}}
+function fire(s,x,y,z,r){for(let k=0;k<4;k++){const a=k*Math.PI/4;s.line([x-Math.cos(a)*.5,y+.08,z-Math.sin(a)*.3],[x+Math.cos(a)*.5,y+.08,z+Math.sin(a)*.3],'#2a1a10',2)}
+  for(let k=0;k<5;k++){const dx=(r()-.5)*.5,h=.4+r()*.5;s.poly([[x+dx-.14,y+.05,z-.01*k],[x+dx+.14,y+.05,z-.01*k],[x+dx,y+h,z-.01*k]],k%2?'#ffcf6a':'#ff8a2a',{em:1.3})}
+  s.lamp([x,y+.6,z],'#ff9a40',2.4,4.2,1.3)}
+function tree(s,kind,x,z,r){s.group(z,()=>{
+  if(kind==='cypress'){const h=5.5+r()*2;s.poly([[x,0,z],[x+.55,1.2,z],[x+.6,h*.55,z],[x,h,z],[x-.6,h*.55,z],[x-.55,1.2,z]],jit('#2a4224',r,.15));s.poly([[x,.3,z],[x+.5,1.3,z],[x+.5,h*.55,z],[x,h*.95,z]],jit('#36552c',r,.15))}
+  else if(kind==='fruit'){s.line([x,0,z],[x,1.6,z],'#3a2a1a',2);const c=[];for(let i=0;i<9;i++){const a=i/9*Math.PI*2;c.push([x+Math.cos(a)*1.3,2.4+Math.sin(a),z])}s.poly(c,jit('#3a5a26',r,.15));for(let i=0;i<6;i++)s.poly(hex6(x+(r()-.5)*1.8,2.2+(r()-.5)*1.2,z,.07,.07),'#e08a2a')}
+  else{s.poly([[x-.12,0,z],[x+.12,0,z],[x+.08,2.6,z],[x-.08,2.6,z]],'#cfc0a0');const c=[];for(let i=0;i<=8;i++){const a=Math.PI*i/8;c.push([x+Math.cos(a)*1.2,2.5+Math.sin(a)*.55,z])}s.poly(c,'#4fd0c0',{em:.75})}});
+  if(kind==='lumen')s.lamp([x,2.4,z-.3],'#5fe0d0',.9,2.6,.6)}
+
+/* sockets: what fills an opening */
+function recess(kind,r,op){
+  if(kind==='shelf'){op.back='#24170e';op.fill=shelves(r)}
+  else if(kind==='tile'){op.depth=.25;op.fill=tilesFill([TEAL,LAPIS,OCHRE,CREAM],r)}
+  else if(kind==='door'){op.back='#4a2e1a';op.fill=(s,at,o)=>{for(let u=.2;u<o.span;u+=.25)s.line(at(u,0,.01),at(u,o.spring,.01),'#2a180c',1)}}
+  else if(kind==='collapsed'){op.back='#1a110a';op.fill=shelves(r,{gap:.55})}
+  else if(kind==='passage'){op.back='#06080a'}
+  return op}
+function iwanFill(r){const t=tilesFill([TEAL,LAPIS,OCHRE,CREAM],r,{from:3.1,cell:.35}),sh=shelves(r);
+  return(s,at,op)=>{t(s,at,op);sh(s,(u,v,dd)=>at(u*.84+op.span*.08,v,dd),{span:op.span,spring:3});const p=at(op.span/2,2.6,.8);lantern(s,p[0],p[1],p[2],{col:'#ffc070',i:1.6,r:3.5})}}
+function portalFill(r){const t=tilesFill([LAPIS,TEAL,OCHRE,CREAM],r,{from:2.6,cell:.4});
+  return(s,at,op)=>{t(s,at,op);s.poly(archPts(1.8,1.6,.6).map(p=>at(op.span/2-.9+p[0],p[1],.02)),'#ffb868',{em:.9});const p=at(op.span/2,1.3,.6);s.lamp(p,'#ffb060',1.6,3.5,.8)}}
+function shop(t,r,op){const F={
+  rugs:(s,at,o)=>{const n=2+Math.floor(r()*2),w=o.span/n;for(let i=0;i<n;i++)vrug(s,at,i*w+.08,(i+1)*w-.08,.9,2.9,.02,pick(RUG,r),r);
+    for(let k=0;k<7;k++)s.poly([at(.3,k*.12,1.2),at(o.span-.3,k*.12,1.2),at(o.span-.3,k*.12+.11,1.2),at(.3,k*.12+.11,1.2)],jit(pick(pick(RUG,r),r),r,.2))},
+  copper:(s,at,o)=>{for(let k=0;k<14;k++){const rr=.1+r()*.16;s.poly(ell(at,.3+r()*(o.span-.6),1+r()*1.8,rr,rr*1.1,.03),jit(pick(['#b5652e','#cf8a44','#8a4a22','#d9a05a'],r),r,.2))}
+    for(let k=0;k<4;k++){const rr=.25+r()*.15;s.poly(ell(at,.4+k*(o.span-.8)/3,rr,rr,rr,1.3),jit('#b06030',r,.2))}},
+  lamps:(s,at,o)=>{for(let k=0;k<9;k++){const p=at(.3+r()*(o.span-.6),1.4+r()*1.4,.4+r()*1.2);s.poly(hex6(p[0],p[1],p[2],.08,.13),pick(['#ffb45a','#ff7a4a','#7ad0c0','#ffd27a','#e0603a'],r),{em:1.2})}
+    s.lamp(at(o.span/2,2,1),'#ffb060',.8,2,.9)},
+  books:shelves(r),
+  spice:(s,at,o)=>{shelves(r,{step:.5})(s,at,{span:o.span,spring:o.spring});for(let k=0;k<5;k++){const uc=.35+k*(o.span-.7)/4;s.poly([at(uc-.28,.9,1.7),at(uc+.28,.9,1.7),at(uc,1.25+r()*.15,1.7)],pick(['#d9a521','#a3241c','#c7631e','#6a7d2a','#7a3a1e'],r))}}};
+  op.back=t==='lamps'?'#110c09':'#2a1b12';
+  op.fill=(s,at,o)=>{F[t](s,at,o);s.poly([at(.15,0,op.depth-.35),at(o.span-.15,0,op.depth-.35),at(o.span-.15,.85,op.depth-.35),at(.15,.85,op.depth-.35)],'#5a3a22')};return op}
+function cell(kind,r,op){op.back=kind==='ruin'?'#0d0b09':'#2a1c12';
+  const sp=kind==='shop'?shop('spice',r,Object.assign({},op)):null;
+  const F={bedroll:(s,at,o)=>{vrug(s,at,.4,o.span-.4,.6,2.1,.02,pick(RUG,r),r);s.poly([at(.3,0,1.6),at(o.span-.3,0,1.6),at(o.span-.3,.3,1.6),at(.3,.3,1.6)],jit('#b07850',r,.2))},
+    stable:(s,at,o)=>{for(let k=0;k<4;k++){const uc=.4+r()*(o.span-.8);s.poly([at(uc-.5,0,1+k*.3),at(uc+.5,0,1+k*.3),at(uc,.6+r()*.4,1+k*.3)],jit('#b8983a',r,.2))}},
+    store:(s,at,o)=>{for(let k=0;k<6;k++){const rr=.22+r()*.12;s.poly(ell(at,.35+r()*(o.span-.7),rr,rr*.9,rr,.6+r()*1.4,7),jit(pick(['#a8875a','#8a6a44','#b0583a'],r),r,.2))}},
+    shop:(s,at,o)=>sp.fill(s,at,o),
+    ruin:(s,at,o)=>{for(let k=0;k<5;k++){const uc=r()*o.span;s.poly([at(uc-.4,0,1+r()),at(uc+.4,0,1+r()),at(uc+.1,.3+r()*.4,1.2)],jit('#5a4a3a',r,.2))}}};
+  op.fill=F[kind];return op}
+function potsFill(r){return(s,at,o)=>{for(let k=0;k<2;k++){const rr=.14+r()*.08;s.poly(ell(at,.3+k*.4,rr,rr*.8,rr,.15,8),pick([TEAL,'#b5652e',OCHRE,LAPIS],r))}}}
+
+/* ---------- R01 Reading Room ---------- */
+function sReading(seed){const r=RNG(seed),s=new Scene({F:150,vy:H*.64,haze:'#1c1814',fog:.028,amb:.24,ambCol:'#8095aa'});
+  const w=12,z0=1,bl=4,nb=4,ze=z0+nb*bl,wall='#9a7752',vy0=8,vk=.58,band='#2f6f78',tally={shelf:0,tile:0,door:0,collapsed:0};
+  floor(s,-w/2,w/2,.5,ze,1,FLAG,r);carpet(s,-1.4,1.4,2,ze-1.5,7,26,pick(RUG,r),r);
+  for(let b=nb-1;b>=0;b--)for(const side of[-1,1]){const z=z0+b*bl,xi=side*(w/2-1.3),xo=side*w/2;
+    const k1=r()<.68?'shelf':pick(['tile','door','collapsed'],r),k2=r()<.8?'shelf':'tile';tally[k1]++;
+    s.group(z+bl/2,()=>{
+      bay(s,sideM(side,w/2,0,z),bl,4,[recess(k1,r,{u:.5,span:3,spring:1.9,depth:.6})],wall,{band:[.3,band]});
+      bay(s,sideM(side,w/2,4.15,z),bl,3.85,[recess(k2,r,{u:.6,span:2.8,spring:1.9,depth:.5})],wall);
+      s.poly([[xo,3.85,z],[xi,3.85,z],[xi,3.85,z+bl],[xo,3.85,z+bl]],'#4a3626');
+      s.poly([[xi,3.85,z],[xi,3.85,z+bl],[xi,4.15,z+bl],[xi,4.15,z]],band);
+      for(let p=0;p<=8;p++)s.line([xi,4.15,z+p*bl/8],[xi,4.95,z+p*bl/8],'#7a5a3a',1);s.line([xi,4.95,z],[xi,4.95,z+bl],'#7a5a3a',1.5)});
+    if(k1==='collapsed')for(let q=0;q<5;q++){const x=side*(w/2-.4-r()*1.2),zz=z+.6+r()*2.6;box(s,Math.min(x,x+side*.35),Math.max(x,x+side*.35),0,.1+r()*.18,zz,zz+.28,jit(pick(BOOKS,r),r,.3))}}
+  vault(s,-w/2,w,vy0,vk,z0,ze,1,(i,j,n)=>{const mid=Math.abs(i-(n-2)/2)<2.2;return jit(mid?[OCHRE,TEAL,LAPIS][(i+j)%3]:((i+j)%2?'#b08a5e':'#9c7a52'),r,.12)});
+  for(let b=0;b<=nb;b++)rib(s,-w/2,w,vy0,vk,z0+b*bl-.15,.3,'#7d5f40');
+  s.group(ze+.5,()=>bay(s,frontM(-w/2,0,ze),w,0,[{u:3,span:6,spring:4.2,depth:3,back:'#2a1a10',fill:iwanFill(r)}],wall,{outer:archPts(w,vy0,vk)}));
+  const cent=pick(['lectern','tree','fountain'],r);
+  if(cent==='lectern'){box(s,-.4,.4,0,1.1,ze-2,ze-1.5,WOOD);lantern(s,0,1.5,ze-1.8,{i:1,r:2.5,size:.7})}
+  else if(cent==='tree')tree(s,'fruit',0,ze-1.6,r);
+  else{box(s,-1.2,1.2,0,.5,ze-3,ze-1,'#8a7a66',{top:'#2a6a78'});s.poly([[-.06,.5,ze-2],[.06,.5,ze-2],[0,1.8,ze-2]],'#d8ecff',{add:1,a:.5})}
+  for(const side of[-1,1])for(let t=0;t<2;t++){const zs=3+t*6,x0=side<0?-3.8:2.4;box(s,x0,x0+1.4,0,.78,zs,zs+4.5,WOOD);if(r()<.8)lantern(s,x0+.7,1.05,zs+1+r()*2.5,{i:.7,r:1.8,glow:.45,size:.6})}
+  for(const zc of[6,12]){lantern(s,0,5.8,zc,{top:vy0+3.5,i:1.4,r:4,size:1.4});for(let k=0;k<4;k++){const a=k*Math.PI/2;lantern(s,Math.cos(a)*.6,5.5,zc+Math.sin(a)*.6,{i:.3,r:2,glow:.4,size:.6})}}
+  const nr=Math.floor(r()*3);for(let k=0;k<nr;k++)figure(s,(r()<.5?-1:1)*2,4+r()*8,1.2,pick(ROBES,r));
+  s.notes=[`recesses <b>${tally.shelf}</b> shelves, <b>${tally.tile}</b> tiled, <b>${tally.door}</b> doors, <b>${tally.collapsed}</b> collapsed`,`iwan centrepiece <b>${cent}</b>`,`readers <b>${nr}</b>`];return s}
+
+/* ---------- R02 Stack Galleries ---------- */
+function sStacks(seed){const r=RNG(seed),s=new Scene({F:175,vy:H*.56,haze:'#0f2226',fog:.05,amb:.34,ambCol:'#5f9ea4'});
+  const w=4,bl=4,nb=13,z0=.6,ze=z0+nb*bl,wh=4.4,vk=.55,wall='#8f7a5e';let pass=0,col=0,lit=0,lad=0;
+  floor(s,-w/2,w/2,.5,ze,.7,'#5e5040',r,.25);
+  for(let b=nb-1;b>=0;b--){const z=z0+b*bl;
+    for(const side of[-1,1]){const roll=r(),kind=roll<.11?'passage':roll<.19?'collapsed':'shelf';if(kind==='passage')pass++;if(kind==='collapsed')col++;
+      s.group(z+bl/2,()=>{bay(s,sideM(side,w/2,0,z),bl,wh,[recess(kind,r,{u:.5,span:3,spring:2.4,k:.55,depth:kind==='passage'?5:.5})],wall);
+        if(kind==='shelf'&&r()<.22){lad++;const x=side*(w/2-.55);s.line([x,0,z+1.3],[side*(w/2-.08),3.7,z+1.45],'#5a3a22',1);s.line([x,0,z+1.8],[side*(w/2-.08),3.7,z+1.95],'#5a3a22',1)}});
+      if(kind==='passage'&&r()<.6)lantern(s,side*(w/2+3.5),2.2,z+bl/2,{i:.8,r:2.2,glow:.7});
+      if(kind==='collapsed')for(let q=0;q<4;q++){const x=side*(w/2-.3-r()*.8),zz=z+.5+r()*3;box(s,Math.min(x,x+side*.3),Math.max(x,x+side*.3),0,.12+r()*.2,zz,zz+.25,jit(pick(BOOKS,r),r,.3))}}
+    rib(s,-w/2,w,wh,vk,z,.3,'#6e5a42');
+    if(b%2===0){const on=r()<.8;if(on)lit++;lantern(s,0,3.5,z+bl/2,{top:wh+2.1,off:!on,col:'#ffb860',i:1.1,r:2.8})}}
+  vault(s,-w/2,w,wh,vk,z0,ze,.8,(i,j)=>jit((i+j)%2?'#9a7f5c':'#86704f',r,.12));
+  s.group(ze+.3,()=>bay(s,frontM(-w/2,0,ze),w,0,[{u:.8,span:2.4,spring:2.4,k:.55,depth:6,back:'#e8b070',backEm:.9}],wall,{outer:archPts(w,wh,vk)}));
+  s.lamp([0,2,ze+2],'#ffb060',2.2,4,0);
+  s.notes=[`side passages <b>${pass}</b>`,`collapsed bays <b>${col}</b>`,`ladders <b>${lad}</b>`,`lamps lit <b>${lit}/${Math.ceil(nb/2)}</b>`];return s}
+
+/* ---------- R03 Hypostyle Stacks ---------- */
+function column(s,cx,cz,cr,h,pal){s.group(cz-cr-.02,()=>{const z=cz-cr,n=10,sx=cx<0?cx+cr:cx-cr,y0=.45,y1=h-.35,dh=(y1-y0)/n;
+  for(let i=0;i<n;i++){const a=y0+i*dh,b=a+dh,c1=pal[i%2],c2=pal[(i+1)%2];
+    s.poly([[sx,a,cz-cr],[sx,a,cz+cr],[sx,b,cz+cr],[sx,b,cz-cr]],sc(c1,.8));s.poly([[cx-cr,a,z],[cx+cr,a,z],[cx+cr,b,z],[cx-cr,b,z]],c1);s.poly([[cx-cr,a,z],[cx+cr,b,z],[cx-cr,b,z]],c2)}
+  s.poly([[cx-cr-.12,0,z-.1],[cx+cr+.12,0,z-.1],[cx+cr+.12,y0,z-.1],[cx-cr-.12,y0,z-.1]],sc(pal[1],.9));
+  s.poly([[cx-cr-.2,y1,z-.12],[cx+cr+.2,y1,z-.12],[cx+cr+.2,h,z-.12],[cx-cr-.2,h,z-.12]],sc(pal[0],1.05))})}
+function ceilCell(s,x0,x1,z0,z1,y,r,pal=[OCHRE,TEAL,LAPIS,'#b08a5e']){const n=4;for(let i=0;i<n;i++)for(let j=0;j<n;j++){const u=(i+.5)/n-.5,v=(j+.5)/n-.5,d=Math.hypot(u,v),c=d<.2?pal[0]:d<.42?((i+j)%2?pal[1]:pal[2]):pal[3];
+  const xa=x0+(x1-x0)*i/n,xb=x0+(x1-x0)*(i+1)/n,za=z0+(z1-z0)*j/n,zb=z0+(z1-z0)*(j+1)/n;s.poly([[xa,y,za],[xb,y,za],[xb,y,zb],[xa,y,zb]],jit(c,r,.14))}}
+function sHypo(seed){const r=RNG(seed),s=new Scene({F:155,vy:H*.62,haze:'#1b1e22',fog:.045,amb:.26,ambCol:'#8a9fb0'});
+  const cols=[-14,-10,-6,-2,2,6,10,14],X=16,rows=[],sp=4.1,top=6.6,cr=.32,wall='#b38c60',pal=['#c9a678','#a8845a'];
+  for(let z=4;z<=44;z+=4)rows.push(z);const last=rows[rows.length-1],lm=rows[5];
+  floor(s,-X,X,.5,last+4,1,'#7a6650',r,.2);
+  const gaps=[[-X+.35,cols[0]-cr]];for(let c=0;c<cols.length-1;c++)gaps.push([cols[c]+cr,cols[c+1]-cr]);gaps.push([cols[cols.length-1]+cr,X-.35]);
+  let cases=0,lamps=0;const land=pick(['great lamp','reading tree','catalogue desk'],r);
+  for(let ri=rows.length-1;ri>=0;ri--){const z=rows[ri];
+    s.group(z,()=>bay(s,frontM(-X,0,z),2*X,top,gaps.map(g=>({u:g[0]+X,span:g[1]-g[0],spring:g[1]-g[0]<2?3:sp,k:.58})),wall,{band:[.28,'#2f7a80']}));
+    if(ri<rows.length-1){
+      for(const cx of cols){const side=Math.sign(cx),isL=(z===lm&&Math.abs(cx)===2);
+        s.group(z+2,()=>{bay(s,pm([cx,0,z],[0,0,1],[side,0,0]),4,top,[{u:cr,span:4-2*cr,spring:sp,k:.58}],wall);
+          if(!isL&&r()<.42){cases++;const at=(u,v,dd=0)=>[cx-side*(.12+dd),v,z+.55+u];s.poly([at(0,0),at(2.9,0),at(2.9,3.2),at(0,3.2)],'#3a2416');shelves(r,{coarse:1.3})(s,at,{span:2.9,spring:3.2})}})}
+      for(let g=0;g<gaps.length;g++){const a=g===0?-X:cols[g-1],b=g===gaps.length-1?X:cols[g];ceilCell(s,a,b,z,z+4,top,r);
+        if(!(z===lm&&a===-2)&&r()<.22){lamps++;lantern(s,(a+b)/2,4.4,z+2,{top,i:1.2,r:3.2})}}}
+    for(const cx of cols)column(s,cx,z,cr,sp,pal)}
+  const zc=lm+2;
+  if(land==='great lamp'){for(let k=0;k<7;k++){const a=k/7*Math.PI*2;lantern(s,Math.cos(a)*.8,3.4+Math.sin(a*2)*.3,zc+Math.sin(a)*.8,{i:.5,r:3,size:.8})}lantern(s,0,3.6,zc,{top,i:2.2,r:6,size:1.6,col:'#ffcf80'})}
+  else if(land==='reading tree'){tree(s,'fruit',0,zc,r);s.lamp([0,3,zc-1],'#ffd8a0',1.4,4,0)}
+  else{box(s,-1.5,1.5,0,1,zc-.5,zc+.5,WOOD);lantern(s,-1,1.3,zc-.6,{i:1,r:2.5,size:.6});figure(s,0,zc+.8,1.7,pick(ROBES,r))}
+  s.poly([[-.8,top-.02,zc-.8],[.8,top-.02,zc-.8],[.8,top-.02,zc+.8],[-.8,top-.02,zc+.8]],'#fff0d0',{em:1.3,k:-.5});
+  s.poly([[-.8,top,zc],[.8,top,zc],[1.8,0,zc],[-1.8,0,zc]],'#ffe0a8',{add:1,a:.09});s.lamp([0,5,zc],'#ffe6c0',1.4,5,0);
+  s.notes=[`landmark <b>${land}</b>`,`freestanding cases <b>${cases}</b>`,`lamp clusters <b>${lamps}</b>`];return s}
+
+/* ---------- R04 Grand Bazaar ---------- */
+function sBazaar(seed){const r=RNG(seed),s=new Scene({F:145,vy:H*.66,haze:'#1e1a16',fog:.034,amb:.2,ambCol:'#8a96a4'});
+  const w=7,bl=4,nb=10,z0=.8,ze=z0+nb*bl,h1=4,vy0=8,vk=.55,wall='#b38a5e',cross=5,oc=[1,cross,8],tally={};
+  floor(s,-w/2,w/2,.5,ze,1,'#8a7660',r,.18);
+  for(let b=nb-1;b>=0;b--){const z=z0+b*bl;
+    for(const side of[-1,1]){
+      if(b===cross){s.group(z+bl/2,()=>bay(s,sideM(side,w/2,0,z),bl,vy0,[{u:.3,span:3.4,spring:4,k:.6,depth:10,back:'#0b0b0c'}],wall));
+        lantern(s,side*(w/2+3),3.3,z+bl/2,{i:.9,r:3,glow:.8});lantern(s,side*(w/2+7),3.3,z+bl/2,{i:.7,r:3,glow:.6});continue}
+      const t=pick(['rugs','copper','lamps','books','spice','rugs','copper'],r);tally[t]=(tally[t]||0)+1;
+      s.group(z+bl/2,()=>{bay(s,sideM(side,w/2,0,z),bl,h1,[shop(t,r,{u:.5,span:3,spring:2,k:.55,depth:2.6})],wall,{band:[.35,'#2d6f82']});
+        bay(s,sideM(side,w/2,h1,z),bl,4,[{u:.75,span:2.5,spring:1.4,sill:.7,k:.6,depth:.3,back:'#1a1410',fill:glass(r)}],wall)});
+      if(t!=='lamps'&&r()<.6)s.lamp([side*(w/2+1.6),2.2,z+bl/2],'#ffb35a',.6,1.8,0)}
+    rib(s,-w/2,w,vy0,vk,z-.15,.3,'#7d5e40');lantern(s,0,5.6,z+bl/2,{top:vy0+3.2,i:.55,r:2.6})}
+  vault(s,-w/2,w,vy0,vk,z0,ze,.5,(i,j,n,z)=>{const bi=Math.floor((z+.01-z0)/bl),zc=z0+bi*bl+bl/2;
+    if(oc.includes(bi)&&Math.abs(z+.25-zc)<.6&&Math.abs(i-(n-2)/2)<1.1)return{c:'#ffe6b8',em:1.25};
+    return jit((i+j)%4===0?TEAL:((i*3+j)%7===0?LAPIS:((i+j)%2?'#c49a68':'#a9845a')),r,.12)});
+  for(const bi of oc){const zc=z0+bi*bl+bl/2;s.poly([[-.55,vy0+3.6,zc],[.55,vy0+3.6,zc],[1.7,.05,zc],[-1.7,.05,zc]],'#ffdcaa',{add:1,a:.09});s.lamp([0,7,zc],'#ffe2b8',.7,3.5,0)}
+  for(const bi of[2,7]){const z=z0+bi*bl;s.line([-w/2,6.6,z],[w/2,6.6,z],'#2a1c12',1);for(let x=-3.2;x<3.1;x+=.55)s.poly([[x,6.6,z],[x+.45,6.6,z],[x+.22,6,z]],pick(['#2f5a2a','#8a2420','#1a1a1a','#c08a30'],r))}
+  const nf=7+Math.floor(r()*8);for(let k=0;k<nf;k++)figure(s,(r()-.5)*5.2,3+r()*(ze-8),1.55+r()*.25,pick(ROBES,r));
+  s.notes=['shops '+Object.entries(tally).map(([k,v])=>`<b>${v}</b> ${k}`).join(', '),`people <b>${nf}</b>`];return s}
+
+/* ---------- R05 Caravanserai ---------- */
+function sCaravan(seed){const r=RNG(seed),s=new Scene({F:150,vy:H*.62,haze:'#15181c',fog:.03,amb:.22,ambCol:'#7c90a8'});
+  const w=22,z0=3,bl=4,nb=5,ze=z0+nb*bl,wall='#a98258',t={};
+  floor(s,-w/2,w/2,.5,ze,1.4,'#6e5c48',r,.2);
+  for(let b=nb-1;b>=0;b--){const z=z0+b*bl;for(const side of[-1,1]){
+    const k1=pick(['bedroll','bedroll','store','stable','shop','ruin'],r),k2=pick(['bedroll','store','ruin'],r);t[k1]=(t[k1]||0)+1;
+    s.group(z+bl/2,()=>{bay(s,sideM(side,w/2,0,z),bl,4,[cell(k1,r,{u:.5,span:3,spring:2,k:.55,depth:3})],wall,{band:[.3,'#2c6f7a']});
+      bay(s,sideM(side,w/2,4,z),bl,4,[cell(k2,r,{u:.7,span:2.6,spring:1.8,k:.55,depth:2.4})],wall);
+      for(let m=0;m<4;m++){const zz=z+m+.2;s.poly([[side*w/2,8,zz],[side*w/2,8,zz+.6],[side*w/2,8.6,zz+.6],[side*w/2,8.6,zz]],sc(wall,.95))}});
+    if((k1==='bedroll'||k1==='shop')&&r()<.7)s.lamp([side*(w/2+1.4),1.1,z+bl/2],'#ff9a48',1.1,2.2,0)}}
+  s.group(ze+1,()=>bay(s,frontM(-w/2,0,ze),w,0,[{u:w/2-3,span:6,spring:4.2,k:.6,depth:4,back:'#2a1c12',fill:portalFill(r)}],wall,{outer:[[0,0],[w,0],[w,8],[w/2+4.5,8],[w/2+4.5,12],[w/2-4.5,12],[w/2-4.5,8],[0,8]]}));
+  s.group(ze-.05,()=>{const f=(x0,y0,x1,y1)=>s.poly([[x0,y0,ze-.02],[x1,y0,ze-.02],[x1,y1,ze-.02],[x0,y1,ze-.02]],jit(TEAL,r,.1));f(-4.5,11.4,4.5,12);f(-4.5,0,-4,12);f(4,0,4.5,12)});
+  const hearth=pick(['fire pit','brazier ring','tannur oven'],r);
+  box(s,-3,3,0,.7,9,15,'#8a6e4e',{top:'#7a2a22'});fire(s,0,.7,12,r);
+  const ns=2+Math.floor(r()*4);for(let k=0;k<ns;k++){const a=k/ns*Math.PI*2+r();figure(s,Math.cos(a)*2,12+Math.sin(a)*1.6,.95,pick(ROBES,r),.7)}
+  for(let k=0;k<4;k++){const x=-2.6+r()*4.6,z=9.4+r()*5;box(s,x,x+.5,.7,1,z,z+.4,'#8a6a44')}
+  for(let q=0;q<3;q++){const z=6+q*5.5;s.line([-w/2,7,z],[w/2,7,z],'#2a1c12',1);for(let x=-9;x<=9;x+=3)lantern(s,x,6.6,z,{i:.6,r:2.5,glow:.6,size:.8})}
+  s.poly([[-60,24,2],[60,24,2],[60,24,90],[-60,24,90]],'#1a1a20',{k:200});
+  s.notes=['ground cells '+Object.entries(t).map(([k,v])=>`<b>${v}</b> ${k}`).join(', '),`hearth <b>${hearth}</b>`,`travellers <b>${ns}</b>`];return s}
+
+/* ---------- R06 Domicile Quarter ---------- */
+function sQuarter(seed){const r=RNG(seed),s=new Scene({F:170,vy:H*.56,haze:'#191a1e',fog:.035,amb:.24,ambCol:'#8494aa'});
+  const w=3.4,end=30,plas=['#b8936a','#a88460','#c4a27a','#9c7656','#b0885c'];let doors=0,lit=0;
+  floor(s,-w/2,w/2,.5,end,.6,'#7a6248',r,.25);
+  for(const side of[-1,1]){let z=.6;while(z<end-2){const L=Math.min(2.2+r()*2.4,end-z),hg=4.5+r()*5,ins=r()<.28?.5:0,col=pick(plas,r),x=w/2+ins,ops=[],kind=r(),isDoor=kind<.45;
+    if(isDoor){doors++;ops.push({u:L/2-.55,span:1.1,spring:1.6,k:.6,depth:.25,back:'#5a3820',fill:(s,at,o)=>{for(let u=.18;u<o.span;u+=.18)s.line(at(u,0,.01),at(u,o.spring,.01),'#3a2412',1)}})}
+    else if(kind<.8){const on=r()<.55;if(on){lit++;s.lamp([side*(x-.3),1.6,z+L/2],'#ffb060',.5,1.6,0)}ops.push({u:L/2-.4,span:.8,spring:.55,sill:1.3,k:.6,depth:.3,back:on?'#ffb860':'#151210',backEm:on?.95:0})}
+    if(hg>5.6){const on=r()<.5;if(on)lit++;ops.push({u:L/2-.4,span:.8,spring:.6,sill:3.6,k:.6,depth:.3,back:on?'#ffb860':'#151210',backEm:on?.95:0})}
+    s.group(z+L/2,()=>{bay(s,sideM(side,x,0,z),L,hg,ops,col);if(ins)s.poly([[side*w/2,.002,z],[side*x,.002,z],[side*x,.002,z+L],[side*w/2,.002,z+L]],'#6e5842')});
+    if(ins)s.group(z+L-.01,()=>s.poly([[side*w/2,0,z+L],[side*x,0,z+L],[side*x,6,z+L],[side*w/2,6,z+L]],sc(col,.85)));
+    if(isDoor&&r()<.6)lantern(s,side*(x-.15),2.3,z+L/2+.85,{i:.9,r:2.2,size:.7});
+    z+=L}}
+  const ns=1+Math.floor(r()*2);for(let k=0;k<ns;k++){const z=8+k*10+r()*4;s.group(z+1.5,()=>bay(s,frontM(-w/2-.5,0,z),w+1,6.5,[{u:.5,span:w,spring:2.4,k:.5,depth:3,open:1}],'#a8845e'));
+    s.poly(archPts(.8,.5,.6).map(q=>[q[0]-.4,4.2+q[1],z-.02]),'#ffb860',{em:.9})}
+  for(let k=0;k<3;k++){const z=5+k*8+r()*3,y=4+r();s.line([-w/2,y,z],[w/2,y,z],'#2a1c12',1);
+    for(let x=-1.3;x<1.3;x+=.5+r()*.3){if(r()<.25)continue;const h=.6+r()*.5;s.poly([[x,y,z],[x+.38,y,z],[x+.38,y-h,z],[x,y-h,z]],pick(['#c8402e','#e0b040','#2a5a9a','#e8dcc0','#3a8a5a'],r));s.poly(hex6(x+.19,y-h/2,z-.005,.1,.12),pick(['#e8dcc0','#c8402e','#1f2c4c'],r))}}
+  for(let k=0;k<8;k++)box(s,-w/2,w/2,k*.32,(k+1)*.32,end-4+k*.5,end-4+(k+1)*.5,'#8a7052');
+  s.group(end+.5,()=>bay(s,frontM(-w/2-2,2.56,end),w+4,6,[{u:2+w/2-.6,span:1.2,spring:1.6,k:.6,depth:.3,back:'#ffb860',backEm:.8}],pick(plas,r)));
+  s.lamp([0,3.5,end-.5],'#ffb060',1.2,3,0);
+  s.poly([[-40,-5,70],[40,-5,70],[40,40,70],[-40,40,70]],'#201c1c',{k:200});
+  for(let k=0;k<70;k++){const x=(r()-.5)*60,y=8+r()*26;s.poly([[x,y,69.8],[x+.7,y,69.8],[x+.7,y+1,69.8],[x,y+1,69.8]],'#ffb050',{em:.85,k:199})}
+  s.notes=[`doors <b>${doors}</b>`,`lit windows <b>${lit}</b>`,`sabat bridges <b>${ns}</b>`];return s}
+
+/* ---------- R07 Garden Court ---------- */
+function sGarden(seed){const r=RNG(seed),s=new Scene({F:150,vy:H*.6,haze:'#1a2228',fog:.022,amb:.3,ambCol:'#8fb0c0'});
+  const w=24,z0=2,bl=4,nb=8,ze=z0+nb*bl,wall='#b08a60',pz=24;
+  const fount=pick(['round pool','stepped cascade','low basin'],r),sp=pick(['cypress','fruit','lumen'],r);
+  floor(s,-w/2,w/2,.5,ze,.8,(x,z)=>{const dp=Math.hypot(x,z-pz);if(Math.abs(x)<.8&&z>3&&z<pz-2.6)return{c:'#2c6c7a',em:.35};if(dp<3.3)return dp<2.8?{c:'#2c6c7a',em:.35}:'#c8b090';
+    const bx=Math.abs(x);if(bx>2&&bx<7.8&&z>4&&z<pz+4&&!(z>pz-4.5&&bx<4.5))return'#2f4a22';return'#857058'},r,.2);
+  let shelvesN=0;
+  for(let b=nb-1;b>=0;b--){const z=z0+b*bl;for(const side of[-1,1]){const k1=r()<.6?'shelf':'tile';if(k1==='shelf')shelvesN++;
+    s.group(z+bl/2,()=>{bay(s,sideM(side,w/2,0,z),bl,4,[recess(k1,r,{u:.5,span:3,spring:2,k:.55,depth:2.2})],wall,{band:[.3,'#2c6f7a']});
+      bay(s,sideM(side,w/2,4,z),bl,4,[{u:.8,span:2.4,spring:1.4,sill:.8,k:.6,depth:.3,back:'#1a1410',fill:tilesFill([TEAL,LAPIS,CREAM],r,{cell:.2})}],wall,{band:[.35,OCHRE]})});
+    if(r()<.5)lantern(s,side*(w/2-.4),3,z+bl/2,{i:.8,r:2.6,size:.8})}}
+  s.group(ze+1,()=>bay(s,frontM(-w/2,0,ze),w,0,[{u:w/2-4,span:8,spring:5,k:.6,depth:5,back:'#24170e',fill:iwanFill(r)}],wall,{outer:[[0,0],[w,0],[w,8.6],[w/2+6,8.6],[w/2+6,14],[w/2-6,14],[w/2-6,8.6],[0,8.6]]}));
+  for(const xx of[4.5,6.8])for(const side of[-1,1])for(let z=5;z<pz-4;z+=3.5)tree(s,sp,side*xx,z+(xx>5?1.7:0),r);
+  if(fount==='stepped cascade'){for(let k=0;k<3;k++)box(s,-1.4+k*.4,1.4-k*.4,0,.35*(k+1),pz-1+k*.4,pz+1.5,'#a8957a',{top:'#3a8a98'})}
+  else if(fount==='low basin')box(s,-1.6,1.6,0,.45,pz-1.6,pz+1.6,'#a8957a',{top:'#3a8a98'});
+  else box(s,-.25,.25,0,1,pz-.25,pz+.25,'#c8b090');
+  s.poly([[-.06,1,pz-1.7],[.06,1,pz-1.7],[0,2.6,pz-1.7]],'#d8ecff',{add:1,a:.55});s.poly([[-.6,.5,pz-1.7],[.6,.5,pz-1.7],[.1,1.6,pz-1.7],[-.1,1.6,pz-1.7]],'#d8ecff',{add:1,a:.18});
+  s.poly([[-50,20,3],[50,20,3],[50,20,80],[-50,20,80]],'#171c20',{k:200});
+  for(let k=0;k<55;k++){const x=(r()-.5)*40,z=6+r()*28;s.poly([[x,19.9,z],[x+.25,19.9,z],[x+.25,19.9,z+.25],[x,19.9,z+.25]],'#7fe0d0',{em:.8,k:-60})}
+  s.poly([[-1.5,20,16],[1.5,20,16],[3.5,0,16],[-3.5,0,16]],'#dcefff',{add:1,a:.07});s.poly([[-.8,20,16],[.8,20,16],[2,0,16],[-2,0,16]],'#dcefff',{add:1,a:.06});
+  s.lamp([0,12,14],'#e4f2ff',2.4,9,0);
+  s.notes=[`fountain <b>${fount}</b>`,`planting socket <b>${sp==='lumen'?'lumen fungus':sp}</b>`,`arcade bays with shelves <b>${shelvesN}/16</b>`];return s}
+
+/* ---------- R08 Orosi Scriptorium ---------- */
+function sScript(seed){const r=RNG(seed),s=new Scene({F:160,vy:H*.56,haze:'#1a1416',fog:.03,amb:.22,ambCol:'#9a8aa0'});
+  const w=12,z0=1,bl=4,nb=3,ze=z0+nb*bl,h=6.2,wall='#b89470';
+  carpet(s,-w/2,w/2,.6,ze,16,26,pick(RUG,r),r,0);
+  for(let b=nb-1;b>=0;b--){const z=z0+b*bl;for(const side of[-1,1])s.group(z+bl/2,()=>bay(s,sideM(side,w/2,0,z),bl,h,[
+    {u:.6,span:1,spring:1,sill:1.2,k:.6,depth:.35,back:'#e6d8bc',fill:potsFill(r)},{u:2.4,span:1,spring:1,sill:1.2,k:.6,depth:.35,back:'#e6d8bc',fill:potsFill(r)},
+    {u:.5,span:3,spring:.6,sill:3.4,k:.5,depth:.3,back:'#e6d8bc'}],wall,{band:[.4,'#5a3a24']}))}
+  for(let z=z0;z<ze;z+=1.3){s.poly([[-w/2,h-.35,z],[w/2,h-.35,z],[w/2,h,z],[-w/2,h,z]],'#4a2e1c');s.poly([[-w/2,h-.35,z],[w/2,h-.35,z],[w/2,h-.35,z+.3],[-w/2,h-.35,z+.3]],'#3a2416',{k:-.4})}
+  floor(s,-w/2,w/2,z0,ze,1,'#6a4a30',r,.15,h);
+  const wins=[[1.2,2.8],[4.4,3.2],[8,2.8]],palette=pick(['ruby and cobalt','saffron and green','full spectrum'],r);
+  s.group(ze+.3,()=>bay(s,frontM(-w/2,0,ze),w,h,wins.map(([u,sp])=>({u,span:sp,spring:3,sill:.35,k:.6,depth:.25,back:'#120c0a',fill:glass(r,{radial:true})})),wall,{band:[.4,'#5a3a24']}));
+  s.lamp([0,3,ze-3],'#ffeacc',.7,4,0);
+  for(const[u,sp]of wins){const cx=-w/2+u+sp/2;s.lamp([cx,2.5,ze-.8],pick(GLASS,r),.45,2.6,0);
+    for(let k=0;k<26;k++){const zz=ze-1-r()*8,spread=(ze-zz)*.18,x=cx+(r()-.5)*(sp+spread),sz=.25+r()*.35;s.poly([[x,.03,zz],[x+sz,.03,zz],[x+sz,.03,zz+sz],[x,.03,zz+sz]],pick(GLASS,r),{add:1,a:.13})}}
+  const nd=3+Math.floor(r()*4);let scribes=0;
+  for(let k=0;k<nd;k++){const x=(k%2?1:-1)*(1.6+r()*2.4),z=3+Math.floor(k/2)*3.2+r();box(s,x-.6,x+.6,0,.35,z,z+.55,WOOD);
+    s.poly([[x-.35,.36,z+.1],[x,.4,z+.1],[x,.4,z+.45],[x-.35,.36,z+.45]],CREAM);s.poly([[x,.4,z+.1],[x+.35,.36,z+.1],[x+.35,.36,z+.45],[x,.4,z+.45]],'#d8ccb0');
+    lantern(s,x+.45,.5,z+.2,{i:.5,r:1.4,glow:.35,size:.4});if(r()<.6){scribes++;figure(s,x,z+.85,1,pick(ROBES,r))}}
+  s.notes=[`copy desks <b>${nd}</b>`,`scribes <b>${scribes}</b>`,`glass socket <b>${palette}</b>`];return s}
+
+/* ---------- R09 Light-Well Stair ---------- */
+function sWell(seed){const r=RNG(seed),s=new Scene({F:135,vy:H*.5,haze:'#0e1418',fog:.04,amb:.3,ambCol:'#7aa0b0'});
+  const R=pick([7.5,8.5,9.5],r),cz=R-.6,lv=5,seg=18,da=2*Math.PI/seg,wall='#a07a54',ri=R-2;
+  const P=(a,rho,y)=>[rho*Math.sin(a),y,cz+rho*Math.cos(a)];
+  const levels=[];for(let y=-25;y<=15;y+=lv)levels.push(y);levels.sort((a,b)=>Math.abs(b-1.7)-Math.abs(a-1.7));
+  const hand=r()<.5?1:-1;let exits=0;
+  for(const y of levels)for(let i=0;i<seg;i++){const a0=-Math.PI+i*da,a1=a0+da,am=a0+da/2,key=cz+R*Math.cos(am);if(key<.3)continue;
+    const A=P(a0,R,y),B=P(a1,R,y),L=Math.hypot(B[0]-A[0],B[2]-A[2]),U=[(B[0]-A[0])/L,0,(B[2]-A[2])/L],N=[Math.sin(am),0,Math.cos(am)],exit=r()<.07;if(exit)exits++;
+    s.group(key,()=>{bay(s,pm(A,U,N),L,lv-.35,[exit?{u:.45,span:L-.9,spring:2.2,k:.58,depth:4,back:'#05070a'}:{u:.4,span:L-.8,spring:2.1,k:.58,depth:.5,back:'#24170e',fill:shelves(r,{coarse:1.7})}],wall);
+      if(y<1.7)s.poly([P(a0,R,y),P(a1,R,y),P(a1,ri,y),P(a0,ri,y)],'#6a5644');
+      const yb=y-.35;if(yb>1.7)s.poly([P(a0,R,yb),P(a1,R,yb),P(a1,ri,yb),P(a0,ri,yb)],'#4a3a2e');
+      s.poly([P(a0,ri,yb),P(a1,ri,yb),P(a1,ri,y),P(a0,ri,y)],'#2f6f78');
+      s.line(P(a0,ri,y+.9),P(a1,ri,y+.9),'#7a5a3a',1);s.line(P(am,ri,y),P(am,ri,y+.9),'#7a5a3a',1)});
+    if(i%3===0&&r()<.7){const p=P(am,ri+.4,y+lv-1.3);lantern(s,p[0],p[1],p[2],{top:y+lv-.35,i:.9,r:3,size:.8})}}
+  for(const y0 of[-15,-10,-5,0,5]){const st=Math.PI*.85/22;for(let k=0;k<22;k++){const a=hand*(.3+k*st),a2=hand*(.3+(k+1)*st),y=y0+k*lv/22;
+    const p1=P(a,ri-.1,y),p2=P(a2,ri-.1,y),p3=P(a2,ri-1.2,y),p4=P(a,ri-1.2,y);s.poly([p1,p2,p3,p4],y<1.7?'#8a7258':'#5a4a3a');s.poly([p4,p3,[p3[0],y-.25,p3[2]],[p4[0],y-.25,p4[2]]],'#4a3a2c')}}
+  const yt=20.2;for(let i=0;i<seg;i++){const a0=-Math.PI+i*da,a1=a0+da;if(cz+R*Math.cos(a0+da/2)<.3)continue;s.poly([P(a0,R,yt),P(a1,R,yt),P(a1,3,yt),P(a0,3,yt)],'#3a2e26')}
+  const disc=[];for(let i=0;i<16;i++)disc.push(P(i/16*Math.PI*2,3,yt-.01));s.poly(disc,'#e4eef2',{em:1.3});
+  s.poly([[-3,yt,cz],[3,yt,cz],[4,-30,cz],[-4,-30,cz]],'#dfeaf0',{add:1,a:.05});s.poly([[-1.6,yt,cz],[1.6,yt,cz],[2.2,-30,cz],[-2.2,-30,cz]],'#dfeaf0',{add:1,a:.05});
+  s.lamp([0,17,cz],'#e0ecf2',1.8,9,0);
+  s.post.push(ctx=>{const g=ctx.createLinearGradient(0,H,0,H*.6);g.addColorStop(0,'rgba(8,12,14,.75)');g.addColorStop(1,'rgba(8,12,14,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)});
+  s.notes=[`radius <b>${R} m</b>, <b>${levels.length}</b> levels shown`,`stair <b>${hand>0?'clockwise':'anticlockwise'}</b>`,`side exits <b>${exits}</b>`];return s}
+
+/* ---------- R10 Chasm Spans ---------- */
+function sChasm(seed){const r=RNG(seed),s=new Scene({F:165,vy:H*.48,haze:'#22313c',fog:.014,amb:.24,ambCol:'#7f98ae'});
+  floor(s,-3,3,.5,5,.75,'#6e5a46',r);for(let x=-3;x<=3.01;x+=.5)s.line([x,0,5],[x,1,5],'#4a3828',1.5);s.line([-3,1,5],[3,1,5],'#4a3828',2);
+  lantern(s,-2.8,1.35,5,{i:1.3,r:3.5});
+  let litN=0,cells=0;
+  for(const side of[-1,1]){let z=6,px=null;while(z<132){const L=8+r()*6,x=9+r()*3.5+z*.05,col='#9a7a58';
+    if(px!==null&&x>px)s.poly([[side*px,-50,z],[side*x,-50,z],[side*x,36,z],[side*px,36,z]],sc(col,.6));
+    const nc=Math.max(1,Math.round(L/4)),cl=L/nc;
+    for(let y=-48;y<34;y+=4)for(let c=0;c<nc;c++){const zz=z+c*cl,M=sideM(side,x,y,zz),lit=r()<.3;cells++;if(lit)litN++;
+      s.group(zz+cl/2,()=>{s.poly([M(0,0),M(cl,0),M(cl,4),M(0,4)],jit(col,r,.14));s.poly(archPts(1.3,1.3,.6).map(p=>M((cl-1.3)/2+p[0],.7+p[1],-.01)),lit?'#ffb560':'#17120f',lit?{em:1}:{})})}
+    for(let y=-40;y<34;y+=12)s.group(z-.02,()=>s.poly([[side*x,y,z],[side*(x-.9),y,z],[side*(x-.9),y,z+L],[side*x,y,z+L]],y>1.7?'#4a3a2c':'#7a6048'));
+    px=x;z+=L}}
+  for(let k=0;k<16;k++){const side=r()<.5?-1:1;s.lamp([side*(7+r()*3),-20+r()*44,12+r()*110],'#ffae58',.9,7,0)}
+  const nbr=2+Math.floor(r()*2),br=[];let falls=0,people=0;
+  for(let k=0;k<nbr;k++){const z=24+k*(90/nbr)+r()*8,deck=pick([-14,-6,-2,4],r),base=-50,n=pick([4,5,6],r),Xb=12+z*.05,sp=2*Xb/n;br.push(deck);
+    const ops=[];for(let i=0;i<n;i++)ops.push({u:i*sp+.8,span:sp-1.6,spring:(deck-base)-(sp-1.6)*.5-2.5,k:.5,depth:3,open:1});
+    s.group(z+1.5,()=>bay(s,frontM(-Xb,base,z),2*Xb,deck-base,ops,'#8a6c4c'));
+    s.group(z-.05,()=>{if(deck<1.7)s.poly([[-Xb,deck,z],[Xb,deck,z],[Xb,deck,z+3],[-Xb,deck,z+3]],'#7a6048');s.poly([[-Xb,deck,z-.02],[Xb,deck,z-.02],[Xb,deck+1,z-.02],[-Xb,deck+1,z-.02]],'#6a5240')});
+    for(let x=-Xb+2;x<Xb-1;x+=3)lantern(s,x,deck+1.4,z-.1,{i:.5,r:3,glow:.8,size:.9});
+    const nfg=Math.floor(r()*6);people+=nfg;for(let q=0;q<nfg;q++)figure(s,-Xb+3+r()*(2*Xb-6),z+1.5,1.7,pick(ROBES,r),deck,z-.06);
+    if(r()<.7){falls++;const i=Math.floor(r()*n),x0=-Xb+i*sp+.8+(sp-1.6)/2-.5;s.poly([[x0,deck-1,z+1.5],[x0+1,deck-1,z+1.5],[x0+1.4,base,z+1.5],[x0-.4,base,z+1.5]],'#cfe2f0',{add:1,a:.2})}}
+  const zb=138;s.poly([[-40,-50,zb],[40,-50,zb],[40,40,zb],[-40,40,zb]],'#5a4a3c',{k:150});
+  for(let k=0;k<160;k++){const x=(r()-.5)*60,y=-40+r()*70,lit=r()<.4;s.poly([[x,y,zb-.1],[x+.8,y,zb-.1],[x+.8,y+1.2,zb-.1],[x,y+1.2,zb-.1]],lit?'#ffb560':'#2a2018',lit?{em:.9,k:149}:{k:149})}
+  s.poly(archPts(14,6,.5).map(p=>[-7+p[0],-4+p[1],zb-.3]),'#ffd896',{em:.95,k:148});s.lamp([0,6,zb-8],'#ffd890',2,22,0);
+  s.poly([[-40,40,6],[40,40,6],[40,40,140],[-40,40,140]],'#141a20',{k:200});
+  for(let k=0;k<45;k++){const x=(r()-.5)*44,z=10+r()*125,len=4+r()*12,wd=1+r()*2.5;s.poly([[x-wd,40,z],[x+wd,40,z],[x,40-len,z]],jit('#26303a',r,.2))}
+  s.post.push(ctx=>{const g=ctx.createLinearGradient(0,H*.5,0,H*.8);g.addColorStop(0,'rgba(170,195,215,0)');g.addColorStop(.6,'rgba(170,195,215,.26)');g.addColorStop(1,'rgba(170,195,215,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)});
+  s.notes=[`spans <b>${nbr}</b> at decks ${br.map(d=>`<b>${d} m</b>`).join(', ')}`,`waterfalls <b>${falls}</b>`,`lit windows <b>${litN}/${cells}</b>`];return s}
+
+/* ================= second batch ================= */
+function reflect(s,x,y,z,wy,col,a=.3){const d=Math.min(4,(y-wy)*.9);s.poly([[x-.12,wy-.02,z],[x+.12,wy-.02,z],[x+.05,wy-d,z],[x-.05,wy-d,z]],col,{add:1,a})}
+function boat(s,x,z,wy,r,lit){s.group(z,()=>{s.poly([[x-1.4,wy+.35,z],[x+1.4,wy+.35,z],[x+1,wy-.05,z],[x-1,wy-.05,z]],jit('#3a2616',r,.2));s.poly([[x-1.45,wy+.35,z],[x+1.45,wy+.35,z],[x+1.45,wy+.43,z],[x-1.45,wy+.43,z]],'#6a4a2a')});
+  if(r()<.5)figure(s,x+.4,z+.02,1.1,pick(ROBES,r),wy+.3,z+.01);
+  if(lit){s.line([x-.9,wy+.4,z-.01],[x-.9,wy+1.15,z-.01],'#3a2616',1);lantern(s,x-.9,wy+1.3,z-.01,{i:.8,r:3,size:.7});reflect(s,x-.9,wy+1.3,z-.02,wy,'#ffb45a')}}
+function ceiling(s,y,r,n=40){s.poly([[-60,y,3],[60,y,3],[60,y,150],[-60,y,150]],'#141a1e',{k:200});
+  for(let k=0;k<n;k++){const x=(r()-.5)*44,z=8+r()*110,len=3+r()*9,wd=.8+r()*2;s.poly([[x-wd,y,z],[x+wd,y,z],[x,y-len,z]],jit('#242c32',r,.2))}}
+
+/* ---------- R11 Cistern Archive ---------- */
+function sCistern(seed){const r=RNG(seed),s=new Scene({F:155,vy:H*.58,haze:'#0f1c20',fog:.05,amb:.22,ambCol:'#5f8e98'});
+  const lv=pick([['low',-1.1],['middling',-.65],['high',-.3]],r),wy=lv[1],cols=[-14,-10,-6,-2,2,6,10,14],X=16,sp=3.4,top=5.8,brick='#8c6e50',rows=[],zb=44;
+  for(let z=4;z<=40;z+=4)rows.push(z);
+  floor(s,-X,X,.5,zb,1.3,(x,z)=>Math.abs(x)<1.3?null:{c:'#2a6474',em:.3},r,.15,wy);
+  floor(s,-1.3,1.3,.5,zb,.65,'#7a6650',r,.2,0);
+  const gaps=[[-X+.35,cols[0]-.4]];for(let c=0;c<cols.length-1;c++)gaps.push([cols[c]+.4,cols[c+1]-.4]);gaps.push([cols[cols.length-1]+.4,X-.35]);
+  let boats=0,plats=0;
+  for(let ri=rows.length-1;ri>=0;ri--){const z=rows[ri];
+    s.group(z,()=>bay(s,frontM(-X,wy,z),2*X,top-wy,gaps.map(g=>({u:g[0]+X,span:g[1]-g[0],spring:(g[1]-g[0]<2?2.6:sp)-wy,k:.5})),brick));
+    for(const cx of cols)box(s,cx-.4,cx+.4,wy,sp,z-.4,z+.4,'#7e6248',{g:z-.41});
+    if(r()<.45){const cx=pick([-6,-2,2,6],r),side=Math.sign(cx);lantern(s,cx-side*.6,2.4,z-.45,{i:.8,r:3,size:.8});reflect(s,cx-side*.6,2.4,z-.5,wy,'#ffb45a')}
+    if(ri<rows.length-1)for(let g=0;g<gaps.length;g++){const a=g===0?-X:cols[g-1],b=g===gaps.length-1?X:cols[g];ceilCell(s,a,b,z,z+4,top,r,['#b89468','#8c6e50','#9a7a58','#7a5e44']);
+      const cx=(a+b)/2;if(Math.abs(cx)>3&&Math.abs(cx)<13&&r()<.16){plats++;box(s,cx-1.3,cx+1.3,.7,.9,z+1,z+3,WOOD);for(let q=0;q<3;q++){const x=cx-1+q*.75;box(s,x,x+.6,.9,1.4+r()*.4,z+1.3,z+1.9,jit('#8a6a44',r,.2))}}}}
+  for(let z=6;z<zb;z+=8)lantern(s,0,3,z,{top,i:.9,r:3});
+  const nbt=1+Math.floor(r()*3);for(let k=0;k<nbt;k++){boats++;boat(s,(r()<.5?-1:1)*(4+r()*4),8+r()*26,wy,r,r()<.7)}
+  s.group(zb+.5,()=>bay(s,frontM(-X,wy,zb),2*X,top-wy,[{u:X-1.6,span:3.2,spring:2.4,sill:-wy,k:.5,depth:.4,back:'#8a6a30',fill:(s,at,o)=>{for(let u=.3;u<o.span;u+=.4)s.line(at(u,0,.01),at(u,o.spring,.01),'#5a4220',1);const p=at(o.span/2,1.4,.02);s.poly(hex6(p[0],p[1],p[2],.18,.18),'#c8a040')}}],brick));
+  lantern(s,-2,2.6,zb-.4,{i:1,r:3});lantern(s,2,2.6,zb-.4,{i:1,r:3});
+  s.notes=[`water level <b>${lv[0]}</b>`,`boats <b>${boats}</b>`,`storage platforms <b>${plats}</b>`];return s}
+
+/* ---------- R12 Ice-house Vault ---------- */
+function sIce(seed){const r=RNG(seed),s=new Scene({F:140,vy:H*.64,haze:'#0f1a22',fog:.035,amb:.32,ambCol:'#8fb8d8'});
+  const R=10,cz=R-1.2,seg=20,da=2*Math.PI/seg,wall='#9c8a74',steps=8,P=(a,rho,y)=>[rho*Math.sin(a),y,cz+rho*Math.cos(a)];
+  const fill=pick([['nearly full',3],['half full',2],['almost empty',0]],r),contents=pick(['frozen archive','ice blocks','sealed chests'],r);
+  const rho=k=>R-k*(R-1.6)/steps,yk=k=>4+k*1.8;
+  const chests=(s,at,o)=>{for(let q=0;q<2;q++){const u0=.15+q*o.span/2;s.poly([at(u0,0,.2),at(u0+o.span/2-.3,0,.2),at(u0+o.span/2-.3,.7,.2),at(u0,.7,.2)],jit('#6a4a2a',r,.2))}};
+  for(let i=0;i<seg;i++){const a0=-Math.PI+i*da,a1=a0+da,am=a0+da/2,key=cz+R*Math.cos(am);if(key<.4)continue;
+    s.group(key,()=>{
+      for(let k=steps-1;k>=0;k--){const r0=rho(k),r1=rho(k+1),y0=yk(k),y1=yk(k+1);
+        s.poly([P(a0,r0,y0),P(a1,r0,y0),P(a1,r0,y1),P(a0,r0,y1)],jit(wall,r,.1));s.poly([P(a0,r0,y1),P(a1,r0,y1),P(a1,r1,y1),P(a0,r1,y1)],sc(wall,.62))}
+      const A=P(a0,R,0),B=P(a1,R,0),L=Math.hypot(B[0]-A[0],B[2]-A[2]),U=[(B[0]-A[0])/L,0,(B[2]-A[2])/L],N=[Math.sin(am),0,Math.cos(am)];
+      const op={u:.4,span:L-.8,spring:1.9,k:.55,depth:.5,back:'#20242a'};
+      op.fill=contents==='frozen archive'?shelves(r,{coarse:1.4}):contents==='sealed chests'?chests:tilesFill(['#b8dce8','#e8f6fa','#8ab8c8'],r,{cell:.4});
+      bay(s,pm(A,U,N),L,4,[op],wall);
+      s.poly([P(a0,R,.002),P(a1,R,.002),P(a1,4.2,.002),P(a0,4.2,.002)],jit('#6e6c68',r,.1))})}
+  for(let i=0;i<seg;i++){const a0=-Math.PI+i*da,a1=a0+da;if(cz+4*Math.cos(a0+da/2)<.4)continue;
+    s.poly([P(a0,4.2,-1.5),P(a1,4.2,-1.5),[0,-1.5,cz]],'#2c3c46');s.poly([P(a0,4.2,-1.5),P(a1,4.2,-1.5),P(a1,4.2,0),P(a0,4.2,0)],'#5a5852',{k:-.2})}
+  for(let l=0;l<fill[1];l++)for(let k=0;k<5-l;k++){const x=-2.2+k*.95+l*.45,z=cz-1.5+((k+l)%2)*.9;box(s,x,x+.85,-1.5+l*.7,-.8+l*.7,z,z+.85,'#bfe4ee',{top:'#e6f6fa'})}
+  const disc=[];for(let i=0;i<16;i++)disc.push(P(i/16*Math.PI*2,rho(steps),yk(steps)-.01));s.poly(disc,'#e8f4ff',{em:1.2});
+  s.lamp([0,yk(steps)-1,cz],'#d8eeff',1.4,9,0);
+  for(let k=0;k<4;k++){const a=-1.1+k*.75,p=P(a,R-.6,2.6);lantern(s,p[0],p[1],p[2],{col:'#a8dcff',i:.7,r:2.6,size:.7})}
+  const keeper=r()<.6;if(keeper){fire(s,-3.2,0,cz-5.2,r);figure(s,-2.4,cz-4.6,1.6,pick(ROBES,r))}
+  s.notes=[`ice pit <b>${fill[0]}</b>`,`ring bays hold <b>${contents}</b>`,`keeper <b>${keeper?'at the brazier':'absent'}</b>`];return s}
+
+/* ---------- R13 Bathhouse ---------- */
+function sHammam(seed){const r=RNG(seed),s=new Scene({F:150,vy:H*.62,haze:'#2a2c2c',fog:.045,amb:.3,ambCol:'#b8c4c4'});
+  const w=14,z0=1,bl=4,nb=4,ze=z0+nb*bl,wall='#cdbd9c',vy0=5.4,pz=9,pool=pick(['octagon','cross-shaped','round'],r);
+  const inPool=(x,z)=>{const dx=Math.abs(x),dz=Math.abs(z-pz);if(pool==='round')return Math.hypot(dx,dz)<2.6;if(pool==='cross-shaped')return(dx<2.8&&dz<1.1)||(dx<1.1&&dz<2.8);return Math.max(dx,dz,(dx+dz)/Math.SQRT2)<2.6};
+  floor(s,-w/2,w/2,.5,ze,.7,(x,z)=>inPool(x,z)?{c:'#3a8a92',em:.32}:(inPool(x*.86,pz+(z-pz)*.86)?'#e6dcc8':(((Math.floor((x+7)/.7)+Math.floor(z/.7))%2)?'#d4c8ae':'#6e9a96')),r,.1);
+  for(let b=nb-1;b>=0;b--){const z=z0+b*bl;for(const side of[-1,1])s.group(z+bl/2,()=>bay(s,sideM(side,w/2,0,z),bl,vy0,[{u:.5,span:3,spring:1.8,k:.5,depth:2,back:'#4a9a96',
+    fill:(s,at,o)=>{s.poly([at(0,.55,0),at(o.span,.55,0),at(o.span,.55,1.7),at(0,.55,1.7)],'#d8ccb0');s.poly([at(0,0,1.7),at(o.span,0,1.7),at(o.span,.55,1.7),at(0,.55,1.7)],'#a89878')}}],wall,{band:[.4,'#3a9a96']}))}
+  let sky=0;vault(s,-w/2,w,vy0,.5,z0,ze,.9,(i,j)=>{if((i*7+j*5)%9===0&&i>1&&i<12){if(i<7)sky++;return{c:'#fff2cc',em:1.15}}return jit((i+j)%2?'#d8ccb0':'#cabe9e',r,.08)});
+  s.group(ze+.5,()=>bay(s,frontM(-w/2,0,ze),w,0,[{u:w/2-2,span:4,spring:2.6,k:.5,depth:4,back:'#ff9a58',backEm:.55}],wall,{outer:archPts(w,vy0,.5)}));
+  s.lamp([0,1.5,ze+1.5],'#ff9a58',1.4,4,0);s.lamp([0,4,pz],'#fff0d8',.9,6,0);
+  box(s,-.3,.3,0,.6,pz-.3,pz+.3,'#e6dcc8');s.poly([[-.05,.6,pz-.31],[.05,.6,pz-.31],[0,1.5,pz-.31]],'#e8f4ff',{add:1,a:.5});
+  for(let k=0;k<4;k++)lantern(s,(k%2?1:-1)*(w/2-.6),3,3+k*3.5,{i:.6,r:2.4,size:.7});
+  const nbt=2+Math.floor(r()*5);for(let k=0;k<nbt;k++){const a=r()*Math.PI*2;figure(s,Math.cos(a)*3.3,pz+Math.sin(a)*3.3,.95,pick(['#d8d0c0','#9a3a2a','#2a4a6a','#c8b890'],r))}
+  for(let k=0;k<12;k++){const x=(r()-.5)*10,z=3+r()*13,y=.3+r()*2.5,sz=1.5+r()*2.5;s.poly([[x-sz,y,z],[x+sz,y,z],[x+sz*.7,y+sz*.8,z],[x-sz*.7,y+sz*.8,z]],'#ffffff',{add:1,a:.035})}
+  s.notes=[`pool <b>${pool}</b>`,`bathers <b>${nbt}</b>`,`glass skylights <b>${sky}</b>`];return s}
+
+/* ---------- R14 Tea House ---------- */
+function sTea(seed){const r=RNG(seed),s=new Scene({F:150,vy:H*.56,haze:'#1c1612',fog:.03,amb:.24,ambCol:'#9a8a7a'});
+  const w=pick([7,8,9],r),L=pick([8,10,12],r),z0=.8,ze=z0+L,h=4.4,wall='#b89472';let patrons=0,takhts=0;
+  floor(s,-w/2,w/2,.5,ze,.6,'#6a5440',r,.2);
+  for(let z=z0;z<ze-.01;z+=2)for(const side of[-1,1]){const niche=r()<.55;
+    s.group(z+1,()=>{bay(s,sideM(side,w/2,0,z),2,h,niche?[{u:.5,span:1,spring:.9,sill:1.6,k:.6,depth:.3,back:'#e6d8bc',fill:(s,at,o)=>{for(let k=0;k<3;k++)s.poly([at(.18+k*.25,0,.1),at(.3+k*.25,0,.1),at(.3+k*.25,.18,.1),at(.18+k*.25,.18,.1)],'#c8702a',{em:.4})}}]:[],wall,{band:[.3,'#2c6f7a']});
+      if(!niche){const M=sideM(side,w/2,0,z);s.poly([M(.3,1.5,-.02),M(1.7,1.5,-.02),M(1.7,2.7,-.02),M(.3,2.7,-.02)],'#4a2e1a');s.poly([M(.38,1.58,-.03),M(1.62,1.58,-.03),M(1.62,2.62,-.03),M(.38,2.62,-.03)],'#d8c8a0');
+        for(let k=0;k<5;k++){const u=.45+r()*1,v=1.65+r()*.75;s.poly([M(u,v,-.04),M(u+.15,v,-.04),M(u+.15,v+.22,-.04),M(u,v+.22,-.04)],pick(['#c8402e','#e0b040','#2a5a9a','#3a6a3a','#5a3a2a'],r))}}})}
+  for(let z=z0;z<ze;z+=1.1){s.poly([[-w/2,h-.3,z],[w/2,h-.3,z],[w/2,h,z],[-w/2,h,z]],'#4a2e1c');s.poly([[-w/2,h-.3,z],[w/2,h-.3,z],[w/2,h-.3,z+.25],[-w/2,h-.3,z+.25]],'#3a2416',{k:-.4})}
+  floor(s,-w/2,w/2,z0,ze,1,'#6a4a30',r,.15,h);
+  for(let z=z0+.4;z<ze-2.5;z+=2.6)for(const side of[-1,1]){if(r()<.2)continue;takhts++;const x0=side<0?-w/2+.05:w/2-1.85,x1=x0+1.8;
+    box(s,x0,x1,0,.5,z,z+1.9,WOOD);carpet(s,x0+.05,x1-.05,z+.05,z+1.85,4,5,pick(RUG,r),r,.51,-3);
+    const n=Math.floor(r()*3);for(let k=0;k<n;k++){patrons++;figure(s,x0+.5+r()*.8,z+.4+k*.7,.9,pick(ROBES,r),.5,z-2.6)}
+    s.poly(hex6((x0+x1)/2,.6,z+.9,.04,.06),'#c8702a',{em:.6,k:-3.2})}
+  s.group(ze+.3,()=>bay(s,frontM(-w/2,0,ze),w,h,[{u:w/2-1.5,span:3,spring:1.8,sill:.9,k:.6,depth:.4,back:'#3a2416',fill:(s,at,o)=>{for(let row=0;row<3;row++)for(let k=0;k<8;k++)s.poly([at(.25+k*.32,.1+row*.5,.05),at(.38+k*.32,.1+row*.5,.05),at(.38+k*.32,.32+row*.5,.05),at(.25+k*.32,.32+row*.5,.05)],'#d08a3a',{em:.35})}}],wall,{band:[.3,'#2c6f7a']}));
+  box(s,-1.6,1.6,0,.95,ze-1.2,ze-.6,WOOD);
+  s.poly([[0,.95],[.35,1.15],[.42,1.6],[.3,1.85],[.12,2],[-.12,2],[-.3,1.85],[-.42,1.6],[-.35,1.15]].map(([x,y])=>[x-.6,y,ze-1.25]),'#c89a3a');s.poly(hex6(-.6,2.15,ze-1.26,.08,.1),'#8a6a2a');s.lamp([-.6,1.6,ze-1.6],'#ffcf80',.5,1.5,.4);
+  const music=r()<.5;if(music){figure(s,1.9,ze-1.8,1.65,pick(ROBES,r));s.line([1.6,1.1,ze-1.85],[2.4,1.55,ze-1.85],'#8a5a2a',2)}
+  for(const z of[z0+2.5,ze-3])lantern(s,0,3.3,z,{top:h-.3,i:1,r:3});
+  s.notes=[`room <b>${w} × ${L} m</b>`,`takhts <b>${takhts}</b>`,`patrons <b>${patrons}</b>`,`musician <b>${music?'playing':'absent'}</b>`];return s}
+
+/* ---------- R15 Fungus Terraces ---------- */
+function sFungus(seed){const r=RNG(seed),s=new Scene({F:150,vy:H*.5,haze:'#0e1c1c',fog:.026,amb:.34,ambCol:'#7aaaa8'});
+  const crop=pick([['lumen caps','#4fd0c0'],['amber shelf-fungus','#e0a040'],['violet morels','#a070e0']],r),nt=7+Math.floor(r()*4);let workers=0;
+  floor(s,-6,6,.5,4,1,'#4a3a2a',r);s.line([-6,.9,4],[6,.9,4],'#3a2a1a',2);for(let x=-6;x<=6;x+=1)s.line([x,0,4],[x,.9,4],'#3a2a1a',1.5);
+  for(let k=nt-1;k>=0;k--){const y=-6+k*1.5,z=9+k*2.8;
+    box(s,-16,16,-24,y,z,z+2.8,k%2?'#6a5a48':'#5e5040',{top:'#2a3424'});
+    for(let x=-15;x<15;x+=2.2)s.poly(archPts(.5,.2,.5).map(p=>[x+p[0],y-1.3+p[1],z-.01]),'#141010',{k:-1});
+    for(let m=0;m<22;m++){const x=-14+r()*28,zz=z+.4+r()*2.2,cw=.12+r()*.18;s.poly([[x-.03,y,zz],[x+.03,y,zz],[x+.03,y+cw,zz],[x-.03,y+cw,zz]],'#d8ccb0',{k:-1.2});
+      const cap=[];for(let i=0;i<=6;i++){const a=Math.PI*i/6;cap.push([x+Math.cos(a)*cw,y+cw+Math.sin(a)*cw*.6,zz])}s.poly(cap,crop[1],{em:.85,k:-1.3})}
+    s.lamp([(r()-.5)*10,y+1,z+1.4],crop[1],1.1,6,0);
+    if(k>0)s.poly([[-.3,y,z-.02],[.3,y,z-.02],[.35,y-1.5,z-.02],[-.35,y-1.5,z-.02]],'#bfe0e8',{add:1,a:.22});
+    const nw=Math.floor(r()*3);for(let q=0;q<nw;q++){workers++;figure(s,-12+r()*24,z+1,1.6,pick(ROBES,r),y,z-1.5)}}
+  for(const side of[-1,1])s.poly([[side*17,-25,5],[side*17,-25,60],[side*17,30,60],[side*17,30,5]],'#24221e',{k:100});
+  ceiling(s,26,r);
+  for(let k=0;k<30;k++){const x=(r()-.5)*24,y=-4+r()*16,z=10+r()*24;s.poly([[x,y,z],[x+.06,y,z],[x+.06,y+.06,z],[x,y+.06,z]],crop[1],{add:1,a:.5})}
+  s.notes=[`crop <b>${crop[0]}</b>`,`terraces <b>${nt}</b>`,`workers <b>${workers}</b>`];return s}
+
+/* ---------- R16 Training Pit ---------- */
+function sZur(seed){const r=RNG(seed),s=new Scene({F:150,vy:H*.68,haze:'#1c1612',fog:.03,amb:.26,ambCol:'#a09080'});
+  const w=16,z0=1,ze=17,wall='#b48c62',pz=9,pr=4,dp=1.1,vy0=6;let aud=0;
+  const oct=(x,z)=>{const dx=Math.abs(x),dz=Math.abs(z-pz);return Math.max(dx,dz,(dx+dz)/Math.SQRT2)<pr};
+  floor(s,-w/2,w/2,.5,ze,.7,(x,z)=>oct(x,z)?null:'#6e5a46',r,.18);
+  floor(s,-pr-.5,pr+.5,pz-pr-.5,pz+pr+.5,.5,(x,z)=>oct(x,z)?'#8a6a48':null,r,.15,-dp);
+  const q=pr*(Math.SQRT2-1),V=[[pr,q],[q,pr],[-q,pr],[-pr,q],[-pr,-q],[-q,-pr],[q,-pr],[pr,-q]];
+  for(let i=0;i<8;i++){const a=V[i],b=V[(i+1)%8];s.poly([[a[0],-dp,pz+a[1]],[b[0],-dp,pz+b[1]],[b[0],0,pz+b[1]],[a[0],0,pz+a[1]]],'#5a3a24',{k:-.2})}
+  for(let b=3;b>=0;b--){const z=z0+b*4;for(const side of[-1,1])s.group(z+2,()=>bay(s,sideM(side,w/2,0,z),4,vy0,[{u:.5,span:3,spring:1.6,sill:.6,k:.55,depth:1.4,back:'#4a3020',
+    fill:(s,at,o)=>{for(let k=0;k<3;k++){if(r()<.4)continue;aud++;const p=at(.6+k*.9,0,.5);figure(s,p[0],p[2],.95,pick(ROBES,r),p[1],z+2)}}}],wall,{band:[.35,'#2f7a80']}))}
+  const morshed=r()<.8,tiles=tilesFill([TEAL,LAPIS,CREAM,OCHRE],r,{cell:.3,from:1.4});
+  s.group(ze+.5,()=>bay(s,frontM(-w/2,0,ze),w,0,[{u:w/2-1.6,span:3.2,spring:1.6,sill:1.4,k:.6,depth:1.6,back:'#2f7a80',fill:(s,at,o)=>{tiles(s,at,o);
+    if(morshed){const p=at(o.span/2,0,.7);figure(s,p[0],p[2],1,'#3a2c2a',p[1],ze+.5);s.poly(ell(at,o.span/2+.45,.35,.3,.3,.9),'#c8a070')}}}],wall,{outer:archPts(w,vy0,.5)}));
+  s.lamp([0,2.8,ze-.8],'#ffb060',1,3,0);
+  const na=3+Math.floor(r()*5);for(let k=0;k<na;k++){const a=k/na*Math.PI*2+r()*.3,x=Math.cos(a)*2.4,z=pz+Math.sin(a)*2.4;figure(s,x,z,1.7,pick(['#e8dcc0','#8a2420','#2a3a5a'],r),-dp);
+    s.line([x-.2,-dp+1.35,z-.01],[x-.45,-dp+2.1,z-.01],'#4a2a18',3);s.line([x+.2,-dp+1.35,z-.01],[x+.45,-dp+2.1,z-.01],'#4a2a18',3)}
+  vault(s,-w/2,w,vy0,.5,z0,ze,.8,(i,j,n,z)=>Math.abs(z+.4-pz)<.9&&Math.abs(i-(n-2)/2)<1.1?{c:'#fff0d0',em:1.2}:jit((i+j)%3===0?TEAL:((i+j)%2?'#c49a68':'#a9845a'),r,.1));
+  s.poly([[-.7,vy0+7.8,pz],[.7,vy0+7.8,pz],[2,-dp,pz],[-2,-dp,pz]],'#ffe6c0',{add:1,a:.08});s.lamp([0,4,pz],'#ffe6c0',1.3,5,0);
+  for(let k=0;k<4;k++)lantern(s,(k%2?1:-1)*(w/2-.5),3.4,3+k*4,{i:.6,r:2.6,size:.8});
+  s.notes=[`athletes <b>${na}</b>`,`spectators <b>${aud}</b>`,`morshed <b>${morshed?'drumming':'absent'}</b>`];return s}
+
+/* ---------- R17 Ossuary of Books ---------- */
+function sOssuary(seed){const r=RNG(seed),s=new Scene({F:175,vy:H*.52,haze:'#141612',fog:.07,amb:.3,ambCol:'#8a9a80'});
+  const w=2.2,bl=2,nb=15,z0=.6,ze=z0+nb*bl,wh=2.4,rock='#6a5a48';let books=0,bundles=0,empty=0,candles=0;
+  floor(s,-w/2,w/2,.5,ze,.55,'#4a4034',r,.3);
+  const nf=(s,at,o)=>{const t=r();
+    if(t<.45){books++;for(let k=0;k<4;k++)s.poly([at(.06,k*.08,.15),at(o.span-.08-r()*.1,k*.08,.15),at(o.span-.08,k*.08+.07,.15),at(.06,k*.08+.07,.15)],jit(pick(['#5a3a2a','#4a4a3a','#6a5a3a','#3a3020'],r),r,.3))}
+    else if(t<.75){bundles++;s.poly(ell(at,o.span/2,.12,o.span*.38,.12,.2,8),jit('#b8ab8a',r,.15))}
+    else if(t<.83){candles++;const p=at(o.span/2,.08,.3);s.poly([[p[0]-.02,p[1],p[2]],[p[0]+.02,p[1],p[2]],[p[0],p[1]+.1,p[2]]],'#ffd070',{em:1.3});s.lamp(p,'#ffb050',.45,1.4,.25)}
+    else empty++};
+  for(let b=nb-1;b>=0;b--){const z=z0+b*bl;for(const side of[-1,1]){const ops=[];
+    if(r()<.06)ops.push({u:.3,span:1.4,spring:1.3,k:.5,depth:3,back:'#050605'});
+    else for(let c=0;c<2;c++)for(let rr=0;rr<3;rr++)ops.push({u:.15+c*.95,span:.75,spring:.18,sill:.2+rr*.65,k:.5,depth:.6,back:'#140f0b',fill:nf});
+    s.group(z+bl/2,()=>bay(s,sideM(side,w/2,0,z),bl,wh,ops,jit(rock,r,.1)))}}
+  vault(s,-w/2,w,wh,.5,z0,ze,.5,()=>jit(rock,r,.25));
+  const bz=10+r()*12;box(s,-.45,.45,0,.65,bz,bz+1.9,'#4a3e30',{top:'#2a241c'});s.poly([[-.3,.66,bz+.1],[.3,.66,bz+.1],[.25,.66,bz+1.8],[-.25,.66,bz+1.8]],'#c8bca0',{k:-3});
+  s.poly([[-.03,.9,bz-.05],[.03,.9,bz-.05],[0,1.05,bz-.05]],'#ffd070',{em:1.3});s.lamp([0,1,bz-.1],'#ffb050',.8,2.2,.4);
+  s.group(ze+.3,()=>bay(s,frontM(-w/2,0,ze),w,0,[{u:.5,span:1.2,spring:1.2,k:.5,depth:3,back:'#0a0b09'}],rock,{outer:archPts(w,wh,.5)}));
+  s.notes=[`niches <b>${books}</b> books, <b>${bundles}</b> wrapped, <b>${empty}</b> empty`,`candles <b>${candles}</b>`,`bier at <b>${bz.toFixed(0)} m</b>`];return s}
+
+/* ---------- R18 Spirit Anchor Shrine ---------- */
+function sShrine(seed){const r=RNG(seed),st=pick([['upper stacks','#cfd8ff'],['flooded strata','#8fe8e0'],['ember depths','#ffb48a']],r),s=new Scene({F:150,vy:H*.62,haze:'#141220',fog:.03,amb:.2,ambCol:'#9a90c0'});
+  const w=10,z0=1,bl=5,ze=11,wall='#b8a080',vy0=5.4,MIR=['#7a8aa0','#c8d8e8','#4a5a70','#eef6ff'];let ribbons=0,cand=0;
+  floor(s,-w/2,w/2,.5,ze,.6,(x,z)=>((Math.floor((x+5)/.6)+Math.floor(z/.6))%2)?'#5a4a40':'#8a7a68',r,.1);
+  for(let b=1;b>=0;b--){const z=z0+b*bl;for(const side of[-1,1])s.group(z+bl/2,()=>bay(s,sideM(side,w/2,0,z),bl,vy0,[{u:.6,span:3.8,spring:2.4,k:.6,depth:.25,back:'#3a4458',fill:tilesFill(MIR,r,{cell:.25})}],wall,{band:[.4,'#2f6f78']}))}
+  vault(s,-w/2,w,vy0,.5,z0,ze,.5,(i,j)=>r()<.1?{c:'#eef6ff',em:1.1}:jit((i+j)%2?MIR[0]:MIR[2],r,.15));
+  s.group(ze+.5,()=>bay(s,frontM(-w/2,0,ze),w,0,[{u:w/2-1.5,span:3,spring:2.6,k:.6,depth:1,back:'#3a4458',fill:tilesFill(MIR,r,{cell:.25})}],wall,{outer:archPts(w,vy0,.5)}));
+  box(s,-1.6,1.6,0,.25,4.4,7.6,'#8a7a68');box(s,-1.1,1.1,.25,.5,4.9,7.1,'#9a8a78');
+  s.poly([[-.35,.5],[.35,.5],[.3,2.2],[0,2.7],[-.3,2.2]].map(([x,y])=>[x,y,6]),st[1],{em:1.15,k:-.5});s.lamp([0,1.8,5.6],st[1],1.8,4.5,1.1);
+  const cz0=4.6;for(let x=-1.4;x<=1.41;x+=.2)s.line([x,.25,cz0],[x,3,cz0],'#c8a050',1);for(const y of[.25,1.2,2.1,3])s.line([-1.4,y,cz0],[1.4,y,cz0],'#c8a050',1.5);
+  for(const sx of[-1.4,1.4])for(let z=cz0;z<=7.41;z+=.35)s.line([sx,.25,z],[sx,3,z],'#a88040',1);
+  const nr=6+Math.floor(r()*14);for(let k=0;k<nr;k++){ribbons++;const x=-1.3+r()*2.6,y=.6+r()*2;s.poly([[x,y,cz0-.02],[x+.06,y,cz0-.02],[x+.04,y-.35,cz0-.02],[x-.02,y-.35,cz0-.02]],pick(['#2f8a3a','#c8302a','#e0c040','#e8e0d0'],r),{k:-2})}
+  const nc=5+Math.floor(r()*10);for(let k=0;k<nc;k++){cand++;const x=-1.6+k*3.2/Math.max(1,nc-1),z=3.9+(k%2)*.15;s.poly([[x-.02,0,z],[x+.02,0,z],[x+.02,.18,z],[x-.02,.18,z]],'#e8dcc0');s.poly([[x-.03,.18,z-.01],[x+.03,.18,z-.01],[x,.28,z-.01]],'#ffd070',{em:1.3});s.lamp([x,.25,z],'#ffb050',.18,1.2,.18)}
+  for(let k=0;k<6;k++){const x=(r()-.5)*4,y=1+r()*3,z=5+r()*2;s.poly(ell((u,v)=>[u,v,z],x,y,.25,.12,0,8),st[1],{add:1,a:.12})}
+  s.notes=[`anchor attuned to <b>${st[0]}</b>`,`votive ribbons <b>${ribbons}</b>`,`candles <b>${cand}</b>`];return s}
+
+/* ---------- R19 Artisans' Yard ---------- */
+function sYard(seed){const r=RNG(seed),s=new Scene({F:150,vy:H*.6,haze:'#1a1814',fog:.028,amb:.24,ambCol:'#8a94a4'});
+  const w=18,z0=2,bl=4,nb=5,ze=z0+nb*bl,wall='#a88258',DYE=['#24306a','#8a2420','#d0a020','#5a3a20','#3a6a2a'],tally={};
+  floor(s,-w/2,w/2,.5,ze,1.2,'#6a5844',r,.22);
+  const wf={
+    smith:(s,at,o)=>{s.poly(archPts(1,.8,.6).map(p=>at(o.span/2-.5+p[0],.3+p[1],.02)),'#ff8a3a',{em:1.1});s.lamp(at(o.span/2,.8,.6),'#ff7a2a',1.3,2.8,.8);s.poly([at(.4,0,1.4),at(1,0,1.4),at(1,.7,1.4),at(.4,.7,1.4)],'#2a2a2a')},
+    potter:(s,at,o)=>{for(let row=0;row<2;row++)for(let k=0;k<5;k++){const rr=.12+r()*.06;s.poly(ell(at,.35+k*.55,.5+row*.7,rr,rr*1.2,.05+row*.02,7),jit(pick(['#b06a3a','#c8885a','#8a5a3a',TEAL],r),r,.15))}},
+    weaver:(s,at,o)=>{for(let u=.4;u<o.span-.3;u+=.08)s.line(at(u,.2,.4),at(u,2,.4),'#d8ccb0',1);vrug(s,at,.4,o.span-.4,.2,1,.42,pick(RUG,r),r)},
+    dyer:(s,at,o)=>{for(let k=0;k<6;k++)s.poly([at(.3+k*.42,.9,.05),at(.45+k*.42,.9,.05),at(.45+k*.42,2.1,.05),at(.3+k*.42,2.1,.05)],pick(DYE,r))},
+    tanner:(s,at,o)=>{for(let k=0;k<3;k++){const u=.3+k*.85;s.poly([at(u,.6,.05),at(u+.7,.7,.05),at(u+.6,2,.05),at(u+.1,1.9,.05)],jit('#8a6040',r,.2))}}};
+  for(let b=nb-1;b>=0;b--){const z=z0+b*bl;for(const side of[-1,1]){const t=pick(Object.keys(wf),r);tally[t]=(tally[t]||0)+1;
+    s.group(z+bl/2,()=>{bay(s,sideM(side,w/2,0,z),bl,4,[{u:.5,span:3,spring:2,k:.55,depth:3,back:'#2a1c12',fill:wf[t]}],wall,{band:[.3,'#2c6f7a']});
+      bay(s,sideM(side,w/2,4,z),bl,3.4,[{u:.7,span:2.6,spring:1.4,k:.55,depth:1.2,back:'#2a1c12',fill:wf.dyer}],wall)});
+    if(t!=='smith'&&r()<.5)s.lamp([side*(w/2+1.4),1.6,z+bl/2],'#ffa050',.8,2,0)}}
+  const nv=pick([4,6],r);for(let k=0;k<nv;k++){const x=(k%2?1:-1)*2.2,z=6+Math.floor(k/2)*3.2;box(s,x-1,x+1,0,.4,z,z+2,'#8a7a66',{top:pick(DYE,r)})}
+  for(let q=0;q<3;q++){const z=5+q*5,y=3.6;s.line([-w/2,y,z],[w/2,y,z],'#2a1c12',1);for(let x=-7;x<7;x+=.35+r()*.3){if(r()<.3)continue;const hh=1+r()*.5;s.poly([[x,y,z],[x+.2,y,z],[x+.2,y-hh,z],[x,y-hh,z]],pick(DYE,r))}}
+  const lz=17,lx=-2.5;s.line([lx,0,lz],[lx,2.6,lz],'#5a3a22',3);s.line([lx+3,0,lz],[lx+3,2.6,lz],'#5a3a22',3);s.line([lx,2.5,lz],[lx+3,2.5,lz],'#5a3a22',3);
+  for(let u=.1;u<3;u+=.1)s.line([lx+u,1,lz+.01],[lx+u,2.5,lz+.01],'#d8ccb0',1);vrug(s,(u,v)=>[lx+u,v,lz-.01],.1,2.9,.2,1,0,pick(RUG,r),r);
+  box(s,5,7.5,0,2,ze-4,ze-1.5,'#8a5a3a',{top:'#7a4a2a'});s.poly(archPts(.8,.3,.6).map(p=>[5.85+p[0],.3+p[1],ze-4.01]),'#ff7a2a',{em:1.2});s.lamp([6.2,.8,ze-4.5],'#ff7a2a',1.2,3,.8);
+  s.group(ze+.5,()=>bay(s,frontM(-w/2,0,ze),w,7.4,[{u:w/2-1.8,span:3.6,spring:2.6,k:.6,depth:.4,back:'#4a2e1a',fill:(s,at,o)=>s.line(at(o.span/2,0,.01),at(o.span/2,o.spring+1,.01),'#2a180c',2)}],wall,{band:[.4,'#2c6f7a']}));
+  for(const x of[-5,5])lantern(s,x,4.6,10,{top:9,i:1,r:4});
+  const nw=3+Math.floor(r()*5);for(let k=0;k<nw;k++)figure(s,(r()-.5)*12,4+r()*14,1.6+r()*.15,pick(ROBES,r));
+  ceiling(s,22,r,20);
+  s.notes=['workshops '+Object.entries(tally).map(([k,v])=>`<b>${v}</b> ${k}`).join(', '),`dye vats <b>${nv}</b>`,`workers <b>${nw}</b>`];return s}
+
+/* ---------- R20 Lake Landing ---------- */
+function sLake(seed){const r=RNG(seed),s=new Scene({F:160,vy:H*.5,haze:'#132230',fog:.018,amb:.3,ambCol:'#7f9ab6'});
+  const wy=-1.2,wat={c:'#1c4656',em:.24};let boats=0,lit=0;
+  floor(s,-7,5,.5,9,1,'#6e5c4a',r,.2);
+  for(let k=1;k<=3;k++)box(s,-7,2.5,wy-.4,-k*.33,9+(k-1)*.5,9+k*.5,'#7a6650');
+  floor(s,-40,40,9,40,2,(x,z)=>((z<10.5&&x>-7&&x<2.5)||(x>2.5&&x<4&&z<30)||x<-8)?null:wat,r,.08,wy);
+  floor(s,-120,120,40,150,10,wat,r,.06,wy);
+  box(s,2.5,4,wy-.3,0,9,30,'#5e4a36',{top:'#7a6248'});
+  for(let z=11;z<30;z+=5){s.line([2.7,0,z],[2.7,1.1,z],'#3a2a1a',1.5);lantern(s,2.7,1.3,z,{i:.8,r:3,size:.7});reflect(s,2.3,1.3,z-.02,wy,'#ffb45a',.25)}
+  s.group(5,()=>bay(s,sideM(-1,7,0,.5),8.5,6,[{u:3.4,span:1.4,spring:1.8,k:.6,depth:.3,back:'#4a2e1a'}],'#8a7058',{band:[.4,'#2c6f7a']}));
+  s.group(9-.01,()=>s.poly([[-7,wy,9],[-8,wy,9],[-8,7.8,9],[-7,7.8,9]],'#6a5644'));
+  for(let b=7;b>=0;b--){const z=9+b*4,on=r()<.5;if(on)lit++;
+    s.group(z+2,()=>bay(s,sideM(-1,8,wy,z),4,9,[{u:.4,span:3.2,spring:1.8,k:.55,depth:4,back:'#06090c'},{u:1.5,span:1,spring:.7,sill:5.2,k:.6,depth:.3,back:on?'#ffb860':'#141210',backEm:on?.95:0}],'#8a7058',{band:[.4,'#2c6f7a']}));
+    if(r()<.5){s.lamp([-10,wy+1,z+2],'#ffb050',.7,2.5,0);reflect(s,-7.6,wy+1.4,z+2,wy,'#ffb050',.15)}}
+  const nbt=3+Math.floor(r()*4);for(let k=0;k<nbt;k++){boats++;boat(s,-5+r()*22,12+r()*28,wy,r,r()<.8)}
+  const dest=2+Math.floor(r()*3);for(let k=0;k<dest;k++){const cx=-50+k*(100/Math.max(1,dest-1))+(r()-.5)*15,z=125,wd=10+r()*16,ht=6+r()*14;
+    s.poly([[cx-wd,wy,z],[cx+wd,wy,z],[cx+wd*.8,wy+ht*.5,z],[cx+wd*.3,wy+ht,z],[cx-wd*.4,wy+ht*.8,z],[cx-wd*.9,wy+ht*.4,z]],'#2a2620',{k:-5});
+    for(let qq=0;qq<14;qq++){const x=cx+(r()-.5)*wd*1.4,y=wy+1+r()*ht*.5;s.poly([[x,y,z-.2],[x+.9,y,z-.2],[x+.9,y+1.3,z-.2],[x,y+1.3,z-.2]],'#ffb050',{em:.9,k:-5.1})}
+    s.poly([[cx-2,wy-.02,z-1],[cx+2,wy-.02,z-1],[cx+1,wy-9,z-1],[cx-1,wy-9,z-1]],'#ffb050',{add:1,a:.12});s.lamp([cx,wy+5,z-6],'#ffb050',1.2,18,0)}
+  ceiling(s,30,r);
+  s.post.push(ctx=>{const g=ctx.createLinearGradient(0,H*.4,0,H*.62);g.addColorStop(0,'rgba(150,175,195,0)');g.addColorStop(.6,'rgba(150,175,195,.18)');g.addColorStop(1,'rgba(150,175,195,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)});
+  s.notes=[`far landings <b>${dest}</b>`,`boats <b>${boats}</b>`,`lit boathouses <b>${lit}/8</b>`];return s}
+
+/* ---------- room data ---------- */
+const STYLE='Painterly concept art for a first-person adventure game, eye-level camera at 1.7 m. Persian architecture (Safavid and Qajar) inside a vast underground cavern library: sandstone, baked brick, plaster, turquoise-and-lapis tilework, pointed four-centred arches. Warm oil-lamp and candle light against cool teal shadows, soft volumetric haze, readable detail. No modern elements: no electric lights or bulbs, no wires, no plastic, no glass display cases, no printed signage or clocks, no modern clothing, no vehicles, no open sky.';
+const ROOMS=[
+ {id:'R01',name:'Reading Room',fa:'Qara’at-khaneh',mode:'hybrid',role:'Rest, lore, quiet study',layout:'Fixed hall, 3 × 5 bays',draw:sReading,
+  facts:['3 × 5 bays','12 × 20 m','2 storeys + vault'],
+  desc:'A two-storey hall lined with shelf recesses, with a gallery on the upper level and a tiled iwan closing the far end. This is the prototype\'s interior idea turned into a reusable template. The shell is built once by hand; what sits in each recess, in the iwan and on the tables changes per instance.',
+  kit:'Shelf-recess wall bay, gallery slab with balustrade, pointed barrel vault and transverse ribs, iwan end wall, reading table, hanging lantern cluster.',
+  sockets:'16 recesses (shelves, tile panel, sealed door, collapsed), iwan centrepiece (lectern, tree, fountain), table layout, lamp state (kept, failing, dark).',
+  gen:'Shell stays fixed. The seed is saved per room, so a return visit rebuilds the same room, then applies age: more collapsed recesses and dark lamps if the keepers left.',
+  refs:'Prototype Reading Garden (Eternal_Library_Campfire_v0.8.png); 3705113.jpg for vault and tile crown; samir-eisazadeh-cam02.jpg for niches and lamp.',
+  plan:['#####D#####','#SS#LLL#SS#','#S.......S#','#S..ggg..S#','D...ggg...D','#S..ggg..S#','#S.......S#','#SS#...#SS#','#####D#####'],
+  prompt:'A two-storey library reading hall. Both side walls are rows of pointed arches filled with book shelves, with a wooden gallery and balustrade running along the upper level. A pointed barrel vault overhead with turquoise and ochre tile panels at the crown. At the far end, a tall tiled iwan with shelves and a single lamp. Long low reading tables with small lamps down the middle on a red Persian runner rug, a brass lantern cluster hanging on a chain.'},
+ {id:'R02',name:'Stack Galleries',fa:'Rasteh-ye Ketab',mode:'generated',role:'Connective corridors between areas',layout:'Corridor grammar on the grid',draw:sStacks,
+  facts:['1 bay wide','any length','1 storey + vault'],
+  desc:'Long barrel-vaulted corridors made of shelf bays. One bay is one module, so the generator can walk the grid and emit corridors of any length with corners, T-junctions, crossings, dead-end alcoves and stair-down bays. This is the room players will spend the most time in between landmarks.',
+  kit:'Corridor bay (straight), corner, T, cross, dead-end alcove, stair-down bay, collapsed bay, ladder, hanging lamp.',
+  sockets:'Per bay side: shelves, side passage, collapse, ladder. Per two bays: lamp lit or dark. Rare: reading nook, hidden door, creature nest.',
+  gen:'Grammar rules: no more than 6 straight bays without a feature; lamps get rarer with distance from a settlement, so darkness itself tells the player how far out they are. Teal archive lighting as in the art direction.',
+  refs:'images (2).jpg (Kerman arcade rhythm); images (3).jpg (brick vault patterns).',
+  plan:['D.gggggggggg.D','  g    g      ','  g    gggS   ','  gggD    g   ','          gggD'],
+  prompt:'A long, narrow barrel-vaulted library corridor receding into darkness. Every bay on both sides is a pointed brick arch packed with old books, with wooden ladders leaning against some. Herringbone brick vault, transverse brick ribs, a few hanging oil lanterns, some unlit. Occasional dark side passages. A warm glowing arch at the far end. Cool teal ambient light, dust in the air.'},
+ {id:'R03',name:'Hypostyle Stacks',fa:'Shabestan',mode:'generated',role:'The grand library; a space to get lost in',layout:'Column grid + aisle rule + landmark',draw:sHypo,
+  facts:['4 m column grid','5 × 5 to 20 × 20 cells','single tall storey'],
+  desc:'A forest of twisted columns carrying small tiled domes, with freestanding shelf cases between them. The grid is the module, so the same rules scale from a modest hall to something you can lose yourself in. Major aisles always lead to an authored landmark at the centre, which keeps it navigable.',
+  kit:'Twisted column with base and capital, arch spandrel (both axes), dome cell (4 tile patterns), freestanding case, lamp cluster, oculus cell.',
+  sockets:'Per cell: open, case, lamp, rubble. Landmark socket: great lamp, reading tree, catalogue desk with an NPC.',
+  gen:'Fill the grid, then carve aisles with a flow rule toward the landmark. The column grid occludes heavily, which helps streaming and frame time in large halls.',
+  refs:'3705113.jpg (Vakil mosque columns and vaults).',
+  plan:['#######D#######','#.............#','#.ogogo.ogo.o.#','#.............#','D.o.o.oLo.ogo.D','#.............#','#.ogo.o.ogogo.#','#.............#','#######D#######'],
+  prompt:'A vast hypostyle library hall: a forest of spiral-carved sandstone columns in a grid, each bay roofed by a small brick dome with turquoise and lapis tile medallions. Freestanding wooden bookcases between some columns. Lantern clusters hang at intervals. In the distance at the centre, a single shaft of light falls through an oculus onto a great lamp. Columns fade into haze in every direction.'},
+ {id:'R04',name:'Grand Bazaar',fa:'Chaharsu va Rasteh',mode:'hybrid',role:'Settlement hub: trade, NPCs, rumours',layout:'Authored crossing + generated shop rows',draw:sBazaar,
+  facts:['crossing 3 × 3 bays','rows 4–20 bays','2 storeys + vault'],
+  desc:'An authored domed crossing with a light well, and generated shop rows running off it. Each shop is a socket filled by trade: rugs, copper, lamps, books, spices, curiosities. Upper storeys carry coloured-glass windows. The bazaar is where the Library\'s ecology becomes economy.',
+  kit:'Shop bay (shop below, glass window above), crossing dome, light-well oculus, pennant line, counter, goods sets per trade.',
+  sockets:'Shop trade, owner NPC, stock level, awning and pennants, lamp state. Crossing centre: fountain, storyteller, notice of rumours.',
+  gen:'Row length and trade mix come from the settlement\'s faction and stratum (fungus traders deeper down, creature-part butchers near hunting grounds). On a return visit shops may have changed hands.',
+  refs:'featured-5.jpg (Tabriz timcheh, glass, dome); iranian-artisan-works.jpg (rug shop); images (2).jpg and images (3).jpg (arcade, pennants).',
+  plan:['     gDg     ','     g.g     ','ggggg#.#ggggg','D....LSL....D','ggggg#.#ggggg','     g.g     ','     gDg     '],
+  prompt:'A covered Persian bazaar street under a tiled brick barrel vault with round light wells. Ground-floor arched shops on both sides selling hanging carpets, copper pots, pierced lanterns, spices in mounds and books; upper storey windows of red, blue and yellow coloured glass. Triangular cloth pennants on a line across the aisle, hanging lanterns, shoppers in robes. A domed crossing further down with a beam of light.'},
+ {id:'R05',name:'Caravanserai',fa:'Karvansara',mode:'hybrid',role:'Safe camp hub; travellers and companions',layout:'Courtyard template, 3 sizes',draw:sCaravan,
+  facts:['3 × 3 / 5 × 5 / 7 × 5 bays','court open to the cavern','2 storeys of cells'],
+  desc:'The four-sided courtyard of arched cells around a raised hearth platform. Historic caravanserais followed near-standard plans, which suits a template: one courtyard per size, with every cell a socket. This is where the camp and cooking loop from the prototype lives in a settlement.',
+  kit:'Cell bay (ground and upper), corner stair, pishtaq gate, hearth platform, well, lantern string, parapet.',
+  sockets:'Cell contents (bedroll, stable, storeroom, spice stall, ruin, NPC home), gate side, hearth type (fire pit, brazier ring, tannur oven), number of travellers.',
+  gen:'Placed along major routes roughly every few areas as a camp and spirit-anchor stop. Size from route importance; occupancy from the world clock.',
+  refs:'Prototype campfire; images (2).jpg (cells and arches); images.jpg (cell interior).',
+  plan:['#SSS#D#SSS#','S.........S','S..ggg....S','D..gLg....D','S..ggg..~.S','S.........S','#SSS###SSS#'],
+  prompt:'A caravanserai courtyard inside a dark cavern. Two storeys of pointed-arch cells line both sides, some with bedrolls and lamps, some storerooms, one stable with hay. A tall tiled portal gate at the far end with a lit doorway. In the centre a raised platform with a carpet and a campfire, travellers sitting around it, packs and bundles. Strings of small lanterns across the court.'},
+ {id:'R06',name:'Domicile Quarter',fa:'Mahalleh',mode:'generated',role:'Where people live; homes, families, side stories',layout:'Lane graph + lots + small interiors',draw:sQuarter,
+  facts:['3.4 m lanes','lots 2–4 m','homes 2 × 2 or 2 × 3 bays'],
+  desc:'Narrow lanes between plaster and brick houses, with sabat rooms bridging overhead, lit windows, hung textiles and doors into small homes. Each home interior is a tiny generated room dressed by who lives there. Simple layouts make this a good fit for full generation, and the variety comes from dressing.',
+  kit:'House frontage bay (door, window, blank, stair), sabat, lane floor, roof terrace, interior set (niche wall, korsi, bedding, hearth, textile).',
+  sockets:'Frontage per lot, window lit or dark, textile lines, door lantern. Interior: occupant type (scholar, family, hunter, abandoned).',
+  gen:'Lane graph on the grid, lots packed along it, frontage chosen per lot, interiors built on entry. Terraced quarters climb cavern walls, reusing cliff modules from R10.',
+  refs:'images.jpg (bare room, suzani, bedding); samir-eisazadeh-cam02.jpg (furnished interior); images (2).jpg (lane walls).',
+  plan:['ggg.ggggg.ggD','ggg.ggggg.ggg','D.....g......','ggg.g.ggg.ggg','ggg...ggg...D'],
+  prompt:'A narrow lane in an underground residential quarter, mud-plaster and brick houses of uneven height on both sides with small arched wooden doors and little lit windows. An arched room bridges the lane overhead. Embroidered suzani textiles hang on lines across the lane. Steps at the end climb to a lit doorway. Above, the dark cavern with distant lit windows of terraced houses.'},
+ {id:'R07',name:'Garden Court',fa:'Chahar Bagh',mode:'authored',role:'Landmark; the brightest place in a stratum',layout:'Hand-built, plant and fountain sockets',draw:sGarden,
+  facts:['6 × 8 bays','court + 2-storey arcades','light shaft from above'],
+  desc:'A garden fed by a light shaft: a water channel, a pool, rows of trees and two-storey arcades, closed by a grand iwan. The art direction already makes the garden the brightest thing in the frame, so this is the landmark players steer by. It is built by hand; sockets change what grows there.',
+  kit:'Arcade bay (2 storeys), grand iwan, water channel, pool and fountain, planting bed, tree set, light-shaft cap.',
+  sockets:'Fountain form, planting set by stratum (cypress, fruit trees, lumen fungus), arcade recess contents, gardener NPC.',
+  gen:'None for layout. Plant sockets follow the stratum\'s ecology and the world clock, so the garden can be overgrown, tended or dying on a return visit.',
+  refs:'images (1).jpg (fountain pavilion and garden view); prototype Reading Garden.',
+  plan:['###LLL###','#S.....S#','#.S~~~S.#','#..~L~..#','#.S.~.S.#','#.S.~.S.#','#S..~..S#','####D####'],
+  prompt:'An enclosed Persian garden court deep underground, lit by a single pale shaft of light from far above. A long narrow water channel leads to a round pool with a small fountain. Rows of cypress trees and planting beds on both sides. Two storeys of arched arcades with tiled spandrels around the court; a grand tiled iwan at the end with shelves and a lamp inside. Faint glowing fungus on the dark cavern ceiling.'},
+ {id:'R08',name:'Orosi Scriptorium',fa:'Talar-e Orosi',mode:'authored',role:'Narrative room; copying, trust, knowledge',layout:'Hand-built, desk and glass sockets',draw:sScript,
+  facts:['3 × 3 bays','single tall storey','timber ceiling'],
+  desc:'A copyists\' hall where tall orosi windows of coloured glass throw pattern across the carpets. Underground, the light behind the glass comes from a lumen-moss garden. It is a good home for the information-versus-knowledge theme: who copied a book, and whether they can be trusted.',
+  kit:'Orosi window wall, niche wall (taqcheh), timber beam ceiling, low copy desk (rahl), cushions, scroll pile, candle.',
+  sockets:'Desk layout, scribes present, glass palette, what is being copied (quest hooks), state of the moss garden behind the glass.',
+  gen:'None for layout. Coloured floor light needs a SpotLight3D with a projector texture per window in Godot 4; worth a small lighting spike before building it.',
+  refs:'580x340_shiraz nasir-ol-molk mosque.jpg (orosi glass and floor light); samir-eisazadeh-cam02.jpg (niches, stained light on plaster).',
+  plan:['#LLLLLLL#','#.......#','S.S.S.S.S','#.......#','S.S.S.S.S','#.......#','####D####'],
+  prompt:'A quiet scriptorium hall with plastered walls and small arched niches holding pots. The far wall is three tall arched windows of intricate red, blue, yellow and green stained glass in a radiating pattern, glowing from a luminous moss garden behind them, casting coloured light patches across Persian carpets. Low wooden copy desks with open books and candles, robed scribes kneeling. Dark timber beam ceiling.'},
+ {id:'R09',name:'Light-Well Stair',fa:'Chah-e Nur',mode:'generated',role:'Vertical connector between levels and strata',layout:'Parametric ring: radius × levels',draw:sWell,
+  facts:['radius 7–12 m','3 to 40 levels','5 m per level'],
+  desc:'A round shaft ringed with shelf galleries, a spiral stair hugging the inner edge, and an oculus far above. Height, radius, handedness and exits are parameters, so one generator produces anything from a three-storey stair to a long descent between strata.',
+  kit:'Ring wall segment (20°) with shelf recess or exit, gallery slab segment, stair tread run, balustrade, oculus cap, bridge spur.',
+  sockets:'Exits per level, lamp placement, collapsed gallery segments, a landing room on some levels.',
+  gen:'Parameters: radius, levels, stair handedness, exits. Each generated stair gets a body_test_motion route audit with the real player capsule, as AGENTS.md requires for spatial work.',
+  refs:'images (3).jpg (stacked domes and galleries seen from below); prototype balcony renders.',
+  plan:['  #####  ',' ##ggg## ','#gg...gg#','Dg.xxx.gD','#g.xxx.g#','#gg...gg#',' ##gDg## '],
+  prompt:'Looking across a huge circular shaft in an underground library. Ring galleries stacked level above level and level below level, every wall an arch filled with books, wooden balustrades on the inner edges, lanterns hanging under each gallery. A spiral stone stair winds around the inside. Far above, a round opening lets a pale column of light fall down the centre into misty darkness below.'},
+ {id:'R10',name:'Chasm Spans',fa:'Pol-ha',mode:'generated',role:'Exterior connectors between authored overlooks',layout:'Path solver between two connectors',draw:sChasm,
+  facts:['spans up to 40 m','drops up to 60 m','cliff facades on both sides'],
+  desc:'Bridges, aqueducts, ledges and loggias crossing the open gorge. The Overlook stays authored; the spans between overlooks are generated from gap length, height difference and stratum style. Cliff facades reuse the facade module mix already in the prototype.',
+  kit:'Bridge deck bay, aqueduct pier (1 and 2 tier), stair flight, cliff ledge, loggia facade bay, waterfall emitter, lamp post.',
+  sockets:'Deck traffic (caravans, travellers), waterfall per arch, lamp density, damage (missing deck bays as a hazard or puzzle).',
+  gen:'Solve a path between two connectors: a bridge if the gap is under about 40 m and the drop is small, otherwise a chain of stairs and ledges. Facades come from the existing vista arcade generator.',
+  refs:'Box art (design/box concept art); prototype Overlook (previews/vista_v022.png).',
+  plan:['#####xxxxx#####','#ggg#xxxxx#ggg#','D...ggggggg...D','#ggg#xxxxx#ggg#','#####xxgxx#####','#ggg#xxgxx#ggg#','D...ggggggg...D','#####xxxxx#####'],
+  prompt:'From a stone ledge with a lantern on the balustrade, looking down a deep underground gorge. Both cliff walls are carved into storeys of arched windows, many lit warm. Tall multi-arched aqueduct bridges cross the gorge at different heights with lanterns and small figures on the decks, waterfalls spilling through some arches into mist far below. Stalactites hang from the cavern roof; a glowing domed sanctum at the far end.'},
+ {id:'R11',name:'Cistern Archive',fa:'Ab-anbar',mode:'generated',role:'Water-stratum archive; boats and sealed vaults',layout:'Pier grid + water plane + causeway',draw:sCistern,
+  facts:['4 m pier grid','water 0.3–1.1 m deep','one vaulted storey'],
+  desc:'A flooded hall of brick piers and round arches, crossed by a stone causeway that leads to a sealed bronze vault door. Books survive here on storage platforms above the waterline. It uses the R03 grid generator with a water plane added, so the water stratum gets a large archive without a new layout system.',
+  kit:'Brick pier, round-arch spandrel, brick dome cell, causeway bay, water plane, storage platform, vault door, boat.',
+  sockets:'Water level per visit, boats and boatmen, storage platforms, vault door state (sealed, forced, open), drowned shelves.',
+  gen:'Fill the pier grid, then lay a causeway from the entry to the vault. Water level comes from stratum events, so after a flood the causeway may be under water and boats become the route.',
+  refs:'3705113.jpg (pier and vault rhythm); prototype flowing-water material.',
+  plan:['#######L#######','#~o~o~o.o~o~o~#','#~~~~~~.~~~g~~#','#~o~o~o.o~o~o~#','#~g~~~~.~~~~~~#','#~o~o~o.o~o~o~#','#~~~~~~.~~~~~~#','#######D#######'],
+  prompt:'A vast flooded underground cistern used as an archive. Rows of square brick piers carrying round arches and small brick domes stand in still dark water. A narrow stone causeway runs down the middle to a heavy bronze door at the far end, lit by two lanterns. Wooden platforms piled with book crates sit above the water between the piers; a small boat with a lantern drifts in a side aisle. Lantern reflections streak across the water.'},
+ {id:'R12',name:'Ice-house Vault',fa:'Yakhchal',mode:'hybrid',role:'Cold archive; exposure pressure, preserved books',layout:'Fixed cone, socketed ring',draw:sIce,
+  facts:['20 m across','stepped cone about 18 m','ring of 20 bays'],
+  desc:'The inside of a stepped, corbelled cone over an ice pit, modelled on Persian ice-houses. The cold preserves books that rot elsewhere, which gives the player a reason to come here and endure the exposure. The cone is fixed; its ring of bays and the pit are sockets.',
+  kit:'Ring bay with recess, corbel ring step, apex cap, ice pit wall, ice block stack, frost decals, brazier.',
+  sockets:'Ring bay contents (frozen shelves, ice blocks, sealed chests), pit fill level, keeper at a brazier, frost amount.',
+  gen:'Cone in two radii, placed by hand. Contents and ice level come from the world clock, so a vault can be well stocked on one visit and nearly empty on the next.',
+  refs:'No reference image yet; based on the yakhchal form (a stepped mud-brick cone over a sunken ice pit).',
+  plan:['  #SSSSS#  ',' #S.....S# ','#S..~~~..S#','#S.~~L~~.S#','#S..~~~..S#',' #S.....S# ','  ##SDS##  '],
+  prompt:'Inside a huge stepped conical ice-house vault. Corbelled mud-brick rings rise and narrow toward a small round opening at the apex that lets in pale light. Around the base, arched alcoves hold frost-covered book shelves. A sunken pit in the centre is stacked with pale blue ice blocks. Cold blue light, breath-fog haze, one small warm brazier with a keeper huddled beside it.'},
+ {id:'R13',name:'Bathhouse',fa:'Hammam',mode:'authored',role:'Healing and social stop; warmth recovery',layout:'Hand-built warm hall',draw:sHammam,
+  facts:['3.5 × 4 bays','pool + alcove platforms','vault with glass skylights'],
+  desc:'The warm hall of a bathhouse: a central pool, raised alcove platforms, a vault pierced with small glass skylights, and an arch to the glowing hot room beyond. It fits the survival loop directly: warmth, treating injuries and hearing gossip.',
+  kit:'Alcove bay with platform, tiled pool (3 forms), vault with glass-lens cells, hot-room arch, steam emitter, fountain.',
+  sockets:'Pool form, bathers, attendant NPC, steam density, condition (working, cold, ruined).',
+  gen:'None for layout. A settlement either has a hammam or not; its condition follows the settlement\'s fortunes.',
+  refs:'images (1).jpg (pool, fountain and tilework); 3705113.jpg (vault).',
+  plan:['#####L#####','#SS.....SS#','#S..~~~..S#','#S.~~~~~.S#','#S..~~~..S#','#SS.....SS#','#####D#####'],
+  prompt:'The warm hall of an old Persian bathhouse. A central octagonal pool of turquoise water with a small fountain, cream and turquoise checkered floor tiles. Arched alcoves with raised stone platforms line both walls. A plastered vault overhead is dotted with small round glass skylights glowing like stars. Through an arch at the far end, the hot room glows orange. Thick steam drifts in the warm light; a few bathers in wraps sit at the pool edge.'},
+ {id:'R14',name:'Tea House',fa:'Chaykhaneh',mode:'generated',role:'Rumours, music, stories; companion scenes',layout:'Room from lot size + furniture rule',draw:sTea,
+  facts:['7–9 × 8–12 m','one storey','timber ceiling'],
+  desc:'One room with raised takht benches along the walls, a samovar counter at the back, painted panels and niches of tea glasses. It is simple enough to generate inside a lot in R04 or R06. The variety comes from size, number of takhts, patrons, and whether a musician or storyteller is playing.',
+  kit:'Half-bay wall with niche or painted panel, takht with rug, samovar counter, glass shelf, timber beams, lanterns.',
+  sockets:'Takht rugs, painted panels, patrons, musician or storyteller, what is on the menu (from local ingredients).',
+  gen:'Room size from the lot; takhts along the walls every 2.6 m, leaving door clearance; one counter on the wall opposite the door.',
+  refs:'samir-eisazadeh-cam02.jpg (seating platform, cushions, niches); iranian-artisan-works.jpg (rugs).',
+  plan:['#####L####','#SS....SS#','#........#','#SS....SS#','#........#','#SS....SS#','####D#####'],
+  prompt:'A cosy traditional Persian tea house. Raised wooden takht benches covered with red rugs line both walls, patrons sitting cross-legged with small glasses of tea. Plastered walls with niches of tea glasses and painted panels of old stories. A brass samovar on a wooden counter at the back in front of shelves of glowing amber glasses. A musician with a long-necked lute. Dark timber beam ceiling, hanging lanterns.'},
+ {id:'R15',name:'Fungus Terraces',fa:'Pelekan-e Qarch',mode:'generated',role:'Food ecology; farming, foraging, workers',layout:'Terrace stack fitted to a cavern slope',draw:sFungus,
+  facts:['2.8 m terrace depth','1.5 m risers','6–12 terraces'],
+  desc:'Stepped growing beds climbing a cavern slope, each retaining wall drained by small arches, with a water cascade down the middle. The crop depends on the stratum: glowing caps, shelf-fungus or morels. The light here comes from the crop itself.',
+  kit:'Terrace bay (bed and retaining wall), drain arch, cascade channel, stair flight, basket and tool props, crop sets.',
+  sockets:'Crop species, bed state (planted, harvested, blighted, overgrown), workers, irrigation flow.',
+  gen:'Fit terraces to a cavern-slope height field from the area seed; put the cascade and stairs on one spine; choose the crop by stratum.',
+  refs:'No direct reference; reuses cliff-ledge modules from R10 and planting beds from the prototype garden.',
+  plan:['xxxxxxxxxxxxx','ggggg~ggggggg','ggggg~ggggggg','ggggg~ggggggg','ggggg~ggggggg','xxxxxxxxxxxxx','#####D#######'],
+  prompt:'From a wooden railing, looking across a dark cavern at stepped farming terraces rising up the far slope. Each terrace is a bed of softly glowing teal mushrooms held by a stone retaining wall with small arched drains. A thin waterfall cascades down the centre from terrace to terrace. Farmers with baskets tend the beds. Floating glowing spores, stalactites above, no other light source.'},
+ {id:'R16',name:'Training Pit',fa:'Zurkhaneh',mode:'authored',role:'Faction training; combat and body skills',layout:'Hand-built domed hall',draw:sZur,
+  facts:['4 × 4 bays','sunken octagon 1.1 m deep','dome with oculus'],
+  desc:'An octagonal pit under a dome where athletes train with wooden clubs to a drummer\'s rhythm from a raised niche (sardam). Spectators sit in arched alcoves along the walls. A natural place to learn combat techniques from a faction, or to try out a new host body.',
+  kit:'Octagonal pit (wall segments, floor), sardam niche, spectator alcove bay, dome with oculus, club rack, drum.',
+  sockets:'Number of athletes, morshed (drummer) present, spectators, faction banners.',
+  gen:'None; one per faction, built by hand.',
+  refs:'images (3).jpg (domes from below); 3705113.jpg (tile vault).',
+  plan:['####L####','S.......S','S..xxx..S','S.xxxxx.S','S..xxx..S','S.......S','####D####'],
+  prompt:'A traditional Persian zurkhaneh: a sunken octagonal training pit with wooden walls under a tiled dome with an oculus letting a beam of light fall into the pit. Athletes in embroidered breeches swing heavy wooden clubs overhead. A drummer sits in a raised tiled niche at the far end with a large frame drum. Spectators watch from arched alcoves around the hall, lanterns on the walls.'},
+ {id:'R17',name:'Ossuary of Books',fa:'Sardab-e Ketab',mode:'generated',role:'Decay, the dead, possession hosts',layout:'Narrow niche corridors',draw:sOssuary,
+  facts:['2 m bays','2.2 m wide','low rock vault'],
+  desc:'Narrow rock-cut corridors where the Library lays its ruined books and its dead side by side in stacked niches, with candles marking the tended ones. Dead hosts for the possession system belong here. It should feel eerie but not turn into a horror level.',
+  kit:'Niche wall bay (2 × 3 niches), rough rock vault, bier, candle, side-passage bay, bundle and book-stack sets.',
+  sockets:'Per niche: books, wrapped remains, candle, empty. Biers with possessable bodies; a rare tomb chamber.',
+  gen:'Same corridor grammar as R02 at 2 m bays, with more branching and dead ends. Candle density shows how recently someone tended the place.',
+  refs:'images (2).jpg (arch rhythm, at a smaller scale).',
+  plan:['D.ggggggggg   ','  g   g  g   ','  ggSggggggD ','      g      ','      ggggD  '],
+  prompt:'A narrow, low rock-cut catacomb corridor. Both walls are honeycombed with small arched niches stacked three high, holding crumbling stacks of old books and cloth-wrapped bundles; a few niches hold single burning candles. A stone bier with a shrouded body in the middle of the passage, candle at its head. Dim greenish haze, rough stone vault, darkness ahead.'},
+ {id:'R18',name:'Spirit Anchor Shrine',fa:'Lengargah',mode:'hybrid',role:'Checkpoint where a banished spirit returns',layout:'Fixed small chamber, socketed per stratum',draw:sShrine,
+  facts:['2.5 × 2.5 bays','mirror-mosaic vault','one per region'],
+  desc:'A small mirrored chamber around a glowing anchor stone inside a brass lattice cage, hung with votive ribbons. The shell is the same everywhere so players recognise it at once; the anchor\'s light and the offerings change by stratum and by how much the locals revere it.',
+  kit:'Mirror-mosaic wall bay and vault, stepped plinth, lattice cage, anchor stone, candle rows, ribbon decals, spirit-wisp emitter.',
+  sockets:'Anchor attunement per stratum (colour, sound), offering density, keeper NPC, damage.',
+  gen:'One per area cluster, placed at the end of a short authored approach.',
+  refs:'No reference image yet; based on mirror-mosaic (aineh-kari) interiors and shrine lattices. 580x340_shiraz nasir-ol-molk mosque.jpg for coloured light.',
+  plan:['###S###','#S...S#','#.SLS.#','#S...S#','###D###'],
+  prompt:'A small domed shrine chamber whose walls and vault are covered in sparkling mirror mosaic. In the centre, on a stepped stone plinth, a softly glowing pale stone stands inside an ornate brass lattice cage tied with green, red and white votive ribbons. Rows of small candles on the floor before the cage, faint ghostly wisps of light drifting around the stone.'},
+ {id:'R19',name:'Artisans’ Yard',fa:'Karkhaneh',mode:'hybrid',role:'Crafting hub; learning techniques, trading materials',layout:'Courtyard template, workshop sockets',draw:sYard,
+  facts:['4 × 5 bays','open court','2 storeys of workshops'],
+  desc:'A workshop courtyard with dye vats in the middle, yarn drying on lines, a loom and a kiln, and workshop cells around the edge for smiths, potters, weavers, dyers and tanners. It is where the crafting design lives in a settlement: material-based recipes and techniques learned from people.',
+  kit:'Workshop cell bay, dye vat, drying line, loom frame, kiln, forge, tool sets.',
+  sockets:'Trade per cell (filtered by local materials), vat colours, a master NPC per trade.',
+  gen:'Same courtyard sizes as R05. The trade mix follows what the stratum\'s ecology yields: hides near hunting grounds, fungus dyes deeper down.',
+  refs:'iranian-artisan-works.jpg (rugs and textiles); images (2).jpg (cells).',
+  plan:['#SSS#D#SSS#','S.........S','S.gg.g.gg.S','S.........S','S.gg.L.gg.S','S.........S','#SSS###SSS#'],
+  prompt:'A busy craftsmen\'s courtyard in an underground city. Square stone vats of indigo, madder red and saffron dye in the centre, skeins of freshly dyed yarn hanging from lines across the court. A wooden loom with a half-woven carpet, a glowing domed kiln in one corner. Arched workshop cells around the court: a forge glowing orange, a potter\'s shelves, a weaver at work. Workers in aprons.'},
+ {id:'R20',name:'Lake Landing',fa:'Eskeleh',mode:'hybrid',role:'Water travel hub; ferries to other areas',layout:'Authored quay + generated shore and routes',draw:sLake,
+  facts:['quay 3 × 2 bays','boathouses in 4 m bays','lake up to 150 m'],
+  desc:'A stone quay with steps down into a black underground lake, boathouses built over the water, a pier with lanterns, and the lit landings of other settlements across the water. Boats turn the water stratum into a travel network, and each lit landing is a real destination.',
+  kit:'Quay bay, water steps, pier bay, boathouse bay, mooring post, boat, far-shore silhouette set.',
+  sockets:'Boats moored, ferry state, which far landings are lit, boathouse occupancy.',
+  gen:'The quay is authored. The shoreline and far landings come from the region\'s water graph; a dark landing means a route is closed.',
+  refs:'Box art (haze and water); prototype water material.',
+  plan:['~~~~~~~~~~~~~','~~~g~~~~~g~~~','~~~~~~~~~~~~~','SSSS~~~~~.~~~','####~~~~~.~~~','#LL#.....#~~~','#...D....#~~~'],
+  prompt:'A stone quay on the shore of a vast black underground lake. Steps lead down into the still water. On the left, boathouses with wide arches stand over the water, one upper window lit. A long wooden pier with lanterns runs out on the right; small boats with lanterns drift on the lake, their reflections streaking the water. Far across the lake, the lit windows of distant settlements; stalactites overhead, mist low on the water.'}
+];
+
+/* ---------- plans ---------- */
+const PLAN={'#':'var(--plan-shell)','L':'var(--amber)','S':'var(--turq)','g':'var(--lapis)','.':'var(--plan-floor)','~':'var(--water)','x':'var(--plan-void)','D':'var(--ink)','o':'var(--plan-floor)'};
+function planSVG(rows,label){const n=Math.max(...rows.map(r=>r.length)),cs=12;let out=`<svg viewBox="0 0 ${n*cs} ${rows.length*cs}" role="img" aria-label="${label}">`;
+  rows.forEach((row,j)=>[...row.padEnd(n)].forEach((ch,i)=>{if(ch===' ')return;const x=i*cs,y=j*cs;
+    out+=`<rect x="${x+.5}" y="${y+.5}" width="${cs-1}" height="${cs-1}" fill="${PLAN[ch]||'none'}"/>`;
+    if(ch==='o')out+=`<circle cx="${x+cs/2}" cy="${y+cs/2}" r="3.2" fill="var(--plan-shell)"/>`;
+    if(ch==='D')out+=`<rect x="${x+3.5}" y="${y+3.5}" width="${cs-7}" height="${cs-7}" fill="var(--bg)"/>`}));
+  return out+'</svg>'}
+const LEGEND=`<div class="plan-legend"><span><i style="background:var(--plan-shell)"></i>authored shell</span><span><i style="background:var(--amber)"></i>landmark</span><span><i style="background:var(--turq)"></i>socket</span><span><i style="background:var(--lapis)"></i>generated</span><span><i style="background:var(--water)"></i>water / ice</span><span><i style="background:var(--plan-void)"></i>drop</span><span><i style="background:var(--ink)"></i>connector</span></div>`;
+const MODE={authored:'Authored',hybrid:'Hybrid',generated:'Generated'};
+
+/* ---------- build page ---------- */
+const host=document.getElementById('rooms'),ov=document.getElementById('overview'),toc=document.getElementById('toc');
+const seeds={};
+for(const R of ROOMS){
+  toc.insertAdjacentHTML('beforeend',`<a class="m-${R.mode}" href="#${R.id}">${R.id} ${R.name}</a>`);
+  ov.insertAdjacentHTML('beforeend',`<tr><td class="id">${R.id}</td><td><a href="#${R.id}">${R.name}</a></td><td><span class="chip m-${R.mode}"><i class="dot"></i>${MODE[R.mode]}</span></td><td>${R.role}</td><td>${R.layout}</td></tr>`);
+  const full=R.prompt+' '+STYLE;
+  if(R.id==='R01'||R.id==='R11')host.insertAdjacentHTML('beforeend',`<h2 class="batch-head">${R.id==='R01'?'First batch · R01–R10':'Second batch · R11–R20'}</h2>`);
+  host.insertAdjacentHTML('beforeend',`
+  <article class="room m-${R.mode}" id="${R.id}">
+    <div class="room-title"><span class="rid">${R.id}</span><h3>${R.name}</h3><span class="fa">${R.fa}</span><span class="badge">${MODE[R.mode]}</span></div>
+    <figure>
+      <canvas class="mock" id="cv-${R.id}" width="${W}" height="${H}" aria-label="Mock of the ${R.name}"></canvas>
+      <div class="figbar"><button type="button" id="roll-${R.id}">Reroll sockets</button><span class="seed" id="seed-${R.id}"></span></div>
+      <p class="roll" id="notes-${R.id}"></p>
+    </figure>
+    <div class="sheet">
+      <div class="facts">${R.facts.map(f=>`<span><b>${f}</b></span>`).join('')}</div>
+      <p class="desc">${R.desc}</p>
+      <dl>
+        <div><dt>Kit pieces</dt><dd>${R.kit}</dd></div>
+        <div><dt>Sockets and variation</dt><dd>${R.sockets}</dd></div>
+        <div><dt>Generation</dt><dd>${R.gen}</dd></div>
+      </dl>
+      <div class="plan-row"><div class="plan">${planSVG(R.plan,'Plan of the '+R.name+' on the 4 m grid')}</div>${LEGEND}</div>
+      <p class="refs"><b>References.</b> ${R.refs}</p>
+      <details><summary>Image prompt</summary><div class="prompt" id="pr-${R.id}">${full}</div>
+        <div class="prompt-bar"><button type="button" id="cp-${R.id}">Copy prompt</button><span class="copied" id="cpd-${R.id}" hidden>Copied</span></div></details>
+    </div>
+  </article>`);
+}
+function draw(R){const cv=document.getElementById('cv-'+R.id),s=R.draw(seeds[R.id]);s.render(cv);
+  document.getElementById('seed-'+R.id).textContent='seed '+String(seeds[R.id]).padStart(4,'0');
+  document.getElementById('notes-'+R.id).innerHTML='This roll: '+s.notes.join(' · ')}
+ROOMS.forEach((R,i)=>{seeds[R.id]=[7,12,5,3,9,4,2,11,6,8,5,3,7,4,9,2,6,8,3,10][i];
+  document.getElementById('roll-'+R.id).addEventListener('click',()=>{seeds[R.id]=(seeds[R.id]*7+13)%9973;draw(R)});
+  document.getElementById('cp-'+R.id).addEventListener('click',()=>{const el=document.getElementById('pr-'+R.id),done=document.getElementById('cpd-'+R.id);
+    const ok=()=>{done.hidden=false;setTimeout(()=>done.hidden=true,1600)};
+    const fallback=()=>{const rg=document.createRange();rg.selectNodeContents(el);const sel=getSelection();sel.removeAllRanges();sel.addRange(rg)};
+    try{navigator.clipboard.writeText(el.textContent).then(ok,fallback)}catch(e){fallback()}})});
+let qi=0;(function next(){if(qi>=ROOMS.length)return;try{draw(ROOMS[qi])}catch(e){console.error(ROOMS[qi].id,e)}qi++;setTimeout(next,0)})();
+</script>
