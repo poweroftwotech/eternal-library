@@ -12,6 +12,11 @@ extends Resource
 ## -Z). Validate Room checks each candidate against it and the slot against the
 ## room's other modules. Size zero = not checked (e.g. STATE sets).
 @export var slot_bounds: AABB = AABB()
+## Where candidates may drop loose spill (fallen books, broken boards), in
+## socket space. Spill settles onto whatever is below at runtime (ShelfFill),
+## so Validate Room only checks that it has something to land on and that
+## no other solid stands inside the zone. Size zero = no spill.
+@export var spill_bounds: AABB = AABB()
 
 
 ## Weighted pick; returns an index into entries, or -1 if nothing is pickable.

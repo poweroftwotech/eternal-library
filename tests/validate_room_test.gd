@@ -28,6 +28,8 @@ func run() -> void:
 	check_connector_closes_half_an_opening()
 	check_off_grid_connector()
 	check_candidate_misfit()
+	check_spill_inside_solid()
+	check_spill_over_nothing()
 	print("validate_room_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -47,11 +49,14 @@ func check_clean_rooms() -> void:
 		var room: Node3D = fresh(path)
 		var r: Dictionary = KitValidateRoom.run(room)
 		check((r["errors"] as PackedStringArray).is_empty(), "%s validates with no errors (%s)" % [path.get_file(), r["errors"]])
-		# Known, documented warnings: upper-recess spill slots meet galleries/stairs.
-		var known: bool = (r["warnings"] as PackedStringArray).size() > 0
-		for w: String in r["warnings"]:
-			known = known and (w.contains("gallery") or w.contains("stair"))
-		check(known, "%s warnings are only recess spill vs gallery or stair (%d)" % [path.get_file(), (r["warnings"] as PackedStringArray).size()])
+		var warnings: PackedStringArray = r["warnings"]
+		if path == ROOM:
+			check(warnings.is_empty(), "the reading room has no warnings (%s)" % [warnings])
+		else:
+			# Known graybox layout conflict: its side galleries run to the end wall,
+			# so the slab ends pass in front of the upper end-wall recess.
+			check(warnings.size() == 2 and Array(warnings).all(func(w: String) -> bool: return w.contains("wall_shelfbay_4m10") and w.contains("gallery_slab")),
+				"graybox warns only about galleries meeting its upper end recess (%s)" % [warnings])
 		room.free()
 
 
@@ -160,3 +165,49 @@ func check_candidate_misfit() -> void:
 		var real: SocketSet = load("res://kit/sockets/%s.tres" % set_name)
 		check(real.slot_bounds.has_volume() and KitValidateRoom.candidate_misfits(real).is_empty(),
 			"every %s candidate fits its slot" % set_name)
+
+
+## A lower west recess of the reading room (bay 0, storey 0).
+func lower_west_recess(room: Node) -> Node3D:
+	for m: Node in room.get_node("Shell").get_children():
+		var n := m as Node3D
+		if n is KitModule and n.scene_file_path.ends_with("wall_shelfbay_4m.tscn") and n.position.is_equal_approx(Vector3(0, 0, -4)):
+			return n
+	return null
+
+
+## A pier standing in the recess's spill zone is reported; a reading table is
+## not (its top is above the zone, so spill lands on the floor under it).
+func check_spill_inside_solid() -> void:
+	var room: Node3D = fresh(ROOM)
+	check(lower_west_recess(room) != null, "found the reading room's lower west recess, bay 0")
+	var table: Node3D = (load("res://kit/modules/walls/table_reading.tscn") as PackedScene).instantiate()
+	table.position = Vector3(1.0, 0, -2.0)
+	room.get_node("Dressing").add_child(table)
+	var warnings: PackedStringArray = KitValidateRoom.run(room)["warnings"]
+	check(not Array(warnings).any(func(w: String) -> bool: return w.contains("spill")),
+		"a table over the spill zone is fine, spill lands under it (got %s)" % [warnings])
+	table.get_parent().remove_child(table)
+	table.free()
+	var pier: Node3D = (load("res://kit/modules/walls/post_pier.tscn") as PackedScene).instantiate()
+	pier.name = "post_pier_stray"
+	pier.position = Vector3(1.0, 0, -2.0)
+	room.get_node("Shell").add_child(pier)
+	warnings = KitValidateRoom.run(room)["warnings"]
+	check(Array(warnings).any(func(w: String) -> bool: return w.contains("spill zone runs into") and w.contains("post_pier")),
+		"a pier inside the spill zone is reported (got %s)" % [warnings])
+	room.free()
+
+
+## No floor cell in front of the recess: spill has nothing to land on.
+func check_spill_over_nothing() -> void:
+	var room: Node3D = fresh(ROOM)
+	for m: Node in room.get_node("Shell").get_children():
+		var n := m as Node3D
+		if n is KitModule and n.scene_file_path.ends_with("floor_4m.tscn") and n.position.is_equal_approx(Vector3(0, 0, 0)):
+			n.get_parent().remove_child(n)
+			n.free()
+	var warnings: PackedStringArray = KitValidateRoom.run(room)["warnings"]
+	check(Array(warnings).any(func(w: String) -> bool: return w.contains("find nothing to land on")),
+		"spill over a missing floor is reported (got %s)" % [warnings])
+	room.free()

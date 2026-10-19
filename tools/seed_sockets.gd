@@ -30,7 +30,8 @@ func _initialize() -> void:
 		["book stack", DRESS + "prop_book_stack.tscn", 3.0], ["open book", DRESS + "prop_book_open.tscn", 2.0],
 		["pot", DRESS + "prop_pot.tscn", 1.5], ["oil lamp", DRESS + "prop_oil_lamp.tscn", 1.0],
 		["scroll", DRESS + "prop_scroll.tscn", 1.5], ["inkwell", DRESS + "prop_inkwell.tscn", 1.0]])
-	slot("recess_library", AABB(Vector3(-1.5, 0.0, -1.35), Vector3(3.0, 3.7, 1.65)))   # recess, plus ~1.3 m of spill into the room
+	# Recess depth; fallen books and boards spill up to 1.35 m into the room and settle.
+	slot("recess_library", AABB(Vector3(-1.5, 0.0, -0.3), Vector3(3.0, 3.7, 0.6)), AABB(Vector3(-1.5, 0.0, -1.35), Vector3(3.0, 0.6, 1.05)))
 	slot("iwan_centre", AABB(Vector3(-2.25, 0.0, -1.65), Vector3(4.5, 3.5, 3.3)))   # lectern rug is the widest
 	slot("table_props", AABB(Vector3(-0.7, 0.0, -2.2), Vector3(1.4, 0.45, 4.4)))    # the table top
 	print("seed_sockets: ", "; ".join(made) if not made.is_empty() else "nothing to do")
@@ -94,12 +95,13 @@ func socket_set(set_name: String, specs: Array) -> void:
 
 
 ## Sets the slot Validate Room checks candidates against, unless one is set.
-func slot(set_name: String, bounds: AABB) -> void:
+func slot(set_name: String, bounds: AABB, spill: AABB = AABB()) -> void:
 	var path: String = "res://kit/sockets/%s.tres" % set_name
 	var set: SocketSet = load(path)
 	if set == null or set.slot_bounds.has_volume():
 		return
 	set.slot_bounds = bounds
+	set.spill_bounds = spill
 	var uid: int = KitCatalogBuilder.header_uid(path)
 	ResourceSaver.save(set, path)
 	if uid != ResourceUID.INVALID_ID:

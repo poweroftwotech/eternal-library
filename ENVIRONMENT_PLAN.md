@@ -800,11 +800,41 @@ decision above.
 
 ### Next: the weathering slice (planned 2026-10-19, after step 5)
 
-0. **Spill lands on the floor that is there** (from Validate Room): collapsed
-   recess spill must not sink into a gallery slab or stair in front of an
-   upper recess. Either ShelfFill drops spill onto the surface below (a ray
-   per item at build time), or sockets get `exclude_tags` so a room can rule
-   out "spill" candidates there. The 16 warnings should then clear.
+0. ~~**Spill lands on the floor that is there**~~ (done 2026-10-19). Three
+   cases turned out to be wrong, not one: spill sank 0.15 m into gallery
+   slabs, intersected stairs, and **floated 4 m up** in front of upper recesses
+   with nothing in front (reading room bay 4). That last one no check had
+   caught.
+   - **Runtime:** `ShelfFill` rests each spilled book in front of the wall
+     face on the first collision surface below it. It waits two physics
+     frames so the room's bodies are registered, then casts from the top of
+     the spill zone, so spill can land under furniture but never on top of
+     tall things. Books inside the recess stay put. Child meshes named
+     `*__spill*` settle the same way: `recess_shelves_broken` rev 3 splits its
+     two floor boards out as `__spill_a` / `__spill_b`, with b moved 0.15 m
+     forward. The random draw order is unchanged, so existing seeds keep
+     their layout.
+   - **Validate Room:** `SocketSet.spill_bounds` (new) separates the settling
+     zone from the rigid `slot_bounds`. The recess slot is now just the recess
+     depth; the spill zone is the 0.6 m band up to 1.35 m in front. Validate
+     Room probes the spill zone straight down against the modules' collision
+     triangles (host included: the iwan's alcove floor counts). It warns if a
+     column has nothing to land on, or if a probe starts inside another solid
+     (odd crossings on an upward ray), e.g. a pier standing in the zone.
+   - **Verified:** `tests/spill_settle_test.gd` (6 checks) pins all 16
+     reading-room recesses to collapsed. Every settled book rests on the
+     surface right under it, probed independently: 114 on the hall floor, 115
+     on gallery slabs, 75 on stairs, and 51 dropped a storey from bay-4 upper
+     recesses. The broken boards settle too. `validate_room_test` now has 21
+     checks: the reading room has **no warnings** (was 9), the graybox keeps
+     its two genuine ones (its side galleries run into the end-wall recess), a
+     table over the zone is fine, a pier in it is reported, and a missing
+     floor is reported. Every other gate passes. GPU:
+     `previews/reading_room_collapsed_{gallery,recesses}.png` show books lying
+     on the gallery. The dropped books in the dark bay-4 corner didn't read in
+     a capture (checked numerically only), and books on the stair rest on its
+     walkable ramp, so they may sit up to ~0.1 m off a tread edge. The user
+     checked a collapsed upper recess in the editor: the spill lands right.
 
 Agreed scope: only the parts that existing tools carry, so phase 3's
 `AgeRules` can later just shift their weights. Order:

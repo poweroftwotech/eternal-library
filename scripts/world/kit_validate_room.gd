@@ -21,6 +21,8 @@ const SEG: float = 2.0
 const NOT_CLOSING: PackedStringArray = ["", "gallery", "gallery_end", "stair", "gable"]
 const SLOT_MARGIN: float = 0.03
 const FILL_SEEDS: Array[int] = [1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 15, 16]
+const SPILL_PROBES: Vector2i = Vector2i(7, 3)   # spill-zone probe grid (x, depth)
+const SPILL_DROP: float = 12.0                  # how far below the zone spill may fall
 
 static var _fit_cache: Dictionary = {}     # set path -> PackedStringArray of misfits
 
@@ -156,12 +158,13 @@ static func _connectors_of(root: Node) -> Array[Node]:
 # --- sockets -------------------------------------------------------------------
 
 static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStringArray, warnings: PackedStringArray) -> void:
-	var bodies: Array = []    # [module, room-space AABB]
+	var bodies: Array = []    # [module, room-space AABB, room-space transform, Shape3D]
 	for m: KitModule in modules:
 		for shape: Node in m.find_children("*", "CollisionShape3D", true, false):
 			var cs := shape as CollisionShape3D
 			if cs.shape != null and not cs.disabled:
-				bodies.append([m, _relative(root, cs) * cs.shape.get_debug_mesh().get_aabb()])
+				var xf: Transform3D = _relative(root, cs)
+				bodies.append([m, xf * cs.shape.get_debug_mesh().get_aabb(), xf, cs.shape])
 	var checked_sets: Dictionary = {}
 	var seen: Dictionary = {}     # one warning per (socket, module), not per collision shape
 	for socket: Node in root.find_children("*", "VariantSocket", true, false):
@@ -174,13 +177,72 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 			for misfit: String in candidate_misfits(s.socket_set):
 				errors.append(misfit)
 		var host: Node = _host_module(s)
-		var slot: AABB = (_relative(root, s) * s.socket_set.slot_bounds).grow(-SLOT_MARGIN)
-		for pair: Array in bodies:
-			if pair[0] != host and slot.intersects(pair[1]) and not seen.has([s, pair[0]]):
-				seen[[s, pair[0]]] = true
-				warnings.append("socket %s: its %s slot runs into %s" % [
-					str(root.get_path_to(host)) if host != null else str(root.get_path_to(s)),
-					path.get_file().get_basename(), str(root.get_path_to(pair[0]))])
+		var label: String = str(root.get_path_to(host)) if host != null else str(root.get_path_to(s))
+		var socket_xf: Transform3D = _relative(root, s)
+		var slot: AABB = (socket_xf * s.socket_set.slot_bounds).grow(-SLOT_MARGIN)
+		for item: Array in bodies:
+			if item[0] != host and slot.intersects(item[1]) and not seen.has([s, item[0]]):
+				seen[[s, item[0]]] = true
+				warnings.append("socket %s: its %s slot runs into %s" % [label, path.get_file().get_basename(), str(root.get_path_to(item[0]))])
+		if s.socket_set.spill_bounds.has_volume():
+			_spill_probe(root, s, socket_xf, bodies, label, warnings)
+
+
+## Spill settles on whatever is below it (ShelfFill.settle(), rays starting at
+## the top of the spill zone), so probe the zone the same way against the
+## modules' collision triangles. Warn if a column has nothing to land on, or
+## if a probe starts inside another solid (a pier or column in the zone):
+## spill there would rest inside it. Furniture whose top is above the zone is
+## fine, spill lands under it.
+static func _spill_probe(root: Node, s: VariantSocket, socket_xf: Transform3D, bodies: Array,
+		label: String, warnings: PackedStringArray) -> void:
+	var zone: AABB = s.socket_set.spill_bounds
+	var up: Vector3 = socket_xf.basis.y.normalized()
+	var column: AABB = (socket_xf * zone).merge(socket_xf * AABB(zone.position - Vector3(0, SPILL_DROP, 0), zone.size))
+	# The host counts here: spill may land on its own module (the iwan's alcove floor).
+	var near: Array = bodies.filter(func(item: Array) -> bool: return column.intersects(item[1]))
+	var inside: Dictionary = {}
+	var nothing: int = 0
+	for ix: int in SPILL_PROBES.x:
+		for iz: int in SPILL_PROBES.y:
+			var local := Vector3(lerpf(zone.position.x, zone.end.x, (ix + 0.5) / SPILL_PROBES.x), zone.end.y,
+				lerpf(zone.position.z, zone.end.z, (iz + 0.5) / SPILL_PROBES.y))
+			var from: Vector3 = socket_xf * local
+			var best: float = INF       # distance down to the first surface
+			for item: Array in near:
+				var crossings_up: int = 0
+				for tri: PackedVector3Array in _triangles(item):
+					var hit: Variant = Geometry3D.ray_intersects_triangle(from, -up, tri[0], tri[1], tri[2])
+					if hit != null:
+						best = minf(best, from.distance_to(hit))
+					if Geometry3D.ray_intersects_triangle(from, up, tri[0], tri[1], tri[2]) != null:
+						crossings_up += 1
+				if crossings_up % 2 == 1:     # odd crossings: the probe starts inside this solid
+					inside[item[0]] = true
+			if best > zone.end.y + SPILL_DROP:
+				nothing += 1
+	if nothing > 0:
+		warnings.append("socket %s: %d of %d spill probes find nothing to land on" % [label, nothing, SPILL_PROBES.x * SPILL_PROBES.y])
+	for body: Node in inside:
+		warnings.append("socket %s: its spill zone runs into %s (spill would rest inside it)" % [label, str(root.get_path_to(body))])
+
+
+## Room-space triangles of a body entry [module, aabb, transform, shape], cached.
+static func _triangles(item: Array) -> Array[PackedVector3Array]:
+	if item.size() > 4:
+		return item[4]
+	var faces: PackedVector3Array
+	var shape: Shape3D = item[3]
+	if shape is ConcavePolygonShape3D:
+		faces = (shape as ConcavePolygonShape3D).get_faces()
+	else:
+		faces = shape.get_debug_mesh().get_faces()    # boxes and convex hulls: good enough for probes
+	var xf: Transform3D = item[2]
+	var out: Array[PackedVector3Array] = []
+	for i: int in range(0, faces.size() - 2, 3):
+		out.append(PackedVector3Array([xf * faces[i], xf * faces[i + 1], xf * faces[i + 2]]))
+	item.append(out)
+	return out
 
 
 ## Candidates of a set whose visual bounds leave the set's slot_bounds.
@@ -189,7 +251,7 @@ static func candidate_misfits(set: SocketSet) -> PackedStringArray:
 	if path != "" and _fit_cache.has(path):
 		return _fit_cache[path]
 	var out: PackedStringArray = []
-	var slot: AABB = set.slot_bounds.grow(SLOT_MARGIN)
+	var slot: AABB = (set.slot_bounds.merge(set.spill_bounds) if set.spill_bounds.has_volume() else set.slot_bounds).grow(SLOT_MARGIN)
 	for e: SocketEntry in set.entries:
 		if e == null or e.scene == null:
 			continue

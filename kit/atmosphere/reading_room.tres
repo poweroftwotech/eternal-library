@@ -1,6 +1,6 @@
-[gd_resource type="Resource" script_class="AtmosphereProfile" format=3]
+[gd_resource type="Resource" script_class="AtmosphereProfile" format=3 uid="uid://ias1025mcpkx"]
 
-[ext_resource type="Script" path="res://scripts/world/atmosphere_profile.gd" id="1_7vlen"]
+[ext_resource type="Script" uid="uid://bvayul0107i3f" path="res://scripts/world/atmosphere_profile.gd" id="1_7vlen"]
 
 [sub_resource type="Gradient" id="Gradient_30tuc"]
 offsets = PackedFloat32Array(0, 0.18, 0.5, 0.82, 1)

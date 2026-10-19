@@ -51,10 +51,17 @@ def recess_shelves_broken(r):
         add_box(bm, -1.48, 1.48, BACK, FRONT, z, z + 0.05)
     # One board dropped at its left end, one snapped and lying on the floor.
     add_obox(bm, (0.05, -0.02, 0.78), (2.9, 0.47, 0.05), (0.0, math.radians(9.5), 0.0))
-    add_obox(bm, (-0.55, 0.45, 0.03), (1.7, 0.45, 0.05), (0.0, 0.0, math.radians(28)))
-    # rev 2: centre 0.95 -> 0.82, so the board stays inside the 3 m opening (Validate Room).
-    add_obox(bm, (0.82, 0.25, 0.09), (1.2, 0.45, 0.05), (math.radians(8), 0.0, math.radians(-12)))
     mesh_object("recess_shelves_broken__boards", bm, ["wood"], r)
+    # rev 3: the two boards on the floor are separate "__spill" meshes (b moved
+    # 0.15 m out so it lies in front of the wall face), so ShelfFill
+    # can rest each on whatever is below (a gallery slab, a stair, the floor).
+    # rev 2: centre 0.95 -> 0.82, so the board stays inside the 3 m opening.
+    for (name, centre, size, rot) in (
+            ("a", (-0.55, 0.45, 0.03), (1.7, 0.45, 0.05), (0.0, 0.0, math.radians(28))),
+            ("b", (0.82, 0.4, 0.09), (1.2, 0.45, 0.05), (math.radians(8), 0.0, math.radians(-12)))):
+        bm = bmesh.new()
+        add_obox(bm, centre, size, rot)
+        mesh_object("recess_shelves_broken__spill_" + name, bm, ["wood"], r)
 
 
 def recess_tile_panel(r):
@@ -244,7 +251,7 @@ def prop_inkwell(r):
 
 MODULES = [
     ("M_recess_shelves", props("wood,storage,recess"), recess_shelves),
-    ("M_recess_shelves_broken", dict(props("wood,storage,recess,ruin"), kit_rev=2), recess_shelves_broken),
+    ("M_recess_shelves_broken", dict(props("wood,storage,recess,ruin"), kit_rev=3), recess_shelves_broken),
     ("M_recess_tile_panel", props("tile,recess"), recess_tile_panel),
     ("M_recess_sealed_door", props("brick,wood,recess,door"), recess_sealed_door),
     ("M_iwan_lectern", props("wood,iwan,centrepiece"), iwan_lectern),
@@ -269,7 +276,7 @@ def main():
         if bpy.data.objects.get(name) is None:
             build(module(name, ((i % 7) * 4.0, (i // 7) * 5.0, 0.0), p))
             added.append(name)
-    REBUILD = [("M_recess_shelves_broken", 2)]   # rev 2: board inside the opening
+    REBUILD = [("M_recess_shelves_broken", 3)]   # rev 3: floor boards split out as __spill
     added += ["%s (rebuilt rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
     if not added:
         print("kit_add_dressing: all modules already present; nothing to do.")

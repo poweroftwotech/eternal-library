@@ -2,7 +2,9 @@ extends SceneTree
 ## GPU capture of rooms/authored/reading_room.tscn (needs a real display, not --headless).
 ##   godot --path . --resolution 1600x900 --script res://tests/reading_room_capture.gd -- <out.png> [view] [frames] [seed]
 ## Views: entrance, iwan, gallery, stair, vault, end_gallery, table, recesses.
-## seed: the room's preview_seed (default: as saved). Run `godot --headless --import` first.
+## seed: the room's preview_seed (default: as saved; "-" keeps it). A fifth argument
+## "collapse" pins every recess to "collapsed" (to inspect settled spill).
+## Run `godot --headless --import` first.
 
 const VIEWS: Dictionary = {
 	"entrance": [Vector3(6.0, 1.7, -0.8), Vector3(6.0, 5.5, -20.0), 74.0],
@@ -26,9 +28,20 @@ func capture() -> void:
 	var view: Array = VIEWS.get(args[1] if args.size() > 1 else "entrance", VIEWS["entrance"])
 	var frames: int = int(args[2]) if args.size() > 2 else 100
 	var room: RoomTemplate = (load("res://rooms/authored/reading_room.tscn") as PackedScene).instantiate()
-	if args.size() > 3:
+	if args.size() > 3 and args[3] != "-":
 		room.preview_seed = int(args[3])
-	root.add_child(room)
+	if args.size() > 4 and args[4] == "collapse":
+		var lib: SocketSet = load("res://kit/sockets/recess_library.tres")
+		var pins: Dictionary[String, int] = {}
+		pins.assign(room.socket_pins)
+		root.add_child(room)
+		for s: VariantSocket in room.sockets():
+			if s.socket_set == lib:
+				pins[room.socket_key(s)] = lib.index_of("collapsed")
+		room.socket_pins = pins
+		room.resolve_sockets(room.preview_seed)
+	else:
+		root.add_child(room)
 	var cam := Camera3D.new()
 	cam.fov = view[2]
 	room.add_child(cam)
