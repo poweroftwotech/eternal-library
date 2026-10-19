@@ -66,6 +66,11 @@ func _initialize() -> void:
 	socket_set("lamp_soot", [["soot", decal("soot_plume", plume), 3.0],
 		["faint soot", decal("soot_plume", plume, false, false, 0.55, "soot_faint"), 2.0], ["nothing", "", 1.0]])
 	slot("lamp_soot", AABB(-plume * 0.5, plume), AABB(), false, true)
+	# Item 4: the look of a gallery stair. The stair module keeps the ramp, rail
+	# and snaps, so a pick never changes routes. No slot: the module owns its
+	# footprint (the steps have always run past the pier at the stair's middle).
+	socket_set("stair_style", [["masonry", DRESS + "stair_steps_masonry.tscn", 2.0],
+		["open wood", DRESS + "stair_steps_open.tscn", 1.0]])
 	print("seed_sockets: ", "; ".join(made) if not made.is_empty() else "nothing to do")
 	quit()
 

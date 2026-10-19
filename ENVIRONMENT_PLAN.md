@@ -980,9 +980,63 @@ Agreed scope: only the parts that existing tools carry, so phase 3's
      - Changing `tools/kit_import.gd` doesn't reimport unchanged `.glb` files.
        Delete their `.godot/imported/<name>.glb-*` caches and run `--import`
        twice (done here for the decal layer).
-4. **Open wooden stair.** `stair_gallery_8m_open` (and `_r`): a stringer
-   stair with open risers, the same footprint, ramp and snaps as the masonry
-   one, so a room can swap them in the editor.
+4. ~~**Open wooden stair**~~ (done 2026-10-19), built as a stair *look*.
+   - **Decision (user):** the stair look is a variant you cycle in the editor,
+     like the recesses, not a separate module. A first cut made
+     `stair_gallery_8m_open` and `_open_r` as twin modules; they were never
+     committed and are gone.
+   - **Socket:** `stair_gallery_8m` and `_r` lost their built-in steps mesh
+     and gained `SOCKET_stair_style` (REPLACE) mid-footprint: Blender
+     (4.0, 0.95, 0), Godot (4, 0, -0.95). The module keeps everything a
+     route needs: the walkable ramp collision, the balustrade and the foot and
+     head snaps. A pick never changes collision, snaps or validation. Both
+     looks are symmetric across the lane, so `_r` turns its socket half a turn
+     (`STAIR_TURN`) instead of needing mirrored candidates.
+   - **Candidates** (`kit_add_dressing.py`, dressing family; kit 42 modules):
+     - `stair_steps_masonry`: the old 20 stone steps.
+     - `stair_steps_open`: two sloped wooden stringers (8 cm thick, 0.3 m
+       deep, top edge 8 cm above the nosings, foot on the floor) and twenty
+       5 cm treads with a 3 cm nosing and open risers.
+     - Set `stair_style`: masonry 2, open wood 1, so the seed varies generated
+       rooms. No slot bounds: the module owns its footprint, and the steps
+       have always run past the pier at the stair's middle.
+   - **Upgrade:** `kit_add_r01.py` gained `REMOVE_MODULES` (deletes a module
+     with its children) and removes the two `__steps` meshes. `stair()` adds
+     the socket on fresh builds. Stale `.glb` and wrapper files of deleted
+     modules have to be removed by hand: the export doesn't delete them.
+   - **Reading room:** both stairs are pinned to masonry (two lines added to
+     `socket_pins`; `build_reading_room.gd` gets `pin_masonry_stairs()` for
+     fresh builds), so it looks as before. An image_diff of the `table` view
+     against the item 3 preview gives mean 0.21 (noise floor 0.14). To try
+     the wooden look, select a stair and use **Next candidate** or the
+     Sockets panel. The four stair-hidden wall seams stay pinned bare.
+   - **Gotcha:** re-saving `reading_room.tscn` from a headless script
+     strips every UID, the scene's own included (`get_resource_uid` is -1
+     headless). The pins were added as text instead.
+   - **Verified:**
+     - `kit_test` 524: neither stair carries steps of its own; each has one
+       stair_style socket mid-footprint; both looks fill the footprint
+       (x 0..8, z -1.6..-0.3) on both stairs and start at the foot snap.
+     - `reading_room_test` 56: the full audit runs as saved and again with both
+       stairs pinned to open wood, with the capsule climbing both.
+     - `validate_room_test` 23: clean with open wood. `socket_modes_test` 153
+       (set contents).
+     - Spill 6, atmosphere 32, room playtest 11, camp playtest 43, the
+       prototype atmosphere test, the two-process pin persistence gate and all
+       three 240-frame gates pass.
+     - GPU (capture option `open_stairs` pins open wood, view `west_stair`):
+       `previews/reading_room_open_stairs_{west_stair,entrance}.png`.
+   - **Caveats:**
+     - The collision is the solid ramp wedge for both looks, on purpose. Under
+       the open stair it looks walkable but is blocked. A walk-under version
+       would need a sloped-slab ramp and headroom rules.
+     - Wall seams behind a stair don't follow its look. Making them follow
+       (filled behind open wood) would need the stair to tell the seam sockets
+       its pick, so it's left for later.
+     - The candidates are dressing (layer 1 only), so floor decals don't mark
+       stone steps.
+
+**The weathering slice is complete (items 0-4).**
 
 Deferred, on purpose: a material-level wear/grime shader and age-driven
 overgrowth (phase 3, `AgeRules`); floor-cell garden sockets and the R05

@@ -3,7 +3,8 @@ extends SceneTree
 ##   godot --headless --path . --script res://tests/reading_room_test.gd
 ## Kit validation, sockets, floor in every cell, and a route audit with the
 ## player capsule (radius 0.35, height 1.8): doors open, walls closed, the
-## hall walkable into the iwan, and both stairs up onto their galleries.
+## hall walkable into the iwan, and both stairs up onto their galleries. Runs
+## twice: as saved (masonry stairs), and with both stairs pinned to open wood.
 
 const ROOM: String = "res://rooms/authored/reading_room.tscn"
 
@@ -26,6 +27,11 @@ func run() -> void:
 	check(packed != null, "reading room loads")
 	if packed != null:
 		await audit(packed.instantiate() as Node3D)
+		# Weathering item 4: the stair look is a socket. Pin both stairs to open
+		# wood and run the whole audit again, routes up both stairs included.
+		var open: RoomTemplate = packed.instantiate()
+		check(pin_stairs(open, "open wood") == 2, "both stairs pin to the open wooden look")
+		await audit(open)
 	print("reading_room_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -49,8 +55,8 @@ func audit(room: Node3D) -> void:
 			var key: String = s.socket_set.resource_path.get_file().get_basename() if s.socket_set != null else "(none)"
 			by_set[key] = int(by_set.get(key, 0)) + 1
 		check(by_set == {"recess_library": 16, "iwan_centre": 1, "table_props": 4, "lamp_state": 7, "seam_debris": 10, "rail_growth": 5,
-				"wall_stains": 10, "floor_wear": 15, "lamp_soot": 7},
-			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps, 10 seams, 5 rails, 10 wall stains, 15 floors, 7 soot (found %s)" % by_set)
+				"wall_stains": 10, "floor_wear": 15, "lamp_soot": 7, "stair_style": 2},
+			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps, 10 seams, 5 rails, 10 wall stains, 15 floors, 7 soot, 2 stairs (found %s)" % by_set)
 		check(tmpl.resolve_sockets(7) == tmpl.resolve_sockets(7), "socket picks are deterministic")
 	check(room.get_node("Connectors").get_child_count() == 3, "three door connectors")
 	await physics_frame
@@ -100,6 +106,21 @@ func audit(room: Node3D) -> void:
 	check(feet.x < -2.5 and feet.y > -0.4, "safety floor catches the player outside a side door (feet at %s)" % feet)
 	room.queue_free()
 	await process_frame
+
+
+## Pins every stair_style socket in the room to `label`, as the Sockets panel
+## would. Returns how many stairs were pinned.
+func pin_stairs(room: RoomTemplate, label: String) -> int:
+	var lib: SocketSet = load("res://kit/sockets/stair_style.tres")
+	var pins: Dictionary[String, int] = {}
+	pins.assign(room.socket_pins)
+	var count: int = 0
+	for key: String in room.socket_pins:
+		if key.ends_with("/SOCKET_stair_style"):
+			pins[key] = lib.index_of(label)
+			count += 1
+	room.socket_pins = pins
+	return count
 
 
 func make_capsule(parent: Node) -> CharacterBody3D:

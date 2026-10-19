@@ -43,6 +43,7 @@ func _initialize() -> void:
 	build_shell()
 	build_dressing()
 	pin_hidden_seams(room)
+	pin_masonry_stairs(room)
 	build_lights()
 	build_connectors()
 	add_spawn()
@@ -250,6 +251,26 @@ static func pin_hidden_seams(target: RoomTemplate) -> int:
 		if not HIDDEN_SEAM_WALLS.any(func(p: Vector3) -> bool: return n.position.is_equal_approx(p)):
 			continue
 		pins["%s/Mesh/M_wall_plain_4m/SOCKET_seam_debris" % str(target.get_path_to(n))] = nothing
+		count += 1
+	target.socket_pins = pins
+	return count
+
+
+## Item 4: stairs have a stair_style socket (masonry or open wood) that the
+## seed picks; this authored room keeps its masonry stairs, the four seams
+## above being pinned bare behind them. Cycle a stair in the Sockets panel
+## to try the open wooden one.
+static func pin_masonry_stairs(target: RoomTemplate) -> int:
+	var masonry: int = (load("res://kit/sockets/stair_style.tres") as SocketSet).index_of("masonry")
+	var pins: Dictionary[String, int] = {}
+	pins.assign(target.socket_pins)
+	var count: int = 0
+	for m: Node in target.get_node("Shell").get_children():
+		var n := m as Node3D
+		if n == null or not n.scene_file_path.get_file().begins_with("stair_gallery_8m"):
+			continue
+		var module: String = n.scene_file_path.get_file().get_basename()
+		pins["%s/Mesh/M_%s/SOCKET_stair_style" % [str(target.get_path_to(n)), module]] = masonry
 		count += 1
 	target.socket_pins = pins
 	return count

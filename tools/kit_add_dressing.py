@@ -12,6 +12,8 @@ Every module's origin is the socket it fills (Blender axes; Godot -Z = +Y):
                centre line. The recess back is y = -0.25, the room is +Y.
   iwan_*       the iwan centrepiece socket (alcove floor, ~1.8 m from the back).
   prop_*       a table-top SCATTER socket: the table surface (z = 0).
+  stair_steps_* a stair_style socket: the middle of a stair_gallery_8m footprint
+               (floor level, lane centre); the stair rises along +X.
 """
 import math
 import os
@@ -23,7 +25,7 @@ import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
 from kit_blender import (add_box, add_card, add_lathe, add_ngon_prism, add_obox, add_prism, rebuild,  # noqa: E402
-                         arch_outline, mesh_object, module)
+                         H, T, arch_outline, mesh_object, module)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BLEND = os.path.join(ROOT, "art_src", "kit", "kit_dressing.blend")
@@ -324,6 +326,44 @@ def prop_inkwell(r):
     mesh_object("prop_inkwell__quill", bm, ["linen"], r)
 
 
+# --- stair candidates (weathering item 4) --------------------------------------
+# The look of stair_gallery_8m / _r is a stair_style socket; the stair module
+# keeps the ramp collision, rail and snaps, so routes never change. Both looks
+# are symmetric across the lane, so the reversed stair turns its socket half a
+# turn instead of needing mirrored candidates.
+STAIR_STEPS, STAIR_RUN, STAIR_TOP = 20, 8.0, H + 0.15
+STAIR_HALF = (1.6 - T) / 2      # lane half width (T to 1.6 from the wall line)
+
+
+def stair_steps_masonry(r):
+    """Solid stone steps, as the stair module used to carry."""
+    rise, tread, x0 = STAIR_TOP / STAIR_STEPS, STAIR_RUN / STAIR_STEPS, -STAIR_RUN / 2
+    bm = bmesh.new()
+    for i in range(STAIR_STEPS):
+        add_box(bm, x0 + i * tread, x0 + (i + 1) * tread, -STAIR_HALF, STAIR_HALF, 0.0, (i + 1) * rise)
+    mesh_object("stair_steps_masonry__steps", bm, ["arch_stone"], r)
+
+
+def stair_steps_open(r):
+    """Wooden stringer stair with open risers: two sloped stringers (8 cm thick,
+    0.3 m deep, top edge 8 cm above the nosings, foot on the floor) carrying
+    5 cm treads with a 3 cm nosing; light shows between the steps."""
+    rise, tread, x0 = STAIR_TOP / STAIR_STEPS, STAIR_RUN / STAIR_STEPS, -STAIR_RUN / 2
+    run, top, lip = STAIR_RUN, STAIR_TOP, 0.08
+    outline = [(0.0, 0.0), (0.6, 0.0), (run, top - 0.3), (run, top + lip),
+               (run - tread, top + lip), (0.0, rise + lip)]
+    bm = bmesh.new()
+    for (a, b) in ((-STAIR_HALF, -STAIR_HALF + 0.08), (STAIR_HALF - 0.08, STAIR_HALF)):
+        add_prism(bm, outline, x0, 0.0, a, b)
+    mesh_object("stair_steps_open__stringers", bm, ["wood"], r)
+    bm = bmesh.new()
+    for i in range(STAIR_STEPS):
+        z = (i + 1) * rise
+        add_box(bm, x0 + max(0.0, i * tread - 0.03), x0 + (i + 1) * tread,
+                -STAIR_HALF + 0.08, STAIR_HALF - 0.08, z - 0.05, z)
+    mesh_object("stair_steps_open__treads", bm, ["wood"], r)
+
+
 MODULES = [
     ("M_recess_shelves", props("wood,storage,recess"), recess_shelves),
     ("M_recess_shelves_broken", dict(props("wood,storage,recess,ruin"), kit_rev=3), recess_shelves_broken),
@@ -344,6 +384,8 @@ MODULES = [
     ("M_prop_oil_lamp", props("brass,light,table_prop"), prop_oil_lamp),
     ("M_prop_scroll", props("linen,table_prop"), prop_scroll),
     ("M_prop_inkwell", props("iron,table_prop"), prop_inkwell),
+    ("M_stair_steps_masonry", props("stone,stair"), stair_steps_masonry),
+    ("M_stair_steps_open", props("wood,stair"), stair_steps_open),
 ]
 
 

@@ -147,15 +147,21 @@ def iwan(r):
     marker("SOCKET_seam_debris__iwan_r", r, (HALL - 2.15, T, 0.0), seam_socket(1.2))
 
 
+STAIR = (20, 8.0, H + 0.15, T, 1.6)   # steps, run, top, wall-side y, open-side y
+STAIR_SOCKET = (4.0, (T + 1.6) / 2, 0.0)   # footprint middle, where stair_steps_* have their origin
+STAIR_TURN = (0.0, 0.0, math.pi)          # reversed stair: both looks are symmetric across the lane
+
+
 def stair(r, name="stair_gallery_8m", reverse=False):
     """reverse=True mirrors along X: the stair rises toward its origin, so on a
-    wall it climbs the other way from the plain one (same footprint)."""
-    steps, run, top, y0, y1 = 20, 8.0, H + 0.15, T, 1.6
+    wall it climbs the other way from the plain one (same footprint).
+    The steps themselves are a stair_style socket (masonry or open wood,
+    weathering item 4); the module keeps what every look shares: the walkable
+    ramp, the balustrade on the open side and the foot / head snaps."""
+    marker("SOCKET_stair_style__" + name, r, STAIR_SOCKET, {"socket_set": "stair_style"}).rotation_euler = \
+        STAIR_TURN if reverse else (0.0, 0.0, 0.0)
+    steps, run, top, y0, y1 = STAIR
     rise, tread = top / steps, run / steps
-    bm = bmesh.new()
-    for i in range(steps):
-        add_box(bm, i * tread, (i + 1) * tread, y0, y1, 0.0, (i + 1) * rise)
-    mesh_object(name + "__steps", flip(bm, run, reverse), ["arch_stone"], r)
     # Walkable ramp through the middle of the treads (collision only).
     bm = bmesh.new()
     add_prism(bm, [(-tread / 2, 0.0), (run - tread / 2, top), (run, top), (run, 0.0)], 0.0, 0.0, y0, y1)
@@ -360,7 +366,11 @@ MODULES = [
 
 # Step 3 upgrades for modules that already exist in a hand-edited .blend
 # (fresh builds above already match). Each is idempotent.
-REMOVE = ["wall_shelfbay_4m__shelves", "wall_iwan_12m__shelves"]   # boards now come from recess candidates
+REMOVE = ["wall_shelfbay_4m__shelves", "wall_iwan_12m__shelves",   # boards now come from recess candidates
+          "stair_gallery_8m__steps", "stair_gallery_8m_r__steps"]   # steps are a stair_style socket (item 4)
+# Whole modules to delete with their children (item 4: the open stair is a
+# stair_style candidate now, not a module of its own).
+REMOVE_MODULES = ["M_stair_gallery_8m_open", "M_stair_gallery_8m_open_r"]
 ADD_MARKERS = [
     ("M_wall_iwan_12m", "SOCKET_iwan_centre__iwan", (6.0, -1.2, 0.0), {"socket_set": "iwan_centre"}),
     ("M_table_reading", "SOCKET_table_props__table", (0.0, 0.0, 0.78), TABLE_SOCKET),
@@ -381,6 +391,9 @@ ADD_MARKERS = [
     ("M_floor_4m", "SOCKET_floor_wear__cell", (2.0, 2.0, 0.0), FLOOR_DECALS),
     ("M_lantern_hanging", "SOCKET_lamp_soot__hanging", (0.0, 0.0, H), SOOT, UP_TURN),   # chain top, in the slab
     ("M_lantern_cluster", "SOCKET_lamp_soot__cluster", (0.0, 0.0, 14.6), SOOT, UP_TURN),      # vault crown
+    # Item 4: stair looks.
+    ("M_stair_gallery_8m", "SOCKET_stair_style__stair_gallery_8m", STAIR_SOCKET, {"socket_set": "stair_style"}),
+    ("M_stair_gallery_8m_r", "SOCKET_stair_style__stair_gallery_8m_r", STAIR_SOCKET, {"socket_set": "stair_style"}, STAIR_TURN),
 ]
 
 
@@ -399,6 +412,13 @@ def upgrade():
         if ob is not None:
             bpy.data.objects.remove(ob, do_unlink=True)
             done.append("removed " + name)
+    for name in REMOVE_MODULES:
+        ob = bpy.data.objects.get(name)
+        if ob is not None:
+            for child in ob.children_recursive:
+                bpy.data.objects.remove(child, do_unlink=True)
+            bpy.data.objects.remove(ob, do_unlink=True)
+            done.append("removed module " + name)
     # Script-owned markers: added when missing, and kept in sync (position and
     # custom properties, rotation) so tuning a socket here reaches an existing .blend.
     # Entries are (module, marker, location, properties[, rotation]).

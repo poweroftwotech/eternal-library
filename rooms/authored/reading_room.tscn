@@ -36,6 +36,8 @@ display_name = "The Reading Room"
 socket_pins = Dictionary[String, int]({
 "Lights/lantern_cluster/Mesh/M_lantern_cluster/SOCKET_lamp_state": 0,
 "Lights/lantern_cluster2/Mesh/M_lantern_cluster/SOCKET_lamp_state": 0,
+"Shell/stair_gallery_8m/Mesh/M_stair_gallery_8m/SOCKET_stair_style": 0,
+"Shell/stair_gallery_8m_r/Mesh/M_stair_gallery_8m_r/SOCKET_stair_style": 0,
 "Shell/wall_plain_4m/Mesh/M_wall_plain_4m/SOCKET_seam_debris": 0,
 "Shell/wall_plain_4m2/Mesh/M_wall_plain_4m/SOCKET_seam_debris": 0,
 "Shell/wall_plain_4m3/Mesh/M_wall_plain_4m/SOCKET_seam_debris": 0,

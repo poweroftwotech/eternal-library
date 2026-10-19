@@ -31,6 +31,7 @@ func run() -> void:
 	check_spill_inside_solid()
 	check_spill_over_nothing()
 	check_decal_second_surface()
+	check_open_stairs()
 	print("validate_room_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -226,4 +227,23 @@ func check_decal_second_surface() -> void:
 	var warnings: PackedStringArray = KitValidateRoom.run(room)["warnings"]
 	check(Array(warnings).any(func(w: String) -> bool: return w.contains("floor_wear decals would also mark Shell/floor_raised")),
 		"a raised floor in a cell's decal reach is reported (got %s)" % [warnings])
+	room.free()
+
+
+## Item 4: with both stairs pinned to the open wooden look the reading room
+## validates as cleanly as with masonry (the look never touches collision).
+func check_open_stairs() -> void:
+	var room: RoomTemplate = fresh(ROOM)
+	var lib: SocketSet = load("res://kit/sockets/stair_style.tres")
+	var pins: Dictionary[String, int] = {}
+	pins.assign(room.socket_pins)
+	var pinned: int = 0
+	for key: String in room.socket_pins:
+		if key.ends_with("/SOCKET_stair_style"):
+			pins[key] = lib.index_of("open wood")
+			pinned += 1
+	room.socket_pins = pins
+	var r: Dictionary = KitValidateRoom.run(room)
+	check(pinned == 2 and (r["errors"] as PackedStringArray).is_empty() and (r["warnings"] as PackedStringArray).is_empty(),
+		"with open stairs the reading room validates clean (%d pinned, %s)" % [pinned, r])
 	room.free()

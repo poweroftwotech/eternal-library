@@ -31,6 +31,7 @@ func run() -> void:
 	check_wrapper_keeps_user_nodes()
 	await check_graybox()
 	await check_stair_route()
+	await check_stair_style()
 	print("kit_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -287,4 +288,44 @@ func check_stair_route() -> void:
 	check(feet.x > 9.0 and absf(feet.y - 4.15) < 0.1,
 		"player capsule climbs the gallery stair onto the slab (feet at %s)" % feet)
 	rig.queue_free()
+	await process_frame
+
+
+## Weathering item 4: a gallery stair's look is a stair_style socket. The
+## module keeps the ramp, rail and snaps; the steps come from the candidate.
+## Both looks fill the same footprint on the plain and the reversed stair (the
+## reversed socket is turned half a turn), and each rises the right way.
+func check_stair_style() -> void:
+	var lib: SocketSet = load("res://kit/sockets/stair_style.tres")
+	for m: String in ["stair_gallery_8m", "stair_gallery_8m_r"]:
+		var node: KitModule = (load("res://kit/modules/walls/%s.tscn" % m) as PackedScene).instantiate()
+		root.add_child(node)
+		check(node.find_children(m + "__steps*", "MeshInstance3D", true, false).is_empty(), "%s carries no steps of its own" % m)
+		var sockets: Array[Node] = node.find_children("SOCKET_stair_style*", "VariantSocket", true, false)
+		check(sockets.size() == 1, "%s has one stair_style socket" % m)
+		if sockets.size() == 1:
+			var s := sockets[0] as VariantSocket
+			check(s.socket_set == lib and s.position.is_equal_approx(Vector3(4.0, 0.0, -0.95)), "%s socket sits mid-footprint (%s)" % [m, s.position])
+			for label: String in ["masonry", "open wood"]:
+				s.resolve(1, lib.index_of(label))
+				await process_frame
+				var box: AABB
+				var low_end: float = 0.0     # x of the lowest tread top: the foot
+				var lowest: float = INF
+				for n: Node in s.get_children(true):
+					for mi: Node in n.find_children("*", "MeshInstance3D", true, false):
+						var mesh_inst := mi as MeshInstance3D
+						var b: AABB = mesh_inst.global_transform * mesh_inst.mesh.get_aabb()
+						box = b if not box.has_volume() else box.merge(b)
+						var faces: PackedVector3Array = mesh_inst.mesh.get_faces()
+						for p: Vector3 in faces:
+							var w: Vector3 = mesh_inst.global_transform * p
+							if w.y > 0.1 and w.y < lowest:
+								lowest = w.y
+								low_end = w.x
+				check(box.position.snappedf(0.01).is_equal_approx(Vector3(0, 0, -1.6)) and box.end.x <= 8.01 and box.end.z <= -0.29,
+					"%s '%s' fills the stair footprint (%s)" % [m, label, box])
+				var foot: float = 0.0 if m == "stair_gallery_8m" else 8.0
+				check(absf(low_end - foot) < 0.5, "%s '%s' starts at the foot snap (lowest step at x %.2f)" % [m, label, low_end])
+		node.queue_free()
 	await process_frame

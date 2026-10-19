@@ -1,6 +1,6 @@
 extends SceneTree
 ## Phase 1 step 3 gate: socket sets and the STATE / SCATTER / REPLACE modes;
-## weathering items 1-3 (edge scatter, settle, plants, decals).
+## weathering items 1-4 (edge scatter, settle, plants, decals, stair looks).
 ##   godot --headless --path . --script res://tests/socket_modes_test.gd
 
 const SETS: Dictionary = {
@@ -13,6 +13,7 @@ const SETS: Dictionary = {
 	"wall_stains": ["nothing", "water stain", "water stain b", "damp and moss"],
 	"floor_wear": ["nothing", "crack", "crack b", "damp patch", "moss"],
 	"lamp_soot": ["soot", "faint soot", "nothing"],
+	"stair_style": ["masonry", "open wood"],
 }
 
 var failures: PackedStringArray = []
