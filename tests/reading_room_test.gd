@@ -63,7 +63,7 @@ func audit(room: Node3D) -> void:
 	# Doors open, walls closed.
 	check(not await blocked(body, Vector3(6, 0.95, -1.5), Vector3(0, 0, 3)), "entrance arch is open")
 	check(not await blocked(body, Vector3(1.5, 0.95, -6), Vector3(-3, 0, 0)), "west side door is open")
-	check(not await blocked(body, Vector3(10.5, 0.95, -14), Vector3(3, 0, 0)), "east side door is open")
+	check(not await blocked(body, Vector3(10.5, 0.95, -6), Vector3(3, 0, 0)), "east side door is open")
 	check(await blocked(body, Vector3(1.5, 0.95, -18), Vector3(-3, 0, 0)), "west wall blocks (bay 4)")
 	check(await blocked(body, Vector3(10.5, 0.95, -2), Vector3(3, 0, 0)), "east wall blocks (bay 0)")
 	check(await blocked(body, Vector3(3, 0.95, -1.5), Vector3(0, 0, 3)), "south wall blocks beside the entrance")
@@ -73,9 +73,19 @@ func audit(room: Node3D) -> void:
 	# West stair: foot at z -16 in bay 4, rises toward the entrance.
 	feet = await walk(body, Vector3(0.95, 0.95, -18.5), Vector3(0, 0, 3), func(p: Vector3) -> bool: return p.z > -4.0)
 	check(feet.z > -5.0 and absf(feet.y - 4.15) < 0.1, "west stair reaches the west gallery (feet at %s)" % feet)
-	# East stair: foot at z -4 in bay 0, rises toward the iwan.
-	feet = await walk(body, Vector3(11.05, 0.95, -1.5), Vector3(0, 0, -3), func(p: Vector3) -> bool: return p.z < -17.0)
-	check(feet.z < -16.0 and absf(feet.y - 4.15) < 0.1, "east stair reaches the east gallery (feet at %s)" % feet)
+	# East stair (mirrored module): foot at z -16 in bay 4, also rises toward the entrance.
+	feet = await walk(body, Vector3(11.05, 0.95, -18.5), Vector3(0, 0, 3), func(p: Vector3) -> bool: return p.z > -4.0)
+	check(feet.z > -5.0 and absf(feet.y - 4.15) < 0.1, "east stair reaches the east gallery (feet at %s)" % feet)
+	# Step 2b: the galleries are one U. From the west stair head, round both
+	# corners along the entrance wall and back down the east side.
+	await walk(body, Vector3(0.95, 0.95, -18.5), Vector3(0, 0, 3), func(p: Vector3) -> bool: return p.z > -4.0)
+	feet = await walk(body, Vector3.INF, Vector3(0, 0, 2), func(p: Vector3) -> bool: return p.z > -0.95)
+	feet = await walk(body, Vector3.INF, Vector3(2, 0, 0), func(p: Vector3) -> bool: return p.x > 11.0)
+	check(feet.x > 10.6 and absf(feet.y - 4.15) < 0.1, "west gallery turns the corner and crosses the end gallery (feet at %s)" % feet)
+	feet = await walk(body, Vector3.INF, Vector3(0, 0, -2), func(p: Vector3) -> bool: return p.z < -6.0)
+	check(feet.z < -5.5 and feet.x > 10.4 and absf(feet.y - 4.15) < 0.1, "end gallery turns onto the east gallery (feet at %s)" % feet)
+	check(await blocked(body, Vector3(6, 5.1, -0.95), Vector3(0, 0, -2)), "end gallery rail keeps the player off the hall")
+	check(await blocked(body, Vector3(0.95, 5.1, -4), Vector3(2, 0, 0)), "west gallery rail still closes mid-run")
 	# Out through the west door onto the temporary safety floor.
 	feet = await walk(body, Vector3(1.5, 0.95, -6), Vector3(-3, 0, 0), func(p: Vector3) -> bool: return p.x < -3.0)
 	check(feet.x < -2.5 and feet.y > -0.4, "safety floor catches the player outside a side door (feet at %s)" % feet)
@@ -106,10 +116,12 @@ func blocked(body: CharacterBody3D, at: Vector3, motion: Vector3) -> bool:
 
 
 ## move_and_slide with gravity until `done` or 10 s; returns the feet position.
+## `at` = Vector3.INF continues from where the body is.
 func walk(body: CharacterBody3D, at: Vector3, velocity: Vector3, done: Callable) -> Vector3:
-	body.global_position = at
-	body.velocity = Vector3.ZERO
-	await physics_frame
+	if at != Vector3.INF:
+		body.global_position = at
+		body.velocity = Vector3.ZERO
+		await physics_frame
 	for _i: int in 600:
 		body.velocity.x = velocity.x
 		body.velocity.z = velocity.z

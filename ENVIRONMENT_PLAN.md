@@ -573,17 +573,19 @@ Nothing has been placed in the editor yet.
 user's request the first draft comes from a script, `tools/build_reading_room.gd`.
 It refuses to overwrite the room unless given `--force`; from here on the scene
 is edited by hand in the editor. It is a `RoomTemplate` (`room_id` `reading_room`), 3 × 5
-bays (12 × 20 m), two storeys under `vault_hall_12m`, built from 91 kit
+bays (12 × 20 m), two storeys under `vault_hall_12m`, built from 92 kit
 modules under `Shell / Sockets / Props / Dressing / Lights / Connectors /
 Bounds`.
 
-- **Layout:** entrance arch in the south middle bay, iwan and gable at the
-  north end, side doors in west bay 1 and east bay 3. Two stairs mirror each
-  other: the west stair runs over bays 2-3 up to a west gallery over bays 0-1,
-  and the east stair runs over bays 1-2 up to an east gallery over bays 3-4.
+- **Layout (after step 2b):** entrance arch in the south middle bay, iwan and
+  gable at the north end, side doors in bay 1 on both sides. Both stairs run
+  over bays 2-3 and rise toward the entrance (the east one is
+  `stair_gallery_8m_r`) onto side galleries over bays 0-1. Those galleries are
+  joined along the entrance wall by `gallery_end_12m` into one U-shaped walk.
   A 2-bay stair along a side wall always crosses the middle bay, so the side
   doors moved off it (the atlas plan had them in the middle). Bays behind the
-  stairs get plain walls. **16 recess sockets**, matching the atlas.
+  stairs get plain walls. **16 recess sockets**, matching the atlas (the
+  upper south recess opens onto the end gallery).
 - **Dressing and lights:** rug runner, four reading tables, two chandeliers,
   four lanterns under the galleries and one at the iwan apex.
 - **Connectors:** `SNAP_entrance`, `SNAP_door_west` and `SNAP_door_east`
@@ -593,22 +595,33 @@ Bounds`.
   the Atmosphere node in step 4; a room in the game must not carry its own
   WorldEnvironment).
 
-**Verified:** `tests/reading_room_test.gd` passes 24 checks: KitValidate
+**Verified:** `tests/reading_room_test.gd` passes 28 checks: KitValidate
 clean, 16 sockets, floor in all 15 cells, the three doors open, walls closed,
-and a capsule walking the hall into the iwan, up each stair onto its gallery,
-and out a side door onto the safety floor. The 240-frame gate is clean.
-`tests/reading_room_capture.gd` captures `previews/reading_room_*.png`
-(entrance, iwan, gallery, stair, vault). **Caveats:** the galleries don't
-connect (each stair serves its own 2-bay stretch), because a continuous
-gallery needs a gallery corner or bridge module. The side doors open onto
-darkness. The room is dim until step 4's grade. The iwan centrepiece spot is
-empty until step 3. The user opened it in the editor and approved the draft.
+and a capsule walking the hall into the iwan, up each stair, around the whole
+U gallery (west, end, east), and out a side door onto the safety floor. The
+rails still hold mid-run and along the end gallery. The 240-frame gate is
+clean. `tests/reading_room_capture.gd` captures `previews/reading_room_*.png`
+(entrance, iwan, gallery, stair, vault, end_gallery). **Caveats:** the side
+doors open onto darkness. The room is dim until step 4's grade. The iwan
+centrepiece spot is empty until step 3. The solid masonry stairs look heavy
+from the entrance; an open-stringer variant would lighten them. The user
+approved the step 2 draft in the editor; the 2b rebuild (`--force`, no hand
+edits existed yet) was checked in the editor by the user.
+
+**Step 2b done (2026-10-18): joined galleries.** Four modules, added through
+the same additive `tools/kit_add_r01.py` (21 in the catalog):
+`gallery_end_12m` (end-wall gallery between the side lanes, newel posts that
+swallow the meeting rail ends, wall corbels clear of a central 3 m arch),
+`gallery_slab_4m_open_end` / `_open_start` (side slab whose rail stops 1.6 m
+short of that end, for the corner square), and `stair_gallery_8m_r` (the
+stair mirrored, so it rises toward its origin). `kit_test` passes 312 checks,
+including rail extents and the reversed stair's head position.
 
 **Next steps for phase 1, in order:**
 0. ~~**Socket panel in the Kit dock**~~ (done, see above).
 1. ~~**More modules for R01**~~ (done, see above).
 2. ~~**Build `rooms/authored/reading_room.tscn`**~~ (drafted by script, see above; tweak it by hand).
-2b. **Gallery corner / bridge module** so both galleries join along an end wall.
+2b. ~~**Gallery corner / end-wall gallery**~~ (done, see above).
 3. **More socket sets:** iwan centrepiece (lectern, tree, fountain), lamp state
    (`STATE` mode: lit, failing, dark), and recess variants such as a tile panel
    or sealed door. Add a `SCATTER` mode (books and pots on tables).

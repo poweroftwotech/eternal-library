@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_a6uv4"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gallery_end_12m.glb" id="2_pncxn"]
+
+[node name="gallery_end_12m" type="Node3D" unique_id=452059930]
+script = ExtResource("1_a6uv4")
+shape = 0
+family = "walls"
+size_cells = Vector3i(3, 1, 0)
+edge = "gallery_end"
+tags = PackedStringArray("wood", "vertical", "hall_12m")
+source_glb = "res://assets/kit/walls/gallery_end_12m.glb"
+
+[node name="Mesh" parent="." unique_id=1257942295 instance=ExtResource("2_pncxn")]

@@ -86,6 +86,17 @@ func check_module(entry: Dictionary) -> void:
 		"stair_gallery_8m":
 			check(has_in_group(parts, "kit_snap", "SNAP_stair_head") and has_in_group(parts, "kit_snap", "SNAP_stair_foot"),
 				"stair has head and foot connectors")
+		"stair_gallery_8m_r":
+			var head: Array = parts.filter(func(n: Node) -> bool: return String(n.name).begins_with("SNAP_stair_head"))
+			check(head.size() == 1 and (head[0] as Node3D).position.is_equal_approx(Vector3(0, 4.15, -0.95)),
+				"reversed stair has its head at its origin end")
+		"gallery_slab_4m_open_end", "gallery_slab_4m_open_start", "gallery_end_12m":
+			var rail: Array = parts.filter(func(n: Node) -> bool: return n is MeshInstance3D and String(n.name).contains("rail"))
+			var span: AABB = (rail[0] as MeshInstance3D).get_aabb() if not rail.is_empty() else AABB()
+			var want: Vector2 = {"gallery_slab_4m_open_end": Vector2(0.0, 2.44), "gallery_slab_4m_open_start": Vector2(1.56, 4.0),
+				"gallery_end_12m": Vector2(1.45, 10.55)}[name]
+			check(absf(span.position.x - want.x) < 0.02 and absf(span.end.x - want.y) < 0.02,
+				"%s rail spans x %.2f-%.2f (found %.2f-%.2f)" % [name, want.x, want.y, span.position.x, span.end.x])
 		"table_reading":
 			check(parts.filter(func(n: Node) -> bool: return n.is_in_group("npc_anchor")).size() == 6, "reading table has 6 seat anchors")
 		"rug_runner":

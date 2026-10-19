@@ -14,6 +14,15 @@ modules = Array[Dictionary]([{
 "tags": PackedStringArray("stone", "floor"),
 "weight": 1.0
 }, {
+"edge": "gallery_end",
+"family": "walls",
+"name": "gallery_end_12m",
+"scene": "res://kit/modules/walls/gallery_end_12m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(3, 1, 0),
+"tags": PackedStringArray("wood", "vertical", "hall_12m"),
+"weight": 1.0
+}, {
 "edge": "gallery",
 "family": "walls",
 "name": "gallery_slab_4m",
@@ -21,6 +30,24 @@ modules = Array[Dictionary]([{
 "shape": "edge",
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("wood", "vertical"),
+"weight": 1.0
+}, {
+"edge": "gallery",
+"family": "walls",
+"name": "gallery_slab_4m_open_end",
+"scene": "res://kit/modules/walls/gallery_slab_4m_open_end.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("wood", "vertical", "gallery_corner"),
+"weight": 1.0
+}, {
+"edge": "gallery",
+"family": "walls",
+"name": "gallery_slab_4m_open_start",
+"scene": "res://kit/modules/walls/gallery_slab_4m_open_start.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("wood", "vertical", "gallery_corner"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -72,6 +99,15 @@ modules = Array[Dictionary]([{
 "family": "walls",
 "name": "stair_gallery_8m",
 "scene": "res://kit/modules/walls/stair_gallery_8m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(2, 1, 0),
+"tags": PackedStringArray("stone", "vertical"),
+"weight": 1.0
+}, {
+"edge": "stair",
+"family": "walls",
+"name": "stair_gallery_8m_r",
+"scene": "res://kit/modules/walls/stair_gallery_8m_r.tscn",
 "shape": "edge",
 "size_cells": Vector3i(2, 1, 0),
 "tags": PackedStringArray("stone", "vertical"),

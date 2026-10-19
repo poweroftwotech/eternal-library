@@ -23,6 +23,13 @@ New modules (laid out on a row at Blender Y = -24 for viewing):
   lantern_cluster    free: chandelier (one big, four small lanterns) on a chain
                      up into a 12 m hall vault; carries one light.
   rug_runner         free: three rugs end to end down the middle of the hall.
+  stair_gallery_8m_r the stair mirrored: rises toward its origin (step 2b).
+  gallery_slab_4m_open_end / _open_start
+                     gallery slab whose rail stops 1.6 m short of the X=4 / X=0
+                     end, for the corner where an end-wall gallery joins.
+  gallery_end_12m    gallery along a 12 m end wall between the side lanes,
+                     newel posts at both corners, wall corbels clear of a
+                     central 3 m arch.
 """
 import math
 import os
@@ -106,17 +113,19 @@ def iwan(r):
     marker("ANCHOR_study__iwan", r, (6.0, -1.2, 0.0))
 
 
-def stair(r):
+def stair(r, name="stair_gallery_8m", reverse=False):
+    """reverse=True mirrors along X: the stair rises toward its origin, so on a
+    wall it climbs the other way from the plain one (same footprint)."""
     steps, run, top, y0, y1 = 20, 8.0, H + 0.15, T, 1.6
     rise, tread = top / steps, run / steps
     bm = bmesh.new()
     for i in range(steps):
         add_box(bm, i * tread, (i + 1) * tread, y0, y1, 0.0, (i + 1) * rise)
-    mesh_object("stair_gallery_8m__steps", bm, ["arch_stone"], r)
+    mesh_object(name + "__steps", flip(bm, run, reverse), ["arch_stone"], r)
     # Walkable ramp through the middle of the treads (collision only).
     bm = bmesh.new()
     add_prism(bm, [(-tread / 2, 0.0), (run - tread / 2, top), (run, top), (run, 0.0)], 0.0, 0.0, y0, y1)
-    mesh_object("stair_gallery_8m__ramp-colonly", bm, ["arch_stone"], r)
+    mesh_object(name + "__ramp-colonly", flip(bm, run, reverse), ["arch_stone"], r)
     # Balustrade on the open side: posts and a sloped handrail.
     bm = bmesh.new()
     x = tread / 2
@@ -132,9 +141,81 @@ def stair(r):
     for i in range(4):
         j = (i + 1) % 4
         bm.faces.new((a[i], a[j], b[j], b[i]))
-    mesh_object("stair_gallery_8m__rail-col", bm, ["wood"], r)
-    marker("SNAP_stair_foot__g", r, (0.0, (y0 + y1) / 2, 0.0), {"snap_kind": "stair_foot"})
-    marker("SNAP_stair_head__g", r, (run, (y0 + y1) / 2, top), {"snap_kind": "stair_head"})
+    mesh_object(name + "__rail-col", flip(bm, run, reverse), ["wood"], r)
+    foot, head = (run, 0.0) if reverse else (0.0, run)
+    marker("SNAP_stair_foot__" + name, r, (foot, (y0 + y1) / 2, 0.0), {"snap_kind": "stair_foot"})
+    marker("SNAP_stair_head__" + name, r, (head, (y0 + y1) / 2, top), {"snap_kind": "stair_head"})
+
+
+def flip(bm, run, on):
+    """Mirror a bmesh along X about run / 2 (normals are recalculated later)."""
+    if on:
+        for v in bm.verts:
+            v.co.x = run - v.co.x
+    return bm
+
+
+def stair_reversed(r):
+    stair(r, "stair_gallery_8m_r", reverse=True)
+
+
+GAL_Y0, GAL_Y1 = T, 1.6          # gallery lane, as gallery_slab_4m
+RAIL_Y0, RAIL_Y1 = 1.46, 1.56    # handrail band along the hall side
+
+
+def balustrade(bm, x0, x1):
+    """Balusters every 0.5 m and a top rail between x0 and x1 (as gallery_slab_4m)."""
+    x = x0 + 0.05
+    while x < x1 - 0.02:
+        add_box(bm, x, x + 0.06, 1.48, 1.54, H + 0.15, H + 0.95)
+        x += 0.5
+    add_box(bm, x0, x1, RAIL_Y0, RAIL_Y1, H + 0.92, H + 1.0)
+
+
+def newel(bm, x):
+    """Corner post that swallows the meeting rail ends (no coplanar faces)."""
+    add_box(bm, x - 0.06, x + 0.06, 1.45, 1.57, H + 0.15, H + 1.06)
+
+
+def gallery_open(r, name, rail_x0, rail_x1):
+    """gallery_slab_4m with its rail stopped 1.6 m short of one end, so the
+    corner square under it opens onto an end-wall gallery."""
+    bm = bmesh.new()
+    add_box(bm, 0, 4, GAL_Y0, GAL_Y1, H - 0.15, H + 0.15)
+    mesh_object(name + "__slab-col", bm, ["wood"], r)
+    bm = bmesh.new()
+    balustrade(bm, rail_x0, rail_x1)
+    mesh_object(name + "__rail-col", bm, ["wood"], r)
+    marker("ANCHOR_lookout__" + name, r, (2.0, 1.0, H + 0.15))
+
+
+def gallery_open_end(r):
+    gallery_open(r, "gallery_slab_4m_open_end", 0.0, 4.0 - GAL_Y1 + 0.04)
+
+
+def gallery_open_start(r):
+    gallery_open(r, "gallery_slab_4m_open_start", GAL_Y1 - 0.04, 4.0)
+
+
+def gallery_end(r):
+    """Gallery along a 12 m end wall, between the two side-gallery lanes. Pair
+    it with gallery_slab_4m_open_end / _open_start at the corners."""
+    x0, x1 = GAL_Y1, HALL - GAL_Y1
+    bm = bmesh.new()
+    add_box(bm, x0, x1, GAL_Y0, GAL_Y1, H - 0.15, H + 0.15)
+    mesh_object("gallery_end_12m__slab-col", bm, ["wood"], r)
+    bm = bmesh.new()
+    balustrade(bm, x0 - 0.04, x1 + 0.04)
+    newel(bm, x0 - 0.09)
+    newel(bm, x1 + 0.09)
+    mesh_object("gallery_end_12m__rail-col", bm, ["wood"], r)
+    # Wall corbels under the slab, clear of a central 3 m arch (x 4.5-7.5).
+    bm = bmesh.new()
+    for x in (2.4, 3.9, 7.9, 9.4):
+        add_box(bm, x - 0.15, x + 0.15, GAL_Y0, GAL_Y0 + 0.25, H - 0.55, H - 0.15)
+        add_box(bm, x - 0.15, x + 0.15, GAL_Y0 + 0.25, GAL_Y0 + 0.45, H - 0.35, H - 0.15)
+    mesh_object("gallery_end_12m__corbels", bm, ["arch_stone"], r)
+    marker("ANCHOR_lookout__gallery_end", r, (HALL / 2, 1.0, H + 0.15))
 
 
 def pier_corbel(r):
@@ -221,6 +302,11 @@ MODULES = [
     ("M_table_reading", props("free", [0, 1, 0], "", "wood,furniture"), table),
     ("M_lantern_cluster", props("free", [0, 4, 0], "", "brass,light,hall_12m"), lantern_cluster),
     ("M_rug_runner", props("free", [0, 0, 0], "", "cloth,floor"), rug_runner),
+    # Step 2b: one continuous gallery (side runs + end-wall run, stairs both ways).
+    ("M_stair_gallery_8m_r", props("edge", [2, 1, 0], "stair", "stone,vertical"), stair_reversed),
+    ("M_gallery_slab_4m_open_end", props("edge", [1, 1, 0], "gallery", "wood,vertical,gallery_corner"), gallery_open_end),
+    ("M_gallery_slab_4m_open_start", props("edge", [1, 1, 0], "gallery", "wood,vertical,gallery_corner"), gallery_open_start),
+    ("M_gallery_end_12m", props("edge", [3, 1, 0], "gallery_end", "wood,vertical,hall_12m"), gallery_end),
 ]
 
 

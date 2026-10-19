@@ -8,13 +8,12 @@ extends SceneTree
 ##
 ## Layout (z = 0 is the entrance end, the iwan closes z = -20):
 ##   south  arch entrance in the middle bay, gable over the vault end
-##   west   bay 1 side door; stair over bays 2-3 rising toward the entrance to
-##          a gallery over bays 0-1
-##   east   bay 3 side door; stair over bays 1-2 rising toward the iwan to a
-##          gallery over bays 3-4
+##   west   bay 1 side door; stair over bays 2-3 rising toward the entrance
+##   east   mirror of the west (stair_gallery_8m_r so it also rises south)
+##   gallery one U-shaped walk: side galleries over bays 0-1 joined along the
+##          entrance wall by gallery_end_12m (corner slabs open their rails)
 ##   north  12 m iwan (two storeys) with the vault gable above
-## Bays the stairs cover get plain walls (shelves would be hidden). A full
-## two-sided gallery needs a gallery corner/bridge module the kit lacks yet.
+## Bays the stairs cover get plain walls (shelves would be hidden).
 
 const OUT: String = "res://rooms/authored/reading_room.tscn"
 const MOD: String = "res://kit/modules/walls/"
@@ -58,26 +57,25 @@ func _initialize() -> void:
 
 
 func build_shell() -> void:
-	var west_low: Array[String] = ["wall_shelfbay_4m", "wall_arch_3m", "wall_plain_4m", "wall_plain_4m", "wall_shelfbay_4m"]
-	var east_low: Array[String] = ["wall_shelfbay_4m", "wall_plain_4m", "wall_plain_4m", "wall_arch_3m", "wall_shelfbay_4m"]
+	# Lower storey of each side wall, bay 0 to 4 (both sides are mirror images).
+	var side_low: Array[String] = ["wall_shelfbay_4m", "wall_arch_3m", "wall_plain_4m", "wall_plain_4m", "wall_shelfbay_4m"]
 	for k: int in BAYS:
 		var z: float = -k * BAY
 		for x: float in [0.0, BAY, 2 * BAY]:
 			place("Shell", "floor_4m", Vector3(x, 0, z), 0)
 		place("Shell", "vault_hall_12m", Vector3(0, BAY, z), 0)
 		# West wall runs +Z from its origin (yaw -90); east wall runs -Z (yaw 90).
-		place("Shell", west_low[k], Vector3(0, 0, z - BAY), -90)
-		place("Shell", east_low[k], Vector3(WIDTH, 0, z), 90)
+		place("Shell", side_low[k], Vector3(0, 0, z - BAY), -90)
+		place("Shell", side_low[k], Vector3(WIDTH, 0, z), 90)
 		place("Shell", "wall_shelfbay_4m", Vector3(0, BAY, z - BAY), -90)
 		place("Shell", "wall_shelfbay_4m", Vector3(WIDTH, BAY, z), 90)
-		if k <= 1:
-			place("Shell", "gallery_slab_4m", Vector3(0, 0, z - BAY), -90)
-		if k >= 3:
-			place("Shell", "gallery_slab_4m", Vector3(WIDTH, 0, z), 90)
-	# Stairs: a stair rises along its local +X. West (yaw -90) rises toward +Z,
-	# east (yaw 90) toward -Z.
-	place("Shell", "stair_gallery_8m", Vector3(0, 0, -4 * BAY), -90)     # z -16 -> -8
-	place("Shell", "stair_gallery_8m", Vector3(WIDTH, 0, -BAY), 90)     # z -4 -> -12
+		if k <= 1:   # bay 0 slabs open their rail at the corner onto the end gallery
+			place("Shell", "gallery_slab_4m_open_end" if k == 0 else "gallery_slab_4m", Vector3(0, 0, z - BAY), -90)
+			place("Shell", "gallery_slab_4m_open_start" if k == 0 else "gallery_slab_4m", Vector3(WIDTH, 0, z), 90)
+	# Stairs: stair_gallery_8m rises along its local +X, the _r variant toward its
+	# origin. West (yaw -90) and east _r (yaw 90) both rise toward the entrance.
+	place("Shell", "stair_gallery_8m", Vector3(0, 0, -4 * BAY), -90)         # z -16 -> -8
+	place("Shell", "stair_gallery_8m_r", Vector3(WIDTH, 0, -2 * BAY), 90)    # z -16 -> -8
 	# South end: entrance arch below, plain wall and a shelf bay above, gable on top.
 	place("Shell", "wall_plain_4m", Vector3(0, 0, 0), 0)
 	place("Shell", "wall_arch_3m", Vector3(BAY, 0, 0), 0)
@@ -86,6 +84,7 @@ func build_shell() -> void:
 	place("Shell", "wall_shelfbay_4m", Vector3(BAY, BAY, 0), 0)
 	place("Shell", "wall_plain_4m", Vector3(2 * BAY, BAY, 0), 0)
 	place("Shell", "wall_gable_12m", Vector3(0, BAY, 0), 0)
+	place("Shell", "gallery_end_12m", Vector3(0, 0, 0), 0)   # over the entrance arch
 	# North end: the iwan faces back toward +Z, so it is turned 180 degrees.
 	var zn: float = -BAYS * BAY
 	place("Shell", "wall_iwan_12m", Vector3(WIDTH, 0, zn), 180)
@@ -95,7 +94,7 @@ func build_shell() -> void:
 	for k: int in BAYS + 1:
 		var z: float = -k * BAY
 		place("Shell", "post_pier" if k == 3 else "post_pier_corbel", Vector3(0, 0, z), 0)
-		place("Shell", "post_pier" if k == 2 else "post_pier_corbel", Vector3(WIDTH, 0, z), 0)
+		place("Shell", "post_pier" if k == 3 else "post_pier_corbel", Vector3(WIDTH, 0, z), 0)
 		place("Shell", "post_pier", Vector3(0, BAY, z), 0)
 		place("Shell", "post_pier", Vector3(WIDTH, BAY, z), 0)
 
@@ -113,7 +112,6 @@ func build_lights() -> void:
 	# Hanging lanterns under the galleries (chain top tucks into the slab).
 	for z: float in [-2.0, -6.0]:
 		place("Lights", "lantern_hanging", Vector3(1.0, 0, z), 0)
-	for z: float in [-14.0, -18.0]:
 		place("Lights", "lantern_hanging", Vector3(WIDTH - 1.0, 0, z), 0)
 	# The iwan's single lamp, hung from its apex (7.45 m).
 	place("Lights", "lantern_hanging", Vector3(6, 3.5, -21.5), 0)
@@ -124,7 +122,7 @@ func build_connectors() -> void:
 	var doors: Array = [
 		["SNAP_entrance", Vector3(6, 0, 0), 180.0],
 		["SNAP_door_west", Vector3(0, 0, -6), 90.0],
-		["SNAP_door_east", Vector3(WIDTH, 0, -14), -90.0],
+		["SNAP_door_east", Vector3(WIDTH, 0, -6), -90.0],
 	]
 	for d: Array in doors:
 		var m := Marker3D.new()
