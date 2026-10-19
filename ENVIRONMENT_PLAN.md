@@ -459,7 +459,7 @@ the module updates.
 | Wrapper scenes and catalog (generated, then extended by hand) | `kit/modules/walls/*.tscn`, `kit/catalog.tres` |
 | Kit dock editor plugin | `addons/kit_palette/` |
 | Graybox room (1 × 3 bays, two storeys, vaulted) | `rooms/test/kit_graybox.tscn` (from `tools/build_graybox.gd`) |
-| Gate and capture | `tests/kit_test.gd` (121 checks), `tests/kit_capture.gd` → `previews/kit_graybox_*.png` |
+| Gate and capture | `tests/kit_test.gd` (121 checks in phase 0; 129 now), `tests/kit_capture.gd` → `previews/kit_graybox_*.png` |
 
 Nine modules: plain wall, shelf-recess bay, 3 m arch (with a `SNAP_door`
 connector), pier, floor, pointed vault bay, vault gable, gallery slab with
@@ -509,18 +509,35 @@ more than 300 books get built. Both 240-frame headless gates are clean. The GPU
 capture `previews/kit_graybox_entrance.png` shows books on the shelves.
 Reroll and Pin haven't been clicked in the editor yet.
 
+**Step 0 done (2026-10-18): socket panel in the Kit dock.** The Kit dock now
+has a lower **Sockets** half (drag the splitter to resize it):
+
+- **Selection:** select a module (or anything inside one) to list its sockets
+  with the current pick, where the pick comes from (seed, module pin or room
+  pin), **Prev / Next / Random** (each pins the result) and a **Pin** box
+  (untick to let the seed choose again).
+- **Room:** every socket in the open `RoomTemplate`, the same controls, a
+  **Clear all pins** button, and rows for stale pins (module renamed, moved or
+  deleted) with their own **Clear**. Clicking a socket's path selects its
+  module.
+
+Pins are stored on the room, not the socket: `RoomTemplate.socket_pins`
+(`{socket path: entry index}`), so no Editable Children is needed and the pin
+is saved with the room. A room pin wins over the socket's own `pinned`, which
+stays as the module-wide default. Every change goes through the editor undo
+history. Files: `addons/kit_palette/socket_panel.gd`, `plugin.gd`,
+`scripts/world/room_template.gd`, `variant_socket.gd`.
+
+**Verified:** `tests/kit_test.gd` passes 129 checks (room pin beats seed and
+module pin, clearing restores the seeded pick, stale pins reported).
+`tests/socket_pin_persist.gd` saves pinned picks in one process (`-- save`)
+and restores them in a fresh one (`-- load`) with no `[editable]` entries.
+Both 240-frame gates are clean, and the editor loads the plugin headless
+without errors. **Not verified:** clicking the panel in the editor (layout,
+icons, undo/redo from Ctrl+Z).
+
 **Next steps for phase 1, in order:**
-0. **Socket panel in the Kit dock (do first; requested by the user 2026-10-18).**
-   Reaching a module's socket today takes Editable Children on the wrapper and
-   again on its Mesh. The user tested this and found it too clunky for daily use.
-   Add a section to the Kit dock: when a module (or any node inside one) is
-   selected in the viewport or Scene dock, list its `VariantSocket`s with the
-   current pick, **Prev / Next / Random**, a **Pin** toggle and a **Clear pin**
-   button. Edits must be undoable (`EditorUndoRedoManager`) and saved as
-   per-room overrides on the socket (`pinned`) without the user enabling
-   Editable Children. Check that the override survives saving and reopening
-   the room. Also add a room-level list: every socket in the open
-   `RoomTemplate`, so all pins in a room can be reviewed and cleared in one place.
+0. ~~**Socket panel in the Kit dock**~~ (done, see above).
 1. **More modules for R01** (in `kit_walls.blend`): a 12 m-wide hall needs
    walls on 3-bay runs, a wide iwan end-wall module (6 m arch, deep), a stair to
    the gallery, a reading table, a lantern cluster and a carpet runner. Corner

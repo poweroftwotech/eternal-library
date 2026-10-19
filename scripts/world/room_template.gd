@@ -5,6 +5,11 @@ extends Node3D
 ## VariantSocket in the room from one seed: in the editor from preview_seed
 ## (change it, or press Reroll, to see other variants), at runtime from the
 ## area seed once areas exist (phase 4), otherwise from preview_seed.
+##
+## socket_pins holds this room's own picks for sockets that live inside
+## instanced modules, keyed by socket path relative to the room. It is saved
+## with the room, so pinning never needs Editable Children; the Kit dock's
+## Sockets panel edits it. A room pin wins over the socket's own `pinned`.
 
 @export var room_id: String = ""
 @export var preview_seed: int = 1:
@@ -13,8 +18,15 @@ extends Node3D
 		if Engine.is_editor_hint() and is_inside_tree():
 			resolve_sockets(preview_seed)
 @export_tool_button("Reroll sockets") var reroll_action: Callable = _reroll
+## {socket path relative to this room: entry index}. Edit from the Kit dock.
+@export var socket_pins: Dictionary[String, int] = {}:
+	set(value):
+		socket_pins = value
+		if Engine.is_editor_hint() and is_inside_tree():
+			resolve_sockets(_last_seed)
 ## Set by the area assembler before the room enters the tree; -1 = use preview_seed.
 var area_seed: int = -1
+var _last_seed: int = 1
 
 
 func _ready() -> void:
@@ -27,14 +39,32 @@ func sockets() -> Array[VariantSocket]:
 	return out
 
 
+func socket_key(s: VariantSocket) -> String:
+	return str(get_path_to(s))
+
+
 ## Returns {socket path: picked index}.
 func resolve_sockets(seed_value: int) -> Dictionary:
+	_last_seed = seed_value
 	var picks: Dictionary = {}
-	var rid: String = room_id if room_id != "" else String(name)
 	for s: VariantSocket in sockets():
-		var key: String = str(get_path_to(s))
-		picks[key] = s.resolve(hash([seed_value, rid, key]))
+		var key: String = socket_key(s)
+		picks[key] = s.resolve(socket_seed(seed_value, key), socket_pins.get(key, -1))
 	return picks
+
+
+func socket_seed(seed_value: int, key: String) -> int:
+	var rid: String = room_id if room_id != "" else String(name)
+	return hash([seed_value, rid, key])
+
+
+## Pins whose socket no longer exists (module renamed, moved or deleted).
+func stale_pins() -> PackedStringArray:
+	var out: PackedStringArray = []
+	for key: String in socket_pins:
+		if not get_node_or_null(NodePath(key)) is VariantSocket:
+			out.append(key)
+	return out
 
 
 func _collect(node: Node, out: Array[VariantSocket]) -> void:

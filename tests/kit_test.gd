@@ -188,6 +188,23 @@ func check_sockets(room: Node3D) -> void:
 		pinned_ok = pinned_ok and first.last_pick == 2
 	check(pinned_ok, "a pinned socket keeps its candidate across seeds")
 	first.pinned = -1
+	# Room pins (Kit dock Sockets panel): win over the seed and the module's own
+	# pin, and go away cleanly.
+	var key: String = tmpl.socket_key(first)
+	var free_pick: int = tmpl.resolve_sockets(1)[key]
+	var forced: int = (free_pick + 1) % first.candidate_count()
+	tmpl.socket_pins = {key: forced}
+	first.pinned = free_pick
+	var room_pin_ok: bool = true
+	for s: int in range(1, 6):
+		room_pin_ok = room_pin_ok and tmpl.resolve_sockets(s)[key] == forced
+	check(room_pin_ok, "a room pin wins over the seed and the module pin")
+	first.pinned = -1
+	tmpl.socket_pins = {}
+	check(tmpl.resolve_sockets(1)[key] == free_pick, "clearing the room pin restores the seeded pick")
+	tmpl.socket_pins = {"Shell/no_such_module/SOCKET": 0}
+	check(tmpl.stale_pins().size() == 1, "a pin for a missing socket is reported stale")
+	tmpl.socket_pins = {}
 	tmpl.resolve_sockets(1)
 
 

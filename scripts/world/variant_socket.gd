@@ -26,6 +26,8 @@ enum Mode { REPLACE, TOGGLE }
 
 var last_pick: int = -1
 var _seed: int = 0
+## Pin set by the owning room (RoomTemplate.socket_pins); wins over `pinned`.
+var room_pin: int = -1
 var _child: Node
 
 
@@ -44,15 +46,17 @@ func room() -> Node:
 	return null
 
 
-func resolve(seed_value: int) -> int:
+func resolve(seed_value: int, room_pin_value: int = -1) -> int:
 	_seed = seed_value
+	room_pin = room_pin_value
 	clear()
 	if socket_set == null or socket_set.entries.is_empty():
 		last_pick = -1
 		return -1
 	var rng := RandomNumberGenerator.new()
 	rng.seed = seed_value
-	var idx: int = pinned if pinned >= 0 and pinned < socket_set.entries.size() else socket_set.pick(rng)
+	var force: int = effective_pin()
+	var idx: int = force if force >= 0 else socket_set.pick(rng)
 	if mode == Mode.TOGGLE and rng.randf() > toggle_chance:
 		idx = -1
 	if idx >= 0 and socket_set.entries[idx].scene != null:
@@ -71,10 +75,7 @@ func clear() -> void:
 
 
 func picked_label() -> String:
-	if last_pick < 0 or socket_set == null:
-		return "(none)"
-	var e: SocketEntry = socket_set.entries[last_pick]
-	return e.label if e.label != "" else e.scene.resource_path.get_file().get_basename()
+	return entry_label(last_pick)
 
 
 func _pin_next() -> void:
@@ -85,4 +86,29 @@ func _pin_next() -> void:
 
 func _editor_refresh() -> void:
 	if Engine.is_editor_hint() and is_inside_tree():
-		resolve(_seed)
+		resolve(_seed, room_pin)
+
+
+## The entry this socket is forced to (room pin first, then its own), or -1.
+func effective_pin() -> int:
+	var n: int = socket_set.entries.size() if socket_set != null else 0
+	if room_pin >= 0 and room_pin < n:
+		return room_pin
+	if pinned >= 0 and pinned < n:
+		return pinned
+	return -1
+
+
+func candidate_count() -> int:
+	return socket_set.entries.size() if socket_set != null else 0
+
+
+func entry_label(idx: int) -> String:
+	if socket_set == null or idx < 0 or idx >= socket_set.entries.size():
+		return "(none)"
+	var e: SocketEntry = socket_set.entries[idx]
+	if e == null:
+		return "(empty)"
+	if e.label != "":
+		return e.label
+	return e.scene.resource_path.get_file().get_basename() if e.scene != null else "(no scene)"

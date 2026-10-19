@@ -11,14 +11,19 @@ extends EditorPlugin
 ##
 ## Modules go under the edited scene's "Shell" node if it has one, otherwise
 ## under the scene root.
+##
+## The lower half (socket_panel.gd) lists and pins the VariantSockets of the
+## selected module and of the whole room.
 
 const CATALOG_PATH: String = "res://kit/catalog.tres"
 const BAY: float = 4.0
+const SocketPanel: GDScript = preload("res://addons/kit_palette/socket_panel.gd")
 
 var _dock: VBoxContainer
 var _filter: LineEdit
 var _list: ItemList
 var _status: Label
+var _sockets: SocketPanel
 var _catalog: KitCatalog
 var _shown: Array[Dictionary] = []
 var _armed: Dictionary = {}
@@ -57,7 +62,13 @@ func _build_dock() -> VBoxContainer:
 	_list.fixed_icon_size = Vector2i(64, 64)
 	_list.icon_mode = ItemList.ICON_MODE_LEFT
 	_list.item_selected.connect(_on_item_selected)
-	box.add_child(_list)
+	var split := VSplitContainer.new()
+	split.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	box.add_child(split)
+	var top := VBoxContainer.new()
+	top.size_flags_vertical = Control.SIZE_EXPAND_FILL
+	split.add_child(top)
+	top.add_child(_list)
 	var row := HBoxContainer.new()
 	var refresh := Button.new()
 	refresh.text = "Refresh catalog"
@@ -69,11 +80,14 @@ func _build_dock() -> VBoxContainer:
 	validate.tooltip_text = "Check kit modules in the open scene: grid alignment, rotation, scale."
 	validate.pressed.connect(_on_validate)
 	row.add_child(validate)
-	box.add_child(row)
+	top.add_child(row)
 	_status = Label.new()
 	_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	_status.text = "Pick a module, then click in the 3D view.\nR rotate · PgUp/PgDn storey · Ctrl 2 m · Shift 0.5 m · Esc stop"
-	box.add_child(_status)
+	top.add_child(_status)
+	_sockets = SocketPanel.new()
+	_sockets.undo_redo = get_undo_redo()
+	split.add_child(_sockets)
 	return box
 
 
@@ -161,6 +175,7 @@ func _disarm() -> void:
 
 
 func _on_scene_changed(_root: Node) -> void:
+	_sockets.queue_refresh()
 	_disarm()
 
 
