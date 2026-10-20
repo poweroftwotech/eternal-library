@@ -466,6 +466,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "post_gallery_column_corner_r",
+"scene": "res://kit/modules/walls/post_gallery_column_corner_r.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("stone", "gallery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "post_pier",
 "scene": "res://kit/modules/walls/post_pier.tscn",
 "shape": "post",

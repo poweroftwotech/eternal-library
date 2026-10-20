@@ -17,7 +17,7 @@ Every module's origin is the socket it fills (Blender axes; Godot -Z = +Y):
   gallery_wood_*, gallery_masonry_* a gallery_style_* socket at its gallery module's origin
                (wall line, floor level; the slab lane is y 0.3..1.6).
   gallery_column(_corner) a gallery_support(_corner) socket: the column centre
-               (floor level); the wall is -Y (and -X for the corner).
+               (floor level); the wall the arch reaches is -Y.
   growth_*    a growth socket (polish B): on the face the ivy clings to, room +Y.
                arch: the arch centre at floor level; cornice: the springing line;
                parapet: the coping top centre line (pitched on a stair).
@@ -582,6 +582,7 @@ COL_Y = 1.4                     # column centre line, from the wall line
 SPRING = 1.85                   # abacus top: every arch springs here (capsule 1.75 m)
 ARCADE_APEX, ARM_APEX = 3.55, 3.3
 ABACUS = 0.32                   # abacus half width
+COL_BASE = 0.24                 # column base half width: 0.74 m clear of a pier base (0.42)
 RING = 0.18                     # voussoir depth
 ARCADE = (COL_Y - 0.2, COL_Y + 0.2)
 BAL_Y = 1.49                    # stone balustrade centre line
@@ -732,10 +733,10 @@ def gallery_masonry_end(r):
 
 
 # Supports: a post_gallery_column(_corner) socket at the column point (floor
-# level). The wall is -Y, COL_Y away (the corner's second wall is -X).
+# level). The wall is -Y, COL_Y away.
 def stone_column(bm):
     """Square base, turned shaft, flared capital, abacus (top at SPRING)."""
-    add_box(bm, -0.28, 0.28, -0.28, 0.28, 0.0, 0.22)
+    add_box(bm, -COL_BASE, COL_BASE, -COL_BASE, COL_BASE, 0.0, 0.22)
     add_lathe(bm, [(0.0, 0.22), (0.23, 0.22), (0.23, 0.28), (0.19, 0.36), (0.17, 0.44), (0.16, 1.44), (0.2, 1.47),
                    (0.2, 1.52), (0.17, 1.55), (0.3, 1.72), (0.0, 1.72)], segs=12)
     add_box(bm, -ABACUS, ABACUS, -ABACUS, ABACUS, 1.72, SPRING)
@@ -777,8 +778,11 @@ def gallery_column(r):
 
 
 def gallery_column_corner(r):
-    """Two arches, one to each wall (-Y and -X), continuing the arcade lines."""
-    gallery_support(r, "gallery_column_corner", (-90, 180), 0.2)
+    """One arch to the -Y wall (the end wall), continuing the side arcade's line.
+    The -X wall is a side wall with a recess beside the corner, so an arch there
+    would land in the recess mouth; post_gallery_column_corner_r turns this
+    socket so the arch reaches the end wall on the other side too."""
+    gallery_support(r, "gallery_column_corner", (-90,), 0.2)
 
 
 # --- growth (polish slice B item 5) ------------------------------------------
@@ -991,8 +995,8 @@ MODULES = [
     ("M_gallery_masonry_open_start", props("stone,brick,gallery"), gallery_masonry_open_start),
     ("M_gallery_wood_end", props("wood,gallery"), gallery_wood_end),
     ("M_gallery_masonry_end", props("stone,brick,gallery"), gallery_masonry_end),
-    ("M_gallery_column", props("stone,brick,gallery,structure"), gallery_column),
-    ("M_gallery_column_corner", props("stone,brick,gallery,structure"), gallery_column_corner),
+    ("M_gallery_column", dict(props("stone,brick,gallery,structure"), kit_rev=2), gallery_column),
+    ("M_gallery_column_corner", dict(props("stone,brick,gallery,structure"), kit_rev=2), gallery_column_corner),
     # Polish B item 5: growth over arches, from the vault springing and on stone copings.
     ("M_growth_arch_3m_light", props("plant,ivy,arch"), growth_arch_3m_light),
     ("M_growth_arch_3m_heavy", props("plant,ivy,arch"), growth_arch_3m_heavy),
@@ -1018,7 +1022,8 @@ def main():
             added.append(name)
     REBUILD = [("M_recess_shelves_broken", 5),   # rev 3: floor boards split out as __spill; rev 5: roots (polish B)
                ("M_stair_steps_masonry", 6), ("M_stair_steps_open", 3),   # rev 2: railings, fill, claims (polish A)
-               ("M_stair_steps_masonry_r", 6), ("M_stair_steps_open_r", 3)]   # 1b balustrade, 1c head claim; rev 6/3: claims start off the wall line
+               ("M_stair_steps_masonry_r", 6), ("M_stair_steps_open_r", 3),   # 1b balustrade, 1c head claim; rev 6/3: claims start off the wall line
+               ("M_gallery_column", 2), ("M_gallery_column_corner", 2)]   # rev 2: slimmer plinth; the corner keeps one arch
     added += ["%s (rebuilt rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
     if not added:
         print("kit_add_dressing: all modules already present; nothing to do.")

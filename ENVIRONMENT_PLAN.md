@@ -2226,3 +2226,58 @@ Design in §5.5.10.
 **Next:** phase 2 is complete (slices 1-4). Next on the §10 roadmap is
 phase 3 (props and persistence). Phase 4's "one baked room" can use this
 bake.
+
+### Loose ends after phase 2 (done 2026-10-20)
+
+Five caveats left open by polish 1c and phase 2. They're closed before phase 3.
+
+1. **Walkway past the gallery columns.** The pinch was between two bases: the
+   pier base (±0.48) and the column plinth (±0.28), 0.64 m apart. Now the
+   `post_pier_corbel` base is ±0.42 (rev 2) and the column plinth is
+   `COL_BASE` ±0.24 (`gallery_column(_corner)` rev 2), so the gap is 0.74 m.
+   The test capsule (r 0.35) now walks along both walls past the z -4
+   column. `COL_Y` stays 1.4: moving the column out would have narrowed the
+   hall aisle.
+2. **R01's west door aisle.** The reading tables moved 0.5 m toward the rug
+   (x 3.5 / 8.5; free modules stay on the 0.5 m grid, so 0.25 wasn't
+   allowed). The aisle between the column bases and a table is 1.16 m (it was
+   0.66). Each table now stands 0.2 m from the rug, so the strip beside the
+   rug is too narrow to show wear. R01's two walking lanes now run down the
+   outer aisles (x 2.2 / 9.8). The side-door and stair-foot spurs join them
+   there. The route test walks the aisle into each side door bay, and the
+   playtest follows it.
+3. **Stair capture.** The `stair` view starts at (6, 1.7, -2.4), clear of
+   the x 8 column. The `relief_lane` view looks down the new west aisle.
+4. **In-tree Validate Room warnings.** These weren't false positives. The
+   corner column's second arch, the one to the side wall, landed in the mouth
+   of the bay-0 shelf recess. Each corner column now has one arch, to the end
+   wall, continuing the side arcade's line. The east corner uses
+   `post_gallery_column_corner_r`, whose socket is turned -90 degrees so its
+   arch also reaches the end wall. Both corners share the
+   `gallery_support_corner` set. `validate_room_test` now also validates R01
+   in the tree, with its sockets spawned, and it's clean.
+5. **Gallery wear strength: decided to leave it.** The R02 gallery is dark
+   by design (lamp falloff). Darkening is a percentage of an already dark
+   floor, so even 3x the current 5 % wouldn't read. The only cue that does
+   read in the dark is the sheen under a lit lamp, which is there already.
+   A stronger value would change R01's tuned lanes too. So `wear_strength`,
+   `wear_roughness` and the 5 % tint stay shared and unchanged. Revisit if
+   the gallery's lighting changes.
+
+**Gates:**
+- kit_test: 880 checks
+- validate_room_test: 26 checks
+- reading_room_test: 87 checks
+- room_playtest: 18 checks
+- socket_modes_test: 246 checks
+- r02_route_test: 526 checks
+- r02_bake_test: 105 checks
+- the 240-frame headless run
+
+All pass.
+
+GPU captures: `previews/reading_room_le_{stair,under_gallery,arcade,relief_lane,entrance}.png`.
+
+**Caveat:** the 0.74 m walkway still leaves the player (r 0.32) only 5 cm a
+side. It's passable, not roomy. Widening it further means a deeper gallery
+lane (`GAL_Y1`), which would change every gallery module.

@@ -15,7 +15,7 @@ const VIEWS: Dictionary = {
 	"entrance": [Vector3(6.0, 1.7, -0.8), Vector3(6.0, 5.5, -20.0), 74.0],
 	"iwan": [Vector3(6.0, 1.6, -12.0), Vector3(6.0, 3.6, -23.0), 70.0],
 	"gallery": [Vector3(1.0, 5.8, -1.0), Vector3(9.0, 6.0, -14.0), 74.0],
-	"stair": [Vector3(7.5, 1.7, -0.8), Vector3(11.0, 3.2, -11.0), 72.0],
+	"stair": [Vector3(6.0, 1.7, -2.4), Vector3(11.0, 3.2, -11.0), 72.0],   # clear of the x 8 gallery column (loose ends)
 	"vault": [Vector3(6.0, 1.7, -8.0), Vector3(6.0, 14.0, -13.0), 80.0],
 	"end_gallery": [Vector3(6.0, 2.2, -13.0), Vector3(6.0, 4.6, 0.0), 72.0],
 	"table": [Vector3(4.6, 1.9, -4.6), Vector3(3.0, 0.7, -6.8), 60.0],
@@ -32,7 +32,7 @@ const VIEWS: Dictionary = {
 	"relief_floor": [Vector3(7.6, 1.0, -1.2), Vector3(6.0, 0.0, -5.6), 64.0],        # low over the flags toward the floor lantern (polish C)
 	"relief_wall": [Vector3(7.0, 1.8, -16.5), Vector3(11.9, 2.6, -21.5), 66.0],       # along the brick beside the iwan, lamp-lit (polish C)
 	"relief_damp": [Vector3(8.2, 1.1, -3.8), Vector3(10.2, 0.0, -1.8), 60.0],         # a floor-wear socket toward the east hanging lantern (polish C)
-	"relief_lane": [Vector3(4.1, 0.9, -2.6), Vector3(3.6, 0.0, -9.5), 62.0],          # low down the west walking lane toward the floor lantern (polish C item 9)
+	"relief_lane": [Vector3(2.5, 0.9, -2.9), Vector3(2.2, 0.0, -9.5), 62.0],          # low down the west walking lane, the aisle outside the tables (polish C item 9; loose ends)
 }
 
 

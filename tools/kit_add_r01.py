@@ -257,12 +257,18 @@ def gallery_column(r):
 def gallery_column_corner(r):
     """As post_gallery_column at the inner corner of an L of galleries: the origin
     is the corner of the two wall lines, the column (COL_Y, COL_Y) from it, with
-    arches to both walls (-Y and -X)."""
+    one arch to the -Y wall (the end wall: the side wall's recess is too close
+    to the corner to take one)."""
+
+
+def gallery_column_corner_r(r):
+    """post_gallery_column_corner for the other hand of corner: the socket is
+    turned -90 degrees, so its arch reaches the -X wall (here the end wall)."""
 
 
 def pier_corbel(r):
     bm = bmesh.new()
-    add_box(bm, -0.48, 0.48, -0.48, 0.48, 0.0, 0.3)
+    add_box(bm, -0.42, 0.42, -0.42, 0.42, 0.0, 0.3)     # rev 2: 0.48 -> 0.42, 0.74 m to a gallery column base
     add_box(bm, -0.4, 0.4, -0.4, 0.4, 0.3, H - 0.3)
     add_box(bm, -0.5, 0.5, -0.5, 0.5, H - 0.3, H)
     mesh_object("post_pier_corbel__body-col", bm, ["arch_stone"], r)
@@ -351,7 +357,7 @@ MODULES = [
     ("M_wall_gable_12m", props("edge", [3, 1, 0], "gable", "brick,structure,ceiling,hall_12m"), gable_12m),
     ("M_wall_iwan_12m", props("edge", [3, 2, 0], "iwan", "brick,tile,structure,landmark,hall_12m"), iwan),
     ("M_stair_gallery_8m", dict(props("edge", [2, 1, 0], "stair", "stone,vertical"), kit_rev=2), stair),
-    ("M_post_pier_corbel", props("post", [0, 1, 0], "", "stone,structure,gallery"), pier_corbel),
+    ("M_post_pier_corbel", dict(props("post", [0, 1, 0], "", "stone,structure,gallery"), kit_rev=2), pier_corbel),
     ("M_table_reading", props("free", [0, 1, 0], "", "wood,furniture"), table),
     ("M_lantern_cluster", dict(props("free", [0, 4, 0], "", "brass,light,hall_12m"), kit_rev=2), lantern_cluster),
     ("M_rug_runner", props("free", [0, 0, 0], "", "cloth,floor"), rug_runner),
@@ -363,6 +369,7 @@ MODULES = [
     # Polish 1c: column points for the masonry gallery's arcade.
     ("M_post_gallery_column", props("free", [0, 1, 0], "", "stone,gallery"), gallery_column),
     ("M_post_gallery_column_corner", props("free", [0, 1, 0], "", "stone,gallery"), gallery_column_corner),
+    ("M_post_gallery_column_corner_r", props("free", [0, 1, 0], "", "stone,gallery"), gallery_column_corner_r),
 ]
 
 # Polish 1c: the gallery's visible slab and rail come from its gallery_style
@@ -438,6 +445,8 @@ ADD_MARKERS = [
     ("M_post_gallery_column", "SOCKET_gallery_support__column", (0.0, COL_Y, 0.0), {"socket_set": "gallery_support"}),
     ("M_post_gallery_column_corner", "SOCKET_gallery_support__corner", (COL_Y, COL_Y, 0.0),
      {"socket_set": "gallery_support_corner"}),
+    ("M_post_gallery_column_corner_r", "SOCKET_gallery_support__corner_r", (COL_Y, COL_Y, 0.0),
+     {"socket_set": "gallery_support_corner"}, (0.0, 0.0, -math.pi / 2)),
     # Polish B item 5: growth. Arch growth at the arch centre on the room face.
     ("M_wall_arch_3m", "SOCKET_arch_growth__arch3", (2.0, T, 0.0), {"socket_set": "arch_growth"}),
     ("M_wall_iwan_12m", "SOCKET_arch_growth_iwan__iwan", (6.0, T, 0.0), {"socket_set": "arch_growth_iwan"}),
@@ -466,7 +475,8 @@ ADD_MARKERS = [
 # are still script-made; a hand-edited one would lose its edits, so list
 # nothing here that you have changed in Blender.
 REBUILD = [("M_lantern_cluster", 2),   # rev 2 (step 4): glass split from the frame, open ring caps
-           ("M_stair_gallery_8m", 2), ("M_stair_gallery_8m_r", 2)]   # rev 2 (polish A): slab ramp, rail strip, railing in the look
+           ("M_stair_gallery_8m", 2), ("M_stair_gallery_8m_r", 2),   # rev 2 (polish A): slab ramp, rail strip, railing in the look
+           ("M_post_pier_corbel", 2)]   # rev 2: slimmer base, so the walkway past a gallery column is 0.74 m
 
 
 

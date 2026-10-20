@@ -71,9 +71,9 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 	FloorWear.rebuild_now()
 	check(wear != null and FloorWear.map != null, "FloorWear baked a wear map")
 	if wear != null and FloorWear.map != null:
-		var lanes: Vector3 = Vector3(wear_at(room, 4.0, -10.0), wear_at(room, 6.0, -10.0), wear_at(room, 8.0, -10.0))
+		var lanes: Vector3 = Vector3(wear_at(room, 2.2, -10.0), wear_at(room, 6.0, -10.0), wear_at(room, 9.8, -10.0))
 		check(lanes.x > 0.4 and lanes.z > 0.4 and lanes.y == 0.0,
-			"wear runs down both lanes beside the rug, none mid-rug (%s)" % lanes)
+			"wear runs down both aisles outside the tables, none mid-rug (%s)" % lanes)
 	var floor_mat: ShaderMaterial = load("res://kit/materials/floor_stone.tres") as ShaderMaterial
 	check(floor_mat != null and float(floor_mat.get_shader_parameter("wear_strength")) > 0.0, "floor_stone takes the wear")
 	await physics_frame
@@ -170,6 +170,14 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 	check(feet.x > 11.0, "through the east arcade to the wall (feet at %s)" % feet)
 	feet = await walk(body, Vector3(6, 0.95, -5), Vector3(0, 0, 2), func(p: Vector3) -> bool: return p.z > -0.9)
 	check(feet.z > -1.0, "under the end arcade to the entrance (feet at %s)" % feet)
+	# Loose ends: along each wall under the gallery, past the z -4 column
+	# (0.74 m between its base and the pier's), and between the gallery
+	# columns and a reading table into the side door bay (1.16 m aisle).
+	for side: Array in [[0.79, 1.0], [11.21, -1.0]]:
+		feet = await walk(body, Vector3(side[0], 0.95, -6), Vector3(0, 0, 2), func(p: Vector3) -> bool: return p.z > -2.4)
+		check(feet.z > -2.5 and absf(feet.x - side[0]) < 0.05, "along the wall past the column (x %.2f, feet at %s)" % [side[0], feet])
+		feet = await walk(body, Vector3(6.0 - (6.0 - 2.1) * side[1], 0.95, -3.4), Vector3(0, 0, -2), func(p: Vector3) -> bool: return p.z < -6.0)
+		check(feet.z < -5.9, "beside the reading table into the side door bay (feet at %s)" % feet)
 	room.queue_free()
 	await process_frame
 

@@ -93,10 +93,10 @@ func stack_gallery() -> void:
 	if g == null:
 		return
 	check(g.effective_seed() == 3, "the gallery takes the game's seed (%d)" % g.effective_seed())
-	# R01's west door bay is reached between the reading table (x 2.3) and the
-	# gallery columns (x 1.4 +- 0.25): south of the table, west, then north.
+	# R01's west door bay is reached between the reading table (x 2.8) and the
+	# gallery columns (x 1.4 +- 0.24): south of the table, west, then north.
 	await walk(0.0, func(p: Vector3) -> bool: return p.z < -2.6)
-	await walk(PI * 0.5, func(p: Vector3) -> bool: return p.x < 1.98)
+	await walk(PI * 0.5, func(p: Vector3) -> bool: return p.x < 2.1)
 	var gap: Vector3 = await walk(0.0, func(p: Vector3) -> bool: return p.z < -6.0)
 	check(gap.z < -5.9, "through the gap between the reading table and the gallery column into the door bay (%s)" % gap)
 	# Then bay by bay down the gallery, into each alcove and out, round its

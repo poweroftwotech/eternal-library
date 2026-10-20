@@ -92,7 +92,7 @@ func build_shell() -> void:
 	# the inner corners, the side-wall joints up to the stair heads, and either
 	# side of the entrance arch. A masonry stair claims the one at its head.
 	place("Shell", "post_gallery_column_corner", Vector3(0, 0, 0), 0)
-	place("Shell", "post_gallery_column_corner", Vector3(WIDTH, 0, 0), 90)
+	place("Shell", "post_gallery_column_corner_r", Vector3(WIDTH, 0, 0), 90)   # its arch reaches the end wall too
 	for z: float in [-BAY, -2 * BAY]:
 		place("Shell", "post_gallery_column", Vector3(0, 0, z), -90)
 		place("Shell", "post_gallery_column", Vector3(WIDTH, 0, z), 90)
@@ -115,8 +115,8 @@ func build_shell() -> void:
 func build_dressing() -> void:
 	place("Dressing", "rug_runner", Vector3(6, 0, -10), 0)
 	for z: float in [-6.5, -13.5]:
-		place("Dressing", "table_reading", Vector3(3.0, 0, z), 0)
-		place("Dressing", "table_reading", Vector3(9.0, 0, z), 0)
+		place("Dressing", "table_reading", Vector3(3.5, 0, z), 0)   # 1.16 m aisle to the gallery column bases
+		place("Dressing", "table_reading", Vector3(8.5, 0, z), 0)
 
 
 func build_lights() -> void:

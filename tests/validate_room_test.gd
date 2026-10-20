@@ -32,6 +32,7 @@ func run() -> void:
 	check_spill_over_nothing()
 	check_decal_second_surface()
 	check_open_stairs()
+	await check_in_tree()
 	print("validate_room_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -259,3 +260,16 @@ func check_open_stairs() -> void:
 	check(pinned == 2 and (r["errors"] as PackedStringArray).is_empty() and (r["warnings"] as PackedStringArray).is_empty(),
 		"with open stairs the reading room validates clean (%d pinned, %s)" % [pinned, r])
 	room.free()
+
+
+## Loose ends: run on R01 in the tree (sockets spawned), the corner columns'
+## arches stay clear of the bay-0 recesses, so the room is as clean as unresolved.
+func check_in_tree() -> void:
+	var room: Node3D = fresh(ROOM)
+	root.add_child(room)
+	await process_frame
+	var r: Dictionary = KitValidateRoom.run(room)
+	check((r["errors"] as PackedStringArray).is_empty() and (r["warnings"] as PackedStringArray).is_empty(),
+		"the reading room in the tree validates clean (%s)" % [r])
+	room.queue_free()
+	await process_frame

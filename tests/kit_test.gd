@@ -405,7 +405,7 @@ func check_gallery_style() -> void:
 					and absf(arcade.position.y - 1.85) < 0.01 and absf(arcade.end.y - 3.85) < 0.01,
 					"%s masonry arcade spans the column points x %.1f-%.1f on the column line, 1.85-3.85 m (%s)" % [m, want[0], want[1], arcade])
 		node.queue_free()
-	for m: String in ["post_gallery_column", "post_gallery_column_corner"]:
+	for m: String in ["post_gallery_column", "post_gallery_column_corner", "post_gallery_column_corner_r"]:
 		var node: Node3D = (load("res://kit/modules/walls/%s.tscn" % m) as PackedScene).instantiate()
 		root.add_child(node)
 		var sockets: Array[Node] = node.find_children("SOCKET_gallery_support*", "VariantSocket", true, false)
@@ -413,7 +413,7 @@ func check_gallery_style() -> void:
 			"%s has one gallery_support socket in group gallery_build" % m)
 		if sockets.size() == 1:
 			var s := sockets[0] as VariantSocket
-			var at := Vector3(1.4 if m.ends_with("corner") else 0.0, 0.0, -1.4)
+			var at := Vector3(1.4 if m.contains("corner") else 0.0, 0.0, -1.4)
 			check(s.global_position.is_equal_approx(at), "%s origin on the wall line, column socket at %s (%s)" % [m, at, s.global_position])
 			s.resolve(1, s.socket_set.index_of("wood"))
 			check(s.get_children(true).is_empty(), "%s 'wood' places nothing" % m)
@@ -435,8 +435,11 @@ func check_gallery_style() -> void:
 				"%s column stands 0-1.85 m, at most 0.64 m wide (%s)" % [m, column])
 			check(arms.end.z > 1.1 and absf(arms.position.y - 1.85) < 0.01 and bodies >= 2,
 				"%s arch reaches the wall face (z %.2f) from the abacus, with collision" % [m, arms.end.z])
-			if m.ends_with("corner"):
-				check(arms.position.x < -1.1, "%s second arch reaches the -X wall (x %.2f)" % [m, arms.position.x])
+			# One arch only, to the end wall: module +Z (the -Y wall), or -X for _r.
+			check(absf(arms.position.x) < 0.35 and absf(arms.end.x) < 0.35, "%s has one arch (x %.2f..%.2f)" % [m, arms.position.x, arms.end.x])
+			var toward: Vector3 = s.global_basis * Vector3(0, 0, 1)
+			var want: Vector3 = Vector3(-1, 0, 0) if m.ends_with("_r") else Vector3(0, 0, 1)
+			check(toward.is_equal_approx(want), "%s arch reaches the wall toward %s (%s)" % [m, want, toward])
 		node.queue_free()
 	await process_frame
 
