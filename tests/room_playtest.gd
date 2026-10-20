@@ -4,9 +4,11 @@ extends SceneTree
 ##   godot --headless --path . --script res://tests/room_playtest.gd
 ## Walks the hall into the iwan, climbs the west stair, rounds the U gallery to
 ## the east side and comes down the east stair, and checks the menu round trip.
+## Then (phase 2) walks from R01 into the generated stack gallery and back.
 
 var main_script: GDScript = load("res://scripts/main.gd")   # static room_override lives here
 const ROOM: String = "res://rooms/authored/reading_room.tscn"
+const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
 const GALLERY_Y: float = 4.15
 
 var failures: PackedStringArray = []
@@ -65,6 +67,7 @@ func run() -> void:
 	var actions: Array = game.hud.options.map(func(o: Dictionary) -> String: return o.action)
 	check(actions.has("go_camp") and not actions.has("go_reading_room"), "menu offers the way back to the camp (%s)" % [actions])
 	game.close_panel()
+	await stack_gallery()
 	main_script.room_override = ""
 	print("room_playtest: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
@@ -72,11 +75,72 @@ func run() -> void:
 	quit(1 if not failures.is_empty() else 0)
 
 
-## Face `yaw` (0 = -Z) and hold forward until `done`(position) or 12 s.
+## Phase 2 slice 1: R01 with the generated stack gallery (seed 3). From the
+## spawn into the hall, west through the side door, down the corridor to its
+## dead end and back into R01; the menu offers a reseed.
+func stack_gallery() -> void:
+	game.queue_free()
+	await process_frame
+	GeneratedRoom.seed_override = 3
+	main_script.room_override = STACK_GALLERY
+	game = (load("res://main.tscn") as PackedScene).instantiate()
+	root.add_child(game)
+	for _i: int in 10:
+		await physics_frame
+	player = game.player
+	var g: GeneratedRoom = game.world.get_node_or_null("StackGallery")
+	check(g != null and g.bay_count() > 0, "main boots R01 with a generated stack gallery")
+	if g == null:
+		return
+	check(g.effective_seed() == 3, "the gallery takes the game's seed (%d)" % g.effective_seed())
+	# R01's west door bay is reached between the reading table (x 2.3) and the
+	# gallery columns (x 1.4 +- 0.25): south of the table, west, then north.
+	await walk(0.0, func(p: Vector3) -> bool: return p.z < -2.6)
+	await walk(PI * 0.5, func(p: Vector3) -> bool: return p.x < 1.98)
+	var gap: Vector3 = await walk(0.0, func(p: Vector3) -> bool: return p.z < -6.0)
+	check(gap.z < -5.9, "through the gap between the reading table and the gallery column into the door bay (%s)" % gap)
+	# Then bay by bay down the gallery, round its corners, to the end and back.
+	var order: Array = g.grid.cells.keys()
+	order.sort_custom(func(a: Vector3i, b: Vector3i) -> bool: return g.grid.cells[a]["bay"] < g.grid.cells[b]["bay"])
+	var route: Array[Vector3] = []
+	for cell: Vector3i in order:
+		route.append(g.to_global(CellGrid.cell_centre(cell)))
+	var n: int = await steer(route)
+	var at: Vector3 = player.global_position
+	check(n == route.size() and absf(at.y) < 0.1, "walk from the spawn through the west door to the end of the %d-bay gallery (%d bays reached)" % [route.size(), n])
+	var back: Array[Vector3] = route.duplicate()
+	back.reverse()
+	back.append(Vector3(1.6, 0, -6))
+	n = await steer(back)
+	at = player.global_position
+	check(n == back.size() and absf(at.y) < 0.1, "and back into the reading room (%s)" % at)
+	check(lowest > -0.3, "never below the floor in the gallery (lowest %.2f)" % lowest)
+	game.show_menu()
+	var actions: Array = game.hud.options.map(func(o: Dictionary) -> String: return o.action)
+	check(actions.has("reseed") and actions.has("go_camp"), "menu offers a reseed and the camp (%s)" % [actions])
+	game.close_panel()
+	GeneratedRoom.seed_override = -1
+
+
+## Faces each point in turn and holds forward until within 0.4 m of it (in
+## plan); returns how many points were reached.
+func steer(points: Array[Vector3]) -> int:
+	var reached: int = 0
+	for target: Vector3 in points:
+		var to: Vector3 = target - player.global_position
+		var at: Vector3 = await walk(atan2(-to.x, -to.z), func(p: Vector3) -> bool:
+			return Vector2(target.x - p.x, target.z - p.z).length() < 0.4)
+		if Vector2(target.x - at.x, target.z - at.z).length() > 0.8:
+			break
+		reached += 1
+	return reached
+
+
+## Face `yaw` (0 = -Z) and hold forward until `done`(position) or 20 s.
 func walk(yaw: float, done: Callable) -> Vector3:
 	player.rotation.y = yaw
 	Input.action_press("forward")
-	for _i: int in 720:
+	for _i: int in 1200:
 		await physics_frame
 		lowest = minf(lowest, player.global_position.y)
 		if done.call(player.global_position):

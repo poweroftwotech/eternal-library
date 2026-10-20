@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="StackGalleryGrammar" format=3]
+
+[ext_resource type="Resource" path="res://gen/rules/r02_brick.tres" id="1_xai4a"]
+[ext_resource type="Script" path="res://scripts/gen/stack_gallery_grammar.gd" id="2_pa763"]
+
+[resource]
+script = ExtResource("2_pa763")
+styles = PackedStringArray("brick")
+rules = ExtResource("1_xai4a")

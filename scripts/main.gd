@@ -20,11 +20,17 @@ var modal_context: String = ""
 ## Authored rooms you can visit instead of the code-built camp (ENVIRONMENT_PLAN.md
 ## phase 1 step 6). Pick one with `-- --room=<res path>` or from the Esc menu.
 const READING_ROOM: String = "res://rooms/authored/reading_room.tscn"
+## R01 with a generated R02 Stack Gallery off its west door (ENVIRONMENT_PLAN.md
+## phase 2). `-- --gen-seed=N` (or the menu's reseed) picks the corridor.
+const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
 ## Set by the menu before a reload; survives reload_current_scene().
 static var room_override: String = ""
 
 func _ready() -> void:
 	install_inputs()
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("--gen-seed=") and GeneratedRoom.seed_override < 0:
+			GeneratedRoom.seed_override = arg.trim_prefix("--gen-seed=").to_int()
 	var room_path: String = requested_room()
 	if room_path.is_empty():
 		world = World.new()
@@ -85,6 +91,14 @@ func in_room() -> bool:
 func room_title() -> String:
 	var title: String = (world as RoomTemplate).display_name
 	return (title if title != "" else String(world.name)).to_upper()
+
+## Generated rooms in the current room (the stack gallery off R01).
+func generated_rooms() -> Array[GeneratedRoom]:
+	var out: Array[GeneratedRoom] = []
+	if world is Node:
+		for n: Node in (world as Node).find_children("*", "GeneratedRoom", true, false):
+			out.append(n as GeneratedRoom)
+	return out
 
 func travel(path: String) -> void:
 	room_override = path
@@ -176,13 +190,18 @@ func show_notes() -> void:
 	open_panel("Field notes","[color=#dfbd7b]The reading garden[/color]\nA cooking fire, a tree growing through the archive, and a stair to the upper gallery. Water still follows the old irrigation channel.\n\n[color=#dfbd7b]Ingredients[/color]\nAmberroot grows beside the garden's water. Filling.\nHearthleaf grows in sunny patches. Aromatic and warming.\nShelf mushrooms grow in the damp archive. Good roasted.\n\n[color=#dfbd7b]A route worth trying[/color]\nThe stairs east of the tree lead to the upper bookshelves. Follow the lamp-lit doorway through the gallery to the balcony. The Eternal Library continues far below the cavern roof.",[{"text":"Close notes","action":"close"}],"notes")
 
 func show_menu() -> void:
-	var trip: Dictionary = {"text":"Return to the camp","action":"go_camp"} if in_room() else {"text":"Visit the reading room","action":"go_reading_room"}
-	open_panel(room_title().capitalize() if in_room() else "The reading garden","A moment by the shelves.",[
-		{"text":"Resume exploring","action":"close"},
-		trip,
+	var trips: Array = [{"text":"Return to the camp","action":"go_camp"}] if in_room() else [{"text":"Visit the reading room","action":"go_reading_room"}]
+	if not in_room() or generated_rooms().is_empty():
+		trips.append({"text":"Visit the stack gallery","action":"go_stack_gallery"})
+	else:
+		trips.append({"text":"Reseed the stack gallery (seed %d)" % generated_rooms()[0].effective_seed(),"action":"reseed"})
+	var options: Array = [{"text":"Resume exploring","action":"close"}]
+	options.append_array(trips)
+	options.append_array([
 		{"text":"Controls & settings","action":"controls"},
 		{"text":"Begin another outing","action":"restart"},
-		{"text":"Quit","action":"quit"}],"menu")
+		{"text":"Quit","action":"quit"}])
+	open_panel(room_title().capitalize() if in_room() else "The reading garden","A moment by the shelves.",options,"menu")
 
 func show_controls() -> void:
 	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, examine\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen\n\nMovement pauses while a panel is open.",[
@@ -210,6 +229,10 @@ func on_choice(action: String) -> void:
 			open_panel("Another outing?","Start again with an empty satchel and fresh ingredients in the garden?",[{"text":"Begin again","action":"restart_confirm"},{"text":"Keep this outing","action":"menu"}],"restart")
 		"restart_confirm": get_tree().reload_current_scene()
 		"go_reading_room": travel(READING_ROOM)
+		"go_stack_gallery": travel(STACK_GALLERY)
+		"reseed":
+			GeneratedRoom.seed_override = randi() % 100000
+			travel(room_override if room_override != "" else requested_room())
 		"go_camp": travel("camp")
 		"quit": get_tree().quit()
 		"roast", "broth":

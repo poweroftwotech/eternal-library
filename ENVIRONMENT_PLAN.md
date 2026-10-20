@@ -285,6 +285,257 @@ mode needed.
 - Saves store the seed, the **recipe version** and the player's deltas, not the
   geometry. If a recipe changes after release, the old version is kept for old saves.
 
+### 5.5 Phase 2 design: R02 Stack Gallery off R01 (drafted 2026-10-19, awaiting approval)
+
+R02 in the atlas: a corridor one bay (4 m) wide, any length, one storey plus a
+pointed barrel vault. Every bay side is a shelf recess, with the odd side
+passage or collapse. Lamps hang every second bay and get rarer with distance.
+The atlas plan shows corners, T-junctions, dead-end alcoves and a far arch.
+
+The kit already holds a straight corridor: `floor_4m`, `wall_shelfbay_4m`
+(its `recess_library` socket gives shelves, tile panel, sealed door and
+collapse), `wall_plain_4m`, `wall_arch_3m`, `vault_bay_4m` (springs from the
+4 m wall tops, so it sits at storey 0 here), `wall_gable_4m`, `post_pier` and
+`lantern_hanging`. Slice 1 needs **no new Blender modules**. Corners and
+junctions need one (slice 2).
+
+#### 5.5.1 The generated room is a `RoomTemplate`
+
+`GeneratedRoom extends RoomTemplate` (`@tool`, `scripts/gen/generated_room.gd`)
+holds `grammar: RoomGrammar`, `rules: ModuleRules`, `gen_seed` and a join
+(`join_connector: StringName` on its parent room, see 5.5.5). Its `_ready`
+first generates, then runs the normal `RoomTemplate` resolve. So everything
+phase 1 built works on it unchanged: sockets, room pins, the style group,
+claims, Atmosphere, Validate Room, `main.gd`'s room loading and the capture
+tools. A baked room (5.5.7) is a plain `RoomTemplate`.
+
+The generated modules go under `Shell`, named by grid key, never by order
+(`wall_x-1_z2_W`, `floor_x0_z3`, `post_x1_z2`). Socket paths are then stable
+for a given layout, so socket seeds and pins behave as in authored rooms. They
+have **no owner** and carry the meta `generated`, so they are never saved:
+the scene file holds only the root and its settings. (Internal children, as
+sockets use, would hide them from `get_children()`, and with it from the
+socket resolve and Validate Room.)
+
+One small phase 1 change: `RoomTemplate.sockets()` and `KitValidateRoom` stop
+descending at a nested `RoomTemplate`. A room owns its sockets and modules, not
+those of a room placed inside it.
+
+#### 5.5.2 Cell grid and edge marking
+
+`CellGrid` (`scripts/gen/cell_grid.gd`, plain `RefCounted`, data only):
+
+- **Cells** `Vector3i(x, storey, z)` in room-local 4 m units. Cell (x, s, z)
+  spans x 4x..4x+4, y 4s.., z -4z..-4z-4 (the kit's cell convention). Each
+  cell has a `kind` (`floor` in slice 1; `stair_down`, `collapsed` and `alcove`
+  later) and a `run_dir` (the vault's barrel axis).
+- **Edges** are keyed once per boundary, `(cell, side)` normalised to the
+  lower cell, so neighbours share one record. Each edge gets exactly one mark:
+
+| Mark | Meaning | What is emitted |
+|---|---|---|
+| `solid` | Room boundary, closed | An EDGE module from `ModuleRules` (shelf bay or plain wall) |
+| `opening` | Walkable gap to another cell of *this* room through a wall line (side passage, alcove mouth) | An opening module (`wall_arch_3m`) |
+| `door` | A connector edge. `owner = self`: this room emits the opening module and a `SNAP_` marker (an exit for later rooms). `owner = host`: the host room's module already stands there, so nothing is emitted | `self`: opening + connector. `host`: connector only |
+| `open` | Interior edge between two cells of the run | Nothing; floor and vault continue |
+
+- **Corners** are derived, not marked: a post goes on every grid corner where
+  two marked wall edges meet, except corners on a host's wall line (the host
+  already has its pier there).
+- **Vault ends** are derived: a cell whose barrel ends at a `solid` or
+  `door(self)` edge gets a `gable` there. A `door(host)` edge needs none,
+  because the host's wall rises past the vault (R01's walls are 8 m; the
+  corridor crown is about 6.4 m). Validate Room learns that rule (5.5.8).
+- **Reserved cells:** the generator never places a cell where the host's
+  CELL or EDGE module meshes reach more than 0.6 m into it. That covers the
+  host's own cells and the iwan's 3.3 m back. Posts are left out: their
+  corbels reach 0.85 m into every neighbouring cell by design.
+
+#### 5.5.3 `ModuleRules` (`gen/rules/*.tres`)
+
+Data, edited in the Inspector. `ModuleRules` holds `Array[ModuleRule]`; a rule is:
+
+| Field | Example |
+|---|---|
+| `slot` | `edge:solid`, `edge:opening`, `edge:door`, `gable`, `cell:floor`, `cell:ceiling`, `post`, `lamp` |
+| `styles` | `[brick]` (all must be in the room's styles; empty = any) |
+| `choices` | `Array[ModuleChoice]`: a module scene (drag from `kit/modules/`) and a weight |
+
+The first rule whose slot and styles match wins, and the pick is weighted and
+seeded per grid key (5.5.6). A rule may only list modules whose `KitModule`
+shape fits the slot (EDGE for edges and gables, CELL for floors and ceilings,
+POST for posts). `ModuleRules.check(catalog)` reports a misfit, and
+`gen_rules_test` runs it on every rules file.
+
+`gen/rules/r02_brick.tres`, first version:
+
+| Slot | Choices |
+|---|---|
+| `edge:solid` | `wall_shelfbay_4m` 8, `wall_plain_4m` 2 |
+| `edge:opening`, `edge:door` | `wall_arch_3m` 1 |
+| `gable` | `wall_gable_4m` 1 |
+| `cell:floor` | `floor_4m` 1 |
+| `cell:ceiling` | `vault_bay_4m` 1 (turned to the cell's `run_dir`) |
+| `post` | `post_pier` 1 |
+| `lamp` | `lantern_hanging` 1 |
+
+The grammar decides *what* each edge is. The rules decide *which module* fills
+it. So "more shelves, fewer blank walls" is a rules edit, and "more side
+passages" is a grammar edit.
+
+#### 5.5.4 The R02 grammar: `StackGalleryGrammar extends RoomGrammar`
+
+`gen/grammars/r02_stack_gallery.tres`. `RoomGrammar` is the base (`styles`,
+`rules`, `generate(grid, rng_for) -> void`), with one subclass per room type.
+
+| Knob | Default | Slice | Effect |
+|---|---|---|---|
+| `min_bays` / `max_bays` | 6 / 12 | 1 | Total cells on the main run |
+| `styles` | `[brick]` | 1 | Selects `ModuleRules` rules |
+| `lamp_every_bays` | 2 | 1 | A lamp on every Nth bay's centre line |
+| `end_kind` | dead end | 1 | Far end: `dead_end` (solid wall and gable) or `exit` (`door(self)` with a connector for a later room) |
+| `max_straight_bays` | 6 | 2 | The longest straight stretch before a turn |
+| `min_straight_bays` | 2 | 2 | No turn sooner than this after the last one |
+| `turn_chance` | 0.5 | 2 | Chance to turn at each allowed bay |
+| `side_passage_chance` | 0.11 | 3 | Per bay side: an `opening` into a one-cell dead-end alcove |
+| `collapse_chance` | 0.08 | 3 | Per bay: a `collapsed` cell (rubble dressing; both recesses pinned to collapsed) |
+| `lamp_lit_by_distance` | `Curve`, 0.9 at the entry to 0.35 at 12 bays | 3 | Lamp `lit` chance by bay count from the entry: the darkness says how far out you are |
+| `branch_chance` | 0 | later | T-junction off the main run (needs `vault_cross_4m`, like corners) |
+
+`max_straight_bays` is a hard rule: the walk turns (left or right, whichever
+fits) once it reaches that many straight bays. If neither side fits, the run
+ends there.
+
+#### 5.5.5 Joining to R01
+
+R01's connectors (`rooms/authored/reading_room.tscn`, `Connectors`, group
+`room_connector`): `SNAP_entrance` (6, 0, 0), `SNAP_door_west` (0, 0, -6),
+`SNAP_door_east` (12, 0, -6). Each is centred on a 4 m bay edge, and its -Z
+points out of the room.
+
+- **The generated room's own frame** follows the edge-module convention. The
+  entry edge runs from (0, 0, 0) to (4, 0, 0), and the room grows into -Z. Its
+  `SNAP_entry` sits at (2, 0, 0), with -Z pointing out (back toward the host).
+- **Join:** the room is placed so `SNAP_entry` meets the host connector face
+  to face (same point, opposite facing). Because both connectors sit at a bay
+  midpoint, the corridor's 4 m grid lands on R01's grid, and Validate Room's
+  grid checks hold in both frames. The entry edge is marked `door(host)`.
+- **The pair as a scene:** `rooms/test/reading_room_r02.tscn` *inherits*
+  `reading_room.tscn` and adds one `StackGallery` (`GeneratedRoom`) child with
+  `join_connector = "SNAP_door_west"`. `reading_room.tscn` itself is not
+  touched. The root is still R01's `RoomTemplate`, so `main.gd` loads it as it
+  is (spawn, HUD name, Atmosphere). Phase 4's `AreaRecipe` replaces this
+  scene.
+- **Style inheritance:** `GeneratedRoom.inherit_style_groups` (default
+  `[gallery_build]`). The joined room takes the host's resolved pick for those
+  groups (a new `style_overrides`, checked after pins and before the room's own
+  roll), so stone galleries in R01 mean stone stairs in a generated room that
+  has any. R02 slices 1-3 have no group sockets, so this is wiring only.
+- **Light:** the corridor's `Atmosphere` defers to R01's environment (it
+  already does when one exists). One environment per scene until phase 4. The
+  atlas's teal corridor light comes from cool fills placed by the grammar
+  later, not from a second environment.
+- **Safety:** the corridor gets its own `TempSafetyFloor` under its cell
+  bounds, as AGENTS.md requires (R01's 60 m one ends 24 m west of its wall).
+
+#### 5.5.6 Sockets, seeds and the style group in a generated room
+
+- `gen_seed`: at runtime `hash(area_seed, room_id)` once areas exist. Until
+  then it is the exported `gen_seed`, which the game menu can override.
+- **Every decision has its own key:** `hash(gen_seed, "layout")` for the walk,
+  and `hash(gen_seed, "edge", key)`, `("cell", key)`, `("lamp", key)` for picks.
+  Changing one wall's rule doesn't reshuffle the others.
+- **Socket resolve** is exactly R01's: `RoomTemplate.resolve_sockets(gen_seed)`
+  after the build, keyed by socket path (stable, from 5.5.1). Recesses, lamp
+  states, wall stains, floor wear and seam debris all come with the modules.
+- **Style group:** rolled once per generated room from its own seed, as in
+  R01, unless inherited (5.5.5). Grammar features that place group sockets
+  later (a stair-down bay using `stair_gallery_8m`) then match the rest of
+  the room.
+- **Grammar-driven picks** go through `socket_pins` on the generated room.
+  A collapsed cell pins its two recesses to `collapsed`; a lamp beyond the
+  falloff pins `dark`. So the grammar never reaches inside a socket.
+
+#### 5.5.7 `GeneratorPreview` (editor)
+
+§5.3 described a separate node. A simpler fit: the buttons live **on
+`GeneratedRoom`**, and any scene can hold a `GeneratedRoom` with no join to
+preview a grammar on its own.
+
+- **Generate** rebuilds from the current grammar, rules and seed. **Reseed**
+  rolls a new seed. Changing a grammar or rules `.tres` (its `changed`
+  signal) regenerates live, so editing `max_straight_bays` updates the
+  viewport.
+- **Overlay** (checkbox): cell outlines at floor level and each edge as a
+  coloured bar (solid grey, opening teal, door gold, open hidden), drawn as
+  an internal unshaded `ImmediateMesh`, like `KitModule`'s outline. Labels
+  show the bay index and lamp picks.
+- **Bake to scene** writes `rooms/baked/<room_id>_<seed>.tscn`: a plain
+  `RoomTemplate` with owned module instances, the same `room_id`,
+  `preview_seed` and `socket_pins`, so it resolves to the same picks. From
+  there it is an authored room.
+- **Step** (stage by stage) is deferred until a rule needs debugging.
+
+#### 5.5.8 Validation
+
+- **Generator check** (`CellGrid.check()`, run after every generate, warnings
+  in the Output panel): every cell has a floor and a ceiling, every boundary
+  edge is `solid` or `door`, no reserved cell is used, and the run is
+  connected from the entry.
+- **Validate Room** runs on the generated room as on R01 (the Kit dock button
+  works on the selected `GeneratedRoom` too). One new rule: a vault end on a
+  `door(host)` edge counts as closed when its connector carries
+  `meta host_closes_vault`.
+- **Route audit, 20 seeds** (`tests/r02_route_test.gd`): for seeds 1-20 it
+  builds R01 plus the joined corridor in memory and checks:
+  - the capsule (radius 0.35, height 1.8, `body_test_motion`) goes from R01's
+    spawn through the west door, down every cell centre to the far end, and
+    back;
+  - a floor ray hits under every cell centre;
+  - pushes through every `solid` edge are blocked;
+  - no overlap with R01, and KitValidateRoom has no errors;
+  - the same seed gives the same module list, and different seeds differ.
+
+  From slice 2 it also checks that every straight run is ≤ `max_straight_bays`,
+  and that changing it changes the layout.
+- **Playtest:** `tests/room_playtest.gd` gains a pass with the real `main.tscn`
+  player walking from R01 into the corridor (one seed). Gates per step:
+  AGENTS.md's 240-frame runs (camp, graybox, R01, the R01+R02 scene),
+  `kit_test`, `reading_room_test`, `validate_room_test`, `socket_modes_test`,
+  the new tests, and GPU captures (`tests/r02_capture.gd`).
+
+#### 5.5.9 Slices (each one user-visible, reviewed before the next)
+
+1. **A straight corridor off R01's west door, walkable and reseedable.**
+   `CellGrid`, `ModuleRules` + `r02_brick.tres`, `RoomGrammar` +
+   `StackGalleryGrammar` (length, lamps, dead end), `GeneratedRoom` (join,
+   build, resolve), Generate/Reseed/Overlay, `reading_room_r02.tscn`. Esc menu
+   → **Visit the stack gallery** and **Reseed the stack gallery** (or
+   `-- --room=… --gen-seed=N`). Route audit on 20 seeds. Captures: looking
+   down the corridor from the door, back toward R01, and the overlay.
+2. **Turns and `max_straight_bays`.** A new cell module `vault_cross_4m` (a
+   groin vault for corners, later T and cross) via an additive
+   `tools/kit_add_r02.py`. Corner piers and gables follow. The phase 2
+   done-when is met here: change `max_straight_bays`, press Generate, and the
+   corridor visibly changes; the audit passes on 20 seeds.
+3. **Features:** side passages into alcoves, collapsed bays, lamp falloff, an
+   `exit` end with its connector, cool fills.
+4. **Bake to scene**, plus generated `FloorWear` lanes (from connectors down the
+   run, replacing R01's single-room limit) if slice 3 shows the floor too even.
+
+**Risks to check in slice 1:**
+- R01's upper west bay 1 is a shelf bay whose back sticks out 0.25 m past the
+  wall line, at 4-8 m. That is inside the corridor's vault end. The capture
+  will show whether it reads as a thicker end wall or as a box. The fallback is
+  a joint lining module.
+- `lantern_hanging`'s chain is 1 m (made to hang from a gallery soffit). Under
+  the corridor vault it must hang from the crown, so it is placed at
+  crown − 1 m. If the glass then sits too high, slice 1 adds a long-chain
+  lantern.
+- The corridor's walls meet R01's wall at the joint corners, where R01's
+  shelf-bay backs reach 0.25 m out. They overlap inside solid wall only; the
+  z-fight audit checks this.
+
 ---
 
 ## 6. Interactive objects
@@ -1497,3 +1748,179 @@ reviewed in the editor before the next one starts.
 **Suggested order:** A (stairs: 1, 2, 3), then B (growth: 4, 5, 6), then C
 (relief: 7, 8, 9). C is independent, so it can move first if the flat look
 matters most. Phase 2 (generated R02) starts after this slice.
+
+**The R01 polish slice is complete (A, B, C).**
+
+### Phase 2: generated R02 Stack Gallery (design drafted 2026-10-19)
+
+The design is §5.5, approved by the user 2026-10-19.
+
+**Slice 1 done (2026-10-19): a straight corridor off R01's west door.**
+
+**Try it:** Esc menu → **Visit the stack gallery**, then **Reseed the stack
+gallery** (the menu shows the current seed). Or start with
+`-- --room=res://rooms/test/reading_room_r02.tscn --gen-seed=7`. In the
+editor, open `rooms/test/reading_room_r02.tscn`, select `StackGallery`, and
+use **Generate**, **Reseed**, `gen_seed` or **Overlay**. Editing
+`gen/grammars/r02_stack_gallery.tres` (e.g. `max_bays`) or
+`gen/rules/r02_brick.tres` (wall weights) regenerates live.
+
+| Piece | File |
+|---|---|
+| Cell grid, edge marks, transforms, layout check, signature | `scripts/gen/cell_grid.gd` |
+| Rules: slot + styles → weighted module scenes, with a shape check | `scripts/gen/module_rules.gd`, `module_rule.gd`, `module_choice.gd` → `gen/rules/r02_brick.tres` |
+| Grammar base and R02 (length, lamps, dead end or exit) | `scripts/gen/room_grammar.gd`, `stack_gallery_grammar.gd` → `gen/grammars/r02_stack_gallery.tres` |
+| Grid → modules: floors, vaults, edges, gables, piers (none on the host's wall line), lamps; picks keyed by slot + grid key | `scripts/gen/room_builder.gd` |
+| The room: join, host blockers, build, connectors, safety floor, inherited style groups, resolve, overlay, Generate / Reseed | `scripts/gen/generated_room.gd` |
+| R01 + gallery (inherits `reading_room.tscn`, which is untouched) | `rooms/test/reading_room_r02.tscn` |
+| Data seeding (writes only missing files) | `tools/seed_gen.gd` |
+| Game: visit, reseed, `--gen-seed=N` | `scripts/main.gd` |
+
+**Phase 1 changes:** `RoomTemplate.sockets()` and `KitValidateRoom` stop at a
+nested room. `RoomTemplate` gains `style_overrides`, `style_choice()` and
+`current_seed()`, which Validate Room now uses for its static picks (unchanged
+for authored rooms). A connector with meta `host_closes` closes its whole bay
+and its vault end.
+
+**As built, vs §5.5:** generated nodes are unowned rather than internal
+(§5.5.1). Host posts don't block cells: R01's pier corbels reach 0.85 m into
+the corridor's first cell, and the first run found nothing to place. Lamps sit
+at 2.0 m, so `lantern_hanging`'s chain top meets the crown (intrados measured
+at 6.01 m); no long-chain lantern is needed. With the default grammar
+(6-12 bays, a lamp every 2nd bay, dead end), seed 1 is 10 bays: 67 modules
+and 44 sockets (recesses, lamp states, stains, floor wear, seams, soot).
+
+**Verified:**
+- `tests/r02_route_test.gd`, 304 checks. The rules check (and a floor
+  offered for a wall is caught). Then for each of seeds 1-20:
+  - the layout check, lengths within 6-12, and the lamp count;
+  - Validate Room clean (no errors or warnings) and KitValidate on the
+    corridor, R01 still error-free with exactly its own 106 sockets;
+  - regenerating gives the same build, and the entry meets R01's west door
+    face to face;
+  - floor collision under every cell, both side walls block in every bay,
+    the dead end blocks;
+  - a capsule walks from R01 to the end of the corridor and back.
+
+  Across the 20 seeds, at least 18 builds differ (the test's bar), and all
+  7 lengths from 6 to 12 occur.
+- `room_playtest` 18 (new: `main` boots R01 + gallery at seed 3, and the real
+  player walks from the spawn to the end of the 12-bay gallery and back,
+  never below the floor; the menu offers a reseed).
+- `kit_test` 855, `reading_room_test` 79, `socket_modes_test` 246,
+  `validate_room_test` 25, spill 6, room atmosphere 32, camp playtest 43,
+  prototype atmosphere 9, and two-process pin persistence all pass.
+- 240-frame gates clean: camp, graybox, R01, the R01 + R02 scene, and `main`
+  with `--room=… --gen-seed=7`.
+- GPU (`tests/r02_capture.gd`, views door / corridor / back / joint / plan,
+  an `overlay` option): `previews/r02_s1_{door,corridor,back,joint,
+  plan_overlay,corridor_seed7}.png`.
+
+**Caveats:**
+- **Joint:** looking up at the vault end against R01, the R01 shelf-bay back
+  reads as a thicker end wall with a ledge, not a stray box. No joint lining
+  is needed for now.
+- **Light:** the corridor is darker than R01, with near-black floors between
+  lamps and dark recesses. Lamps hang at the crown and light the vault more
+  than the shelves. That suits the atlas's "darkness says how far out you
+  are", but the teal fills and lamp falloff (slice 3) should be judged
+  together with it.
+- **No transverse ribs:** the vault is one smooth barrel. The atlas mock has
+  a rib at every bay, and the kit has no rib module yet.
+- **Overlay:** the `plan` capture is from 30 m up, so labels are small. It's
+  meant for the editor viewport.
+- **Found in R01, not caused by this slice:**
+  - From the hall, R01's west door bay is reached only through a ~0.65 m gap
+    between the reading table (x 2.3) and the gallery columns at x 1.4 (z -4
+    and -8). The player (radius 0.32) passes, and the playtest now walks that
+    gap, but it is tight. Moving the tables 0.5 m toward the rug, or widening
+    the aisle, would fix it.
+  - Validate Room on R01 *in the tree* (sockets spawned) warns twice that the
+    corner recesses' slots run into the spawned corner columns. Run on an
+    unresolved instance (as `validate_room_test` does), it's clean. The
+    editor's Validate room button probably shows those two warnings.
+
+**Slice 2 done (2026-10-19): turns and `max_straight_bays`.** This meets the
+phase 2 done-when: walking from R01 into a generated gallery works, changing
+`max_straight_bays` and pressing Generate visibly changes the corridor, and the
+route audit passes on 20 seeds.
+
+**Try it:** in `rooms/test/reading_room_r02.tscn`, select `StackGallery`, open
+its grammar and set `max_straight_bays` to 2. The corridor regenerates as a
+zigzag. Seed 5 runs 6 bays straight at the default and becomes a 7-bay U at 2.
+
+- **`vault_cross_4m`** (`tools/kit_add_r02.py`, additive like `kit_add_r01.py`;
+  catalog 66 modules). A groin vault built as four sectors of
+  `vault_bay_4m`'s pointed barrel (same profile, k 0.6, crown 6.01 m). They
+  meet on exact diagonal creases, each sector is smooth-shaded on its own, and
+  each face is capped. Every side shows the barrel's end arch, so it meets a
+  barrel on any side and takes `wall_gable_4m` on a closed one. Tagged
+  `cross`.
+- **Grammar** (`StackGalleryGrammar`): new knobs `max_straight_bays` 6,
+  `min_straight_bays` 2 and `turn_chance` 0.35.
+  - The walk turns left or right once a stretch reaches the maximum, and
+    may turn after the minimum. The turning bay becomes a `corner` cell
+    (slot `cell:ceiling_cross`).
+  - A run never places a cell beside one of its own (except the cells it
+    joins) or beside the host, so every wall has the corridor on one side
+    only.
+  - A run never ends on a corner. A forced turn there takes one extra bay
+    if `max_bays` allows.
+  - Up to 8 walks are tried (sub-seeds), keeping the first that reaches the
+    rolled length, else the longest.
+  - `StackGalleryGrammar.stretches(grid)` reports the straight stretch
+    lengths.
+- **Inner corners:** where two shelf bays meet at a turn's inner corner, a
+  recess back (0.55 m behind its wall line) reached into the other's recess
+  slot. Validate Room warned on every turn. The grammar now asks for slot
+  `edge:solid_corner` there (`CellGrid.set_edge(..., slot)`; RoomBuilder
+  falls back to the mark's slot when no rule has it), and `r02_brick.tres`
+  fills it with `wall_plain_4m`.
+- **Host doors stay clear:** the bay outside each of the host's other
+  connectors is a blocker, so a run can't pass in front of R01's entrance or
+  east door. Seed 12 first doubled back along R01's south side, past the
+  entrance.
+- **Validate Room:** a ceiling module tagged `cross` ends on every side, so
+  it needs a gable (or a vault beyond) on all four.
+- `tools/seed_gen.gd` is additive for rules now: it adds rules only for slots
+  the file doesn't cover (it added `cell:ceiling_cross` and
+  `edge:solid_corner`; your weights stay).
+
+**Verified:**
+- `r02_route_test`, now following the path through every bay and round each
+  corner. Per seed:
+  - stretches within `min`/`max_straight_bays` (the last may stop short);
+  - a groin vault on every corner and a vault crown at 6.0 m over every
+    cell;
+  - every solid side of every cell blocks.
+
+  Also: most seeds turn at least once. At seed 5, `max_straight_bays` 6 → 2
+  changes the build, gives stretches ≤ 2 with ≥ 2 corners, validates clean,
+  and back at 6 is the same build. All 20 seeds pass: 349 checks, 0 failures.
+- `room_playtest` 18: the real player now steers bay by bay round the
+  corners of seed 3 and back.
+- `kit_test` 865, `reading_room_test` 79, `socket_modes_test` 246,
+  `validate_room_test` 25, spill 6, room atmosphere 32, camp playtest 43,
+  prototype atmosphere 9, pin persistence, and the 240-frame gates (camp,
+  graybox, R01, R01 + R02, `main` at seed 12).
+- GPU (`r02_capture.gd`, new views `corner`, `groin` and `plan_wide`, option
+  `straight=N`): `previews/r02_s2_{corner,groin,plan_s1,plan_s5,
+  plan_s5_straight2}.png`.
+
+**Caveats:**
+- **Creases:** in lamplight the groin vault's diagonal creases are soft: the
+  plaster is lit from the crown lamp, so the sectors shade alike. It reads as a
+  vault with arched sides more than as a crisp groin. Ribs (not in the kit)
+  would sharpen it.
+- **Dark turns:** the turn itself is dark when the corner has no lamp: the
+  lamp rule is by bay count, not by corner.
+- **Zigzags:** with low `max_straight_bays` the run can box itself in, and a
+  2-bay zigzag grows a U or a spiral. All 8 tries may end short of the rolled
+  length, with a warning. It has stayed within `min_bays` in every case
+  checked.
+- **Plan captures** show the shape only. The overlay labels are too small
+  from 46 m; read them in the editor.
+
+**Next: slice 3, features** (§5.5.9): side passages into alcoves, collapsed
+bays, lamp falloff by distance (and a lamp on every corner), an `exit` end,
+and cool fills.

@@ -529,6 +529,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "vault_cross_4m",
+"scene": "res://kit/modules/walls/vault_cross_4m.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("plaster", "ceiling", "cross"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "vault_hall_12m",
 "scene": "res://kit/modules/walls/vault_hall_12m.tscn",
 "shape": "cell",

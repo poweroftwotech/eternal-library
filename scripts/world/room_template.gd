@@ -28,6 +28,10 @@ extends Node3D
 			resolve_sockets(_last_seed)
 ## Set by the area assembler before the room enters the tree; -1 = use preview_seed.
 var area_seed: int = -1
+## {style group: entry index} that win over this room's own roll (pins still win
+## over both). A generated room joined to a host takes the host's build here
+## (GeneratedRoom.inherit_style_groups, ENVIRONMENT_PLAN.md 5.5.5).
+var style_overrides: Dictionary = {}
 var _last_seed: int = 1
 
 
@@ -43,6 +47,12 @@ func sockets() -> Array[VariantSocket]:
 
 func socket_key(s: VariantSocket) -> String:
 	return str(get_path_to(s))
+
+
+## The seed the room's sockets resolve from: the area seed at runtime once
+## areas exist, else preview_seed. GeneratedRoom uses its generation seed.
+func current_seed() -> int:
+	return area_seed if area_seed >= 0 and not Engine.is_editor_hint() else preview_seed
 
 
 ## Returns {socket path: picked index}.
@@ -67,10 +77,33 @@ func style_picks(seed_value: int) -> Dictionary:
 	for s: VariantSocket in sockets():
 		if s.socket_set == null or s.socket_set.style_group == "" or out.has(s.socket_set.style_group):
 			continue
+		if style_overrides.has(s.socket_set.style_group):
+			out[s.socket_set.style_group] = style_overrides[s.socket_set.style_group]
+			continue
 		var rng := RandomNumberGenerator.new()
 		rng.seed = socket_seed(seed_value, "style:" + s.socket_set.style_group)
 		out[s.socket_set.style_group] = s.socket_set.pick(rng)
 	return out
+
+
+## The entry index most of this room's sockets in `group` show (pins first,
+## then the group roll), or -1 if the room has none. A joined generated room
+## inherits it, so it matches what the player sees here, pins included.
+func style_choice(group: String, seed_value: int) -> int:
+	var rolled: int = int(style_picks(seed_value).get(group, -1))
+	var counts: Dictionary = {}
+	for s: VariantSocket in sockets():
+		if s.socket_set == null or s.socket_set.style_group != group:
+			continue
+		var idx: int = socket_pins.get(socket_key(s), s.pinned)
+		if idx < 0:
+			idx = rolled
+		counts[idx] = int(counts.get(idx, 0)) + 1
+	var best: int = -1
+	for idx: int in counts:
+		if best < 0 or counts[idx] > counts[best]:
+			best = idx
+	return best
 
 
 ## Picks can claim space (CLAIM_ markers: the wall base behind a masonry
@@ -110,6 +143,8 @@ func stale_pins() -> PackedStringArray:
 
 func _collect(node: Node, out: Array[VariantSocket]) -> void:
 	for child: Node in node.get_children():
+		if child is RoomTemplate:
+			continue      # a room placed inside this one owns its own sockets (5.5.1)
 		if child is VariantSocket:
 			out.append(child as VariantSocket)
 		_collect(child, out)

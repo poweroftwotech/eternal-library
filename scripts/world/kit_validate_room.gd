@@ -58,7 +58,8 @@ static func _edge_gaps(root: Node, modules: Array[KitModule], errors: PackedStri
 			for c: Vector3i in _cells_of(m, xf, storey):
 				cells[c] = true
 				if m.tags.has("ceiling"):
-					vault_cells[c] = xf.basis.z.normalized()
+					# A groin vault ("cross") ends on every side; a barrel along its local Z.
+					vault_cells[c] = Vector3.ZERO if m.tags.has("cross") else xf.basis.z.normalized()
 		elif m.shape == KitModule.Shape.EDGE:
 			var n: int = maxi(m.size_cells.x, 1)
 			var tall: int = maxi(m.size_cells.y, 1)
@@ -75,6 +76,12 @@ static func _edge_gaps(root: Node, modules: Array[KitModule], errors: PackedStri
 		var p: Vector3 = _relative(root, marker as Node3D).origin
 		for key: String in _segments_through(p):
 			closing[key] = "connector " + String(marker.name)
+		if marker.get_meta("host_closes", false):
+			# A generated room's joint (5.5.8): the host's module closes the whole
+			# bay edge, and its taller wall closes the vault end.
+			for key: String in _bay_through(p):
+				closing[key] = "host at " + String(marker.name)
+				gables[key] = "host at " + String(marker.name)
 	for c: Vector3i in cells:
 		for side: Array in _sides(c):
 			var neighbour: Vector3i = side[2]
@@ -175,6 +182,8 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 	var seen: Dictionary = {}     # one warning per (socket, module), not per collision shape
 	for socket: Node in root.find_children("*", "VariantSocket", true, false):
 		var s := socket as VariantSocket
+		if _foreign(root, s):
+			continue
 		if s.socket_set == null or not s.socket_set.slot_bounds.has_volume():
 			continue
 		if _pinned_to_nothing(root, s):
@@ -388,6 +397,8 @@ static func _host_module(n: Node) -> Node:
 
 static func _modules(node: Node, out: Array[KitModule]) -> void:
 	for child: Node in node.get_children():
+		if child is RoomTemplate:
+			continue      # a nested room is validated on its own (5.5.1)
 		if child is KitModule:
 			out.append(child as KitModule)
 			continue
@@ -453,6 +464,8 @@ static func _claims(root: Node) -> Array:
 	var out: Array = []
 	for node: Node in root.find_children("*", "VariantSocket", true, false):
 		var s := node as VariantSocket
+		if _foreign(root, s):
+			continue
 		if s.socket_set == null or s.mode != VariantSocket.Mode.REPLACE:
 			continue
 		var idx: int = _pick_of(root, s)
@@ -488,9 +501,34 @@ static func _pick_of(root: Node, s: VariantSocket) -> int:
 		var key: String = tmpl.socket_key(s)
 		pin = tmpl.socket_pins.get(key, pin)
 		if (pin < 0 or pin >= n) and s.socket_set.style_group != "":
-			pin = tmpl.style_picks(tmpl.preview_seed).get(s.socket_set.style_group, -1)
+			pin = tmpl.style_picks(tmpl.current_seed()).get(s.socket_set.style_group, -1)
 		if pin < 0 or pin >= n:
 			var rng := RandomNumberGenerator.new()
-			rng.seed = tmpl.socket_seed(tmpl.preview_seed, key)
+			rng.seed = tmpl.socket_seed(tmpl.current_seed(), key)
 			return s.socket_set.pick(rng)
 	return pin if pin >= 0 and pin < n else -1
+
+
+## Both 2 m segments of the 4 m bay edge a marker at p sits on.
+static func _bay_through(p: Vector3) -> PackedStringArray:
+	var out: PackedStringArray = []
+	var storey: int = roundi(p.y / BAY)
+	if _on(p.x, BAY):
+		var z0: float = floorf(p.z / BAY) * BAY
+		out.append(_seg_key(storey, Vector3(p.x, 0, z0), Vector3(p.x, 0, z0 + SEG)))
+		out.append(_seg_key(storey, Vector3(p.x, 0, z0 + SEG), Vector3(p.x, 0, z0 + BAY)))
+	if _on(p.z, BAY):
+		var x0: float = floorf(p.x / BAY) * BAY
+		out.append(_seg_key(storey, Vector3(x0, 0, p.z), Vector3(x0 + SEG, 0, p.z)))
+		out.append(_seg_key(storey, Vector3(x0 + SEG, 0, p.z), Vector3(x0 + BAY, 0, p.z)))
+	return out
+
+
+## True if `node` belongs to a room nested inside root (it validates on its own).
+static func _foreign(root: Node, node: Node) -> bool:
+	var p: Node = node.get_parent()
+	while p != null and p != root:
+		if p is RoomTemplate:
+			return true
+		p = p.get_parent()
+	return false

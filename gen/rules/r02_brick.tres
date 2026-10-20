@@ -1,0 +1,123 @@
+[gd_resource type="Resource" script_class="ModuleRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/gen/module_rule.gd" id="1_7scms"]
+[ext_resource type="Script" path="res://scripts/gen/module_choice.gd" id="2_orsei"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_shelfbay_4m.tscn" id="3_4pego"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_plain_4m.tscn" id="4_nesut"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_arch_3m.tscn" id="5_jj3bs"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_gable_4m.tscn" id="6_e3q46"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/floor_4m.tscn" id="7_45fml"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/vault_bay_4m.tscn" id="8_wkd8s"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/post_pier.tscn" id="9_af66h"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_hanging.tscn" id="10_4gphm"]
+[ext_resource type="Script" path="res://scripts/gen/module_rules.gd" id="11_47oyu"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/vault_cross_4m.tscn" id="11_orsei"]
+
+[sub_resource type="Resource" id="Resource_4m81t"]
+script = ExtResource("2_orsei")
+scene = ExtResource("3_4pego")
+weight = 8.0
+
+[sub_resource type="Resource" id="Resource_ig4or"]
+script = ExtResource("2_orsei")
+scene = ExtResource("4_nesut")
+weight = 2.0
+
+[sub_resource type="Resource" id="Resource_kjaeu"]
+script = ExtResource("1_7scms")
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_4m81t"), SubResource("Resource_ig4or")])
+
+[sub_resource type="Resource" id="Resource_ln2bu"]
+script = ExtResource("2_orsei")
+scene = ExtResource("5_jj3bs")
+
+[sub_resource type="Resource" id="Resource_uidj1"]
+script = ExtResource("1_7scms")
+slot = "edge:opening"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_ln2bu")])
+
+[sub_resource type="Resource" id="Resource_qs34d"]
+script = ExtResource("2_orsei")
+scene = ExtResource("5_jj3bs")
+
+[sub_resource type="Resource" id="Resource_a6cyo"]
+script = ExtResource("1_7scms")
+slot = "edge:door"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_qs34d")])
+
+[sub_resource type="Resource" id="Resource_lv1hr"]
+script = ExtResource("2_orsei")
+scene = ExtResource("6_e3q46")
+
+[sub_resource type="Resource" id="Resource_nomh4"]
+script = ExtResource("1_7scms")
+slot = "gable"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_lv1hr")])
+
+[sub_resource type="Resource" id="Resource_q6jgk"]
+script = ExtResource("2_orsei")
+scene = ExtResource("7_45fml")
+
+[sub_resource type="Resource" id="Resource_iu605"]
+script = ExtResource("1_7scms")
+slot = "cell:floor"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_q6jgk")])
+
+[sub_resource type="Resource" id="Resource_48b3v"]
+script = ExtResource("2_orsei")
+scene = ExtResource("8_wkd8s")
+
+[sub_resource type="Resource" id="Resource_l0etk"]
+script = ExtResource("1_7scms")
+slot = "cell:ceiling"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_48b3v")])
+
+[sub_resource type="Resource" id="Resource_l6uim"]
+script = ExtResource("2_orsei")
+scene = ExtResource("9_af66h")
+
+[sub_resource type="Resource" id="Resource_bpxti"]
+script = ExtResource("1_7scms")
+slot = "post"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_l6uim")])
+
+[sub_resource type="Resource" id="Resource_higat"]
+script = ExtResource("2_orsei")
+scene = ExtResource("10_4gphm")
+
+[sub_resource type="Resource" id="Resource_4yvrr"]
+script = ExtResource("1_7scms")
+slot = "lamp"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_higat")])
+
+[sub_resource type="Resource" id="Resource_4pego"]
+script = ExtResource("2_orsei")
+scene = ExtResource("11_orsei")
+
+[sub_resource type="Resource" id="Resource_nesut"]
+script = ExtResource("1_7scms")
+slot = "cell:ceiling_cross"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_4pego")])
+
+[sub_resource type="Resource" id="Resource_orsei"]
+script = ExtResource("2_orsei")
+scene = ExtResource("4_nesut")
+
+[sub_resource type="Resource" id="Resource_jj3bs"]
+script = ExtResource("1_7scms")
+slot = "edge:solid_corner"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_orsei")])
+
+[resource]
+script = ExtResource("11_47oyu")
+rules = Array[ExtResource("1_7scms")]([SubResource("Resource_kjaeu"), SubResource("Resource_uidj1"), SubResource("Resource_a6cyo"), SubResource("Resource_nomh4"), SubResource("Resource_iu605"), SubResource("Resource_l0etk"), SubResource("Resource_bpxti"), SubResource("Resource_4yvrr"), SubResource("Resource_nesut"), SubResource("Resource_jj3bs")])
