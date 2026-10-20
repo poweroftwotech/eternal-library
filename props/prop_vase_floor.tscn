@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/world_prop.gd" id="1_prop"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/prop_vase_floor.glb" id="2_mesh"]
+[ext_resource type="PackedScene" path="res://props/prop_vase_floor_broken.tscn" id="3_broken"]
+
+[node name="prop_vase_floor" type="RigidBody3D"]
+script = ExtResource("1_prop")
+mass = 6.0
+prompt = "Knock over"
+breakable = true
+broken_scene = ExtResource("3_broken")
+
+[node name="Mesh" parent="." instance=ExtResource("2_mesh")]

@@ -19,7 +19,7 @@
 | Area | Source of truth |
 |---|---|
 | Look, materials, lighting, concept matching | `ART_DIRECTION.md` |
-| Level building: kit, rooms, generation, props, roadmap | `ENVIRONMENT_PLAN.md` (section 12 is progress) |
+| Level building: kit, rooms, generation, props, roadmap | `ENVIRONMENT_PLAN.md` (front page: status, what needs approval, roadmap; detail and progress logs in `docs/environment/`) |
 | Room types and their mocks | `design/room-atlas.html` |
 | Game design | `design/The_Eternal_Library_Game_Design_Foundation_v0.1 (1).docx` |
 

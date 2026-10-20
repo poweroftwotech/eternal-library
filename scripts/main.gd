@@ -120,9 +120,12 @@ func look_toward(target: Vector3) -> void:
 	player.camera.rotation.x = asin(direction.y)
 
 func interact(target) -> void:
-	var id: String = target.get_interaction_id()
+	if target.has_method("interact"):     # WorldProp and later room interactables (ENVIRONMENT_PLAN.md 6.5.1)
+		target.interact(player, player.aim_point())
+		return
 	if in_room():
-		return     # authored rooms get interactable props in phase 3 (WorldProp)
+		return
+	var id: String = target.get_interaction_id()
 	if id == "pot":
 		show_pot()
 	elif id == "vista":
@@ -134,6 +137,14 @@ func interact(target) -> void:
 			inventory[kind] += 1
 			hud.notify("Gathered " + {"mushroom":"shelf mushrooms","root":"amberroot","herb":"hearthleaf"}[kind])
 			hud.update_values(inventory,nourishment,warmth)
+
+## HUD prompt for what the player aims at: room interactables say it themselves.
+func prompt_for(target) -> String:
+	if target == null:
+		return ""
+	if target.has_method("interaction_prompt"):
+		return target.interaction_prompt(player.aim_point())
+	return target.title
 
 func open_panel(title: String, text: String, options: Array, context: String = "menu") -> void:
 	player.blocked = true
@@ -185,7 +196,7 @@ func eat() -> bool:
 
 func show_notes() -> void:
 	if in_room():
-		open_panel("Field notes","[color=#dfbd7b]%s[/color]\nA two-storey hall of shelf recesses under a tiled vault. Stairs at the far end of each side climb to a gallery that runs round to the entrance wall. A tiled iwan closes the hall; what stands in it changes from visit to visit.\n\nNothing to gather here yet. Esc → Return to the camp." % room_title().capitalize(),[{"text":"Close notes","action":"close"}],"notes")
+		open_panel("Field notes","[color=#dfbd7b]%s[/color]\nA two-storey hall of shelf recesses under a tiled vault. Stairs at the far end of each side climb to a gallery that runs round to the entrance wall. A tiled iwan closes the hall; what stands in it changes from visit to visit.\n\nVases and the things on the tables can be pushed (E) or walked into; a vase that falls hard breaks. Nothing here is remembered after you leave yet.\n\nEsc → Return to the camp." % room_title().capitalize(),[{"text":"Close notes","action":"close"}],"notes")
 		return
 	open_panel("Field notes","[color=#dfbd7b]The reading garden[/color]\nA cooking fire, a tree growing through the archive, and a stair to the upper gallery. Water still follows the old irrigation channel.\n\n[color=#dfbd7b]Ingredients[/color]\nAmberroot grows beside the garden's water. Filling.\nHearthleaf grows in sunny patches. Aromatic and warming.\nShelf mushrooms grow in the damp archive. Good roasted.\n\n[color=#dfbd7b]A route worth trying[/color]\nThe stairs east of the tree lead to the upper bookshelves. Follow the lamp-lit doorway through the gallery to the balcony. The Eternal Library continues far below the cavern roof.",[{"text":"Close notes","action":"close"}],"notes")
 
@@ -201,10 +212,10 @@ func show_menu() -> void:
 		{"text":"Controls & settings","action":"controls"},
 		{"text":"Begin another outing","action":"restart"},
 		{"text":"Quit","action":"quit"}])
-	open_panel(room_title().capitalize() if in_room() else "The reading garden","A moment by the shelves.",options,"menu")
+	open_panel(room_title().capitalize() if in_room() else "The reading garden","A moment by the shelves." + ("\n[color=#9a8f7a]Moved and broken things aren't remembered yet.[/color]" if in_room() else ""),options,"menu")
 
 func show_controls() -> void:
-	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, examine\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen\n\nMovement pauses while a panel is open.",[
+	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen\n\nMovement pauses while a panel is open.",[
 		{"text":"Mouse sensitivity: %.4f — cycle" % player.sensitivity,"action":"sensitivity"},
 		{"text":"Invert look: %s" % ("On" if player.invert_y else "Off"),"action":"invert"},
 		{"text":"Music: %s" % ("Off" if mute else "On"),"action":"mute"},
@@ -248,7 +259,7 @@ func _process(delta: float) -> void:
 		return
 	elapsed += delta
 	var target = player.get_target()
-	hud.set_prompt(target.title if target != null else "")
+	hud.set_prompt(prompt_for(target))
 	if in_room():
 		# No hearth or cold archive here; only the slow nourishment drain.
 		nourishment = maxf(0,nourishment-delta*.013)

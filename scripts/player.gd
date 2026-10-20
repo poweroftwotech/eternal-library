@@ -12,8 +12,9 @@ var respawn_point: Vector3 = Vector3(0, 0.2, 11.5)
 
 func _ready() -> void:
 	name = "Player"
-	collision_layer = 4
-	collision_mask = 1
+	# Layer 4 = player; collides with the world (1) and props (3): ENVIRONMENT_PLAN.md 6.4.
+	collision_layer = 1 << 3
+	collision_mask = 1 | WorldProp.LAYER_PROPS
 	floor_snap_length = 0.3
 	var collider = CollisionShape3D.new()
 	var capsule = CapsuleShape3D.new()
@@ -30,7 +31,7 @@ func _ready() -> void:
 	camera.current = true
 	ray = RayCast3D.new()
 	ray.target_position = Vector3(0, 0, -4.0)
-	ray.collision_mask = 3
+	ray.collision_mask = 1 | 2 | WorldProp.LAYER_PROPS     # world, interaction targets, props
 	ray.add_exception(self)
 	camera.add_child(ray)
 
@@ -59,19 +60,37 @@ func _physics_process(delta: float) -> void:
 	var speed: float = walking_speed * (1.6 if Input.is_action_pressed("sprint") else 1.0)
 	velocity.x = move_toward(velocity.x, direction.x * speed, 24.0 * delta)
 	velocity.z = move_toward(velocity.z, direction.z * speed, 24.0 * delta)
+	var walk: Vector3 = Vector3(velocity.x, 0.0, velocity.z)
 	move_and_slide()
+	bump_props(walk)
 	elapsed += delta
 	# Minimal, subtle movement: no compulsory camera shake or strong head bob.
 	if position.y < -8.0:
 		position = respawn_point
 		velocity = Vector3.ZERO
 
+## Walking into a WorldProp wakes it and shoves it along (not props you stand on).
+func bump_props(walk: Vector3) -> void:
+	var speed: float = walk.length()
+	if speed < 0.1:
+		return
+	var dir: Vector3 = walk / speed
+	for i: int in get_slide_collision_count():
+		var hit: KinematicCollision3D = get_slide_collision(i)
+		var prop: WorldProp = hit.get_collider() as WorldProp
+		if prop != null and hit.get_normal().y < 0.7 and -hit.get_normal().dot(dir) > 0.2:
+			prop.bump(dir, speed, hit.get_position())
+
 func get_target():
 	if ray.is_colliding():
 		var body = ray.get_collider()
-		if body != null and body.has_method("get_interaction_id"):
+		if body != null and (body.has_method("get_interaction_id") or body.has_method("interaction_prompt")):
 			return body
 	return null
+
+## Where the interaction ray hits (the aimed point on the target).
+func aim_point() -> Vector3:
+	return ray.get_collision_point() if ray.is_colliding() else camera.global_position - camera.global_basis.z * 2.0
 
 func teleport(pose: Vector3, yaw: float = 0.0, pitch: float = 0.0) -> void:
 	position = pose

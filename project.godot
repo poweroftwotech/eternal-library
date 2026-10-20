@@ -41,6 +41,13 @@ scene={
 [layer_names]
 
 3d_render/layer_20="decal_receivers"
+3d_physics/layer_1="world_static"
+3d_physics/layer_2="interaction"
+3d_physics/layer_3="props"
+3d_physics/layer_4="player"
+3d_physics/layer_5="npcs"
+3d_physics/layer_6="triggers"
+3d_physics/layer_7="water"
 
 [rendering]
 

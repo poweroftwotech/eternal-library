@@ -12,6 +12,7 @@ Every module's origin is the socket it fills (Blender axes; Godot -Z = +Y):
                centre line. The recess back is y = -0.25, the room is +Y.
   iwan_*       the iwan centrepiece socket (alcove floor, ~1.8 m from the back).
   prop_*       a table-top SCATTER socket: the table surface (z = 0).
+  prop_vase_floor(_broken) the floor under the vase's centre (a hand-placed WorldProp).
   stair_steps_* a stair_style(_r) socket: the middle of a stair_gallery_8m(_r) footprint
                (floor level, lane centre); the stair rises along +X.
   gallery_wood_*, gallery_masonry_* a gallery_style_* socket at its gallery module's origin
@@ -415,6 +416,87 @@ def prop_inkwell(r):
     bm = bmesh.new()
     add_obox(bm, (0.03, 0.0, 0.15), (0.012, 0.03, 0.24), (0.0, math.radians(18), 0.0))
     mesh_object("prop_inkwell__quill", bm, ["linen"], r)
+
+
+# --- floor vase and its shards (phase 3 slice 1; origin = floor under its centre) ----
+# Not socket candidates: R01 places the vase by hand as a WorldProp
+# (props/vase_floor.tscn). The broken module holds the same vase cut into
+# shards in their assembled places, so the shards spawn exactly where the
+# vase stood. Each shard is a closed shell (outer and inner surface), so a
+# convex hull per shard is a fair collider.
+VASE = [(0.0, 0.0), (0.13, 0.0), (0.15, 0.03), (0.2, 0.14), (0.25, 0.3), (0.26, 0.42),
+        (0.23, 0.56), (0.15, 0.7), (0.1, 0.78), (0.1, 0.84), (0.14, 0.9), (0.0, 0.9)]
+VASE_WALL = 0.018
+
+
+def prop_vase_floor(r):
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    add_lathe(bm, VASE, segs=16, uv=uv)
+    mesh_object("prop_vase_floor__body", bm, ["earthenware"], r)
+
+
+def vase_shard(bm, uv, k0, k1, a0, a1, steps=4):
+    """A piece of the vase wall between profile points k0..k1 and the angle
+    bounds a0(k)..a1(k) (functions of the ring, so cuts wander), as a closed
+    shell VASE_WALL thick. With a1 - a0 = full turn it is a closed band."""
+    z0, z1 = VASE[0][1], VASE[-1][1]
+    full = abs((a1(k0) - a0(k0)) - 2 * math.pi) < 1e-6
+    n = steps * (4 if full else 1)
+    outer, inner = [], []
+    for k in range(k0, k1 + 1):
+        r, z = VASE[k]
+        ri = max(r - VASE_WALL, 0.02)
+        lo, hi = a0(k), a1(k)
+        cols = range(n) if full else range(n + 1)
+        outer.append([bm.verts.new((r * math.cos(lo + (hi - lo) * i / n), r * math.sin(lo + (hi - lo) * i / n), z)) for i in cols])
+        inner.append([bm.verts.new((ri * math.cos(lo + (hi - lo) * i / n), ri * math.sin(lo + (hi - lo) * i / n), z + (VASE_WALL if k == 0 else 0.0))) for i in cols])
+    m = len(outer[0])
+    span = range(m) if full else range(m - 1)
+
+    def quad(vs, row, col):
+        f = bm.faces.new(vs)
+        for loop, (c, kk) in zip(f.loops, ((col, row), (col + 1, row), (col + 1, row + 1), (col, row + 1))):
+            loop[uv].uv = ((a0(k0) + (a1(k0) - a0(k0)) * c / n) / (2 * math.pi), (VASE[k0 + kk][1] - z0) / (z1 - z0))
+    for j in range(len(outer) - 1):
+        for i in span:
+            i2 = (i + 1) % m
+            quad((outer[j][i], outer[j][i2], outer[j + 1][i2], outer[j + 1][i]), j, i)
+            quad((inner[j][i], inner[j + 1][i], inner[j + 1][i2], inner[j][i2]), j, i)
+    for (row, flip) in ((0, True), (len(outer) - 1, False)):    # rims (bottom, top)
+        for i in span:
+            i2 = (i + 1) % m
+            vs = (outer[row][i], inner[row][i], inner[row][i2], outer[row][i2])
+            bm.faces.new(tuple(reversed(vs)) if flip else vs)
+    if not full:                                                  # the two cut sides
+        for j in range(len(outer) - 1):
+            bm.faces.new((outer[j][0], outer[j + 1][0], inner[j + 1][0], inner[j][0]))
+            bm.faces.new((outer[j][-1], inner[j][-1], inner[j + 1][-1], outer[j + 1][-1]))
+
+
+def prop_vase_floor_broken(r):
+    rng = random.Random(31)
+    # Base: the foot ring up to k 2 (a floor disc closes it). Belly: k 2..6 in
+    # four pieces. Shoulder and neck: k 6..11 in three. Cuts wander per ring.
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    vase_shard(bm, uv, 1, 3, lambda k: 0.0, lambda k: 2 * math.pi)
+    add_ngon_prism(bm, 16, VASE[1][0] - 0.005, 0.0, VASE_WALL)
+    mesh_object("prop_vase_floor_broken__shard_0", bm, ["earthenware"], r)
+    count = 1
+    for (k0, k1, cuts) in ((3, 6, 4), (6, 10, 3)):
+        start = rng.uniform(0, 2 * math.pi)
+        bounds = [start + 2 * math.pi * c / cuts + rng.uniform(-0.25, 0.25) for c in range(cuts)]
+        wobble = {(c, k): rng.uniform(-0.18, 0.18) for c in range(cuts) for k in range(k0, k1 + 1)}
+        for c in range(cuts):
+            c2 = (c + 1) % cuts
+            lo = (lambda k, c=c: bounds[c] + wobble[(c, k)])
+            hi = (lambda k, c=c, c2=c2: bounds[c2] + wobble[(c2, k)] + (2 * math.pi if c2 == 0 else 0.0))
+            bm = bmesh.new()
+            uv = bm.loops.layers.uv.new("UVMap")
+            vase_shard(bm, uv, k0, k1, lo, hi, steps=3)
+            mesh_object("prop_vase_floor_broken__shard_%d" % count, bm, ["earthenware"], r)
+            count += 1
 
 
 # --- stair candidates (weathering item 4, polish slice A) ---------------------
@@ -982,6 +1064,9 @@ MODULES = [
     ("M_prop_oil_lamp", props("brass,light,table_prop"), prop_oil_lamp),
     ("M_prop_scroll", props("linen,table_prop"), prop_scroll),
     ("M_prop_inkwell", props("iron,table_prop"), prop_inkwell),
+    # Phase 3 slice 1: a breakable floor vase (WorldProp) and its shards.
+    ("M_prop_vase_floor", props("earthenware,floor_prop,breakable"), prop_vase_floor),
+    ("M_prop_vase_floor_broken", props("earthenware,shards"), prop_vase_floor_broken),
     ("M_stair_steps_masonry", dict(props("stone,stair"), kit_rev=6), stair_steps_masonry),
     ("M_stair_steps_open", dict(props("wood,stair"), kit_rev=3), stair_steps_open),
     ("M_stair_steps_masonry_r", dict(props("stone,stair"), kit_rev=6), stair_steps_masonry_r),

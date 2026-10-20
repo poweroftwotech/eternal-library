@@ -26,6 +26,7 @@
 [ext_resource type="PackedScene" path="res://kit/modules/walls/post_gallery_column_corner.tscn" id="24_gcorn"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/post_gallery_column_corner_r.tscn" id="25_gcornr"]
 [ext_resource type="Script" path="res://scripts/world/floor_wear.gd" id="25_fwear"]
+[ext_resource type="PackedScene" path="res://props/prop_vase_floor.tscn" id="26_vase"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_gml7e"]
 size = Vector3(12, 15, 23.3)
@@ -333,6 +334,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12, 4, -20)
 [node name="Sockets" type="Node3D" parent="." unique_id=783773702]
 
 [node name="Props" type="Node3D" parent="." unique_id=1987492981]
+
+[node name="VaseIwanWest" parent="Props" unique_id=1450372611 instance=ExtResource("26_vase")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.2, 0, -16.6)
+
+[node name="VaseIwanEast" parent="Props" unique_id=1450372612 instance=ExtResource("26_vase")]
+transform = Transform3D(0, 0, -1, 0, 1, 0, 1, 0, 0, 9.8, 0, -16.6)
 
 [node name="Dressing" type="Node3D" parent="." unique_id=153750040]
 

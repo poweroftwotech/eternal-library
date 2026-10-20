@@ -10,6 +10,8 @@ extends SceneTree
 
 const ShelfFillScript: Script = preload("res://scripts/world/shelf_fill.gd")
 const DRESS: String = "res://kit/modules/dressing/"
+## Table props are WorldProps (phase 3 slice 1): pushable scenes wrapping the dressing glbs.
+const PROPS: String = "res://props/"
 
 var made: PackedStringArray = []
 
@@ -27,9 +29,9 @@ func _initialize() -> void:
 	# STATE set: labels are LampState states, no scenes.
 	socket_set("lamp_state", [["lit", "", 6.0], ["failing", "", 2.0], ["dark", "", 1.0]])
 	socket_set("table_props", [
-		["book stack", DRESS + "prop_book_stack.tscn", 3.0], ["open book", DRESS + "prop_book_open.tscn", 2.0],
-		["pot", DRESS + "prop_pot.tscn", 1.5], ["oil lamp", DRESS + "prop_oil_lamp.tscn", 1.0],
-		["scroll", DRESS + "prop_scroll.tscn", 1.5], ["inkwell", DRESS + "prop_inkwell.tscn", 1.0]])
+		["book stack", PROPS + "prop_book_stack.tscn", 3.0], ["open book", PROPS + "prop_book_open.tscn", 2.0],
+		["pot", PROPS + "prop_pot.tscn", 1.5], ["oil lamp", PROPS + "prop_oil_lamp.tscn", 1.0],
+		["scroll", PROPS + "prop_scroll.tscn", 1.5], ["inkwell", PROPS + "prop_inkwell.tscn", 1.0]])
 	# Recess depth; fallen books and boards spill up to 1.35 m into the room and settle.
 	slot("recess_library", AABB(Vector3(-1.5, 0.0, -0.3), Vector3(3.0, 3.7, 0.6)), AABB(Vector3(-1.5, 0.0, -1.35), Vector3(3.0, 0.6, 1.05)))
 	slot("iwan_centre", AABB(Vector3(-2.25, 0.0, -1.65), Vector3(4.5, 3.5, 3.3)))   # lectern rug is the widest

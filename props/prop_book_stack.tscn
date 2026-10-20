@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/world_prop.gd" id="1_prop"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/prop_book_stack.glb" id="2_mesh"]
+
+[node name="prop_book_stack" type="RigidBody3D"]
+script = ExtResource("1_prop")
+mass = 1.6
+
+[node name="Mesh" parent="." instance=ExtResource("2_mesh")]

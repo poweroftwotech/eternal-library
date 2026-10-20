@@ -67,12 +67,54 @@ func run() -> void:
 	var actions: Array = game.hud.options.map(func(o: Dictionary) -> String: return o.action)
 	check(actions.has("go_camp") and not actions.has("go_reading_room"), "menu offers the way back to the camp (%s)" % [actions])
 	game.close_panel()
+	await props_pass()
 	await stack_gallery()
 	main_script.room_override = ""
 	print("room_playtest: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
 	quit(1 if not failures.is_empty() else 0)
+
+
+## Phase 3 slice 1: E aimed at the west iwan vase knocks it over; walking
+## into the east one shoves it; then everything freezes again.
+func props_pass() -> void:
+	var west: WorldProp = game.world.get_node_or_null("Props/VaseIwanWest")
+	var east: WorldProp = game.world.get_node_or_null("Props/VaseIwanEast")
+	check(west != null and east != null and west.freeze and east.freeze, "both iwan vases stand frozen")
+	if west == null or east == null:
+		return
+	player.teleport(Vector3(2.2, 0.05, -15.0), 0.0, -0.62)
+	for _i: int in 3:
+		await physics_frame
+	var target = player.get_target()
+	check(target == west, "aiming at the west vase targets it (%s)" % target)
+	check(game.prompt_for(target) == "Knock over", "the HUD says 'Knock over' (%s)" % game.prompt_for(target))
+	var broke: Array[bool] = [false]
+	west.broke.connect(func(_s: Node3D) -> void: broke[0] = true)
+	game.interact(west)
+	for _i: int in 600:
+		await physics_frame
+		if broke[0] or west.freeze:
+			break
+	var down: bool = broke[0] or rad_to_deg(west.global_basis.y.angle_to(Vector3.UP)) > 60.0
+	check(down, "E knocks the west vase over (%s)" % ("broken" if broke[0] else "tilt %.0f" % rad_to_deg(west.global_basis.y.angle_to(Vector3.UP))))
+	var woke: Array[bool] = [false]
+	east.woke.connect(func() -> void: woke[0] = true)
+	var start: Vector3 = east.global_position
+	player.teleport(Vector3(9.8, 0.05, -15.2), 0.0)
+	Input.action_press("forward")
+	for _i: int in 90:
+		await physics_frame
+	Input.action_release("forward")
+	check(woke[0] and (east.global_position.distance_to(start) > 0.02 or east.global_basis.y.angle_to(Vector3.UP) > 0.05),
+		"walking into the east vase shoves it (moved %.2f m)" % east.global_position.distance_to(start))
+	for _i: int in 600:
+		await physics_frame
+		if WorldProp.awake_props.is_empty():
+			break
+	check(WorldProp.awake_props.is_empty(), "every prop freezes again (%d awake)" % WorldProp.awake_props.size())
+	check(player.global_position.y > -0.3, "the player is still on the floor (%s)" % player.global_position)
 
 
 ## Phase 2 slice 1: R01 with the generated stack gallery (seed 3). From the

@@ -313,6 +313,24 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "prop_vase_floor",
+"scene": "res://kit/modules/dressing/prop_vase_floor.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("earthenware", "floor_prop", "breakable"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "prop_vase_floor_broken",
+"scene": "res://kit/modules/dressing/prop_vase_floor_broken.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("earthenware", "shards"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "recess_sealed_door",
 "scene": "res://kit/modules/dressing/recess_sealed_door.tscn",
 "shape": "free",
