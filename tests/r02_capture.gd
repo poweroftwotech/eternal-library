@@ -18,7 +18,9 @@ extends SceneTree
 ##   falloff   low in the entry bay, down the first stretch (lamp falloff)
 ##   wear      low in the entry bay, down at the floor (slice 4 FloorWear lanes)
 ##   wear_alcove  from across the bay, down at the first alcove's floor
-## Options (fourth argument, comma separated): overlay, straight=N
+## Options (fourth argument, comma separated): overlay, three (galleries on
+## all three doors, rooms/test/reading_room_r02_three.tscn; views plan_three
+## and entrance), straight=N
 ## (max_straight_bays for this capture), scene=res://... (capture that scene,
 ## e.g. a baked room in its host, from the views of the live room of that seed).
 ## Option wearmap=<png> also saves the shared FloorWear map.
@@ -34,6 +36,8 @@ const VIEWS: Dictionary = {
 	"corner": [Vector3(2.0, 1.7, -5.0), Vector3(3.2, 3.2, -14.0), 70.0, false],   # seed 1: down the first stretch to the right turn
 	"groin": [Vector3(2.0, 1.4, -11.0), Vector3(2.4, 6.0, -14.4), 80.0, false],  # seed 1: up into the corner's groin vault
 	"plan_wide": [Vector3(-8.0, 46.0, -16.0), Vector3(-8.0, 0.0, -15.99), 70.0, false],
+	"plan_three": [Vector3(6.0, 52.0, -6.0), Vector3(6.0, 0.0, -5.99), 70.0, true],   # option three: above R01, all three galleries
+	"entrance": [Vector3(6.0, 1.7, -9.0), Vector3(6.0, 2.2, 12.0), 70.0, true],     # option three: from R01's hall out of the entrance
 }
 
 
@@ -52,11 +56,19 @@ func capture() -> void:
 			scene = o.trim_prefix("scene=")
 	# The live room (a baked scene is captured from the same views: the live
 	# room of that seed places the camera, then the baked one replaces it).
-	var room: RoomTemplate = (load("res://rooms/test/reading_room_r02.tscn") as PackedScene).instantiate()
+	var live: String = "res://rooms/test/reading_room_r02_three.tscn" if options.has("three") else "res://rooms/test/reading_room_r02.tscn"
+	var room: RoomTemplate = (load(live) as PackedScene).instantiate()
 	var g: GeneratedRoom = room.get_node("StackGallery")
 	if args.size() > 2 and args[2] != "-":
 		g.gen_seed = int(args[2])
 	g.overlay = options.has("overlay")
+	if options.has("three"):
+		# Slice 5: the east and entrance galleries take seeds seed + 100 and + 200
+		# (as r02_route_test's three-door case).
+		for n: String in ["StackGalleryEast", "StackGalleryEntrance"]:
+			var other: GeneratedRoom = room.get_node(n)
+			other.gen_seed = g.gen_seed + (100 if n == "StackGalleryEast" else 200)
+			other.overlay = g.overlay
 	for o: String in options:
 		if o.begins_with("straight="):
 			var grammar: StackGalleryGrammar = (g.grammar as StackGalleryGrammar).duplicate()

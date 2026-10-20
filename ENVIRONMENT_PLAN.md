@@ -2281,3 +2281,106 @@ GPU captures: `previews/reading_room_le_{stair,under_gallery,arcade,relief_lane,
 **Caveat:** the 0.74 m walkway still leaves the player (r 0.32) only 5 cm a
 side. It's passable, not roomy. Widening it further means a deeper gallery
 lane (`GAL_Y1`), which would change every gallery module.
+
+### Phase 2 slice 5: galleries on every R01 door (done 2026-10-20)
+
+R01 has three doors (west, east, entrance). Until now a `GeneratedRoom` kept
+out of its host's modules and the bays outside the host's other doors, but
+not out of other rooms under the same host. Two galleries could grow into
+each other. This slice closes that before phase 3.
+
+**Design note (written before coding):**
+
+- **Siblings.** A sibling is any other `RoomTemplate` under the same host:
+  a live `GeneratedRoom` or a baked room from `rooms/baked`. The search walks
+  down from the host and stops at each room it finds, so rooms joined to a
+  gallery's own exit (phase 4) aren't siblings.
+- **What a sibling blocks.** It blocks the same two things the host does:
+  - its kit modules' mesh bounds (free dressing and posts left out, as for
+    the host)
+  - the bay outside each of its own doors, except its entry (that bay is the
+    host), so its exit stays free for the room that will join there.
+
+  Live and baked siblings are read the same way, from their placed modules.
+  So baking a sibling doesn't change the rooms built around it. The grammar's
+  neighbour rule (no cell beside a blocked cell) already keeps one empty bay
+  between two rooms. No wall is shared or doubled, so nothing z-fights.
+- **Order.** A baked sibling is fixed, so it always blocks. Live siblings
+  claim space one after another, in the order of their `join_connector`
+  under the host's `Connectors`. For R01 that's entrance, west, east. A room
+  with no join connector comes after every joined one, and node name breaks
+  ties. A room sees only the live siblings that come before it. Before it
+  reads them, it generates any of them that hasn't been built yet. So the
+  result depends on seeds and that order, not on tree order or on which
+  `_ready` runs first.
+- **Not boxed in.** Every room already keeps the bay outside each of the
+  host's other doors free. That alone wasn't enough: in the first full run,
+  the entrance and west galleries wrapped round three-door seed 7's east
+  door and stopped its run at one bay. So a host door with a sibling joined
+  (a live room by its `join_connector`, a baked one by its entry on the
+  connector) keeps a strip of `OCCUPIED_DOOR_BAYS` (3) bays clear straight
+  out, with the neighbour rule's margin round it. A later room still has no
+  hard guarantee of `min_bays`. Doors with no room joined keep one bay, so a
+  lone gallery is unchanged. (Decided by the user 2026-10-20, over
+  re-running earlier rooms with other walks.)
+- **Single galleries are unchanged.** With no siblings the blockers are the
+  same as before, so a lone gallery gives the same build for the same seed.
+  With siblings, even the first room to claim can differ from its solo
+  build, because it keeps the deeper strip clear at the other occupied doors.
+- **Editor.** When a room regenerates, it asks the live siblings after it to
+  regenerate too.
+
+**Built:**
+
+| Piece | File |
+|---|---|
+| Sibling rooms, their blockers, and the claim order (`sibling_rooms`, `claim_key`, `_room_blockers`) | `scripts/gen/generated_room.gd` |
+| Layout check wording: "overlaps the host or a sibling room" | `scripts/gen/cell_grid.gd` |
+| R01 with galleries on all three doors (seeds 1 / 101 / 201) | `rooms/test/reading_room_r02_three.tscn` |
+| Route audit on every door, plus the three-door case | `tests/r02_route_test.gd` |
+| Capture option `three`, views `plan_three` and `entrance` | `tests/r02_capture.gd` |
+
+- **Single galleries are unchanged.** With no siblings, the blockers are the
+  same as before. The bake test's saved seed 7 still matches, and so does
+  the live east gallery in `Multrooms-test1.tscn` (seed 6547) against its
+  solo build. The baked west gallery there doesn't reach it.
+- **`_ready` builds only if nothing has yet.** A later sibling may already
+  have built an earlier one on demand.
+
+**Gates (all pass):**
+- `r02_route_test`, 2321 checks, 0 failures (about 25 min). The 20-seed
+  audit now runs on all three doors: west, east and entrance. Then the
+  three-door case, with seeds s, s + 100 and s + 200, checks:
+  - no gallery in, beside or past the exit of another
+  - layout check and `min_bays` for every gallery
+  - Validate Room on every gallery
+  - floor, vault and walls closed in every gallery
+  - every route walked from R01 and back
+  - the same builds with the galleries in reverse tree order
+
+  A sibling changed a later gallery in 11 of 20 seeds. Built alone, the
+  three would clash in 7 of 20. User args `doors=` and `seeds=` run part of
+  the test.
+- `kit_test` 880, `validate_room_test` 26, `reading_room_test` 87,
+  `room_playtest` 18, `r02_bake_test` 105.
+- 240-frame headless runs: main, `reading_room_r02.tscn`,
+  `reading_room_r02_three.tscn` and `Multrooms-test1.tscn`.
+- GPU (after `--import`):
+  - `previews/r02_s5_three_plan_overlay_s{2,7}.png` and
+    `r02_s5_three_plan_{s2,s7}.png`: plan views, all three galleries apart.
+    Seed 7 was the boxed-in case: the east gallery stopped at one bay
+    before the deeper strip, and runs 6 bays now.
+  - `r02_s5_three_entrance_s2.png`: from R01's hall out of the entrance
+    arch.
+  - `r02_s5_three_door_s2.png`: the west door, unchanged.
+
+**Caveats:**
+- **No hard length guarantee for a later room.** The strip makes a boxed-in
+  first bay unlikely, but not impossible: the run can still stop under
+  `min_bays`. The grammar then warns, and the 20 audited seeds never hit it.
+- **One level of siblings only.** Rooms joined to a gallery's own exit
+  (phase 4) don't block, and aren't blocked by, R01's other galleries.
+- **Editor:** a later sibling regenerates on a deferred call after an
+  earlier one changes. For one frame it can show the old build.
+- **Plan captures are mirrored:** in the `plan_three` view, east is on the
+  left.

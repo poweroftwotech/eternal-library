@@ -7,7 +7,9 @@ extends RoomTemplate
 ##
 ## Placed under a host room with `join_connector` set, it moves itself so its
 ## entry door meets that connector face to face, keeps out of the host's
-## modules and takes the host's build for `inherit_style_groups`.
+## modules and takes the host's build for `inherit_style_groups`. It also
+## keeps out of the other rooms under that host: baked ones always, and live
+## ones that claim space before it (claim_key: the host's connector order).
 ##
 ## Generated nodes carry the meta `generated` and have no owner, so they are
 ## never saved: the scene file holds only this node and its settings. In the
@@ -16,6 +18,9 @@ extends RoomTemplate
 
 ## The entry door: the S side of cell (0, 0, 0), centred, -Z pointing out.
 const ENTRY := Transform3D(Basis(Vector3.UP, PI), Vector3(2, 0, 0))
+## Bays kept clear straight out from a host door where a sibling room is
+## joined (phase 2 slice 5); other host doors keep one.
+const OCCUPIED_DOOR_BAYS: int = 3
 const OVERLAY_COLOURS: Dictionary = {
 	CellGrid.Mark.SOLID: Color(0.62, 0.62, 0.66),
 	CellGrid.Mark.OPENING: Color(0.2, 0.85, 0.8),
@@ -72,7 +77,8 @@ var _overlay_node: Node3D
 
 
 func _ready() -> void:
-	generate()
+	if grid == null:        # a later sibling may have built this one already
+		generate()
 
 
 func effective_seed() -> int:
@@ -103,9 +109,24 @@ func generate() -> void:
 	var host: RoomTemplate = host_room()
 	if host != null and join_connector != &"":
 		_join(host)
-	grid = CellGrid.new()
+	var later: Array[GeneratedRoom] = []
+	var blockers: Array[AABB] = []
 	if host != null:
-		grid.blockers = _host_blockers(host)
+		blockers = _host_blockers(host)
+		for r: RoomTemplate in sibling_rooms(host):
+			var live := r as GeneratedRoom
+			if live != null and not _claims_before(live, host):
+				later.append(live)
+				continue
+			if live != null and live.grid == null:
+				live.generate()
+			blockers.append_array(_room_blockers(r))
+	grid = CellGrid.new()
+	grid.blockers = blockers
+	if Engine.is_editor_hint():
+		for r: GeneratedRoom in later:
+			if r.grid != null:
+				r._request()
 	if grammar == null:
 		push_warning("%s: no grammar" % name)
 		return
@@ -188,9 +209,57 @@ func _join(host: RoomTemplate) -> void:
 ## and so are posts: they stand on grid corners, and their corbels reach into
 ## every neighbouring cell by design.
 func _host_blockers(host: RoomTemplate) -> Array[AABB]:
+	var out: Array[AABB] = _module_boxes(host)
+	# Keep the bay outside each of the host's other doors clear for the rooms
+	# that join there; where a sibling room is joined already, a strip of
+	# OCCUPIED_DOOR_BAYS straight out, so it isn't boxed in at its first bay.
+	var holder: Node = host.get_node_or_null("Connectors")
+	if holder != null:
+		var siblings: Array[RoomTemplate] = sibling_rooms(host)
+		for c: Node in holder.get_children():
+			if c is Node3D and c.name != join_connector:
+				var bays: int = OCCUPIED_DOOR_BAYS if _joined_at(c as Node3D, siblings) else 1
+				for i: int in bays:
+					out.append(_bay_outside(c as Node3D, i))
+	return out
+
+
+## True if one of `siblings` is joined at host connector `conn`: a live room
+## by its join_connector, a baked one by its entry sitting on the connector.
+func _joined_at(conn: Node3D, siblings: Array[RoomTemplate]) -> bool:
+	for r: RoomTemplate in siblings:
+		if r is GeneratedRoom:
+			if (r as GeneratedRoom).join_connector == conn.name:
+				return true
+			continue
+		var holder: Node = r.get_node_or_null("Connectors")
+		for e: Node in holder.get_children() if holder != null else []:
+			if e is Node3D and e.has_meta("host_closes") \
+					and (e as Node3D).global_position.distance_to(conn.global_position) < 0.05:
+				return true
+	return false
+
+
+## A sibling room's blockers (ENVIRONMENT_PLAN.md phase 2 slice 5): its
+## modules, as for the host, and the bay outside each of its own doors but
+## the entry. Live and baked rooms are read alike, so baking one leaves the
+## rooms around it unchanged.
+func _room_blockers(room: RoomTemplate) -> Array[AABB]:
+	var out: Array[AABB] = _module_boxes(room)
+	var holder: Node = room.get_node_or_null("Connectors")
+	if holder != null:
+		for c: Node in holder.get_children():
+			if c is Node3D and not c.has_meta("host_closes"):
+				out.append(_bay_outside(c as Node3D))
+	return out
+
+
+## Room-space mesh bounds of a room's own modules (nested rooms, free
+## dressing and posts left out).
+func _module_boxes(room: RoomTemplate) -> Array[AABB]:
 	var out: Array[AABB] = []
 	var found: Array[KitModule] = []
-	KitValidateRoom._modules(host, found)
+	KitValidateRoom._modules(room, found)
 	var to_local: Transform3D = global_transform.affine_inverse()
 	for m: KitModule in found:
 		if m.shape == KitModule.Shape.FREE or m.shape == KitModule.Shape.POST:
@@ -199,16 +268,47 @@ func _host_blockers(host: RoomTemplate) -> Array[AABB]:
 			var mi := node as MeshInstance3D
 			if mi.mesh != null:
 				out.append((to_local * mi.global_transform) * mi.get_aabb())
-	# Keep the bay outside each of the host's other doors clear for the rooms
-	# that will join there (phase 4).
-	var holder: Node = host.get_node_or_null("Connectors")
-	if holder != null:
-		for c: Node in holder.get_children():
-			if c is Node3D and c.name != join_connector:
-				var xf: Transform3D = to_local * (c as Node3D).global_transform
-				var centre: Vector3 = xf.origin - xf.basis.z.normalized() * CellGrid.BAY * 0.5
-				out.append(AABB(centre - Vector3(2, 0, 2), Vector3(4, CellGrid.CELL_HEIGHT, 4)))
 	return out
+
+
+## The room-space cell box `depth` bays out from a door connector (-Z points
+## out; 0 is the bay just outside).
+func _bay_outside(connector: Node3D, depth: int = 0) -> AABB:
+	var xf: Transform3D = global_transform.affine_inverse() * connector.global_transform
+	var centre: Vector3 = xf.origin - xf.basis.z.normalized() * CellGrid.BAY * (depth + 0.5)
+	return AABB(centre - Vector3(2, 0, 2), Vector3(4, CellGrid.CELL_HEIGHT, 4))
+
+
+## Every other room under `host` (live or baked), not looking inside them,
+## so rooms joined to a gallery's exit are not siblings.
+func sibling_rooms(host: RoomTemplate) -> Array[RoomTemplate]:
+	var out: Array[RoomTemplate] = []
+	_find_rooms(host, out)
+	return out
+
+
+func _find_rooms(node: Node, out: Array[RoomTemplate]) -> void:
+	for child: Node in node.get_children():
+		if child is RoomTemplate:
+			if child != self:
+				out.append(child as RoomTemplate)
+			continue
+		_find_rooms(child, out)
+
+
+## Where this room claims space among its live siblings: the index of its
+## join connector under the host's Connectors (unjoined rooms after every
+## joined one), then its node path.
+func claim_key(host: RoomTemplate) -> Array:
+	var conn: Node = host.get_node_or_null(NodePath("Connectors/" + String(join_connector))) if join_connector != &"" else null
+	return [conn.get_index() if conn != null else 1 << 20, str(get_path())]
+
+
+## True if live sibling `other` claims its space before this room.
+func _claims_before(other: GeneratedRoom, host: RoomTemplate) -> bool:
+	var a: Array = other.claim_key(host)
+	var b: Array = claim_key(host)
+	return a[0] < b[0] or (a[0] == b[0] and a[1] < b[1])
 
 
 func _group(group_name: String) -> Node3D:

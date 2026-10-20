@@ -1,6 +1,6 @@
 extends SceneTree
 ## Gate for the generated R02 Stack Gallery joined to R01 (ENVIRONMENT_PLAN.md
-## 5.5.8, phase 2 slice 1).
+## 5.5.8, phase 2 slices 1-5).
 ##   godot --headless --path . --script res://tests/r02_route_test.gd
 ## The rules file is sound. Then for seeds 1-20 it builds
 ## rooms/test/reading_room_r02.tscn and checks the layout, Validate Room on
@@ -13,16 +13,32 @@ extends SceneTree
 ## out of), collapsed bays (collapsed recesses and rubble), lamps on corners with
 ## pinned states that fall off with distance, cool fills, the exit (connector,
 ## free cell beyond, glow stub that blocks) and the dead-end alternative.
+## Slice 5: the same audit on the east door and on the entrance, and R01 with
+## galleries on all three doors at once (no overlap, every route walks, the
+## build independent of tree order). User args: doors=west,east,entrance,three
+## (default all) and seeds=N (default 20; fewer skips the tally checks).
 
 const SCENE: String = "res://rooms/test/reading_room_r02.tscn"
+## Galleries on all three of R01's doors (slice 5).
+const THREE: String = "res://rooms/test/reading_room_r02_three.tscn"
 const SEEDS: int = 20
 ## Audit walking speed: 0.13 m per physics step, well under the capsule radius.
 const SPEED: float = 8.0
+## R01's doors: connector, and a spot in R01's hall to walk from (clear of the
+## reading tables and the stair).
+const DOORS: Dictionary = {
+	"west": {"connector": &"SNAP_door_west", "start": Vector3(1.5, 0.95, -6)},
+	"east": {"connector": &"SNAP_door_east", "start": Vector3(10.5, 0.95, -6)},
+	"entrance": {"connector": &"SNAP_entrance", "start": Vector3(6, 0.95, -1.5)},
+}
+## Gallery node -> door in THREE; seeds there are s + offset.
+const THREE_ROOMS: Dictionary = {"StackGallery": ["west", 0], "StackGalleryEast": ["east", 100], "StackGalleryEntrance": ["entrance", 200]}
 
 var failures: PackedStringArray = []
 var checks: int = 0
-## Slice 3 tallies across the seeds.
-var stats: Dictionary = {"alcove_seeds": 0, "collapsed_seeds": 0, "near": 0, "near_lit": 0, "far": 0, "far_lit": 0}
+## Slice 3 tallies across one door's seeds.
+var stats: Dictionary = {}
+var seeds: int = SEEDS
 
 
 func _initialize() -> void:
@@ -35,7 +51,14 @@ func check(ok: bool, what: String) -> void:
 		failures.append(what)
 
 
+## User args: doors=west,east,entrance,three (default all), seeds=N.
 func run() -> void:
+	var parts: PackedStringArray = ["west", "east", "entrance", "three"]
+	for a: String in OS.get_cmdline_user_args():
+		if a.begins_with("doors="):
+			parts = a.trim_prefix("doors=").split(",")
+		elif a.begins_with("seeds="):
+			seeds = a.trim_prefix("seeds=").to_int()
 	var rules: ModuleRules = load("res://gen/rules/r02_brick.tres")
 	var problems: PackedStringArray = rules.check()
 	check(problems.is_empty(), "r02_brick rules are sound (%s)" % [problems])
@@ -48,43 +71,63 @@ func run() -> void:
 	r.choices = [c]
 	bad.rules = [r]
 	check(bad.check().size() == 1, "a floor offered for a wall is reported (%s)" % [bad.check()])
-
-	var grammar: StackGalleryGrammar = load("res://gen/grammars/r02_stack_gallery.tres")
-	var signatures: Dictionary = {}
-	var lengths: Dictionary = {}
-	var turned: int = 0
-	for s: int in range(1, SEEDS + 1):
-		var room: RoomTemplate = (load(SCENE) as PackedScene).instantiate()
-		var g: GeneratedRoom = room.get_node("StackGallery")
-		g.gen_seed = s
-		root.add_child(room)
-		await audit(room, g, grammar, s)
-		print("  seed %d: %d bays, %d failures so far" % [s, g.bay_count(), failures.size()])
-		signatures[g.module_signature()] = true
-		lengths[g.bay_count()] = true
-		turned += 1 if corners(g) > 0 else 0
-		room.queue_free()
-		await process_frame
-	check(turned * 2 >= SEEDS, "most seeds turn at least once (%d of %d)" % [turned, SEEDS])
-	check(stats["alcove_seeds"] >= SEEDS / 4, "side passages occur (%d of %d seeds have an alcove)" % [stats["alcove_seeds"], SEEDS])
-	check(stats["collapsed_seeds"] >= 1, "collapsed bays occur (%d of %d seeds)" % [stats["collapsed_seeds"], SEEDS])
-	var near: float = float(stats["near_lit"]) / maxf(stats["near"], 1)
-	var far: float = float(stats["far_lit"]) / maxf(stats["far"], 1)
-	print("  slice 4: wear map rebuilt in up to %.0f ms (R01 + gallery)" % stats.get("wear_ms", 0.0))
-	print("  slice 3: %d seeds with alcoves, %d with collapsed bays, lamps lit %.0f%% within 3 bays and %.0f%% from 8 bays" % [stats["alcove_seeds"], stats["collapsed_seeds"], near * 100.0, far * 100.0])
-	check(near > far + 0.15, "lamps fall off with distance: %.0f%% lit within 3 bays, %.0f%% from 8 bays (%s)" % [near * 100.0, far * 100.0, stats])
-	await dead_end()
-	await straight_rule()
-	check(signatures.size() >= SEEDS - 2, "different seeds give different corridors (%d distinct of %d)" % [signatures.size(), SEEDS])
-	check(lengths.size() >= 4, "corridor lengths vary with the seed (%s)" % [lengths.keys()])
+	for door: String in DOORS:
+		if parts.has(door):
+			await run_door(door)
+	if parts.has("west"):
+		await dead_end()
+		await straight_rule()
+	if parts.has("three"):
+		await three_doors()
 	print("r02_route_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
 	quit(1 if not failures.is_empty() else 0)
 
 
-func audit(room: RoomTemplate, g: GeneratedRoom, grammar: StackGalleryGrammar, s: int) -> void:
-	var tag: String = "seed %d" % s
+## R01 with one gallery on `door`, joined there.
+func one_gallery(door: String, s: int) -> RoomTemplate:
+	var room: RoomTemplate = (load(SCENE) as PackedScene).instantiate()
+	var g: GeneratedRoom = room.get_node("StackGallery")
+	g.join_connector = DOORS[door]["connector"]
+	g.gen_seed = s
+	return room
+
+
+## The 20-seed audit of one gallery on `door`.
+func run_door(door: String) -> void:
+	print(" %s door" % door)
+	stats = {"alcove_seeds": 0, "collapsed_seeds": 0, "near": 0, "near_lit": 0, "far": 0, "far_lit": 0}
+	var grammar: StackGalleryGrammar = load("res://gen/grammars/r02_stack_gallery.tres")
+	var signatures: Dictionary = {}
+	var lengths: Dictionary = {}
+	var turned: int = 0
+	for s: int in range(1, seeds + 1):
+		var room: RoomTemplate = one_gallery(door, s)
+		var g: GeneratedRoom = room.get_node("StackGallery")
+		root.add_child(room)
+		await audit(room, g, grammar, door, s)
+		print("  %s seed %d: %d bays, %d failures so far" % [door, s, g.bay_count(), failures.size()])
+		signatures[g.module_signature()] = true
+		lengths[g.bay_count()] = true
+		turned += 1 if corners(g) > 0 else 0
+		room.queue_free()
+		await process_frame
+	var tag: String = "%s door" % door
+	check(turned * 2 >= seeds, "%s: most seeds turn at least once (%d of %d)" % [tag, turned, seeds])
+	check(stats["alcove_seeds"] >= seeds / 4, "%s: side passages occur (%d of %d seeds have an alcove)" % [tag, stats["alcove_seeds"], seeds])
+	check(stats["collapsed_seeds"] >= 1 or seeds < SEEDS, "%s: collapsed bays occur (%d of %d seeds)" % [tag, stats["collapsed_seeds"], seeds])
+	var near: float = float(stats["near_lit"]) / maxf(stats["near"], 1)
+	var far: float = float(stats["far_lit"]) / maxf(stats["far"], 1)
+	print("  %s slice 4: wear map rebuilt in up to %.0f ms (R01 + gallery)" % [tag, stats.get("wear_ms", 0.0)])
+	print("  %s slice 3: %d seeds with alcoves, %d with collapsed bays, lamps lit %.0f%% within 3 bays and %.0f%% from 8 bays" % [tag, stats["alcove_seeds"], stats["collapsed_seeds"], near * 100.0, far * 100.0])
+	check(near > far + 0.15 or seeds < SEEDS, "%s: lamps fall off with distance: %.0f%% lit within 3 bays, %.0f%% from 8 bays (%s)" % [tag, near * 100.0, far * 100.0, stats])
+	check(signatures.size() >= seeds - 2, "%s: different seeds give different corridors (%d distinct of %d)" % [tag, signatures.size(), seeds])
+	check(lengths.size() >= 4 or seeds < SEEDS, "%s: corridor lengths vary with the seed (%s)" % [tag, lengths.keys()])
+
+
+func audit(room: RoomTemplate, g: GeneratedRoom, grammar: StackGalleryGrammar, door_name: String, s: int) -> void:
+	var tag: String = "%s seed %d" % [door_name, s]
 	var bays: int = g.bay_count()
 	check(bays >= grammar.min_bays and bays <= grammar.max_bays, "%s: %d bays within %d-%d" % [tag, bays, grammar.min_bays, grammar.max_bays])
 	var grid_problems: PackedStringArray = g.grid.check()
@@ -99,9 +142,24 @@ func audit(room: RoomTemplate, g: GeneratedRoom, grammar: StackGalleryGrammar, s
 	var cross: int = g.modules.filter(func(m: Node3D) -> bool: return m.scene_file_path.ends_with("vault_cross_4m.tscn")).size()
 	check(cross == corners(g), "%s: a groin vault on each of %d corners (%d)" % [tag, corners(g), cross])
 	await features(g, grammar, tag)
-	wear(room, g, tag)
+	wear(room, g, door_name, tag)
 	var wear_before: String = str(g.grid.wear)
 	# Validate Room on the corridor and on R01 (which must not see the corridor).
+	validate(room, g, tag)
+	check(g.sockets().size() > bays * 2, "%s: corridor sockets resolved (%d)" % [tag, g.sockets().size()])
+	# Same seed, same build.
+	var first: String = g.module_signature()
+	g.generate()
+	check(g.module_signature() == first, "%s: regenerating gives the same build" % tag)
+	check(str(g.grid.wear) == wear_before and not g.grid.wear.is_empty(), "%s: regenerating gives the same wear lanes" % tag)
+	await physics_frame
+	await physics_frame
+	await walk(room, g, door_name, tag)
+
+
+## Validate Room on the corridor (clean) and on R01 (no errors, and none of
+## the corridor's sockets), and the entry on R01's door face to face.
+func validate(room: RoomTemplate, g: GeneratedRoom, tag: String) -> void:
 	var gv: Dictionary = KitValidateRoom.run(g)
 	check((gv["errors"] as PackedStringArray).is_empty() and (gv["warnings"] as PackedStringArray).is_empty(),
 		"%s: the corridor validates clean (%s)" % [tag, gv])
@@ -110,20 +168,16 @@ func audit(room: RoomTemplate, g: GeneratedRoom, grammar: StackGalleryGrammar, s
 	check((rv["errors"] as PackedStringArray).is_empty(), "%s: R01 still validates without errors (%s)" % [tag, rv["errors"]])
 	var r01_sockets: int = room.sockets().size()
 	check(r01_sockets == 106, "%s: R01 keeps its own 106 sockets, none of the corridor's (%d)" % [tag, r01_sockets])
-	check(g.sockets().size() > bays * 2, "%s: corridor sockets resolved (%d)" % [tag, g.sockets().size()])
-	# Same seed, same build.
-	var first: String = g.module_signature()
-	g.generate()
-	check(g.module_signature() == first, "%s: regenerating gives the same build" % tag)
-	check(str(g.grid.wear) == wear_before and not g.grid.wear.is_empty(), "%s: regenerating gives the same wear lanes" % tag)
-	# Joined face to face: the entry connector sits on R01's west door.
 	var entry: Node3D = g.get_node("Connectors/SNAP_entry")
-	var door: Node3D = room.get_node("Connectors/SNAP_door_west")
+	var door: Node3D = room.get_node(NodePath("Connectors/" + String(g.join_connector)))
 	check(entry.global_position.distance_to(door.global_position) < 0.01
-		and entry.global_basis.z.dot(door.global_basis.z) < -0.99, "%s: entry meets R01's west door face to face" % tag)
+		and entry.global_basis.z.dot(door.global_basis.z) < -0.99, "%s: entry meets R01's %s face to face" % [tag, g.join_connector])
 
-	await physics_frame
-	await physics_frame
+
+## Floor and vault over every cell, closed walls, and the route audit: from
+## R01's hall through the gallery's door and every bay, into each alcove and
+## out, round the corners, to the far end, and back.
+func walk(room: RoomTemplate, g: GeneratedRoom, door_name: String, tag: String) -> void:
 	var space: PhysicsDirectSpaceState3D = room.get_world_3d().direct_space_state
 	var floors: int = 0
 	for cell: Vector3i in g.grid.cells:
@@ -155,21 +209,19 @@ func audit(room: RoomTemplate, g: GeneratedRoom, grammar: StackGalleryGrammar, s
 			if not await blocked(body, p, out * 3.0):
 				leaks.append("%s %s" % [cell, CellGrid.SIDE_NAMES[side]])
 	check(leaks.is_empty(), "%s: every solid side and the exit block (%s)" % [tag, leaks])
-	# Walk from R01's hall (beside the west door, clear of the reading table)
-	# through the door and every bay, into each alcove and out, round the
-	# corners, to the far end, and back.
 	var route: Array[Vector3] = []
 	for cell: Vector3i in g.grid.tour():
 		route.append(g.to_global(CellGrid.cell_centre(cell)))
-	body.global_position = Vector3(1.5, 0.95, -6)
+	var start: Vector3 = DOORS[door_name]["start"]
+	body.global_position = start
 	await physics_frame
 	var reached: int = await follow(body, route)
 	var feet: Vector3 = body.global_position - Vector3(0, 0.9, 0)
 	check(reached == route.size() and absf(feet.y) < 0.1,
-		"%s: walk from R01 through the west door, round %d corners and into %d alcoves, to the end (%d of %d stops)" % [tag, corners(g), alcoves(g), reached, route.size()])
+		"%s: walk from R01 through the %s door, round %d corners and into %d alcoves, to the end (%d of %d stops)" % [tag, door_name, corners(g), alcoves(g), reached, route.size()])
 	var back: Array[Vector3] = route.duplicate()
 	back.reverse()
-	back.append(Vector3(1.5, 0.0, -6))
+	back.append(start * Vector3(1, 0, 1))
 	reached = await follow(body, back)
 	feet = body.global_position - Vector3(0, 0.9, 0)
 	check(reached == back.size() and absf(feet.y) < 0.1, "%s: and back into R01 (feet at %s)" % [tag, feet])
@@ -280,7 +332,7 @@ func features(g: GeneratedRoom, grammar: StackGalleryGrammar, tag: String) -> vo
 ## every run cell and alcove and at the joint with R01 on both sides of its
 ## wall; unworn 0.5 m off every solid side wall of a straight bay; busier
 ## near the entry than far out.
-func wear(room: RoomTemplate, g: GeneratedRoom, tag: String) -> void:
+func wear(room: RoomTemplate, g: GeneratedRoom, door_name: String, tag: String) -> void:
 	FloorWear.rebuild_now()
 	var grid: CellGrid = g.grid
 	var order: Array[Vector3i] = grid.run_order()
@@ -315,8 +367,11 @@ func wear(room: RoomTemplate, g: GeneratedRoom, tag: String) -> void:
 				unworn.append("alcove %s" % c)
 	check(unworn.is_empty(), "%s: wear lanes cross every bay and alcove (unworn: %s)" % [tag, unworn])
 	check(walls.is_empty(), "%s: no wear 0.5 m off the side walls (%s)" % [tag, walls])
-	var joint: Vector2 = Vector2(FloorWear.wear_at(Vector3(0.2, 0, -6)), FloorWear.wear_at(g.to_global(Vector3(2, 0, -0.5))))
-	check(joint.x > 0.0 and joint.y > 0.0, "%s: worn on both sides of R01's west wall (%s)" % [tag, joint])
+	# The R01 side: 0.2 m in from the door (connectors point -Z out of the room).
+	var door: Node3D = room.get_node(NodePath("Connectors/" + String(g.join_connector)))
+	var inside: Vector3 = door.global_position + door.global_basis.z * 0.2
+	var joint: Vector2 = Vector2(FloorWear.wear_at(inside), FloorWear.wear_at(g.to_global(Vector3(2, 0, -0.5))))
+	check(joint.x > 0.0 and joint.y > 0.0, "%s: worn on both sides of R01's %s wall (%s)" % [tag, door_name, joint])
 	if not far.is_empty():
 		var mn: float = near.reduce(func(a: float, b: float) -> float: return a + b, 0.0) / near.size()
 		var mf: float = far.reduce(func(a: float, b: float) -> float: return a + b, 0.0) / far.size()
@@ -444,3 +499,113 @@ func dead_end() -> void:
 	check(await blocked(body, g.to_global(CellGrid.cell_centre(last)) + Vector3(0, 0.95, 0), out * 3.0), "the dead end blocks")
 	room.queue_free()
 	await process_frame
+
+
+## Slice 5: galleries on all three of R01's doors at once (THREE), seeds s,
+## s + 100, s + 200. No gallery has a cell in, or beside, another's cells or
+## the bay beyond another's exit; each validates and walks there and back.
+## The build doesn't depend on tree order. Built alone on their doors, the
+## same three galleries do clash in some seeds, so the case tests something.
+func three_doors() -> void:
+	print(" all three doors")
+	var grammar: StackGalleryGrammar = load("res://gen/grammars/r02_stack_gallery.tres")
+	var changed: int = 0
+	var solo_clashed: int = 0
+	for s: int in range(1, seeds + 1):
+		var tag: String = "three seed %d" % s
+		var room: RoomTemplate = (load(THREE) as PackedScene).instantiate()
+		var gs: Array[GeneratedRoom] = []
+		for n: String in THREE_ROOMS:
+			var g: GeneratedRoom = room.get_node(n)
+			g.gen_seed = s + int(THREE_ROOMS[n][1])
+			gs.append(g)
+		root.add_child(room)
+		var prints: Array = []
+		var sigs: Dictionary = {}
+		var bays: Array[int] = []
+		for g: GeneratedRoom in gs:
+			var tag_g: String = "%s %s" % [tag, g.name]
+			var problems: PackedStringArray = g.grid.check()
+			check(problems.is_empty(), "%s: layout check (%s)" % [tag_g, problems])
+			check(g.bay_count() >= grammar.min_bays, "%s: %d bays, at least min_bays %d" % [tag_g, g.bay_count(), grammar.min_bays])
+			prints.append(footprint(g))
+			sigs[String(g.name)] = g.module_signature()
+			bays.append(g.bay_count())
+		var found: PackedStringArray = clashes(THREE_ROOMS.keys(), prints)
+		check(found.is_empty(), "%s: no gallery in, beside or past the exit of another (%s)" % [tag, found])
+		FloorWear.rebuild_now()
+		await physics_frame
+		await physics_frame
+		for g: GeneratedRoom in gs:
+			var door: String = THREE_ROOMS[String(g.name)][0]
+			validate(room, g, "%s %s" % [tag, door])
+			await walk(room, g, door, "%s %s" % [tag, door])
+		room.queue_free()
+		await process_frame
+		# Tree order doesn't matter: the galleries reversed under R01 build the same.
+		room = (load(THREE) as PackedScene).instantiate()
+		for n: String in THREE_ROOMS:
+			var g: GeneratedRoom = room.get_node(n)
+			g.gen_seed = s + int(THREE_ROOMS[n][1])
+			room.move_child(g, room.get_child_count() - 1 - THREE_ROOMS.keys().find(n))
+		root.add_child(room)
+		var same: bool = true
+		for n: String in THREE_ROOMS:
+			same = same and (room.get_node(n) as GeneratedRoom).module_signature() == sigs[n]
+		check(same, "%s: the same builds with the galleries in reverse tree order" % tag)
+		room.queue_free()
+		await process_frame
+		# Against each gallery alone on its door.
+		var solo_changed: PackedStringArray = []
+		var solo_prints: Array = []
+		for n: String in THREE_ROOMS:
+			var door: String = THREE_ROOMS[n][0]
+			var solo: RoomTemplate = one_gallery(door, s + int(THREE_ROOMS[n][1]))
+			root.add_child(solo)
+			var g: GeneratedRoom = solo.get_node("StackGallery")
+			if g.module_signature() != sigs[n]:
+				solo_changed.append(door)
+			solo_prints.append(footprint(g))
+			solo.queue_free()
+			await process_frame
+		changed += 1 if not solo_changed.is_empty() else 0
+		var solo_found: PackedStringArray = clashes(THREE_ROOMS.keys(), solo_prints)
+		solo_clashed += 1 if not solo_found.is_empty() else 0
+		print("  %s: bays %s, changed by a sibling: %s, built alone they'd clash: %s, %d failures so far" % [tag, bays, solo_changed, solo_found.size(), failures.size()])
+	print("  slice 5: a sibling changed a later gallery in %d of %d seeds; built alone, %d seeds clash" % [changed, seeds, solo_clashed])
+	check(solo_clashed > 0 or seeds < SEEDS, "built alone on their doors, the galleries clash in some seeds (%d of %d)" % [solo_clashed, seeds])
+
+
+## A gallery's world cells (x/z centres on whole metres) and the bays beyond
+## its exits: [cells, exits], each a Dictionary used as a set.
+func footprint(g: GeneratedRoom) -> Array:
+	var cells: Dictionary = {}
+	for c: Vector3i in g.grid.cells:
+		cells[snap_xz(g.to_global(CellGrid.cell_centre(c)))] = true
+	var beyond: Dictionary = {}
+	for n: Node in g.get_node("Connectors").get_children():
+		if String(n.name).begins_with("SNAP_exit"):
+			var m := n as Node3D
+			beyond[snap_xz(m.global_position - m.global_basis.z * CellGrid.BAY * 0.5)] = true
+	return [cells, beyond]
+
+
+## Cells of one gallery in, or beside, another's cells, or in the bay beyond
+## another's exit.
+func clashes(names: Array, prints: Array) -> PackedStringArray:
+	var out: PackedStringArray = []
+	for i: int in prints.size():
+		for j: int in prints.size():
+			if i == j:
+				continue
+			for w: Vector2i in prints[i][0]:
+				if prints[j][0].has(w) or prints[j][1].has(w):
+					out.append("%s %s in %s" % [names[i], w, names[j]])
+				for d: Vector2i in [Vector2i(4, 0), Vector2i(-4, 0), Vector2i(0, 4), Vector2i(0, -4)]:
+					if i < j and prints[j][0].has(w + d):
+						out.append("%s %s beside %s" % [names[i], w, names[j]])
+	return out
+
+
+func snap_xz(p: Vector3) -> Vector2i:
+	return Vector2i(roundi(p.x), roundi(p.z))

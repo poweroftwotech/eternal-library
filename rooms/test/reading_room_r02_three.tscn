@@ -1,0 +1,30 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://rooms/authored/reading_room.tscn" id="1_r01"]
+[ext_resource type="Script" path="res://scripts/gen/generated_room.gd" id="2_gen"]
+[ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="3_r02"]
+
+[node name="ReadingRoom" instance=ExtResource("1_r01")]
+
+[node name="StackGallery" type="Node3D" parent="."]
+script = ExtResource("2_gen")
+room_id = "stack_gallery_west"
+display_name = "The Stack Gallery"
+grammar = ExtResource("3_r02")
+join_connector = &"SNAP_door_west"
+
+[node name="StackGalleryEast" type="Node3D" parent="."]
+script = ExtResource("2_gen")
+room_id = "stack_gallery_east"
+display_name = "The East Stacks"
+grammar = ExtResource("3_r02")
+gen_seed = 101
+join_connector = &"SNAP_door_east"
+
+[node name="StackGalleryEntrance" type="Node3D" parent="."]
+script = ExtResource("2_gen")
+room_id = "stack_gallery_entrance"
+display_name = "The Front Stacks"
+grammar = ExtResource("3_r02")
+gen_seed = 201
+join_connector = &"SNAP_entrance"

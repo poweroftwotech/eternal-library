@@ -32,7 +32,8 @@ var cells: Dictionary = {}
 var edges: Dictionary = {}
 ## Vector3i -> lamp origin height above the cell's floor.
 var lamps: Dictionary = {}
-## Room-space boxes the room may not build into (the host's modules).
+## Room-space boxes the room may not build into (the host's and sibling
+## rooms' modules, and the bays outside their doors).
 var blockers: Array[AABB] = []
 ## Module node name -> socket entry label the room pins on every socket of
 ## that module that has it (a collapsed bay's recesses, a dark lamp).
@@ -207,7 +208,7 @@ func check() -> PackedStringArray:
 			Vector3(BAY - 2.0 * HOST_MARGIN, CELL_HEIGHT, BAY - 2.0 * HOST_MARGIN))
 		for b: AABB in blockers:
 			if b.intersects(box):
-				out.append("cell %s overlaps the host room" % c)
+				out.append("cell %s overlaps the host or a sibling room" % c)
 				break
 	if cells.is_empty():
 		out.append("no cells")
