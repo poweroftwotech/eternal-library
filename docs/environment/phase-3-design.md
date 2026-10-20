@@ -445,3 +445,48 @@ The 3-strike rule applies per mode.
   which is fine. Pushing it needs a board collider, or it drops straight
   through to the floor, which is acceptable.
 
+
+#### 6.5.9 Originals and the janitor hook (added 2026-10-20 at the user's request, built in step 2)
+
+**The aim:** a future NPC or event (a "janitor") can put things back in
+their original condition. Step 2 builds the plumbing for that. No janitor
+exists yet.
+
+- **The original is never overwritten.** A room is always rebuilt as
+  authored or generated from its scene and seed, and the save holds only
+  deltas laid over it. Dropping a delta therefore brings the original back
+  on the next load, with nothing else needed.
+- **Every delta also records the original:**
+  - `orig`: the thing's original transform, in the room's frame;
+  - `scene`: the prop's scene path.
+
+  Two cases need this:
+  - a socket spawn (a table prop) settles onto its table only after load,
+    so the save is the one place that knows where it stood;
+  - a broken prop can be rebuilt while the room is live, without a reload.
+
+  In the save:
+  `{"s": "moved", "xf": […], "orig": […], "scene": "res://props/prop_vase_floor.tscn"}`.
+- **A prop that settles back where it started** (within 1 cm and 1°) has
+  its delta dropped. There's nothing to remember.
+- **API on `WorldState`, for the janitor:**
+
+  | Call | What it does |
+  |---|---|
+  | `changed_ids(room_key)` | Everything changed in a room (`""` for everywhere): the to-do list |
+  | `revert(id)` | Puts one thing back as it was and drops its delta. If the room is loaded, its `RoomTemplate.revert_thing(id)` restores it in place |
+  | `revert_room(room_key)` | Reverts everything in a room; returns the count |
+  | signal `reverted(id)` | Lets an NPC, a sound or a HUD line react |
+
+  Reverting puts things back like this:
+  - a moved prop freezes and returns to its original transform;
+  - a broken prop is re-instanced from its scene at its original place
+    (as the same socket spawn number, for socket spawns) and its shards are
+    removed;
+  - a delta whose room isn't loaded is simply dropped, and the next load
+    builds the original.
+- **Test hook:** the Esc menu in rooms has **Tidy up (janitor test: N
+  changed)**, which reverts every loaded room.
+- **Later kinds** (taken books, dropped items, lamp states) follow the same
+  rule. A taken lore book's delta keeps its shelf slot, so a janitor could
+  put a copy back. Whether it should is a game-design question for then.

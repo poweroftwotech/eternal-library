@@ -2,14 +2,11 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · Design: [approval brief](../phase-3-approval.md), [technical](../phase-3-design.md)
 
-**In short:** step 1 is built. R01 has two floor vases you can knock over
-with E or by walking into them, and they break if they fall hard. The
-things on the reading tables can be pushed too. Nothing is saved yet
-(step 2).
+**In short:** steps 1 and 2 are built. R01 has two floor vases you can knock over or break, and table props you can push. The library now remembers it all after you quit, and every change keeps the thing's original place, so a future janitor can put it back.
 
 ---
 
-## Step 1: a vase you can knock over (built 2026-10-20, waiting for your review)
+## Step 1: a vase you can knock over (done 2026-10-20, approved and committed as 7472a94)
 
 **Try it:** Esc menu → **Visit the reading room**. Walk to the far end of
 the hall (bay 4, in front of the two stair feet). A tall vase stands on each
@@ -109,3 +106,109 @@ side.
   for a step while it wakes.
 - **Not checked by hand:** the feel in a real window (E and walking into
   props). That's yours to try.
+
+## Step 2: it stays knocked over (built 2026-10-20, waiting for your review)
+
+**Try it:**
+
+1. Esc → **Visit the reading room**. Knock the west vase over, break the
+   other one, and push something off a table.
+2. Esc → **Quit**.
+3. Start the game again. You're back in the reading room, where you stood,
+   with the vase on its side, the shards on the floor and the prop where it
+   landed.
+
+Two new menu entries:
+
+- **Tidy up (janitor test: N changed)** puts everything back as it was: the
+  vases stand, the broken one is whole again, the prop is back on its
+  table. Quit and restart: it stays tidy.
+- **Forget this library** deletes the save and starts the world over.
+
+The save is `user://saves/slot0.json`:
+`%APPDATA%\Godot\app_userdata\<project name>\saves\slot0.json`. It's
+readable JSON.
+
+**Built:**
+
+| Piece | File |
+|---|---|
+| `WorldState` autoload: the save file, deltas, `revert`/`revert_room`/`changed_ids`, the `reverted` and `saving` signals, stale ids, `--save=` / `--fresh` | `scripts/world/world_state.gd`, `[autoload]` in `project.godot` |
+| JSON transform helpers | `scripts/world/world_state_data.gd` |
+| Rooms give each prop its id (`room_id@seed/path`, socket spawns `…/SOCKET_x#n`), lay the deltas over the build, record new ones when props settle or shards come to rest, and put things back (`revert_thing`) | `scripts/world/room_template.gd`; `scripts/gen/generated_room.gd` calls `restore_world()` after it builds |
+| Sockets: settling skips restored props and records a spawn's settled spot as its original; spawn numbers never shift; `respawn()` for a reverted broken prop | `scripts/world/variant_socket.gd` |
+| `moved_epsilon` (1 cm) and `moved_epsilon_deg` (1°) | `scripts/world/prop_settings.gd` |
+| Resume the saved scene, gallery seed and pose on the first boot; save on Quit, window close and travel; the two menu entries; notes text | `scripts/main.gd` |
+
+**Original places, for a future janitor (your request):**
+
+- The original is never overwritten: rooms are rebuilt as authored and
+  the save only holds changes on top, so dropping a change restores the
+  original.
+- Each change also keeps the thing's original transform and scene, so it
+  can be put back while you're standing in the room. A broken vase is
+  rebuilt whole.
+
+The API is in [phase-3-design.md §6.5.9](../phase-3-design.md).
+
+**Changed from the design while building:**
+
+- **Tests never touch your save.** Test scripts and headless runs use
+  `user://test/scratch.json`, starting fresh, unless they pass `--save=`.
+- **`main.gd` reaches the autoload through `ws()`.** Test scripts compile
+  `main.gd` before autoload names exist, so a bare `WorldState` identifier
+  failed to compile there.
+- **A prop that comes to rest back in its original place leaves no delta.**
+- **Socket spawns that settle onto nothing are now left as empty slots**
+  rather than removed from the list, so later spawns keep their numbers
+  (their save ids).
+
+**Gates (all pass):**
+
+- **The persistence gate** (`sh tests/persist_gate.sh`): three separate OS
+  processes, R01 + stack gallery, seed 7.
+  - `save` (10 checks): E knocks the west vase over, the east one is
+    dropped and breaks, a table prop is pushed off. Each is saved with the
+    right kind and the vase's original place. A delta that matches nothing
+    is planted, the player moves, and the game quits through its own save.
+  - `load` (20 checks): a new process resumes the scene, gallery seed 7 and
+    the player's place.
+    - The vase is where it was knocked over, within 1 cm and 1°.
+    - The east vase is gone, and its 8 shards lie where they fell, frozen.
+    - The table prop is where it landed, and its socket's settle leaves it
+      alone.
+    - Only the planted id is stale: kept, not applied.
+    - Nothing wakes or moves over 120 frames.
+    - Then `revert_room` puts all 4 back, with 4 `reverted` signals. Both
+      vases stand in their places, the broken one whole, with no shards.
+      The prop is back on its table, and no changes are left.
+    - A nudge that settles in place adds no delta.
+  - `reverted` (5 checks): a third process finds no changes and everything
+    original.
+- `prop_test` 51, `room_playtest` 25, `kit_test` 906, `socket_modes_test`
+  246, `reading_room_test` 87, `validate_room_test` 26, `r02_bake_test` 105,
+  camp `playtest` 43, `spill_settle_test` 6, `room_atmosphere_test` 32,
+  `atmosphere_test` 9.
+- `r02_route_test`: 2321 checks, 0 failures.
+- 240-frame headless runs, all clean:
+  - `main` (camp);
+  - `main` with R01, R01+R02 and three doors;
+  - the `Multrooms-test1` and graybox scenes.
+- **GPU, the same view in both processes** (`tests/persist_capture.gd`):
+  `previews/p3s2_before_quit.png` and `p3s2_after_restart.png`.
+  `image_diff` gives a mean of 0.18, with 0.10 % of pixels differing by
+  more than 8. That's render noise: the restored room looks the same.
+
+**Caveats:**
+
+- **The capture view is wide and bay 4 is dim,** so the fallen vase and the
+  shards are small and dark in it. The pixel match is the proof; the
+  picture isn't a showcase.
+- **Only props are saved so far.** Books (step 3) and lamps (step 4) come
+  next.
+- **The camp is unchanged.** Its gatherables regrow (Q5). The satchel is
+  saved from step 3.
+- **Resuming applies to the first start of the game only.** Menu trips
+  between rooms still land on the room's spawn.
+- **Not checked by hand:** quitting and restarting in a real window, and
+  the two new menu entries.

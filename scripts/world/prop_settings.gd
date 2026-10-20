@@ -8,6 +8,10 @@ extends Resource
 @export_range(1, 512) var active_budget: int = 48
 ## Seconds a prop must lie still before it freezes again.
 @export_range(0.1, 10.0, 0.1) var sleep_refreeze_s: float = 2.0
+## A prop that comes to rest within this distance (m) and turn (degrees) of
+## its original place counts as not moved (its save delta is dropped).
+@export_range(0.0, 0.5, 0.001) var moved_epsilon: float = 0.01
+@export_range(0.0, 45.0, 0.1) var moved_epsilon_deg: float = 1.0
 ## Speed lost in one physics step that breaks a breakable prop (m/s, with
 ## spin counted at the prop's half height). A prop's own break_speed wins.
 @export_range(0.1, 20.0, 0.1) var default_break_speed: float = 3.0

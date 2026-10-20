@@ -79,6 +79,7 @@ var _overlay_node: Node3D
 func _ready() -> void:
 	if grid == null:        # a later sibling may have built this one already
 		generate()
+	restore_world()         # the save's changes, over the build (ENVIRONMENT_PLAN.md 6.5.3)
 
 
 func effective_seed() -> int:

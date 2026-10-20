@@ -135,6 +135,21 @@ func clear() -> void:
 	_children.clear()
 
 
+## What the current pick spawned, in spawn order (freed entries stay in place,
+## so an ordinal is a stable id within a resolve: ENVIRONMENT_PLAN.md 6.5.2).
+func spawned() -> Array[Node]:
+	return _children
+
+
+## Puts `node` back as spawn number `ordinal` (a broken prop reverted to its
+## original: WorldState.revert).
+func respawn(ordinal: int, node: Node) -> void:
+	while _children.size() <= ordinal:
+		_children.append(null)
+	_children[ordinal] = node
+	add_child(node, false, Node.INTERNAL_MODE_BACK)
+
+
 func picked_label() -> String:
 	if mode == Mode.SCATTER or mode == Mode.EDGE_SCATTER:
 		var pin: int = effective_pin()
@@ -205,18 +220,20 @@ func settle_items() -> int:
 	var up: Vector3 = global_basis.y.normalized()
 	var removed: int = 0
 	for c: Node in _children.duplicate():
-		if not c is Node3D:
-			continue
+		if not is_instance_valid(c) or not c is Node3D or c.has_meta("restored"):
+			continue     # a restored prop is where the save put it (6.5.3 step 6)
 		var item := c as Node3D
 		var from: Vector3 = item.global_position + up * 0.5
 		var hit: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(from, item.global_position - up * settle_max_drop, 1))
 		if hit.is_empty():
-			_children.erase(item)
+			_children[_children.find(item)] = null     # keep the others' ordinals (their save ids)
 			remove_child(item)
 			item.queue_free()
 			removed += 1
 		else:
 			item.global_position = hit["position"]
+			if item is WorldProp:
+				(item as WorldProp).rest_transform = item.transform     # its original spot is the settled one
 	last_count -= removed
 	return removed
 

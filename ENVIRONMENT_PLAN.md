@@ -8,13 +8,14 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 3 step 1: a vase you can knock over** | [Progress: phase 3](docs/environment/progress/phase-3-props.md) ("Try it" at the top) | Try it in the game: Esc → Visit the reading room, then bay 4 at the far end. Say if it feels right; step 2 (saving) starts after your OK. Nothing is committed |
+| **Phase 3 step 2: it stays knocked over** (plus the janitor plumbing you asked for) | [Progress: phase 3, step 2](docs/environment/progress/phase-3-props.md) ("Try it") | Break and push things, Quit, start the game again: they stay changed. Try Esc → **Tidy up** too. Step 3 (lore books) starts after your OK. Step 2 is not committed |
 
 ## What's new
 
 | Date | Change |
 |---|---|
-| 2026-10-20 | **Phase 3 step 1 built:** two breakable floor vases in R01, pushable table props, and the player's physics layer fixed ([progress](docs/environment/progress/phase-3-props.md)). |
+| 2026-10-20 | **Phase 3 step 2 built:** the game saves (`user://saves/slot0.json`) and resumes where you quit. Every change keeps its original, so a future janitor can put things back (Esc → Tidy up tests it). Proved across three separate processes ([progress](docs/environment/progress/phase-3-props.md)). |
+| 2026-10-20 | **Phase 3 step 1 committed** (7472a94): two breakable floor vases in R01, pushable table props, and the player's physics layer fixed ([progress](docs/environment/progress/phase-3-props.md)). |
 | 2026-10-20 | Phase 3 design **approved** with the recommended answers to Q1–Q9. |
 | 2026-10-20 | **This plan is split into several pages**, with this front page. Nothing in the content was dropped; the old single file is in git history. |
 | 2026-10-20 | **Phase 3 design drafted:** [approval brief](docs/environment/phase-3-approval.md) and [technical design](docs/environment/phase-3-design.md). |
@@ -29,7 +30,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 1. Authored Reading Room (R01) | A hand-built hall from kit pieces; variety from sockets; playable from the Esc menu | ✅ Done 2026-10-19 |
 | R01 weathering and polish | Fallen books, debris, plants, stains, stairs, growth, surface relief, floor wear | ✅ Done 2026-10-19 |
 | 2. Generated Stack Gallery (R02) | A seeded corridor off any R01 door; bakeable to a scene | ✅ Done 2026-10-20 |
-| **3. Props and persistence** | Push and break props, take lore books, save and restore, aging lamps | 🔨 Step 1 of 4 built, waiting for your review |
+| **3. Props and persistence** | Push and break props, take lore books, save and restore, aging lamps | 🔨 Step 2 of 4 built, waiting for your review (step 1 committed) |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | Not started |
 | 5. Kit breadth | More room types, mostly from data | Not started |
 

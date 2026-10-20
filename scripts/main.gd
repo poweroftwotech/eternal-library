@@ -25,13 +25,27 @@ const READING_ROOM: String = "res://rooms/authored/reading_room.tscn"
 const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
 ## Set by the menu before a reload; survives reload_current_scene().
 static var room_override: String = ""
+## The first boot of this process resumes from the save (ENVIRONMENT_PLAN.md 6.5.3, Q4).
+static var booted: bool = false
+## What this boot loaded: a room scene path, or "camp".
+var scene_path: String = "camp"
+var resuming: bool = false
 
 func _ready() -> void:
 	install_inputs()
+	resuming = not booted and ws().loaded and room_override == "" and not Array(OS.get_cmdline_user_args()).any(func(a: String) -> bool: return a.begins_with("--room="))
+	booted = true
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("--gen-seed=") and GeneratedRoom.seed_override < 0:
 			GeneratedRoom.seed_override = arg.trim_prefix("--gen-seed=").to_int()
+	if resuming and GeneratedRoom.seed_override < 0:
+		GeneratedRoom.seed_override = int(ws().data.get("gen_seed_override", -1))
 	var room_path: String = requested_room()
+	if resuming:
+		var saved: String = str(ws().data.get("scene", ""))
+		room_path = saved if saved != "camp" and ResourceLoader.exists(saved) else ""
+	scene_path = room_path if room_path != "" else "camp"
+	ws().saving.connect(_on_saving)
 	if room_path.is_empty():
 		world = World.new()
 	else:
@@ -51,6 +65,10 @@ func _ready() -> void:
 		# v0.11: spawn on the concept-art framing (see tests/capture.gd 'concept').
 		player.teleport(Vector3(-1.05,.08,9.2))
 		look_toward(Vector3(-1.1,1.4,-2.4))
+	var pose: Dictionary = ws().data.get("player", {})
+	if resuming and (pose.get("pos", []) as Array).size() == 3:
+		var p: Array = pose["pos"]
+		player.teleport(Vector3(p[0], p[1], p[2]), float(pose.get("yaw", 0.0)), float(pose.get("pitch", 0.0)))
 	player.blocked = false
 	player.interact_requested.connect(interact)
 	hud = Hud.new()
@@ -101,8 +119,22 @@ func generated_rooms() -> Array[GeneratedRoom]:
 	return out
 
 func travel(path: String) -> void:
+	ws().save_now()
 	room_override = path
 	get_tree().reload_current_scene()
+
+## Just before every save: where the player is, so the next start resumes there.
+func _on_saving() -> void:
+	ws().data["scene"] = scene_path
+	ws().data["gen_seed_override"] = GeneratedRoom.seed_override
+	if player != null and is_instance_valid(player):
+		var p: Vector3 = player.global_position
+		ws().data["player"] = {"pos": [p.x, p.y, p.z], "yaw": player.rotation.y, "pitch": player.camera.rotation.x}
+
+## Saves, then quits (the menu's Quit and closing the window).
+func save_and_quit() -> void:
+	ws().save_now()
+	get_tree().quit()
 
 func install_inputs() -> void:
 	var actions = {"forward":[KEY_W,KEY_UP],"back":[KEY_S,KEY_DOWN],"left":[KEY_A,KEY_LEFT],"right":[KEY_D,KEY_RIGHT],"interact":[KEY_E],"jump":[KEY_SPACE],"sprint":[KEY_SHIFT],"notes":[KEY_J],"fullscreen":[KEY_F11]}
@@ -196,7 +228,7 @@ func eat() -> bool:
 
 func show_notes() -> void:
 	if in_room():
-		open_panel("Field notes","[color=#dfbd7b]%s[/color]\nA two-storey hall of shelf recesses under a tiled vault. Stairs at the far end of each side climb to a gallery that runs round to the entrance wall. A tiled iwan closes the hall; what stands in it changes from visit to visit.\n\nVases and the things on the tables can be pushed (E) or walked into; a vase that falls hard breaks. Nothing here is remembered after you leave yet.\n\nEsc → Return to the camp." % room_title().capitalize(),[{"text":"Close notes","action":"close"}],"notes")
+		open_panel("Field notes","[color=#dfbd7b]%s[/color]\nA two-storey hall of shelf recesses under a tiled vault. Stairs at the far end of each side climb to a gallery that runs round to the entrance wall. A tiled iwan closes the hall; what stands in it changes from visit to visit.\n\nVases and the things on the tables can be pushed (E) or walked into; a vase that falls hard breaks. The library remembers what you knock over, even after you quit.\n\nEsc → Return to the camp." % room_title().capitalize(),[{"text":"Close notes","action":"close"}],"notes")
 		return
 	open_panel("Field notes","[color=#dfbd7b]The reading garden[/color]\nA cooking fire, a tree growing through the archive, and a stair to the upper gallery. Water still follows the old irrigation channel.\n\n[color=#dfbd7b]Ingredients[/color]\nAmberroot grows beside the garden's water. Filling.\nHearthleaf grows in sunny patches. Aromatic and warming.\nShelf mushrooms grow in the damp archive. Good roasted.\n\n[color=#dfbd7b]A route worth trying[/color]\nThe stairs east of the tree lead to the upper bookshelves. Follow the lamp-lit doorway through the gallery to the balcony. The Eternal Library continues far below the cavern roof.",[{"text":"Close notes","action":"close"}],"notes")
 
@@ -208,11 +240,15 @@ func show_menu() -> void:
 		trips.append({"text":"Reseed the stack gallery (seed %d)" % generated_rooms()[0].effective_seed(),"action":"reseed"})
 	var options: Array = [{"text":"Resume exploring","action":"close"}]
 	options.append_array(trips)
+	if in_room():
+		# Test hook for a future janitor (NPC or event): puts every changed thing back.
+		options.append({"text":"Tidy up (janitor test: %d changed)" % ws().changed_ids().size(),"action":"tidy"})
 	options.append_array([
 		{"text":"Controls & settings","action":"controls"},
 		{"text":"Begin another outing","action":"restart"},
+		{"text":"Forget this library (start the world over)","action":"forget"},
 		{"text":"Quit","action":"quit"}])
-	open_panel(room_title().capitalize() if in_room() else "The reading garden","A moment by the shelves." + ("\n[color=#9a8f7a]Moved and broken things aren't remembered yet.[/color]" if in_room() else ""),options,"menu")
+	open_panel(room_title().capitalize() if in_room() else "The reading garden","A moment by the shelves.",options,"menu")
 
 func show_controls() -> void:
 	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen\n\nMovement pauses while a panel is open.",[
@@ -245,7 +281,19 @@ func on_choice(action: String) -> void:
 			GeneratedRoom.seed_override = randi() % 100000
 			travel(room_override if room_override != "" else requested_room())
 		"go_camp": travel("camp")
-		"quit": get_tree().quit()
+		"quit": save_and_quit()
+		"forget":
+			open_panel("Forget this library?","Everything you moved, broke or took is put back, and the save is deleted. This can't be undone.",[{"text":"Forget it all","action":"forget_confirm"},{"text":"Keep this library","action":"menu"}],"forget")
+		"forget_confirm":
+			ws().forget()
+			room_override = scene_path
+			get_tree().reload_current_scene()
+		"tidy":
+			var n: int = 0
+			for key: String in ws().rooms.keys():
+				n += ws().revert_room(key)
+			close_panel()
+			hud.notify("Tidied: %d thing%s put back where it stood." % [n, "" if n == 1 else "s"])
 		"roast", "broth":
 			if cook(action):
 				show_pot()
@@ -298,9 +346,16 @@ func _unhandled_input(event: InputEvent) -> void:
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if DisplayServer.window_get_mode()==DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
 
 func _notification(what: int) -> void:
+	if what == NOTIFICATION_WM_CLOSE_REQUEST:
+		ws().save_now()     # closing the window keeps the world (ENVIRONMENT_PLAN.md 6.5.3)
 	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and hud != null and not hud.modal_open:
 		show_menu()
 
 func _exit_tree() -> void:
 	if is_instance_valid(audio):
 		audio.stop()
+
+## The WorldState autoload (the save). Looked up at run time: test scripts
+## compile main.gd before autoload names exist.
+func ws():
+	return get_node("/root/WorldState")
