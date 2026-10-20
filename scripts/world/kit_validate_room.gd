@@ -41,6 +41,7 @@ static func run(root: Node) -> Dictionary:
 	_edge_gaps(root, modules, errors)
 	_connectors(root, errors)
 	_socket_fit(root, modules, errors, warnings)
+	_lore_pins(root, errors)
 	return {"errors": errors, "warnings": warnings}
 
 
@@ -532,3 +533,26 @@ static func _foreign(root: Node, node: Node) -> bool:
 			return true
 		p = p.get_parent()
 	return false
+
+
+## Lore books (ENVIRONMENT_PLAN.md 6.5.4): each pin needs an item, a recess
+## socket that exists, and that socket room-pinned to a shelf candidate, so a
+## reroll can never turn its shelf into a tile panel and lose the book.
+static func _lore_pins(root: Node, errors: PackedStringArray) -> void:
+	if not root is RoomTemplate:
+		return
+	var room := root as RoomTemplate
+	for pin: LoreBookPin in room.lore_books:
+		if pin == null:
+			continue
+		var what: String = "lore book %s" % (pin.item.display_name if pin.item != null else "(no item)")
+		if pin.item == null:
+			errors.append("%s on %s has no ItemDef" % [what, pin.socket])
+		var socket := room.get_node_or_null(NodePath(pin.socket)) as VariantSocket
+		if socket == null or socket.socket_set == null:
+			errors.append("%s: no recess socket at %s" % [what, pin.socket])
+			continue
+		var idx: int = room.socket_pins.get(pin.socket, -1)
+		var label: String = socket.socket_set.entries[idx].label if idx >= 0 and idx < socket.socket_set.entries.size() else ""
+		if not label.ends_with("shelves"):
+			errors.append("%s: pin %s to full or sparse shelves in the room's socket pins (now '%s')" % [what, pin.socket, label if label != "" else "not pinned"])

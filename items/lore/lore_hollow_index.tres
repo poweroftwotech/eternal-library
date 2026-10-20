@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/item_def.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"lore_hollow_index"
+display_name = "The Hollow Index"
+spine_colour = Color(0.16, 0.3, 0.46, 1)
+text = "[i]Placeholder text: replace or approve.[/i]
+
+An index of this hall, written by someone who never finished it. The first pages list the shelves as they stand. The later pages list shelves that are not here: a bay of red bindings \"west of the west wall\", a stair \"down from the iwan, under the tree\".
+
+In the margin, in another hand: [i]I went looking for the stair. The wall was warm.[/i]
+
+The last entry is only a heading. The pages after it have been cut out, cleanly, as if with care."

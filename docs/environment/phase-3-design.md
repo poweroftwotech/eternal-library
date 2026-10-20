@@ -115,7 +115,7 @@ An id is `room_key / path [# index]`. It is unique within an area, and
 | Authored prop (R01 `Props/VaseIwanWest`) | `reading_room@1/Props/VaseIwanWest` | An owned node in the scene file. Renaming it in the editor orphans its delta (see stale ids) |
 | Socket-spawned prop (a table's pot) | `reading_room@1/Dressing/table_reading2/…/SOCKET_table_props#2` | The socket path is stable (phase 1). `#2` is the spawn ordinal in `VariantSocket._children`, deterministic for a seed |
 | Shelf book | `<room_key>/<recess socket path>#b37` | `#b37` is the index in `ShelfFill.built_transforms`. That's deterministic for the socket seed. Hidden books keep their index: they are zero-scaled, never removed |
-| Lore book | `lore:<ItemDef.id>` | Unique items are world-unique, so taking one is the same fact wherever it was pinned |
+| Lore book | `<room_key>/<recess socket path>#lore:<ItemDef.id>` (as built, step 3) | Its place, so a janitor knows the shelf; the satchel still holds a unique item only once |
 | Generated-room prop or socket | `stack_gallery_west@7/Shell/wall_x-1_z2_W/…#n` | Grid-key names (5.5.1) |
 | Baked room | `stack_gallery_west@7/…` | The baked root keeps `room_id`, `preview_seed` = the seed, and the same node names (5.5.10). So a bake inherits the live gallery's deltas for that seed, and validates against them (below) |
 | Lamp (STATE socket) | `<room_key>/<lantern socket path>` | The socket path |

@@ -18,6 +18,8 @@ var main_script: GDScript = load("res://scripts/main.gd")
 const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
 const EXPECT: String = "user://test/persist_expect.json"
 const STALE_ID: String = "reading_room@1/Props/NoSuchVase"
+const LORE_SOCKET: String = "Shell/wall_shelfbay_4m/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill"
+const LORE_ID: String = "reading_room@1/" + LORE_SOCKET + "#lore:lore_hollow_index"
 const POSE := Vector3(6.0, 0.05, -10.0)
 const POSE_YAW: float = 1.0
 
@@ -128,6 +130,43 @@ func save_mode() -> void:
 	var d: Dictionary = ws.call("delta", west_id)
 	check(near(WorldStateData.xf(d.get("orig")), Transform3D(Basis(), Vector3(2.2, 0, -16.6))), "the delta remembers the vase's original place")
 	ws.call("set_delta", STALE_ID, {"s": "moved", "xf": WorldStateData.arr(Transform3D()), "orig": WorldStateData.arr(Transform3D())})
+	# Step 3: pull the Hollow Index and take it; pull a gallery book off onto the floor.
+	var fill: ShelfFill = fill_of(room, LORE_SOCKET)
+	var li: int = fill.lore_index.get(&"lore_hollow_index", -1) if fill != null else -1
+	check(li >= 0, "the entrance recess holds the lore book")
+	if li >= 0:
+		var lore: WorldProp = fill.pull(li)
+		for _i: int in 30:
+			await physics_frame
+		game.interact(lore)
+	check(ws.call("owns", &"lore_hollow_index") and str(ws.call("delta", LORE_ID).get("s", "")) == "taken", "the lore book is in the satchel and saved as taken")
+	var g: GeneratedRoom = room.get_node("StackGallery")
+	var gfill: ShelfFill = null
+	var gi: int = -1
+	for f: ShelfFill in g.shelf_fills():
+		for i: int in f.built_transforms.size():
+			if f.book_levels[i] == 1 and f.built_transforms[i].basis.x.length() > 0.01:
+				gfill = f
+				gi = i
+				break
+		if gfill != null:
+			break
+	check(gfill != null, "the gallery has a shelf with books")
+	var gbook_id: String = ""
+	var gbook_xf: Array = []
+	if gfill != null:
+		var gbook: WorldProp = gfill.pull(gi)
+		for _i: int in 30:
+			await physics_frame
+		var actor := Node3D.new()
+		g.add_child(actor)
+		actor.global_position = gfill.to_global(Vector3(0, 0, -1.6))
+		gbook.interact(actor, gbook.global_position)
+		await wait_still()
+		gbook_id = gbook.get_meta("world_id", "")
+		gbook_xf = WorldStateData.arr(g.global_transform.affine_inverse() * gbook.global_transform)
+		check(gbook_id.begins_with("stack_gallery_west@7/") and str(ws.call("delta", gbook_id).get("s", "")) == "moved", "the gallery book is saved, in the gallery's own room (%s)" % gbook_id)
+		check(gbook.global_position.y < 0.3, "and it lies on the gallery floor (%s)" % gbook.global_position)
 	game.player.teleport(POSE, POSE_YAW)
 	await physics_frame
 	var shards: Array[Shards] = room.room_shards()
@@ -135,7 +174,8 @@ func save_mode() -> void:
 	var expect: Dictionary = {
 		"west": WorldStateData.arr(room_xf(west)), "west_id": west_id, "east_id": east_id,
 		"shards": shards[0].pieces.map(func(b: RigidBody3D) -> Array: return WorldStateData.arr(room_xf(b))) if shards.size() == 1 else [],
-		"table": WorldStateData.arr(room_xf(table)), "table_orig": WorldStateData.arr(table_orig), "table_id": table_id}
+		"table": WorldStateData.arr(room_xf(table)), "table_orig": WorldStateData.arr(table_orig), "table_id": table_id,
+		"lore_index": li, "gbook_id": gbook_id, "gbook_xf": gbook_xf}
 	DirAccess.make_dir_recursive_absolute("user://test")
 	var f: FileAccess = FileAccess.open(EXPECT, FileAccess.WRITE)
 	f.store_string(JSON.stringify(expect))
@@ -166,6 +206,20 @@ func load_mode() -> void:
 	check(table != null and near(room_xf(table), WorldStateData.xf(expect["table"])), "the table prop is where it was pushed")
 	var stale: PackedStringArray = ws.call("stale_ids")
 	check(stale == PackedStringArray([STALE_ID]), "only the planted id is stale, kept but not applied (%s)" % [stale])
+	# Step 3: the lore book stays taken and readable; the gallery book stays on the floor.
+	var fill: ShelfFill = fill_of(room, LORE_SOCKET)
+	check(fill != null and fill.hidden.has(int(expect["lore_index"])), "the lore book's slot is empty")
+	check(fill != null and fill.book_at(fill.to_global(fill.built_transforms[int(expect["lore_index"])].origin)) != int(expect["lore_index"]), "and it can't be pulled again")
+	check(ws.call("owns", &"lore_hollow_index"), "it is still in the satchel")
+	game.show_book(&"lore_hollow_index")
+	check(game.modal_context == "book" and game.hud.modal_open, "and Read opens it")
+	game.close_panel()
+	var gbook: WorldProp = null
+	for p: WorldProp in g.world_props():
+		if p.get_meta("world_id", "") == expect["gbook_id"]:
+			gbook = p
+	check(gbook != null and near(g.global_transform.affine_inverse() * gbook.global_transform, WorldStateData.xf(expect["gbook_xf"])), "the gallery book lies where it fell")
+	check(gbook != null and (gbook.get_parent() as ShelfFill).hidden.has(int(gbook.get_meta("shelf_index"))), "and its shelf slot is empty")
 	var before: Array = room.world_props().map(func(p: WorldProp) -> Transform3D: return p.global_transform)
 	for _i: int in 120:
 		await physics_frame
@@ -180,7 +234,7 @@ func load_mode() -> void:
 	var n: int = ws.call("revert_room", "reading_room@1")
 	await physics_frame
 	await physics_frame
-	check(n == 4 and reverted.size() == 4, "revert_room puts back all 4 changes (%d, signals %d)" % [n, reverted.size()])
+	check(n == 4 and reverted.size() == 4, "revert_room puts back the 4 changes it can; the taken lore book stays taken (%d, signals %d)" % [n, reverted.size()])
 	west = room.get_node_or_null("Props/VaseIwanWest")
 	check(west != null and west.freeze and near(room_xf(west), Transform3D(Basis(), Vector3(2.2, 0, -16.6))), "the west vase stands where it was placed")
 	var east: WorldProp = room.get_node_or_null("Props/VaseIwanEast")
@@ -188,16 +242,17 @@ func load_mode() -> void:
 	check(room.room_shards().is_empty(), "its shards are gone")
 	table = prop_by_id(expect["table_id"])
 	check(table != null and near(room_xf(table), WorldStateData.xf(expect["table_orig"])), "the table prop is back on the table")
-	check((ws.call("changed_ids", "") as PackedStringArray).is_empty(), "no changes are left in the save")
+	check(ws.call("changed_ids", "") == PackedStringArray([LORE_ID, expect["gbook_id"]]) or ws.call("changed_ids", "") == PackedStringArray([expect["gbook_id"], LORE_ID]), "left in the save: the taken lore book and the gallery book (%s)" % [ws.call("changed_ids", "")])
 	if east != null:
 		east.wake()     # the new vase is tracked: a nudge that changes nothing leaves no delta
 		await wait_still()
-		check((ws.call("changed_ids", "") as PackedStringArray).is_empty(), "a reverted prop that settles in place adds no delta")
+		check((ws.call("changed_ids", "") as PackedStringArray).size() == 2, "a reverted prop that settles in place adds no delta")
 
 
 func reverted_mode() -> void:
 	var expect: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(EXPECT))
-	check((ws.call("changed_ids", "") as PackedStringArray).is_empty(), "after a restart the save holds no changes")
+	check((ws.call("changed_ids", "reading_room@1") as PackedStringArray) == PackedStringArray([LORE_ID]), "after a restart R01 holds only the taken lore book")
+	check(ws.call("owns", &"lore_hollow_index") and (ws.call("changed_ids", "stack_gallery_west@7") as PackedStringArray).size() == 1, "the satchel still has it; the gallery book is still down")
 	var west: WorldProp = room.get_node_or_null("Props/VaseIwanWest")
 	var east: WorldProp = room.get_node_or_null("Props/VaseIwanEast")
 	check(west != null and near(room_xf(west), Transform3D(Basis(), Vector3(2.2, 0, -16.6))), "the west vase stands in its place")
@@ -206,3 +261,13 @@ func reverted_mode() -> void:
 		await physics_frame
 	var table: WorldProp = prop_by_id(expect["table_id"])
 	check(table != null and near(room_xf(table), WorldStateData.xf(expect["table_orig"])), "the table prop is on the table")
+
+
+func fill_of(r: RoomTemplate, socket_path: String) -> ShelfFill:
+	var s := r.get_node_or_null(socket_path) as VariantSocket
+	if s == null:
+		return null
+	for n: Node in s.spawned():
+		if n is ShelfFill:
+			return n as ShelfFill
+	return null

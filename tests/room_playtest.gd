@@ -115,6 +115,48 @@ func props_pass() -> void:
 			break
 	check(WorldProp.awake_props.is_empty(), "every prop freezes again (%d awake)" % WorldProp.awake_props.size())
 	check(player.global_position.y > -0.3, "the player is still on the floor (%s)" % player.global_position)
+	await lore_pass()
+
+
+## Phase 3 step 3: look at the gilt spine by the entrance, E pulls it out, E
+## takes it; the field notes list it and Read opens it.
+func lore_pass() -> void:
+	var socket := game.world.get_node("Shell/wall_shelfbay_4m/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill") as VariantSocket
+	var fill: ShelfFill = null
+	for n: Node in socket.spawned():
+		if n is ShelfFill:
+			fill = n
+	check(fill != null and fill.lore_index.has(&"lore_hollow_index"), "the entrance recess holds a lore book")
+	if fill == null:
+		return
+	var li: int = fill.lore_index[&"lore_hollow_index"]
+	var spine: Vector3 = fill.to_global(fill.built_transforms[li].origin + Vector3(0, 0, -0.1))
+	player.teleport(Vector3(2.4, 0.05, spine.z), 0.0)     # clear of the arcade columns (x 1.4)
+	game.look_toward(spine)
+	for _i: int in 3:
+		await physics_frame
+	game.look_toward(spine)     # again, from where the player settled
+	for _i: int in 2:
+		await physics_frame
+	var target = player.get_target()
+	check(target != null and game.prompt_for(target) == "Pull out The Hollow Index", "aiming at the gilt spine: 'Pull out The Hollow Index' (%s)" % str([game.prompt_for(target) if target != null else "nothing", fill.to_local(player.aim_point()), fill.book_at(player.aim_point()), li, fill.built_transforms[li].origin]))
+	if target == null:
+		return
+	game.interact(target)
+	for _i: int in 30:
+		await physics_frame
+	target = player.get_target()
+	check(target is WorldProp and game.prompt_for(target) == "Take The Hollow Index", "pulled out, it says 'Take The Hollow Index' (%s)" % (game.prompt_for(target) if target != null else "nothing"))
+	if target is WorldProp:
+		game.interact(target)
+	await process_frame
+	check(game.ws().owns(&"lore_hollow_index"), "E takes it into the satchel")
+	game.show_notes()
+	var reads: Array = game.hud.options.filter(func(o: Dictionary) -> bool: return o.action == "read:lore_hollow_index")
+	check(reads.size() == 1, "the field notes offer Read: The Hollow Index")
+	game.on_choice("read:lore_hollow_index")
+	check(game.modal_context == "book", "and Read opens the book")
+	game.close_panel()
 
 
 ## Phase 2 slice 1: R01 with the generated stack gallery (seed 3). From the

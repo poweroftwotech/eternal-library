@@ -2,7 +2,7 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · Design: [approval brief](../phase-3-approval.md), [technical](../phase-3-design.md)
 
-**In short:** steps 1 and 2 are built. R01 has two floor vases you can knock over or break, and table props you can push. The library now remembers it all after you quit, and every change keeps the thing's original place, so a future janitor can put it back.
+**In short:** steps 1-3 are built. You can knock over or break R01's floor vases and push the things on its tables. You can pull books off any shelf, and take two lore books (with gilt bands) into your satchel and read them. The library remembers all of it after you quit, and every change keeps the thing's original place, so a future janitor can put it back.
 
 ---
 
@@ -107,7 +107,7 @@ side.
 - **Not checked by hand:** the feel in a real window (E and walking into
   props). That's yours to try.
 
-## Step 2: it stays knocked over (built 2026-10-20, waiting for your review)
+## Step 2: it stays knocked over (done 2026-10-20, approved and committed as 2c60c70)
 
 **Try it:**
 
@@ -212,3 +212,120 @@ The API is in [phase-3-design.md §6.5.9](../phase-3-design.md).
   between rooms still land on the room's spawn.
 - **Not checked by hand:** quitting and restarting in a real window, and
   the two new menu entries.
+
+## Step 3: pull a lore book and take it (built 2026-10-20, waiting for your review)
+
+This meets the first half of phase 3's finish line: knock over a vase, pull
+a lore book and take it, quit, and in a new process both stay changed.
+
+**Try it:**
+
+1. Esc → **Visit the reading room**. Walk to the west wall by the entrance
+   (the first recess on your left) and look at the shelves at eye height.
+   One spine is taller, with a **gold band**.
+2. Aim at it: **Pull out The Hollow Index**. E slides it half out, then
+   **Take The Hollow Index**, then E again.
+3. Press **J**: the field notes have a **Satchel** section and a **Read:
+   The Hollow Index** button.
+4. The second lore book, **On Lamps That Remember**, is upstairs in the
+   first recess on the west gallery.
+5. Any other book: **Pull out a book**, then **Pull off**, and it drops at
+   your feet.
+6. Quit and restart. The slot stays empty, the book stays in your satchel,
+   and pulled books stay where they fell.
+
+**The two lore texts are placeholders I wrote** (each starts with
+"Placeholder text: replace or approve"). They're in
+`items/lore/lore_hollow_index.tres` and `lore_lamps_remember.tres`, in the
+`text` field, editable in the Inspector.
+
+**Built:**
+
+| Piece | File |
+|---|---|
+| `ItemDef` (id, name, kind, stack, unique, spine colour, text); `ItemDef.find(id)` | `scripts/world/item_def.gd`, `items/lore/*.tres`, `items/ingredients/*.tres` |
+| `LoreBookPin` (recess socket, shelf, x, item); `RoomTemplate.lore_books`; R01's two pins | `scripts/world/lore_book_pin.gd`, `scripts/world/room_template.gd`, `rooms/authored/reading_room.tscn` (as text) |
+| `ShelfFill`, part 1: per-book shelf level and colour; lore books appended after the random books (books in the slot shrink to nothing; indices never move) | `scripts/world/shelf_fill.gd` |
+| `ShelfFill`, part 2: a `Reach` body per shelf on layer 2 (the ray finds a book; it never blocks you); highlight; `pull`, `make_book`, `hide_book`, `unhide_book` | `scripts/world/shelf_fill.gd` |
+| `WorldProp.item` ("Take …" puts it in the satchel), `pull_toward` ("Pull off" brings a book toward you), the `taken` signal | `scripts/world/world_prop.gd` |
+| Satchel in the save (`add_item`, `owns`, `item_count`, `set_count`, `owned_items`); a janitor can't revert a taken item | `scripts/world/world_state.gd` |
+| Rooms save pulled books (`moved`) and taken ones (`taken`), and restore them on load | `scripts/world/room_template.gd` |
+| J notes **Satchel** + **Read**; "Took … J: read it in your satchel."; camp ingredients saved; Begin another outing empties the ingredients but keeps lore books | `scripts/main.gd` |
+| Validate Room: a lore pin's recess must be room-pinned to full or sparse shelves | `scripts/world/kit_validate_room.gd` |
+
+**Changed from the design while building:**
+
+- **A lore book's save id is its place:**
+  `reading_room@1/<recess socket>#lore:lore_hollow_index`, not
+  `lore:<id>`. A janitor can then see which shelf it came from. The satchel
+  still holds it only once (unique).
+- **Ordinary books, second E is "Pull off", toward you.** The shelf boards
+  have no collision, so pushing a book into the shelf would drop it inside
+  the recess.
+- **Lore book look:** 0.34 m tall (the gap under a board is 0.37), with a
+  gold band two-thirds up. The leather map darkens instance colours, so the
+  spine and band are tinted above 1 on the shelf. The pulled book's band is
+  a plain gold with a faint glint.
+- **Correction to my earlier note:** the HUD does have four numbered slots
+  (three ingredient counts and the notes icon), but they're display only.
+  Nothing selects or uses them, so "no quick slots" holds as behaviour.
+
+**Gates (all pass):**
+
+- `book_test` (new), 27 checks:
+  - the ItemDefs are right;
+  - for 20 seeds, a lore pin adds two instances at the end and only shrinks
+    the 1-3 books in its slot;
+  - R01's lore pins validate, and both recesses hold their book;
+  - the Reach is on layer 2 only;
+  - aiming finds the book and names it;
+  - a pull is half out, frozen, tracked by shelf and index, with an
+    object-space material;
+  - "Pull off" lands it on the hall floor;
+  - the lore book keeps its band; Take puts it in the satchel and empties
+    the slot; the save says taken; a janitor can't revert it;
+  - Validate Room flags a lore pin on an unpinned recess.
+- `room_playtest`, 31 checks. The real player and ray aim at the gilt
+  spine: "Pull out The Hollow Index", E, "Take The Hollow Index", E. Then
+  it's in the satchel, and J offers Read, which opens it.
+- **The persistence gate** (`sh tests/persist_gate.sh`), three OS
+  processes:
+  - `save` (15): adds pulling and taking the lore book, and a gallery book
+    pulled off onto the gallery floor, saved under the gallery's own key.
+  - `load` (26): the lore slot is empty and can't be pulled again; the
+    book is still owned and Read opens it; the gallery book lies where it
+    fell, with its slot empty. `revert_room` puts back the 4 things it can
+    and leaves the taken lore book.
+  - `reverted` (6): the lore book is still taken and owned, and the gallery
+    book is still down.
+- `prop_test` 51, `kit_test` 906, `socket_modes_test` 246,
+  `reading_room_test` 87, `validate_room_test` 26, `r02_bake_test` 105,
+  camp `playtest` 43, `spill_settle_test` 6, `room_atmosphere_test` 32,
+  `atmosphere_test` 9.
+- 240-frame runs, all clean:
+  - `main` (camp);
+  - `main` with R01, R01+R02 and three doors;
+  - the `Multrooms-test1` and graybox scenes.
+- `r02_route_test`: 2321 checks, 0 failures.
+- GPU captures (`tests/book_capture.gd`, the real game with its HUD):
+  - `previews/p3s3_aim.png` and `p3s3_aim_zoom.png`: the gilt spine with
+    "Pull out The Hollow Index";
+  - `p3s3_pulled.png` and `p3s3_pulled_zoom.png`: half out, "Take The
+    Hollow Index";
+  - `p3s3_taken.png`: the empty slot;
+  - `p3s3_satchel.png`: J with the Satchel;
+  - `p3s3_read.png`: the book open.
+
+**Caveats:**
+
+- **The highlight is only 2 cm.** It's hard to see at a distance; the
+  prompt is the real cue. Say if you want something stronger (a brighter
+  tint, or a bigger slide).
+- **The lore spine still reads olive in R01's warm light,** but the gold
+  band gives it away.
+- **A gallery column stands close to the entrance recess,** so the capture
+  is partly blocked. The column is in the room; you can step around it.
+- **Collapsed (fallen) recesses can't be pulled from,** as designed.
+- **Generated galleries have no lore books yet.** A grammar `lore_chance`
+  comes later.
+- **Not checked by hand:** the feel in a real window.

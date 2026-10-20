@@ -71,6 +71,8 @@ func _ready() -> void:
 		player.teleport(Vector3(p[0], p[1], p[2]), float(pose.get("yaw", 0.0)), float(pose.get("pitch", 0.0)))
 	player.blocked = false
 	player.interact_requested.connect(interact)
+	for k: String in inventory:     # the satchel's ingredients come from the save
+		inventory[k] = ws().item_count(StringName(k))
 	hud = Hud.new()
 	add_child(hud)
 	hud.choice_selected.connect(on_choice)
@@ -127,6 +129,11 @@ func travel(path: String) -> void:
 func _on_saving() -> void:
 	ws().data["scene"] = scene_path
 	ws().data["gen_seed_override"] = GeneratedRoom.seed_override
+	for k: String in inventory:     # ingredients the cooking pot spent
+		if int(inventory[k]) > 0:
+			ws().satchel()["stacks"][k] = int(inventory[k])
+		else:
+			ws().satchel()["stacks"].erase(k)
 	if player != null and is_instance_valid(player):
 		var p: Vector3 = player.global_position
 		ws().data["player"] = {"pos": [p.x, p.y, p.z], "yaw": player.rotation.y, "pitch": player.camera.rotation.x}
@@ -153,7 +160,10 @@ func look_toward(target: Vector3) -> void:
 
 func interact(target) -> void:
 	if target.has_method("interact"):     # WorldProp and later room interactables (ENVIRONMENT_PLAN.md 6.5.1)
+		var item: ItemDef = target.item if target is WorldProp else null
 		target.interact(player, player.aim_point())
+		if item != null and ws().owns(item.id):
+			hud.notify("Took %s.  J — read it in your satchel." % item.display_name)
 		return
 	if in_room():
 		return
@@ -167,6 +177,7 @@ func interact(target) -> void:
 		var kind: String = world.harvest(id)
 		if not kind.is_empty():
 			inventory[kind] += 1
+			ws().set_count(kind, inventory[kind])
 			hud.notify("Gathered " + {"mushroom":"shelf mushrooms","root":"amberroot","herb":"hearthleaf"}[kind])
 			hud.update_values(inventory,nourishment,warmth)
 
@@ -228,9 +239,39 @@ func eat() -> bool:
 
 func show_notes() -> void:
 	if in_room():
-		open_panel("Field notes","[color=#dfbd7b]%s[/color]\nA two-storey hall of shelf recesses under a tiled vault. Stairs at the far end of each side climb to a gallery that runs round to the entrance wall. A tiled iwan closes the hall; what stands in it changes from visit to visit.\n\nVases and the things on the tables can be pushed (E) or walked into; a vase that falls hard breaks. The library remembers what you knock over, even after you quit.\n\nEsc → Return to the camp." % room_title().capitalize(),[{"text":"Close notes","action":"close"}],"notes")
+		open_panel("Field notes","[color=#dfbd7b]%s[/color]\nA two-storey hall of shelf recesses under a tiled vault. Stairs at the far end of each side climb to a gallery that runs round to the entrance wall. A tiled iwan closes the hall; what stands in it changes from visit to visit.\n\nVases and the things on the tables can be pushed (E) or walked into; a vase that falls hard breaks. The library remembers what you knock over, even after you quit.\n\nEsc → Return to the camp." % room_title().capitalize() + satchel_text(),satchel_options(),"notes")
 		return
-	open_panel("Field notes","[color=#dfbd7b]The reading garden[/color]\nA cooking fire, a tree growing through the archive, and a stair to the upper gallery. Water still follows the old irrigation channel.\n\n[color=#dfbd7b]Ingredients[/color]\nAmberroot grows beside the garden's water. Filling.\nHearthleaf grows in sunny patches. Aromatic and warming.\nShelf mushrooms grow in the damp archive. Good roasted.\n\n[color=#dfbd7b]A route worth trying[/color]\nThe stairs east of the tree lead to the upper bookshelves. Follow the lamp-lit doorway through the gallery to the balcony. The Eternal Library continues far below the cavern roof.",[{"text":"Close notes","action":"close"}],"notes")
+	open_panel("Field notes","[color=#dfbd7b]The reading garden[/color]\nA cooking fire, a tree growing through the archive, and a stair to the upper gallery. Water still follows the old irrigation channel.\n\n[color=#dfbd7b]Ingredients[/color]\nAmberroot grows beside the garden's water. Filling.\nHearthleaf grows in sunny patches. Aromatic and warming.\nShelf mushrooms grow in the damp archive. Good roasted.\n\n[color=#dfbd7b]A route worth trying[/color]\nThe stairs east of the tree lead to the upper bookshelves. Follow the lamp-lit doorway through the gallery to the balcony. The Eternal Library continues far below the cavern roof." + satchel_text(),satchel_options(),"notes")
+
+## The satchel section of the field notes (ENVIRONMENT_PLAN.md 6.5.8 step 3).
+func satchel_text() -> String:
+	var books: Array[ItemDef] = ws().owned_items()
+	var text: String = "
+
+[color=#dfbd7b]Satchel[/color]
+"
+	if books.is_empty():
+		return text + "No books yet. Some shelves hold one worth taking: look for a gilt band on the spine."
+	for book: ItemDef in books:
+		text += "%s
+" % book.display_name
+	return text.strip_edges(false, true)
+
+func satchel_options() -> Array:
+	var options: Array = []
+	for book: ItemDef in ws().owned_items():
+		if book.kind == ItemDef.Kind.LORE:
+			options.append({"text":"Read: %s" % book.display_name,"action":"read:%s" % book.id})
+	options.append({"text":"Close notes","action":"close"})
+	return options
+
+## A lore book from the satchel, open to read.
+func show_book(item_id: StringName) -> void:
+	var book: ItemDef = ItemDef.find(item_id)
+	if book == null or not ws().owns(item_id):
+		show_notes()
+		return
+	open_panel(book.display_name, book.text, [{"text":"Back to the notes","action":"notes"},{"text":"Close","action":"close"}], "book")
 
 func show_menu() -> void:
 	var trips: Array = [{"text":"Return to the camp","action":"go_camp"}] if in_room() else [{"text":"Visit the reading room","action":"go_reading_room"}]
@@ -258,6 +299,9 @@ func show_controls() -> void:
 		{"text":"Back","action":"menu"}],"controls")
 
 func on_choice(action: String) -> void:
+	if action.begins_with("read:"):
+		show_book(StringName(action.trim_prefix("read:")))
+		return
 	match action:
 		"close": close_panel()
 		"menu": show_menu()
@@ -274,7 +318,11 @@ func on_choice(action: String) -> void:
 			show_controls()
 		"restart":
 			open_panel("Another outing?","Start again with an empty satchel and fresh ingredients in the garden?",[{"text":"Begin again","action":"restart_confirm"},{"text":"Keep this outing","action":"menu"}],"restart")
-		"restart_confirm": get_tree().reload_current_scene()
+		"restart_confirm":
+			for k: String in inventory:
+				ws().set_count(k, 0)     # an empty satchel of ingredients; lore books stay
+			get_tree().reload_current_scene()
+		"notes": show_notes()
 		"go_reading_room": travel(READING_ROOM)
 		"go_stack_gallery": travel(STACK_GALLERY)
 		"reseed":

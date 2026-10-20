@@ -150,6 +150,8 @@ func changed_ids(room_key: String = "") -> PackedStringArray:
 func revert(id: String) -> bool:
 	if not deltas().has(id):
 		return false
+	if str(deltas()[id].get("s", "")) == "taken":
+		return false     # it's in the satchel: putting it back would make two (6.5.9)
 	var room: Node = rooms.get(room_key_of(id))
 	if room != null and is_instance_valid(room):
 		room.call("revert_thing", id)
@@ -171,6 +173,62 @@ func revert_room(room_key: String) -> int:
 
 static func room_key_of(id: String) -> String:
 	return id.get_slice("/", 0)
+
+
+# --- the satchel (ENVIRONMENT_PLAN.md 6.5.1: Inventory) ---------------------------
+# {"stacks": {id: count}, "owned": [unique ids]}. Ids only, never copies.
+
+func satchel() -> Dictionary:
+	var inv: Dictionary = data["inventory"]
+	if not inv.has("stacks"):
+		inv["stacks"] = {}
+	if not inv.has("owned"):
+		inv["owned"] = []
+	return inv
+
+
+## Adds one (or `count`) of an item. A unique item is held once; returns
+## false if it was already there.
+func add_item(item: ItemDef, count: int = 1) -> bool:
+	if item == null:
+		return false
+	var inv: Dictionary = satchel()
+	if item.unique:
+		if (inv["owned"] as Array).has(String(item.id)):
+			return false
+		(inv["owned"] as Array).append(String(item.id))
+	else:
+		var have: int = int(inv["stacks"].get(String(item.id), 0))
+		inv["stacks"][String(item.id)] = mini(have + count, item.stack_max)
+	mark_dirty()
+	return true
+
+
+func owns(item_id: StringName) -> bool:
+	return (satchel()["owned"] as Array).has(String(item_id))
+
+
+func item_count(item_id: StringName) -> int:
+	return 1 if owns(item_id) else int(satchel()["stacks"].get(String(item_id), 0))
+
+
+## Sets a stacked item's count (the camp's cooking pot spends ingredients).
+func set_count(item_id: StringName, count: int) -> void:
+	if count <= 0:
+		satchel()["stacks"].erase(String(item_id))
+	else:
+		satchel()["stacks"][String(item_id)] = count
+	mark_dirty()
+
+
+## Unique items in the order they were taken.
+func owned_items() -> Array[ItemDef]:
+	var out: Array[ItemDef] = []
+	for item_id: Variant in satchel()["owned"]:
+		var def: ItemDef = ItemDef.find(StringName(str(item_id)))
+		if def != null:
+			out.append(def)
+	return out
 
 
 # --- live rooms ------------------------------------------------------------------

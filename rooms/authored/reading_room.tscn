@@ -27,6 +27,9 @@
 [ext_resource type="PackedScene" path="res://kit/modules/walls/post_gallery_column_corner_r.tscn" id="25_gcornr"]
 [ext_resource type="Script" path="res://scripts/world/floor_wear.gd" id="25_fwear"]
 [ext_resource type="PackedScene" path="res://props/prop_vase_floor.tscn" id="26_vase"]
+[ext_resource type="Script" path="res://scripts/world/lore_book_pin.gd" id="27_lpin"]
+[ext_resource type="Resource" path="res://items/lore/lore_hollow_index.tres" id="28_lore1"]
+[ext_resource type="Resource" path="res://items/lore/lore_lamps_remember.tres" id="29_lore2"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_gml7e"]
 size = Vector3(12, 15, 23.3)
@@ -34,10 +37,25 @@ size = Vector3(12, 15, 23.3)
 [sub_resource type="BoxShape3D" id="BoxShape3D_vsckd"]
 size = Vector3(60, 0.5, 60)
 
+[sub_resource type="Resource" id="Resource_lore1"]
+script = ExtResource("27_lpin")
+socket = "Shell/wall_shelfbay_4m/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill"
+level = 3
+x = 0.35
+item = ExtResource("28_lore1")
+
+[sub_resource type="Resource" id="Resource_lore2"]
+script = ExtResource("27_lpin")
+socket = "Shell/wall_shelfbay_4m5/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill"
+level = 2
+x = -0.4
+item = ExtResource("29_lore2")
+
 [node name="ReadingRoom" type="Node3D" unique_id=1456888310]
 script = ExtResource("1_kokae")
 room_id = "reading_room"
 display_name = "The Reading Room"
+lore_books = Array[ExtResource("27_lpin")]([SubResource("Resource_lore1"), SubResource("Resource_lore2")])
 socket_pins = Dictionary[String, int]({
 "Shell/gallery_slab_4m/Mesh/M_gallery_slab_4m/SOCKET_gallery_style": 0,
 "Shell/gallery_slab_4m2/Mesh/M_gallery_slab_4m/SOCKET_gallery_style": 0,

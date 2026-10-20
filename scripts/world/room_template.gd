@@ -34,6 +34,9 @@ extends Node3D
 		style_pins = value
 		if Engine.is_editor_hint() and is_inside_tree():
 			resolve_sockets(_last_seed)
+## Lore books on this room's shelves (ENVIRONMENT_PLAN.md 6.5.4). Each recess
+## used must be room-pinned to a shelf candidate (Validate Room checks).
+@export var lore_books: Array[LoreBookPin] = []
 ## Set by the area assembler before the room enters the tree; -1 = use preview_seed.
 var area_seed: int = -1
 ## {style group: entry index} that win over this room's own roll (pins still win
@@ -244,6 +247,8 @@ func restore_world() -> void:
 				_restore_moved(p, d)
 			"broken":
 				_restore_broken(p, id, d)
+	for fill: ShelfFill in shelf_fills():
+		_restore_books(ws, fill)
 
 
 ## Puts one changed thing back as it was originally (WorldState.revert calls
@@ -251,6 +256,11 @@ func restore_world() -> void:
 func revert_thing(id: String) -> bool:
 	for p: WorldProp in world_props():
 		if p.get_meta("world_id", "") == id:
+			if p.has_meta("shelf_index") and p.get_parent() is ShelfFill:
+				(p.get_parent() as ShelfFill).unhide_book(int(p.get_meta("shelf_index")))     # back on its shelf
+				p.refreeze()
+				p.queue_free()
+				return true
 			p.refreeze()
 			p.transform = p.rest_transform
 			p.remove_meta("restored")
@@ -290,6 +300,7 @@ func _track(p: WorldProp, id: String) -> void:
 	p.set_meta("world_id", id)
 	p.settled.connect(_on_prop_settled.bind(p))
 	p.broke.connect(_on_prop_broke.bind(p))
+	p.taken.connect(_on_prop_taken.bind(p))
 
 
 func _room_xf(n: Node3D) -> Transform3D:
@@ -374,3 +385,67 @@ func _flush_moving() -> void:
 	for s: Shards in room_shards():
 		if not s.all_frozen:
 			_on_shards_settled(s)
+
+
+# --- shelf books (ENVIRONMENT_PLAN.md 6.5.4) -----------------------------------
+
+## The lore books pinned on the recess socket at `socket_path`.
+func lore_pins_for(socket_path: String) -> Array[LoreBookPin]:
+	var out: Array[LoreBookPin] = []
+	for pin: LoreBookPin in lore_books:
+		if pin != null and pin.socket == socket_path:
+			out.append(pin)
+	return out
+
+
+## ShelfFills spawned by this room's recess sockets.
+func shelf_fills() -> Array[ShelfFill]:
+	var out: Array[ShelfFill] = []
+	for s: VariantSocket in sockets():
+		for n: Node in s.spawned():
+			if n is ShelfFill:
+				out.append(n as ShelfFill)
+	return out
+
+
+## A shelf book's save id: the recess socket path plus "#b<instance>", or
+## "#lore:<item id>" for a lore book (its place, so a janitor knows the shelf).
+func book_id(fill: ShelfFill, index: int) -> String:
+	var item: ItemDef = fill.lore_item(index)
+	var socket_path: String = socket_key(fill.get_parent() as VariantSocket)
+	return "%s/%s#%s" % [room_key(), socket_path, "lore:%s" % item.id if item != null else "b%d" % index]
+
+
+func _restore_books(ws: Node, fill: ShelfFill) -> void:
+	fill.pulled.connect(_on_book_pulled.bind(fill))
+	var prefix: String = "%s/%s#" % [room_key(), socket_key(fill.get_parent() as VariantSocket)]
+	for id: String in ws.call("changed_ids", room_key()):
+		if not id.begins_with(prefix):
+			continue
+		var token: String = id.substr(prefix.length())
+		var index: int = int(fill.lore_index.get(StringName(token.trim_prefix("lore:")), -1)) if token.begins_with("lore:") else token.trim_prefix("b").to_int()
+		if index < 0 or index >= fill.built_transforms.size() or (token.begins_with("b") and not token.trim_prefix("b").is_valid_int()):
+			continue
+		var d: Dictionary = ws.call("delta", id)
+		ws.call("note_applied", id)
+		if str(d.get("s", "")) == "taken":
+			fill.hide_book(index)
+			continue
+		var book: WorldProp = fill.make_book(index)
+		_track(book, id)
+		book.global_transform = global_transform * WorldStateData.xf(d.get("xf", []))
+		book.set_meta("restored", true)
+
+
+## A book was pulled out: track it and remember it sticking out of the shelf.
+func _on_book_pulled(book: WorldProp, index: int, fill: ShelfFill) -> void:
+	_track(book, book_id(fill, index))
+	_on_prop_settled(book)
+
+
+func _on_prop_taken(p: WorldProp) -> void:
+	var ws: Node = world_state()
+	if ws == null or not p.has_meta("world_id"):
+		return
+	ws.call("set_delta", p.get_meta("world_id"), {"s": "taken", "item": String(p.item.id) if p.item != null else "",
+		"orig": WorldStateData.arr(_original(p)), "scene": p.scene_file_path})

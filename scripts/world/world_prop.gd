@@ -20,6 +20,8 @@ extends RigidBody3D
 signal woke
 signal settled
 signal broke(shards: Node3D)
+## Taken into the satchel (an item); the prop is freed.
+signal taken
 
 ## Collision layer 3, props (6.4); props collide with the world and each other.
 const LAYER_PROPS: int = 1 << 2
@@ -34,6 +36,10 @@ const MASK: int = 1 | LAYER_PROPS
 @export_range(0.0, 20.0, 0.1) var break_speed: float = 0.0
 ## Empty = world/props/prop_settings.tres.
 @export var settings: PropSettings
+## An item you can take (a lore book): E puts it in the satchel (6.5.1).
+@export var item: ItemDef
+## E pulls it toward you instead of pushing it away (a book on a shelf).
+@export var pull_toward: bool = false
 
 ## Awake props, oldest first (the budget).
 static var awake_props: Array[WorldProp] = []
@@ -75,17 +81,36 @@ func _ready() -> void:
 # --- interaction (the player's ray, ENVIRONMENT_PLAN.md 6.5.1) ----------------
 
 func interaction_prompt(_hit: Vector3) -> String:
-	return prompt
+	return "Take %s" % item.display_name if item != null else prompt
 
 
-## E: push along the view, level, at the point aimed at (high on a tall vase,
-## so it tips).
+## E: an item goes into the satchel. Otherwise push along the view, level, at
+## the point aimed at (high on a tall vase, so it tips), or pull toward you.
 func interact(actor: Node3D, hit: Vector3) -> void:
+	if item != null:
+		take()
+		return
 	var dir: Vector3 = hit - actor.global_position
 	dir.y = 0.0
 	if dir.length_squared() < 1e-6:
 		return
-	push(dir.normalized() * settings.push_speed * mass, hit)
+	if pull_toward:
+		push((-dir.normalized() + Vector3(0, 0.3, 0)) * settings.push_speed * mass, hit)
+	else:
+		push(dir.normalized() * settings.push_speed * mass, hit)
+
+
+## Puts the item in the satchel (WorldState) and removes the prop.
+func take() -> bool:
+	var ws: Node = get_node_or_null("/root/WorldState")
+	if item == null or ws == null or broken:
+		return false
+	ws.call("add_item", item)
+	awake_props.erase(self)
+	broken = true      # gone from the world: no more pushes, breaks or saves as moved
+	taken.emit()
+	queue_free()
+	return true
 
 
 func push(impulse: Vector3, at: Vector3) -> void:

@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/item_def.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"lore_lamps_remember"
+display_name = "On Lamps That Remember"
+spine_colour = Color(0.45, 0.14, 0.12, 1)
+text = "[i]Placeholder text: replace or approve.[/i]
+
+A keeper's notebook. Each page is one lamp: where it hangs, the oil it takes, the day it was last trimmed.
+
+\"A lamp that is tended learns the hand that tends it,\" the keeper writes. \"Leave one alone for a season and it forgets the room. Leave it for years and the room forgets it.\"
+
+Near the end the entries grow short. The last reads: [i]Gallery, west, second from the stair. Still lit. I do not know who is trimming it.[/i]"
