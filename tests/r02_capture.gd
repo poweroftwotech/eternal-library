@@ -11,6 +11,11 @@ extends SceneTree
 ##   plan_wide the same, higher and centred further out (for winding runs)
 ##   corner    seed 1: down the first stretch toward its right turn
 ##   groin     seed 1: up into that corner's groin vault
+## Views found from the layout (any seed; slice 3):
+##   alcove    from across the bay, into the first side passage
+##   collapsed from two bays back, at the first collapsed bay
+##   exit      from two bays back, at the exit door
+##   falloff   low in the entry bay, down the first stretch (lamp falloff)
 ## Options (fourth argument, comma separated): overlay, straight=N
 ## (max_straight_bays for this capture).
 ## Run `godot --headless --import` first.
@@ -52,6 +57,10 @@ func capture() -> void:
 	cam.fov = view[2]
 	cam.far = 200.0
 	room.add_child(cam)
+	var found: Array = layout_view(g, args[1] if args.size() > 1 else "")
+	if not found.is_empty():
+		view = found
+		cam.fov = view[2]
 	var from: Vector3 = view[0] if view[3] else g.to_global(view[0])
 	var to: Vector3 = view[1] if view[3] else g.to_global(view[1])
 	cam.look_at_from_position(from, to)
@@ -62,3 +71,49 @@ func capture() -> void:
 	var err: Error = img.save_png(out)
 	print("r02_capture: seed %d, %d bays: " % [g.effective_seed(), g.bay_count()], "saved " + out if err == OK else "FAILED " + error_string(err))
 	quit()
+
+
+## [from, to, fov, false] in corridor space for the views that depend on the
+## layout, or [] (not one of them, or the seed lacks that feature).
+func layout_view(g: GeneratedRoom, view_name: String) -> Array:
+	var grid: CellGrid = g.grid
+	var order: Array[Vector3i] = grid.run_order()
+	var eye := Vector3(0, 1.6, 0)
+	match view_name:
+		"alcove":
+			for c: Vector3i in order:
+				for a: Array in grid.alcoves_of(c):
+					var into: Vector3 = CellGrid.cell_centre(a[0]) - CellGrid.cell_centre(c)
+					return [CellGrid.cell_centre(c) - into * 0.4 + eye, CellGrid.cell_centre(a[0]) + into * 0.3 + Vector3(0, 1.9, 0), 72.0, false]
+		"collapsed", "exit":
+			for i: int in order.size():
+				var c: Vector3i = order[i]
+				var hit: bool = grid.cells[c]["kind"] == "collapsed" if view_name == "collapsed" else i == order.size() - 1
+				if not hit:
+					continue
+				if view_name == "collapsed":
+					# From the bay before, low and to one side, across at the other wall.
+					var walls: Array[int] = StackGalleryGrammar.side_walls(grid, c)
+					var wall: Transform3D = CellGrid.door_transform(c, walls[0])
+					var along: Vector3 = Vector3(grid.cells[c]["run"]) * Vector3(1, 0, -1)
+					var prev: Vector3 = CellGrid.cell_centre(order[maxi(i - 1, 0)])
+					var from: Vector3 = prev - (wall.origin - CellGrid.cell_centre(c)) * 0.45 + Vector3(0, 1.5, 0)
+					if (CellGrid.cell_centre(c) - prev).dot(along) < 0.0:
+						along = -along
+					return [from, wall.origin + along * 0.6 + Vector3(0, 0.7, 0), 70.0, false]
+				var back: Vector3i = order[maxi(i - 2, 0)]
+				var at: Vector3 = CellGrid.cell_centre(c)
+				if view_name == "exit":
+					for side: int in CellGrid.ALL_SIDES:
+						var e: Dictionary = grid.edge(c, side)
+						if not e.is_empty() and e["mark"] == CellGrid.Mark.DOOR and not e["host"]:
+							at = CellGrid.door_transform(c, side).origin
+				return [CellGrid.cell_centre(back) + eye, at + Vector3(0, 1.4, 0), 70.0, false]
+		"falloff":
+			var last: Vector3i = order[0]
+			for c: Vector3i in order.slice(1):
+				last = c
+				if grid.cells[c]["kind"] == "corner":
+					break
+			return [CellGrid.cell_centre(order[0]) + Vector3(0, 1.2, 1.4), CellGrid.cell_centre(last) + Vector3(0, 1.8, 0), 66.0, false]
+	return []

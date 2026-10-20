@@ -8,9 +8,10 @@ extends RefCounted
 ## stable for a layout.
 
 
-## Adds the modules under `shell`; returns them.
+## Adds the modules under `shell` and free dressing (grid.props) under
+## `dressing` (or `shell`); returns them.
 static func build(shell: Node3D, grid: CellGrid, rules: ModuleRules, styles: PackedStringArray,
-		seed_value: int) -> Array[Node3D]:
+		seed_value: int, dressing: Node3D = null) -> Array[Node3D]:
 	var out: Array[Node3D] = []
 	if rules == null:
 		push_warning("RoomBuilder: no ModuleRules")
@@ -57,6 +58,9 @@ static func build(shell: Node3D, grid: CellGrid, rules: ModuleRules, styles: Pac
 		var n: String = CellGrid.cell_name(c)
 		var at: Vector3 = CellGrid.cell_centre(c) + Vector3(0, float(grid.lamps[c]), 0)
 		_place(out, shell, rules, styles, seed_value, "lamp", n, "lamp_" + n, Transform3D(Basis(), at))
+	for k: String in grid.props:
+		var prop: Dictionary = grid.props[k]
+		_place(out, dressing if dressing != null else shell, rules, styles, seed_value, prop["slot"], k, "prop_" + k, prop["xf"])
 	return out
 
 

@@ -9,7 +9,10 @@ extends SceneTree
 ## west door, round every corner to the end of the corridor and back. Slice 2:
 ## straight stretches within min/max_straight_bays, groin vaults on corners,
 ## and changing max_straight_bays changes the corridor. Same seed, same
-## build; different seeds, different builds.
+## build; different seeds, different builds. Slice 3: alcoves (walked into and
+## out of), collapsed bays (collapsed recesses and rubble), lamps on corners with
+## pinned states that fall off with distance, cool fills, the exit (connector,
+## free cell beyond, glow stub that blocks) and the dead-end alternative.
 
 const SCENE: String = "res://rooms/test/reading_room_r02.tscn"
 const SEEDS: int = 20
@@ -18,6 +21,8 @@ const SPEED: float = 8.0
 
 var failures: PackedStringArray = []
 var checks: int = 0
+## Slice 3 tallies across the seeds.
+var stats: Dictionary = {"alcove_seeds": 0, "collapsed_seeds": 0, "near": 0, "near_lit": 0, "far": 0, "far_lit": 0}
 
 
 func _initialize() -> void:
@@ -61,6 +66,13 @@ func run() -> void:
 		room.queue_free()
 		await process_frame
 	check(turned * 2 >= SEEDS, "most seeds turn at least once (%d of %d)" % [turned, SEEDS])
+	check(stats["alcove_seeds"] >= SEEDS / 4, "side passages occur (%d of %d seeds have an alcove)" % [stats["alcove_seeds"], SEEDS])
+	check(stats["collapsed_seeds"] >= 1, "collapsed bays occur (%d of %d seeds)" % [stats["collapsed_seeds"], SEEDS])
+	var near: float = float(stats["near_lit"]) / maxf(stats["near"], 1)
+	var far: float = float(stats["far_lit"]) / maxf(stats["far"], 1)
+	print("  slice 3: %d seeds with alcoves, %d with collapsed bays, lamps lit %.0f%% within 3 bays and %.0f%% from 8 bays" % [stats["alcove_seeds"], stats["collapsed_seeds"], near * 100.0, far * 100.0])
+	check(near > far + 0.15, "lamps fall off with distance: %.0f%% lit within 3 bays, %.0f%% from 8 bays (%s)" % [near * 100.0, far * 100.0, stats])
+	await dead_end()
 	await straight_rule()
 	check(signatures.size() >= SEEDS - 2, "different seeds give different corridors (%d distinct of %d)" % [signatures.size(), SEEDS])
 	check(lengths.size() >= 4, "corridor lengths vary with the seed (%s)" % [lengths.keys()])
@@ -85,8 +97,7 @@ func audit(room: RoomTemplate, g: GeneratedRoom, grammar: StackGalleryGrammar, s
 	check(not bad_runs, "%s: stretches %s within %d-%d bays" % [tag, runs, grammar.min_straight_bays, grammar.max_straight_bays])
 	var cross: int = g.modules.filter(func(m: Node3D) -> bool: return m.scene_file_path.ends_with("vault_cross_4m.tscn")).size()
 	check(cross == corners(g), "%s: a groin vault on each of %d corners (%d)" % [tag, corners(g), cross])
-	var lamps: int = g.grid.lamps.size()
-	check(lamps == bays / grammar.lamp_every_bays, "%s: a lamp every %d bays (%d lamps)" % [tag, grammar.lamp_every_bays, lamps])
+	await features(g, grammar, tag)
 	# Validate Room on the corridor and on R01 (which must not see the corridor).
 	var gv: Dictionary = KitValidateRoom.run(g)
 	check((gv["errors"] as PackedStringArray).is_empty() and (gv["warnings"] as PackedStringArray).is_empty(),
@@ -116,7 +127,7 @@ func audit(room: RoomTemplate, g: GeneratedRoom, grammar: StackGalleryGrammar, s
 		var hit: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3(0, 0.5, 0), p - Vector3(0, 1, 0), 1))
 		if not hit.is_empty() and absf((hit["position"] as Vector3).y) < 0.05:
 			floors += 1
-	check(floors == bays, "%s: floor collision under all %d cells (%d)" % [tag, bays, floors])
+	check(floors == g.grid.cells.size(), "%s: floor collision under all %d cells, alcoves included (%d)" % [tag, g.grid.cells.size(), floors])
 	# A vault over every cell, its crown at 6.0 m (barrel and groin alike).
 	var crowns: PackedStringArray = []
 	for cell: Vector3i in g.grid.cells:
@@ -133,25 +144,25 @@ func audit(room: RoomTemplate, g: GeneratedRoom, grammar: StackGalleryGrammar, s
 		var p: Vector3 = g.to_global(CellGrid.cell_centre(cell)) + Vector3(0, 0.95, 0)
 		for side: int in CellGrid.ALL_SIDES:
 			var e: Dictionary = g.grid.edge(cell, side)
-			if e.is_empty() or e["mark"] != CellGrid.Mark.SOLID:
+			# Solid walls, and an own exit door (its exit_glow stub blocks until a room joins).
+			if e.is_empty() or not (e["mark"] == CellGrid.Mark.SOLID or (e["mark"] == CellGrid.Mark.DOOR and not e["host"])):
 				continue
 			var out: Vector3 = g.global_basis * (Vector3(CellGrid.neighbour(cell, side) - cell) * Vector3(1, 0, -1))
 			if not await blocked(body, p, out * 3.0):
 				leaks.append("%s %s" % [cell, CellGrid.SIDE_NAMES[side]])
-	check(leaks.is_empty(), "%s: every solid side blocks, the dead end included (%s)" % [tag, leaks])
+	check(leaks.is_empty(), "%s: every solid side and the exit block (%s)" % [tag, leaks])
 	# Walk from R01's hall (beside the west door, clear of the reading table)
-	# through the door and every bay, round the corners, to the far end, and back.
-	var order: Array = g.grid.cells.keys()
-	order.sort_custom(func(a: Vector3i, b: Vector3i) -> bool: return g.grid.cells[a]["bay"] < g.grid.cells[b]["bay"])
+	# through the door and every bay, into each alcove and out, round the
+	# corners, to the far end, and back.
 	var route: Array[Vector3] = []
-	for cell: Vector3i in order:
+	for cell: Vector3i in g.grid.tour():
 		route.append(g.to_global(CellGrid.cell_centre(cell)))
 	body.global_position = Vector3(1.5, 0.95, -6)
 	await physics_frame
 	var reached: int = await follow(body, route)
 	var feet: Vector3 = body.global_position - Vector3(0, 0.9, 0)
 	check(reached == route.size() and absf(feet.y) < 0.1,
-		"%s: walk from R01 through the west door, round %d corners, to the end (%d of %d bays)" % [tag, corners(g), reached, route.size()])
+		"%s: walk from R01 through the west door, round %d corners and into %d alcoves, to the end (%d of %d stops)" % [tag, corners(g), alcoves(g), reached, route.size()])
 	var back: Array[Vector3] = route.duplicate()
 	back.reverse()
 	back.append(Vector3(1.5, 0.0, -6))
@@ -159,6 +170,110 @@ func audit(room: RoomTemplate, g: GeneratedRoom, grammar: StackGalleryGrammar, s
 	feet = body.global_position - Vector3(0, 0.9, 0)
 	check(reached == back.size() and absf(feet.y) < 0.1, "%s: and back into R01 (feet at %s)" % [tag, feet])
 	body.queue_free()
+
+
+## Slice 3: alcoves, collapsed bays, lamps (corners, states by distance), cool
+## fills and the exit, checked on the built room.
+func features(g: GeneratedRoom, grammar: StackGalleryGrammar, tag: String) -> void:
+	var grid: CellGrid = g.grid
+	var by_name: Dictionary = {}
+	for m: Node3D in g.modules:
+		by_name[String(m.name)] = m
+	# Alcoves: one cell off a straight bay through an arch, gabled at both ends,
+	# with nothing of the room beside it but its bay.
+	var bad: PackedStringArray = []
+	for c: Vector3i in grid.cells:
+		if grid.cells[c]["kind"] != "alcove":
+			continue
+		var opens: int = 0
+		for side: int in CellGrid.ALL_SIDES:
+			var e: Dictionary = grid.edge(c, side)
+			var n: Vector3i = CellGrid.neighbour(c, side)
+			if e["mark"] == CellGrid.Mark.OPENING:
+				opens += 1
+				var arch: Node3D = by_name.get("edge_" + CellGrid.key(c, side))
+				if arch == null or not arch.scene_file_path.ends_with("wall_arch_3m.tscn") or not grid.cells.has(n) \
+						or grid.cells[n]["kind"] != "floor" or not by_name.has("gable_" + CellGrid.key(c, side)):
+					bad.append("%s mouth" % c)
+			elif e["mark"] != CellGrid.Mark.SOLID or grid.cells.has(n):
+				bad.append("%s side %s" % [c, CellGrid.SIDE_NAMES[side]])
+		if opens != 1:
+			bad.append("%s has %d openings" % [c, opens])
+	check(bad.is_empty(), "%s: %d alcoves, each one arch off a straight bay into a closed, gabled cell (%s)" % [tag, alcoves(g), bad])
+	# Collapsed bays: both side walls shelf recesses showing "collapsed", rubble at each.
+	bad = []
+	var collapsed: int = 0
+	for c: Vector3i in grid.cells:
+		if grid.cells[c]["kind"] != "collapsed":
+			continue
+		collapsed += 1
+		for side: int in StackGalleryGrammar.side_walls(grid, c):
+			var k: String = CellGrid.key(c, side)
+			var wall: Node3D = by_name.get("edge_" + k)
+			var shown: String = ""
+			for n: Node in wall.find_children("*", "VariantSocket", true, false) if wall != null else []:
+				var s := n as VariantSocket
+				if s.socket_set != null and s.socket_set.index_of("collapsed") >= 0:
+					shown = s.entry_label(s.last_pick)
+			var rubble: Node3D = by_name.get("prop_rubble_" + k)
+			var pieces: int = 0
+			if rubble != null:
+				for n: Node in rubble.find_children("*", "VariantSocket", true, false):
+					pieces += (n as VariantSocket).last_count
+			if shown != "collapsed" or pieces < 5:
+				bad.append("%s %s: recess %s, %d rubble pieces" % [c, CellGrid.SIDE_NAMES[side], shown, pieces])
+	check(bad.is_empty(), "%s: %d collapsed bays show collapsed recesses and rubble (%s)" % [tag, collapsed, bad])
+	stats["alcove_seeds"] += 1 if alcoves(g) > 0 else 0
+	stats["collapsed_seeds"] += 1 if collapsed > 0 else 0
+	# Lamps: on every lamp_every_bays-th bay and every corner; each lamp's state
+	# socket shows the grammar's pin. Tally lit lamps by distance.
+	bad = []
+	for c: Vector3i in grid.run_order():
+		var i: int = grid.cells[c]["bay"]
+		var want: bool = i % grammar.lamp_every_bays == grammar.lamp_every_bays - 1 or (grammar.lamp_on_corners and grid.cells[c]["kind"] == "corner")
+		if want != grid.lamps.has(c):
+			bad.append("bay %d" % i)
+	for c: Vector3i in grid.lamps:
+		var lamp: Node3D = by_name.get("lamp_" + CellGrid.cell_name(c))
+		var state: String = ""
+		for n: Node in lamp.find_children("*", "VariantSocket", true, false) if lamp != null else []:
+			var s := n as VariantSocket
+			if s.mode == VariantSocket.Mode.STATE:
+				state = s.entry_label(s.last_pick)
+		if state == "" or state != grid.pins.get("lamp_" + CellGrid.cell_name(c), "?"):
+			bad.append("%s state %s" % [c, state])
+		var band: String = "near" if int(grid.cells[c]["bay"]) <= 3 else ("far" if int(grid.cells[c]["bay"]) >= 8 else "")
+		if band != "":
+			stats[band] += 1
+			stats[band + "_lit"] += 1 if state == "lit" else 0
+	check(bad.is_empty(), "%s: lamps on every %d bays and every corner, states as pinned (%s)" % [tag, grammar.lamp_every_bays, bad])
+	# Cool fills: shadowless, on every fill_every_bays-th bay of the run.
+	var fills: Array[Node] = g.get_node("Lights").get_children() if g.has_node("Lights") else []
+	var want_fills: int = grid.run_order().size() / grammar.fill_every_bays
+	var cool: bool = fills.all(func(l: Node) -> bool: return l is OmniLight3D and not (l as OmniLight3D).shadow_enabled \
+		and (l as OmniLight3D).light_color.b > (l as OmniLight3D).light_color.r)
+	check(fills.size() == want_fills and cool, "%s: %d cool shadowless fills (%d)" % [tag, want_fills, fills.size()])
+	# The exit: one own door on the last bay, a connector there pointing out of
+	# the room, the cell beyond left free for the next room, and its glow stub.
+	var exits: Array[Node] = g.get_node("Connectors").get_children().filter(func(n: Node) -> bool: return String(n.name).begins_with("SNAP_exit"))
+	var last: Vector3i = grid.run_order()[-1]
+	var ok: bool = exits.size() == 1
+	if ok:
+		var m := exits[0] as Marker3D
+		var side: int = -1
+		for s: int in CellGrid.ALL_SIDES:
+			var e: Dictionary = grid.edge(last, s)
+			if not e.is_empty() and e["mark"] == CellGrid.Mark.DOOR and not e["host"]:
+				side = s
+		var beyond: Vector3i = CellGrid.neighbour(last, side) if side >= 0 else last
+		var outward: Vector3 = CellGrid.cell_centre(beyond) - CellGrid.cell_centre(last)
+		ok = side >= 0 and grid.is_free(beyond) and m.transform.origin.distance_to(CellGrid.door_transform(last, side).origin) < 0.01 \
+			and (-m.transform.basis.z).dot(outward.normalized()) > 0.99 and by_name.has("prop_exit_" + CellGrid.key(last, side))
+	check(ok, "%s: an exit door on the last bay with its connector, a free cell beyond and the glow stub" % tag)
+
+
+func alcoves(g: GeneratedRoom) -> int:
+	return g.grid.cells.values().filter(func(c: Dictionary) -> bool: return c["kind"] == "alcove").size()
 
 
 func corners(g: GeneratedRoom) -> int:
@@ -238,5 +353,34 @@ func straight_rule() -> void:
 	grammar.max_straight_bays = 6
 	g.generate()
 	check(g.module_signature() == before, "back at 6 it is the same corridor again")
+	room.queue_free()
+	await process_frame
+
+
+## end_kind dead_end: no exit door, connector or glow; the far end is a wall
+## with a gable, it validates clean and it blocks.
+func dead_end() -> void:
+	var room: RoomTemplate = (load(SCENE) as PackedScene).instantiate()
+	var g: GeneratedRoom = room.get_node("StackGallery")
+	g.gen_seed = 3
+	var grammar: StackGalleryGrammar = (g.grammar as StackGalleryGrammar).duplicate()
+	grammar.end_kind = "dead_end"
+	g.grammar = grammar
+	root.add_child(room)
+	var last: Vector3i = g.grid.run_order()[-1]
+	var dir: Vector3i = last - g.grid.run_order()[-2]
+	var side: int = StackGalleryGrammar.side_of(dir)
+	var e: Dictionary = g.grid.edge(last, side)
+	var exits: int = g.get_node("Connectors").get_children().filter(func(n: Node) -> bool: return String(n.name).begins_with("SNAP_exit")).size()
+	var stubs: int = g.modules.filter(func(m: Node3D) -> bool: return String(m.name).begins_with("prop_exit_")).size()
+	check(e["mark"] == CellGrid.Mark.SOLID and exits == 0 and stubs == 0 and g.modules.any(func(m: Node3D) -> bool: return String(m.name) == "gable_" + CellGrid.key(last, side)),
+		"end_kind dead_end: a wall and gable at the far end, no exit (%d connectors, %d stubs)" % [exits, stubs])
+	var v: Dictionary = KitValidateRoom.run(g)
+	check((v["errors"] as PackedStringArray).is_empty() and (v["warnings"] as PackedStringArray).is_empty(), "the dead end validates clean (%s)" % [v])
+	await physics_frame
+	await physics_frame
+	var body: CharacterBody3D = make_capsule(room)
+	var out: Vector3 = g.global_basis * (Vector3(dir) * Vector3(1, 0, -1))
+	check(await blocked(body, g.to_global(CellGrid.cell_centre(last)) + Vector3(0, 0.95, 0), out * 3.0), "the dead end blocks")
 	room.queue_free()
 	await process_frame

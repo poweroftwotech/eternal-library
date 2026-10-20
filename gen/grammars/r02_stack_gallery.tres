@@ -3,7 +3,14 @@
 [ext_resource type="Resource" path="res://gen/rules/r02_brick.tres" id="1_xai4a"]
 [ext_resource type="Script" path="res://scripts/gen/stack_gallery_grammar.gd" id="2_pa763"]
 
+[sub_resource type="Curve" id="Curve_xai4a"]
+_limits = [0.0, 1.0, 0.0, 12.0]
+_data = [Vector2(0, 0.9), 0.0, -0.04583333, 1, 1, Vector2(12, 0.35), -0.04583333, 0.0, 1, 1]
+point_count = 2
+
 [resource]
 script = ExtResource("2_pa763")
+end_kind = "exit"
+lamp_lit_by_distance = SubResource("Curve_xai4a")
 styles = PackedStringArray("brick")
 rules = ExtResource("1_xai4a")

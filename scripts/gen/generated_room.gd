@@ -113,10 +113,12 @@ func generate() -> void:
 	var shell: Node3D = _group("Shell")
 	_group("Sockets")
 	_group("Connectors")
-	modules = RoomBuilder.build(shell, grid, rules if rules != null else grammar.rules, grammar.styles, s)
+	modules = RoomBuilder.build(shell, grid, rules if rules != null else grammar.rules, grammar.styles, s, _group("Dressing"))
 	for m: Node3D in modules:
 		m.set_meta("generated", true)
 	_add_connectors()
+	_add_fills()
+	_pin_from_grid()
 	_add_safety_floor()
 	style_overrides = {}
 	if host != null:
@@ -131,7 +133,7 @@ func generate() -> void:
 ## Removes everything generate() made (found by meta, so it also works after
 ## an editor script reload).
 func clear_generated() -> void:
-	for holder: Node in [self, get_node_or_null("Shell"), get_node_or_null("Connectors")]:
+	for holder: Node in [self, get_node_or_null("Shell"), get_node_or_null("Connectors"), get_node_or_null("Dressing"), get_node_or_null("Lights")]:
 		if holder == null:
 			continue
 		for child: Node in holder.get_children():
@@ -141,9 +143,9 @@ func clear_generated() -> void:
 	modules.clear()
 
 
-## Bay count of the layout (0 before generate).
+## Bays on the main run, alcoves left out (0 before generate).
 func bay_count() -> int:
-	return grid.cells.size() if grid != null else 0
+	return grid.run_order().size() if grid != null else 0
 
 
 ## Every placed module with its scene and transform, sorted: equal builds
@@ -222,16 +224,48 @@ func _add_connectors() -> void:
 		var e: Dictionary = grid.edges[k]
 		if e["mark"] != CellGrid.Mark.DOOR:
 			continue
-		var xf: Transform3D = CellGrid.edge_transform(e["cell"], e["side"])
 		var marker := Marker3D.new()
 		marker.name = "SNAP_entry" if e["host"] else "SNAP_exit_" + k
-		marker.transform = Transform3D(xf.basis * Basis(Vector3.UP, PI), xf.origin + xf.basis.x * CellGrid.BAY * 0.5)
+		marker.transform = CellGrid.door_transform(e["cell"], e["side"])
 		marker.set_meta("snap_kind", "door")
 		if e["host"]:
 			marker.set_meta("host_closes", true)
 		marker.set_meta("generated", true)
 		marker.add_to_group("room_connector", true)
 		holder.add_child(marker)
+
+
+## The grammar's cool fills (grid.fills): shadowless OmniLights under Lights.
+## They stay out of the kit_light group, so Atmosphere never sways them.
+func _add_fills() -> void:
+	var holder: Node3D = _group("Lights")
+	for k: String in grid.fills:
+		var f: Dictionary = grid.fills[k]
+		var light := OmniLight3D.new()
+		light.name = k
+		light.position = f["at"]
+		light.light_color = f["colour"]
+		light.light_energy = f["energy"]
+		light.omni_range = f["range"]
+		light.shadow_enabled = false
+		light.set_meta("generated", true)
+		holder.add_child(light)
+
+
+## grid.pins (module name -> entry label) as generated_pins: every socket of
+## that module whose set has an entry with that label is pinned to it. Pins
+## the user sets in socket_pins still win (RoomTemplate.pin_for).
+func _pin_from_grid() -> void:
+	generated_pins = {}
+	for m: Node3D in modules:
+		if not grid.pins.has(String(m.name)):
+			continue
+		var label: String = grid.pins[String(m.name)]
+		for n: Node in m.find_children("*", "VariantSocket", true, false):
+			var s := n as VariantSocket
+			var idx: int = s.socket_set.index_of(label) if s.socket_set != null else -1
+			if idx >= 0:
+				generated_pins[socket_key(s)] = idx
 
 
 ## AGENTS.md: a temporary floor under unfinished areas (0.25 m under the
@@ -276,7 +310,9 @@ func _draw_overlay() -> void:
 			mesh.surface_set_color(Color(0.3, 0.6, 1.0))
 			mesh.surface_add_vertex(q[(i + 1) % 4])
 		var label := Label3D.new()
-		label.text = "bay %d%s" % [grid.cells[c]["bay"], "\nlamp" if grid.lamps.has(c) else ""]
+		var kind: String = grid.cells[c]["kind"]
+		var lamp: String = str(grid.pins.get("lamp_" + CellGrid.cell_name(c), "lamp")) if grid.lamps.has(c) else ""
+		label.text = "bay %d%s%s" % [grid.cells[c]["bay"], "" if kind == "floor" else "\n" + kind, "\nlamp " + lamp if lamp != "" else ""]
 		label.position = CellGrid.cell_centre(c) + Vector3(0, 0.3, 0)
 		label.billboard = BaseMaterial3D.BILLBOARD_ENABLED
 		label.no_depth_test = true

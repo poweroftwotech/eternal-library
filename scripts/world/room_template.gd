@@ -32,6 +32,10 @@ var area_seed: int = -1
 ## over both). A generated room joined to a host takes the host's build here
 ## (GeneratedRoom.inherit_style_groups, ENVIRONMENT_PLAN.md 5.5.5).
 var style_overrides: Dictionary = {}
+## {socket path: entry index} a generator sets (a collapsed bay pins its
+## recesses, a far lamp goes dark: ENVIRONMENT_PLAN.md 5.5.6). Never saved;
+## socket_pins win over it.
+var generated_pins: Dictionary = {}
 var _last_seed: int = 1
 
 
@@ -65,7 +69,7 @@ func resolve_sockets(seed_value: int) -> Dictionary:
 	for s: VariantSocket in all.filter(func(v: VariantSocket) -> bool: return v.needs_look == "") + all.filter(func(v: VariantSocket) -> bool: return v.needs_look != ""):
 		var key: String = socket_key(s)
 		var group: String = s.socket_set.style_group if s.socket_set != null else ""
-		picks[key] = s.resolve(socket_seed(seed_value, key), socket_pins.get(key, -1), styles.get(group, -1))
+		picks[key] = s.resolve(socket_seed(seed_value, key), pin_for(key), styles.get(group, -1))
 	apply_claims()
 	return picks
 
@@ -95,7 +99,7 @@ func style_choice(group: String, seed_value: int) -> int:
 	for s: VariantSocket in sockets():
 		if s.socket_set == null or s.socket_set.style_group != group:
 			continue
-		var idx: int = socket_pins.get(socket_key(s), s.pinned)
+		var idx: int = pin_for(socket_key(s), s.pinned)
 		if idx < 0:
 			idx = rolled
 		counts[idx] = int(counts.get(idx, 0)) + 1
@@ -125,6 +129,11 @@ func apply_claims() -> int:
 		if not others.is_empty():
 			cleared += s.release_claimed(self, others)
 	return cleared
+
+
+## The room's pin for a socket: socket_pins, then generated_pins, else `fallback`.
+func pin_for(key: String, fallback: int = -1) -> int:
+	return socket_pins.get(key, generated_pins.get(key, fallback))
 
 
 func socket_seed(seed_value: int, key: String) -> int:

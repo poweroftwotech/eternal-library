@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_ydd86"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/debris_rubble.tscn" id="2_3cprj"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/debris_brick.tscn" id="3_oiym5"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="4_0f0p2"]
+
+[sub_resource type="Resource" id="Resource_0pddo"]
+script = ExtResource("1_ydd86")
+label = "rubble"
+scene = ExtResource("2_3cprj")
+weight = 3.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_6u0a0"]
+script = ExtResource("1_ydd86")
+label = "fallen brick"
+scene = ExtResource("3_oiym5")
+weight = 2.0
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("4_0f0p2")
+entries = Array[ExtResource("1_ydd86")]([SubResource("Resource_0pddo"), SubResource("Resource_6u0a0")])
+slot_bounds = AABB(-0.25, 0, -0.2, 0.5, 0.2, 0.4)
+slot_is_item = true

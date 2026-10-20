@@ -23,7 +23,9 @@ const HOST_MARGIN: float = 0.6
 ## plus the vault).
 const CELL_HEIGHT: float = 7.0
 
-## Vector3i -> {kind: String, run: Vector3i (barrel axis), bay: int (cells from the entry)}
+## Vector3i -> {kind: String, run: Vector3i (barrel axis), bay: int (cells from
+## the entry)}. kind: floor, corner, collapsed, or alcove (a one-cell dead end
+## off a bay of the run; its `bay` is that bay's).
 var cells: Dictionary = {}
 ## edge key -> {cell: Vector3i, side: int, mark: int, host: bool}. `cell` and
 ## `side` are the room cell the edge faces into (its module's interior side).
@@ -32,6 +34,13 @@ var edges: Dictionary = {}
 var lamps: Dictionary = {}
 ## Room-space boxes the room may not build into (the host's modules).
 var blockers: Array[AABB] = []
+## Module node name -> socket entry label the room pins on every socket of
+## that module that has it (a collapsed bay's recesses, a dark lamp).
+var pins: Dictionary = {}
+## Free dressing: key -> {slot: ModuleRules slot, xf: room-space Transform3D}.
+var props: Dictionary = {}
+## Cool fill lights: key -> {at: room-space Vector3, colour, energy, range}.
+var fills: Dictionary = {}
 
 
 func add_cell(c: Vector3i, kind: String, run: Vector3i, bay: int) -> void:
@@ -48,6 +57,39 @@ func set_edge(c: Vector3i, side: int, mark: int, host: bool = false, slot: Strin
 
 func edge(c: Vector3i, side: int) -> Dictionary:
 	return edges.get(key(c, side), {})
+
+
+## The cells of the main run (alcoves left out), from the entry outward.
+func run_order() -> Array[Vector3i]:
+	var out: Array[Vector3i] = []
+	for c: Vector3i in cells:
+		if cells[c]["kind"] != "alcove":
+			out.append(c)
+	out.sort_custom(func(a: Vector3i, b: Vector3i) -> bool: return cells[a]["bay"] < cells[b]["bay"])
+	return out
+
+
+## Every cell in walking order: the run from the entry, stepping into each
+## alcove and back out to its bay (route audits and playtests).
+func tour() -> Array[Vector3i]:
+	var out: Array[Vector3i] = []
+	for c: Vector3i in run_order():
+		out.append(c)
+		for a: Array in alcoves_of(c):
+			out.append(a[0])
+			out.append(c)
+	return out
+
+
+## Alcove cells opening off run cell c, as [[alcove cell, side of c], ...].
+func alcoves_of(c: Vector3i) -> Array:
+	var out: Array = []
+	for side: int in ALL_SIDES:
+		var n: Vector3i = neighbour(c, side)
+		var e: Dictionary = edge(c, side)
+		if cells.has(n) and cells[n]["kind"] == "alcove" and not e.is_empty() and e["mark"] == Mark.OPENING:
+			out.append([n, side])
+	return out
 
 
 ## True if cell c may be built: not already a cell, and no host module reaches
@@ -121,6 +163,13 @@ static func cell_transform(c: Vector3i, run: Vector3i) -> Transform3D:
 	return Transform3D(Basis(), Vector3(x, y, z))
 
 
+## A door on `side` of cell c, as room connectors are: at the middle of the
+## edge, -Z pointing out of the room.
+static func door_transform(c: Vector3i, side: int) -> Transform3D:
+	var xf: Transform3D = edge_transform(c, side)
+	return Transform3D(xf.basis * Basis(Vector3.UP, PI), xf.origin + xf.basis.x * BAY * 0.5)
+
+
 ## The two ends of the edge on `side` of cell c, at floor level.
 static func edge_ends(c: Vector3i, side: int) -> Array[Vector3]:
 	var xf: Transform3D = edge_transform(c, side)
@@ -187,5 +236,7 @@ func signature() -> String:
 		lines.append("e %s %s%s" % [k, MARK_NAMES[edges[k]["mark"]], " host" if edges[k]["host"] else ""])
 	for c: Vector3i in lamps:
 		lines.append("l %s" % cell_name(c))
+	for n: String in pins:
+		lines.append("p %s %s" % [n, pins[n]])
 	lines.sort()
 	return "\n".join(lines)

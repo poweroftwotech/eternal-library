@@ -451,7 +451,7 @@ static func multimesh_bounds(mm: MultiMesh) -> AABB:
 static func _pinned_to_nothing(root: Node, s: VariantSocket) -> bool:
 	var pin: int = s.pinned
 	if root is RoomTemplate:
-		pin = (root as RoomTemplate).socket_pins.get((root as RoomTemplate).socket_key(s), pin)
+		pin = (root as RoomTemplate).pin_for((root as RoomTemplate).socket_key(s), pin)
 	return pin >= 0 and pin < s.socket_set.entries.size() and s.socket_set.entries[pin] != null \
 		and s.socket_set.entries[pin].scene == null
 
@@ -499,7 +499,7 @@ static func _pick_of(root: Node, s: VariantSocket) -> int:
 	if root is RoomTemplate:
 		var tmpl := root as RoomTemplate
 		var key: String = tmpl.socket_key(s)
-		pin = tmpl.socket_pins.get(key, pin)
+		pin = tmpl.pin_for(key, pin)
 		if (pin < 0 or pin >= n) and s.socket_set.style_group != "":
 			pin = tmpl.style_picks(tmpl.current_seed()).get(s.socket_set.style_group, -1)
 		if pin < 0 or pin >= n:

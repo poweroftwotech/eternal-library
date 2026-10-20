@@ -99,11 +99,10 @@ func stack_gallery() -> void:
 	await walk(PI * 0.5, func(p: Vector3) -> bool: return p.x < 1.98)
 	var gap: Vector3 = await walk(0.0, func(p: Vector3) -> bool: return p.z < -6.0)
 	check(gap.z < -5.9, "through the gap between the reading table and the gallery column into the door bay (%s)" % gap)
-	# Then bay by bay down the gallery, round its corners, to the end and back.
-	var order: Array = g.grid.cells.keys()
-	order.sort_custom(func(a: Vector3i, b: Vector3i) -> bool: return g.grid.cells[a]["bay"] < g.grid.cells[b]["bay"])
+	# Then bay by bay down the gallery, into each alcove and out, round its
+	# corners, to the end and back.
 	var route: Array[Vector3] = []
-	for cell: Vector3i in order:
+	for cell: Vector3i in g.grid.tour():
 		route.append(g.to_global(CellGrid.cell_centre(cell)))
 	var n: int = await steer(route)
 	var at: Vector3 = player.global_position

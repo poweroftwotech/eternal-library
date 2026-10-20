@@ -1,0 +1,19 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_uwwyp"]
+[ext_resource type="Script" path="res://scripts/world/variant_socket.gd" id="2_usjjl"]
+[ext_resource type="Resource" path="res://kit/sockets/collapse_rubble.tres" id="3_wwmtr"]
+
+[node name="rubble_strip" type="Node3D" unique_id=2053635472]
+script = ExtResource("1_uwwyp")
+family = "gen"
+tags = PackedStringArray("stone", "debris")
+
+[node name="SOCKET_rubble" type="Node3D" parent="." unique_id=532916295]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -0.85)
+script = ExtResource("2_usjjl")
+socket_set = ExtResource("3_wwmtr")
+mode = 2
+scatter_count = Vector2i(10, 16)
+scatter_extent = Vector2(1.2, 0.3)
+scatter_spacing = 0.22

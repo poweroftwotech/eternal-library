@@ -400,6 +400,8 @@ passages" is a grammar edit.
 | `side_passage_chance` | 0.11 | 3 | Per bay side: an `opening` into a one-cell dead-end alcove |
 | `collapse_chance` | 0.08 | 3 | Per bay: a `collapsed` cell (rubble dressing; both recesses pinned to collapsed) |
 | `lamp_lit_by_distance` | `Curve`, 0.9 at the entry to 0.35 at 12 bays | 3 | Lamp `lit` chance by bay count from the entry: the darkness says how far out you are |
+| `alcove_lamp_chance`, `lamp_on_corners`, `lamp_failing_share` | 0.6, on, 0.3 | 3 (as built) | A lamp in an alcove; a lamp on every corner; of the unlit lamps, the share that flicker rather than go dark |
+| `fill_every_bays`, `fill_colour`, `fill_energy`, `fill_range`, `fill_height` | 3, teal, 0.6, 7 m, 4.6 m | 3 (as built) | Cool shadowless fills, the teal archive light |
 | `branch_chance` | 0 | later | T-junction off the main run (needs `vault_cross_4m`, like corners) |
 
 `max_straight_bays` is a hard rule: the walk turns (left or right, whichever
@@ -1751,7 +1753,7 @@ matters most. Phase 2 (generated R02) starts after this slice.
 
 **The R01 polish slice is complete (A, B, C).**
 
-### Phase 2: generated R02 Stack Gallery (design drafted 2026-10-19)
+### Phase 2: generated R02 Stack Gallery (design drafted 2026-10-19; slices 1-3 done)
 
 The design is §5.5, approved by the user 2026-10-19.
 
@@ -1921,6 +1923,116 @@ zigzag. Seed 5 runs 6 bays straight at the default and becomes a 7-bay U at 2.
 - **Plan captures** show the shape only. The overlay labels are too small
   from 46 m; read them in the editor.
 
-**Next: slice 3, features** (§5.5.9): side passages into alcoves, collapsed
-bays, lamp falloff by distance (and a lamp on every corner), an `exit` end,
-and cool fills.
+**Slice 3 done (2026-10-19): features.** Side passages into alcoves,
+collapsed bays, lamp falloff with a lamp on every corner, an `exit` end with
+its connector, and cool fills.
+
+**Try it:** Esc menu → **Visit the stack gallery** and reseed, or start with
+`-- --room=res://rooms/test/reading_room_r02.tscn --gen-seed=4` (a collapsed
+bay just before the exit) or `--gen-seed=7` (three alcoves). In the editor,
+select `StackGallery` and turn on **Overlay**: cell labels now show `alcove`,
+`collapsed` and each lamp's state. The knobs are on
+`gen/grammars/r02_stack_gallery.tres`, in the Inspector groups **Features**,
+**Lamps** and **Cool fills** (§5.5.4); edits regenerate live.
+
+- **Side passages** (`side_passage_chance` 0.11 per bay side): a plain solid
+  side wall of a straight bay becomes an `opening` edge (the first use of that
+  mark, filled by `wall_arch_3m`). Behind it is a one-cell `alcove` whose
+  barrel runs out from the bay, with gables at the arch and at the back wall.
+  The alcove's side walls ask for `edge:solid_corner` (plain), its back wall
+  for `edge:solid` (shelves and the other recess picks). An alcove is placed
+  only if nothing of the room, and nothing of the host, is beside it.
+  `alcove_lamp_chance` 0.6, as in the atlas mock.
+- **Collapsed bays** (`collapse_chance` 0.08 per bay): a straight bay whose
+  two side walls are both plain solid walls (no alcove, door or inner corner).
+  They ask for the new slot `edge:recess` (shelf bay only) and are pinned to
+  "collapsed" (fallen books and broken boards). A `rubble_strip` lies along
+  each wall (slot `dressing:rubble`).
+- **Pins from the grammar:** `CellGrid.pins` maps a module node name to an
+  entry label. `GeneratedRoom` turns it into `RoomTemplate.generated_pins`
+  (new, never saved), which `resolve_sockets`, `style_choice` and Validate
+  Room read through `RoomTemplate.pin_for()`. The user's `socket_pins` still
+  win. So the grammar never reaches inside a socket (§5.5.6).
+- **Lamps:** a lamp on every `lamp_every_bays`-th bay and on every corner
+  (`lamp_on_corners`), plus alcove lamps. Each lamp's state is rolled from
+  `lamp_lit_by_distance` (a `Curve`, 0.9 at the entry to 0.35 at 12 bays)
+  and pinned: lit, otherwise failing (`lamp_failing_share` 0.3) or dark.
+- **Exit end:** `end_kind` is now `exit` in `r02_stack_gallery.tres` (R02
+  connects areas; the atlas mock ends in a warm arch). The exit goes straight
+  on if a room could be built beyond, else to either side of the last bay,
+  else the run ends in a dead end with a warning. The cell beyond is kept
+  free (no alcove takes it). It has an arch, a gable, `SNAP_exit_<edge>` and,
+  until phase 4 joins a room there, an `exit_glow` stub (slot `stub:exit`):
+  a warm emissive card 1.4 m beyond the wall, a warm shadowed light that
+  throws the arch into the last bay, and a blocker. `dead_end` still works.
+- **Cool fills:** a shadowless teal `OmniLight3D` (colour 0.36/0.62/0.64,
+  energy 0.6, range 7 m, 4.6 m up) on every 3rd bay of the run, under the
+  room's `Lights` group. They stay out of `kit_light`, so Atmosphere doesn't
+  sway them. Where the lamps are dark this is the only light, so the far
+  corridor goes teal.
+- **New data** (`tools/seed_gen.gd`, still additive): rules `edge:recess`,
+  `dressing:rubble` and `stub:exit` in `r02_brick.tres`; the grammar's curve;
+  `kit/sockets/collapse_rubble.tres` (rubble 3, fallen brick 2); and two
+  Godot-only modules in `gen/modules/`: `rubble_strip.tscn` (a FREE
+  `KitModule` on the wall line with a SCATTER socket, 10-16 pieces, 0.55-1.15 m
+  out from the wall) and `exit_glow.tscn`. Rubble goes through a socket
+  because KitValidate requires every module to keep scale 1, 90° turns and
+  the 0.5 m grid.
+- **Helpers:** `CellGrid.run_order()` (the run without alcoves),
+  `alcoves_of()`, `tour()` (the run with a step into each alcove and back),
+  `door_transform()`. `GeneratedRoom.bay_count()` counts the run only.
+  `StackGalleryGrammar.stretches()` ignores alcoves.
+
+**Verified:**
+- `r02_route_test`, 435 checks, 0 failures. Per seed, on top of slices 1-2:
+  - every alcove is one arch off a straight bay into a closed, gabled cell
+    with nothing else beside it;
+  - every collapsed bay's two recesses show "collapsed", with ≥ 5 rubble
+    pieces at each;
+  - lamps on every 2nd bay and every corner, each lamp state as the grammar
+    pinned it;
+  - the expected number of cool, shadowless fills;
+  - one exit on the last bay: connector on the door, pointing out, the cell
+    beyond free, the glow stub present;
+  - every solid side and the exit block the capsule; floor collision under
+    every cell, alcoves included;
+  - the capsule walks from R01 round every corner, into every alcove and
+    out, to the end and back.
+
+  Across the 20 seeds: 16 of 20 seeds have an alcove,
+  3 have a collapsed bay (seeds 4, 5, 20), and 78% of lamps within 3 bays
+  of the entry are lit against 43% from 8 bays on (the test prints this). With
+  `end_kind` dead_end (seed 3), the far end is a wall and gable, validates
+  clean and blocks.
+- `room_playtest` 18: the real player at seed 3 now also walks into both of
+  its alcoves and out.
+- `kit_test` 865, `reading_room_test` 79, `socket_modes_test` 246,
+  `validate_room_test` 25, spill 6, room atmosphere 32, camp playtest 43,
+  prototype atmosphere 9, two-process pin persistence, and the 240-frame
+  gates (camp, graybox, R01, R01 + R02, `main` at seed 4) all pass, with no
+  errors or warnings.
+- GPU (`r02_capture.gd`, new views found from the layout on any seed:
+  `alcove`, `collapsed`, `exit`, `falloff`): `previews/r02_s3_{alcove (seed 7),
+  collapsed (seed 4), exit (seed 3), falloff (seed 7), plan_s7}.png`.
+
+**Caveats:**
+- **Exit glow** is a flat card: it reads as a warm room beyond from inside
+  the corridor, but from above (the plan capture) it's a bare orange quad
+  outside the shell. It goes when phase 4 joins a room there. The first
+  version blew out to white close up; the emission is now 0.65.
+- **Rubble** pieces are small (about 0.4 m), so a collapse reads mostly
+  through the recess's fallen books and boards, with rubble as scattered
+  stones, not a heap. There is no hole in the vault.
+- **Dark foreground:** in a stretch whose lamps are dark, the floor near the
+  camera is close to black under the teal fills (the `falloff` capture's
+  bottom edge). That is the "how far out you are" effect, but it brushes
+  ART_DIRECTION's "never let the foreground go black"; raise `fill_energy`
+  if it reads too dark in play.
+- **Alcove frequency:** 0.11 per side gives about two alcoves a seed (more
+  than the atlas mock's look), because most sides fit. Lower the knob if the
+  corridor feels porous.
+- Alcove backs take the normal `edge:solid` roll, so one may end in a sealed
+  door or tile panel (seed 7's first alcove has a sealed door).
+
+**Next: slice 4** (§5.5.9): bake to scene, and generated `FloorWear` lanes
+(from connectors down the run, into alcoves).

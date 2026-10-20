@@ -12,6 +12,8 @@
 [ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_hanging.tscn" id="10_4gphm"]
 [ext_resource type="Script" path="res://scripts/gen/module_rules.gd" id="11_47oyu"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/vault_cross_4m.tscn" id="11_orsei"]
+[ext_resource type="PackedScene" path="res://gen/modules/rubble_strip.tscn" id="12_nesut"]
+[ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="13_jj3bs"]
 
 [sub_resource type="Resource" id="Resource_4m81t"]
 script = ExtResource("2_orsei")
@@ -118,6 +120,36 @@ slot = "edge:solid_corner"
 styles = PackedStringArray("brick")
 choices = Array[ExtResource("2_orsei")]([SubResource("Resource_orsei")])
 
+[sub_resource type="Resource" id="Resource_e3q46"]
+script = ExtResource("2_orsei")
+scene = ExtResource("3_4pego")
+
+[sub_resource type="Resource" id="Resource_45fml"]
+script = ExtResource("1_7scms")
+slot = "edge:recess"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_e3q46")])
+
+[sub_resource type="Resource" id="Resource_wkd8s"]
+script = ExtResource("2_orsei")
+scene = ExtResource("12_nesut")
+
+[sub_resource type="Resource" id="Resource_af66h"]
+script = ExtResource("1_7scms")
+slot = "dressing:rubble"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_wkd8s")])
+
+[sub_resource type="Resource" id="Resource_4gphm"]
+script = ExtResource("2_orsei")
+scene = ExtResource("13_jj3bs")
+
+[sub_resource type="Resource" id="Resource_47oyu"]
+script = ExtResource("1_7scms")
+slot = "stub:exit"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_4gphm")])
+
 [resource]
 script = ExtResource("11_47oyu")
-rules = Array[ExtResource("1_7scms")]([SubResource("Resource_kjaeu"), SubResource("Resource_uidj1"), SubResource("Resource_a6cyo"), SubResource("Resource_nomh4"), SubResource("Resource_iu605"), SubResource("Resource_l0etk"), SubResource("Resource_bpxti"), SubResource("Resource_4yvrr"), SubResource("Resource_nesut"), SubResource("Resource_jj3bs")])
+rules = Array[ExtResource("1_7scms")]([SubResource("Resource_kjaeu"), SubResource("Resource_uidj1"), SubResource("Resource_a6cyo"), SubResource("Resource_nomh4"), SubResource("Resource_iu605"), SubResource("Resource_l0etk"), SubResource("Resource_bpxti"), SubResource("Resource_4yvrr"), SubResource("Resource_nesut"), SubResource("Resource_jj3bs"), SubResource("Resource_45fml"), SubResource("Resource_af66h"), SubResource("Resource_47oyu")])

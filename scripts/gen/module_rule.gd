@@ -7,12 +7,14 @@ extends Resource
 ## Slots RoomBuilder asks for, and the module shape each one takes.
 const SLOT_SHAPES: Dictionary = {
 	"edge:solid": KitModule.Shape.EDGE, "edge:solid_corner": KitModule.Shape.EDGE, "edge:opening": KitModule.Shape.EDGE,
-	"edge:door": KitModule.Shape.EDGE, "gable": KitModule.Shape.EDGE,
+	"edge:door": KitModule.Shape.EDGE, "edge:recess": KitModule.Shape.EDGE, "gable": KitModule.Shape.EDGE,
 	"cell:floor": KitModule.Shape.CELL, "cell:ceiling": KitModule.Shape.CELL, "cell:ceiling_cross": KitModule.Shape.CELL,
 	"post": KitModule.Shape.POST, "lamp": KitModule.Shape.FREE,
+	"dressing:rubble": KitModule.Shape.FREE, "stub:exit": KitModule.Shape.FREE,
 }
 
-@export_enum("edge:solid", "edge:solid_corner", "edge:opening", "edge:door", "gable", "cell:floor", "cell:ceiling", "cell:ceiling_cross", "post", "lamp")
+@export_enum("edge:solid", "edge:solid_corner", "edge:recess", "edge:opening", "edge:door", "gable", "cell:floor", "cell:ceiling",
+		"cell:ceiling_cross", "post", "lamp", "dressing:rubble", "stub:exit")
 var slot: String = "edge:solid":
 	set(value):
 		slot = value
