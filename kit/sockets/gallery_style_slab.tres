@@ -1,9 +1,9 @@
-[gd_resource type="Resource" script_class="SocketSet" format=3]
+[gd_resource type="Resource" script_class="SocketSet" format=3 uid="uid://bcp4llbqd11hk"]
 
-[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_d7lwl"]
+[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_d7lwl"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/gallery_masonry_slab.tscn" id="2_c2nrg"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/gallery_wood_slab.tscn" id="3_h4wgq"]
-[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="4_fxqmy"]
+[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="4_fxqmy"]
 
 [sub_resource type="Resource" id="Resource_cst6x"]
 script = ExtResource("1_d7lwl")

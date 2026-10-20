@@ -1,0 +1,20 @@
+[gd_scene format=3 uid="uid://duuyxigr4fyr"]
+
+[ext_resource type="PackedScene" uid="uid://dpnj68feaf72l" path="res://rooms/authored/reading_room.tscn" id="1_837ta"]
+[ext_resource type="PackedScene" uid="uid://b31sshlvi323t" path="res://rooms/baked/stack_gallery_west_97255.tscn" id="2_gmprw"]
+[ext_resource type="Script" uid="uid://b0iksn5gi6lrx" path="res://scripts/gen/generated_room.gd" id="3_qivt2"]
+[ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="4_gmprw"]
+
+[node name="ReadingRoom" unique_id=1456888310 instance=ExtResource("1_837ta")]
+
+[node name="StackGallery" parent="." index="11" unique_id=1533409449 instance=ExtResource("2_gmprw")]
+
+[node name="StackGalleryEast" type="Node3D" parent="." index="12" unique_id=813897128]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 12, 0, -8)
+script = ExtResource("3_qivt2")
+grammar = ExtResource("4_gmprw")
+gen_seed = 6547
+join_connector = &"SNAP_door_east"
+inherit_style_groups = PackedStringArray("gallery_build")
+room_id = "StackRoomEast"
+display_name = "Stack Room East"

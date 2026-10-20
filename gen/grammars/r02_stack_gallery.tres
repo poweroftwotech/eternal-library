@@ -1,7 +1,7 @@
-[gd_resource type="Resource" script_class="StackGalleryGrammar" format=3]
+[gd_resource type="Resource" script_class="StackGalleryGrammar" format=3 uid="uid://b2q1g5f18awpv"]
 
-[ext_resource type="Resource" path="res://gen/rules/r02_brick.tres" id="1_xai4a"]
-[ext_resource type="Script" path="res://scripts/gen/stack_gallery_grammar.gd" id="2_pa763"]
+[ext_resource type="Resource" uid="uid://dtut6boessw24" path="res://gen/rules/r02_brick.tres" id="1_xai4a"]
+[ext_resource type="Script" uid="uid://3bkwpprchcsr" path="res://scripts/gen/stack_gallery_grammar.gd" id="2_pa763"]
 
 [sub_resource type="Curve" id="Curve_xai4a"]
 _limits = [0.0, 1.0, 0.0, 12.0]

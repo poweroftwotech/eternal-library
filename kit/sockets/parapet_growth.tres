@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="SocketSet" format=3]
+[gd_resource type="Resource" script_class="SocketSet" format=3 uid="uid://gpjhceh26r7a"]
 
-[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_wq17x"]
+[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_wq17x"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/growth_parapet_strands.tscn" id="2_hqepw"]
-[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="3_jq2pw"]
+[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="3_jq2pw"]
 
 [sub_resource type="Resource" id="Resource_uhoux"]
 script = ExtResource("1_wq17x")
