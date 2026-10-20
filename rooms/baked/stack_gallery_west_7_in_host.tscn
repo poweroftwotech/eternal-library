@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://rooms/authored/reading_room.tscn" id="1_host"]
+[ext_resource type="PackedScene" path="res://rooms/baked/stack_gallery_west_7.tscn" id="2_baked"]
+
+[node name="ReadingRoom" instance=ExtResource("1_host")]
+
+[node name="StackGallery" parent="." instance=ExtResource("2_baked")]

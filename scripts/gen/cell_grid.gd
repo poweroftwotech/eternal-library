@@ -41,6 +41,9 @@ var pins: Dictionary = {}
 var props: Dictionary = {}
 ## Cool fill lights: key -> {at: room-space Vector3, colour, energy, range}.
 var fills: Dictionary = {}
+## Walked lanes for FloorWear: [{points: room x/z PackedVector2Array, weight}]
+## (RoomGrammar.wear_lanes).
+var wear: Array = []
 
 
 func add_cell(c: Vector3i, kind: String, run: Vector3i, bay: int) -> void:

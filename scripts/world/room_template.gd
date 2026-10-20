@@ -26,6 +26,14 @@ extends Node3D
 		socket_pins = value
 		if Engine.is_editor_hint() and is_inside_tree():
 			resolve_sockets(_last_seed)
+## {style group: entry index} saved with the room: a baked generated room keeps
+## the host build it inherited here (ENVIRONMENT_PLAN.md 5.5.10). Checked after
+## style_overrides, before the room's own roll; socket pins still win.
+@export var style_pins: Dictionary[String, int] = {}:
+	set(value):
+		style_pins = value
+		if Engine.is_editor_hint() and is_inside_tree():
+			resolve_sockets(_last_seed)
 ## Set by the area assembler before the room enters the tree; -1 = use preview_seed.
 var area_seed: int = -1
 ## {style group: entry index} that win over this room's own roll (pins still win
@@ -83,6 +91,9 @@ func style_picks(seed_value: int) -> Dictionary:
 			continue
 		if style_overrides.has(s.socket_set.style_group):
 			out[s.socket_set.style_group] = style_overrides[s.socket_set.style_group]
+			continue
+		if style_pins.has(s.socket_set.style_group):
+			out[s.socket_set.style_group] = style_pins[s.socket_set.style_group]
 			continue
 		var rng := RandomNumberGenerator.new()
 		rng.seed = socket_seed(seed_value, "style:" + s.socket_set.style_group)

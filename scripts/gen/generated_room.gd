@@ -56,6 +56,9 @@ static var seed_override: int = -1
 @export var inherit_style_groups: PackedStringArray = ["gallery_build"]
 @export_tool_button("Generate") var generate_action: Callable = generate
 @export_tool_button("Reseed") var reseed_action: Callable = _reseed
+## Writes this build to rooms/baked/<room_id>_<seed>.tscn as a plain RoomTemplate
+## (RoomBaker; ENVIRONMENT_PLAN.md 5.5.10).
+@export_tool_button("Bake to scene") var bake_action: Callable = _bake
 ## Draw the cell grid and edge marks (solid grey, opening teal, door gold).
 @export var overlay: bool = false:
 	set(value):
@@ -108,6 +111,7 @@ func generate() -> void:
 		return
 	var s: int = effective_seed()
 	grammar.layout(grid, s)
+	grammar.wear_lanes(grid, s)
 	for p: String in grid.check():
 		push_warning("%s (seed %d): %s" % [name, s, p])
 	var shell: Node3D = _group("Shell")
@@ -120,6 +124,7 @@ func generate() -> void:
 	_add_fills()
 	_pin_from_grid()
 	_add_safety_floor()
+	_add_floor_wear()
 	style_overrides = {}
 	if host != null:
 		for g: String in inherit_style_groups:
@@ -284,12 +289,52 @@ func _add_safety_floor() -> void:
 	body.collision_mask = 0
 	body.set_meta("generated", true)
 	var shape := CollisionShape3D.new()
+	shape.name = "Shape"
 	var b := BoxShape3D.new()
 	b.size = Vector3(box.size.x + 8.0, 0.5, box.size.z + 8.0)
 	shape.shape = b
 	shape.position = Vector3(box.get_center().x, -0.5, box.get_center().z)
 	body.add_child(shape)
 	add_child(body)
+
+
+## The grammar's walked lanes (grid.wear) as a FloorWear over the cells, 1 m
+## to spare, on whole metres; the ground storey only.
+func _add_floor_wear() -> void:
+	if grid.wear.is_empty():
+		return
+	var lo := Vector2(INF, INF)
+	var hi := Vector2(-INF, -INF)
+	for c: Vector3i in grid.cells:
+		var o := Vector2(c.x * CellGrid.BAY, -c.z * CellGrid.BAY - CellGrid.BAY)
+		lo = lo.min(o)
+		hi = hi.max(o + Vector2.ONE * CellGrid.BAY)
+	var wear := FloorWear.new()
+	wear.name = "FloorWear"
+	wear.rect = Rect2(lo - Vector2.ONE, hi - lo + Vector2.ONE * 2.0)
+	wear.y_range = Vector2(-0.5, 0.5)
+	wear.half_width = grammar.wear_half_width
+	var paths: Array[PackedVector2Array] = []
+	var weights: PackedFloat32Array = PackedFloat32Array()
+	for lane: Dictionary in grid.wear:
+		paths.append(lane["points"])
+		weights.append(lane["weight"])
+	wear.paths = paths
+	wear.path_weights = weights
+	wear.set_meta("generated", true)
+	add_child(wear)
+
+
+## Bakes into rooms/baked/ (the editor button).
+func _bake() -> void:
+	var path: String = RoomBaker.default_path(self)
+	var err: Error = RoomBaker.bake(self, path)
+	if err == OK:
+		print("%s: baked seed %d to %s" % [name, effective_seed(), path])
+		if Engine.is_editor_hint() and Engine.has_singleton(&"EditorInterface"):
+			Engine.get_singleton(&"EditorInterface").get_resource_filesystem().scan()
+	else:
+		push_error("%s: bake to %s failed (%s)" % [name, path, error_string(err)])
 
 
 func _draw_overlay() -> void:

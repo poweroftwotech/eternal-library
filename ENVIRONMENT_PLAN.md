@@ -538,6 +538,92 @@ preview a grammar on its own.
   shelf-bay backs reach 0.25 m out. They overlap inside solid wall only; the
   z-fight audit checks this.
 
+#### 5.5.10 Slice 4 design: bake to scene and generated floor wear (2026-10-19)
+
+**Bake to scene.** `RoomBaker.bake(room: GeneratedRoom, path) -> Error`
+(`scripts/gen/room_baker.gd`) writes the live build as a plain
+`RoomTemplate` scene:
+
+- **Root:** a `RoomTemplate` named like the generated node, with the same
+  `room_id` and `display_name`, `preview_seed` = the seed it was built from,
+  and the generated node's transform relative to its parent. Instancing the
+  baked scene under the host in place of the `GeneratedRoom` therefore lands
+  it on the join. The meta `baked_from` records the grammar, rules, seed and
+  module count.
+- **Same picks:** socket seeds hash `(seed, room_id, socket path)`, and every
+  module keeps its grid-key name under the same group, so socket paths and
+  seeds match. `socket_pins` = the grammar's `generated_pins` merged with the
+  room's own `socket_pins` (the user's win), so collapsed recesses and lamp
+  states are saved as ordinary pins. The host's inherited style groups are
+  saved in a new `RoomTemplate.style_pins` (`{group: entry}`, checked after
+  `style_overrides` and before the room's own roll), which authored rooms can
+  use too.
+- **Content:** each module is re-instantiated from its scene and owned by the
+  root, so the file references kit scenes. Socket spawns are internal, so
+  they aren't saved and the baked room resolves them itself on `_ready`. The
+  connectors (with their `snap_kind` and `host_closes` metas), cool fills,
+  `TempSafetyFloor` and the room's `FloorWear` are duplicated and owned.
+  Nothing carries the `generated` meta, so a baked room is never cleared.
+- **Where:** `rooms/baked/<room_id>_<seed>.tscn`. From the editor, the
+  **Bake to scene** button on `GeneratedRoom`. Headless:
+  `tools/bake_room.gd -- <scene> <seed> [out]`, which also writes
+  `<out>_in_host.tscn`, the host scene with the generated node swapped for
+  the baked one, so the baked room can be played (`--room=`).
+- **Check:** for a baked seed, the live and baked rooms have the same module
+  signature, the same socket picks, the same connectors and fills, and the
+  same wear map, and Validate Room is clean on both. GPU captures of both
+  from one view are compared with `image_diff`.
+
+**Generated FloorWear lanes.** Lanes are grid data, like fills and props:
+
+- **`FloorWear` becomes one shared map.** Every live `FloorWear` feeds one
+  world-space wear map, so the host's wear and a joined room's wear are live
+  together. This replaces the polish C "one room at a time" limit. Each
+  wear's paths and table rings are moved to world x/z before stamping, so a
+  `FloorWear` may now turn (the gallery is turned 90° off R01). The map
+  covers the union of the live rects, snapped to whole metres. Its noise
+  lattice (one value per 0.25 m) and its Bayer dither are anchored to world
+  texels, so overlapping rooms agree and a room's wear doesn't change when
+  another joins. Building the map costs in proportion to the stamped area,
+  not the rect. It is rebuilt once per frame after a wear enters or leaves.
+  R01's paths are unchanged; its noise pattern changes once, because the
+  lattice is now world-anchored. Limit: one y band (the union of the live
+  `y_range`s), so rooms stacked on different floors over the same x/z would
+  share wear. Phase 4 needs a band per floor.
+- **`RoomGrammar.wear_lanes(grid, seed)`** is on the base class, so every
+  grammar gets lanes. It fills `grid.wear` with `{points, weight}` in room
+  x/z:
+  - The cells form a tree from the entry door, through `open` and `opening`
+    edges. The **main lane** runs from 0.4 m outside the entry door (meeting
+    the host's door spur; R01's west spur ends 0.3 m inside its wall) through
+    the cells to the exit door and 0.4 m past it. With no exit, it runs to the
+    deepest cell and stops `wear_stop` short of its far wall.
+  - **Spurs** run from each branch cell into the cells off the main lane
+    (alcoves) and stop `wear_stop` short of the back wall.
+  - **Browse marks:** at every dead-end stop, a short cross stroke for
+    turning round at the shelves.
+  - **Points:** each cell's lane point is moved sideways by up to
+    `wear_wander`, from `hash(seed, "wear", cell)`, so the lane meanders. A
+    turn is cut across: the corner cell's point becomes two points
+    `wear_corner_cut` before and after its centre.
+  - **Traffic falls off:** a point's weight goes from `wear_entry_weight`
+    (1.0) to `wear_far_weight` (0.45) at `wear_far_bays` (12) bays from the
+    entry. Spurs and browse marks take `wear_spur_weight` (0.6) of that.
+    Busy near the reading room, faint far out, like the lamps.
+- **`GeneratedRoom`** adds a generated `FloorWear` covering its cells, with
+  1 m to spare and whole metres, and `y_range` set to the ground storey.
+- **Knobs** on `RoomGrammar` (Inspector group **Floor wear**):
+  `wear_lanes_enabled`, `wear_entry_weight`, `wear_far_weight`,
+  `wear_far_bays`, `wear_spur_weight`, `wear_wander` (0.3 m),
+  `wear_corner_cut` (0.8 m), `wear_stop` (1.0 m), and `wear_half_width`
+  (0.32 m: the corridor's single lane is a little wider than R01's paired
+  lanes).
+- **Checks** (route test, every seed): wear on the lane in every run cell,
+  on the joint (on both sides of R01's west wall), in every alcove; none
+  within 0.5 m of a side wall; near bays more worn than far bays; and the
+  same seed gives the same lanes. reading_room_test reads the shared map.
+  GPU: the same floor views before and after.
+
 ---
 
 ## 6. Interactive objects
@@ -1738,7 +1824,9 @@ reviewed in the editor before the next one starts.
        vault and on long brick runs.
      - **FloorWear limits:** paths are authored per room (phase 2 will need
        to generate them from connectors and furniture). The room may move
-       but not turn, and only one room's wear is live at a time.
+       but not turn, and only one room's wear is live at a time. (Phase 2
+       slice 4 lifts the last two, and generated rooms get their lanes from
+       the grammar.)
      - **Editor:** wear only shows at runtime; the editor viewport has none.
    - Parallax is out for now: `StandardMaterial3D` height maps don't work
      with world triplanar. A custom triplanar parallax shader is a later
@@ -1753,7 +1841,7 @@ matters most. Phase 2 (generated R02) starts after this slice.
 
 **The R01 polish slice is complete (A, B, C).**
 
-### Phase 2: generated R02 Stack Gallery (design drafted 2026-10-19; slices 1-3 done)
+### Phase 2: generated R02 Stack Gallery (design drafted 2026-10-19; slices 1-4 done)
 
 The design is §5.5, approved by the user 2026-10-19.
 
@@ -2034,5 +2122,107 @@ select `StackGallery` and turn on **Overlay**: cell labels now show `alcove`,
 - Alcove backs take the normal `edge:solid` roll, so one may end in a sealed
   door or tile panel (seed 7's first alcove has a sealed door).
 
-**Next: slice 4** (§5.5.9): bake to scene, and generated `FloorWear` lanes
-(from connectors down the run, into alcoves).
+**Slice 4 done (2026-10-19): bake to scene, and generated floor wear.**
+Design in §5.5.10.
+
+**Try it:**
+- **Bake:** in `rooms/test/reading_room_r02.tscn`, select `StackGallery`
+  and press **Bake to scene**. It writes
+  `rooms/baked/stack_gallery_west_<seed>.tscn`, an ordinary room you can
+  open and edit. Headless:
+  `godot --headless --path . --script res://tools/bake_room.gd -- - 7`
+  also writes `…_7_in_host.tscn` (R01 with the baked gallery), which the
+  game plays with `-- --room=res://rooms/baked/stack_gallery_west_7_in_host.tscn`.
+  The repo has seed 7 baked as an example.
+- **Wear:** play the R01 + gallery scene. A polished lane runs from R01's
+  west door spur down the gallery, cuts across each turn, and branches into
+  every alcove. It is busier near R01 than far out. Tune it in the grammar's
+  **Floor wear** group.
+
+| Piece | File |
+|---|---|
+| Bake: a plain `RoomTemplate` of owned module instances, pins and style picks kept, host scene writer | `scripts/gen/room_baker.gd` |
+| **Bake to scene** button; generated `FloorWear` from `grid.wear` | `scripts/gen/generated_room.gd` |
+| Headless bake | `tools/bake_room.gd` |
+| Lanes for any grammar (tree from the entry door, main lane, spurs, browse marks, stray, corner cut, traffic falloff) | `scripts/gen/room_grammar.gd` (`wear_lanes`), `CellGrid.wear` |
+| One shared world-space wear map from every live `FloorWear` | `scripts/world/floor_wear.gd` |
+| `style_pins` (saved style group picks) | `scripts/world/room_template.gd` |
+| Example bake (seed 7) | `rooms/baked/stack_gallery_west_7.tscn`, `…_7_in_host.tscn` |
+
+**As built, vs §5.5.10:**
+- **Bake:** modules are instantiated with `GEN_EDIT_STATE_INSTANCE`. Without
+  it, `pack()` writes every property of every instance (49 KB instead of
+  25 KB for seed 7). The baked file has no `uid=` on its ext_resources, as
+  with any scene packed headless. The editor adds them on its first save.
+  The safety floor's shape is now named `Shape`, so the baked file has no
+  auto-generated names.
+- **Shared map:** `FloorWear.texture` is gone. Tests and tools read
+  `FloorWear.map_image` / `wear_at(world point)`, and `rebuild_now()` forces
+  a rebuild in the same frame. Seed 7 joined to R01 gives a 45 × 31 m map
+  built in 113 ms (R01 alone took 67 ms before). It is rebuilt once at load,
+  not per frame.
+
+**Verified:**
+- `tests/r02_bake_test.gd`, 105 checks. For seeds 7 (alcoves), 4 (a
+  collapsed bay), 1 and 12 (turns) and 3 with `end_kind` dead_end, the
+  baked scene, loaded under a fresh R01 where the generated room was:
+  - is a plain `RoomTemplate` with the same `room_id` and seed;
+  - has the same world transform, module list (name, scene, position),
+    socket picks and counts (42-82 sockets), connectors (with
+    `host_closes`), fills, safety floor and shared wear map;
+  - validates clean (Validate Room and KitValidate), and R01 beside it
+    keeps its 106 sockets;
+  - has no node marked generated, no auto-named node, and no spawned socket
+    content in the file;
+  - and its `_in_host` scene loads as R01 with the same gallery.
+- **Persistence, two processes:** `r02_bake_test -- save` bakes seed 7, and
+  `-- load` in a fresh process checks it against a new live build (20
+  checks).
+- `r02_route_test`, 526 checks, 0 failures (20 seeds; the wear map rebuilds in up to 129 ms). New per seed: wear crosses
+  every bay and alcove, and both sides of R01's west wall; there is none
+  0.5 m off any solid side wall of a straight bay; mean lane wear within
+  2 bays of R01 beats that from 9 bays on; and regenerating gives the same
+  lanes.
+- `reading_room_test` 79 (reads the shared map now; both lanes worn, none
+  mid-rug), `kit_test` 865, `validate_room_test` 25, `socket_modes_test`
+  246, spill 6, room atmosphere 32, camp playtest 43, prototype atmosphere
+  9, `room_playtest` 18, and two-process pin persistence all pass.
+- 240-frame gates clean: camp, graybox, R01, R01 + R02, the baked
+  `stack_gallery_west_7_in_host.tscn`, and `main` with `--gen-seed=4` and
+  with `--room=` the baked scene. The editor opens
+  `reading_room_r02.tscn` headless without errors.
+- GPU, after `--import` (`r02_capture.gd`: new views `wear` and
+  `wear_alcove`, option `scene=` to capture a baked scene from the live
+  room's camera, option `wearmap=` to save the shared map):
+  - Before/after pairs `previews/r02_s4_{before,after}_{wear_s7,wear_s3,
+    wear_alcove_s7,door_s7,falloff_s7,r01_relief_lane}.png`. On the gallery
+    floor the mean diff is 0.09-0.31, all of it on the lane: amplified 10×,
+    it is a band down the run that cuts across the far turn.
+  - `previews/r02_s4_wearmap_s7.png` (the shared map: R01's lanes and table
+    rings, and the gallery's lane with alcove spurs and browse marks) and
+    `r02_s4_plan_s7.png`.
+  - Baked vs live, same camera (`r02_s4_baked_{door,wear_alcove}_s7.png`):
+    mean diff 0.24-0.76 on the door view, inside live-to-live noise (0.80),
+    and 0.008 on the alcove.
+
+**Caveats:**
+- **Wear is subtle in the gallery.** It's the same `floor_stone` effect as
+  in R01 (smoother, 5 % darker, a glint toward a lamp), and the gallery is
+  dark, so at normal exposure the lane is close to invisible. It shows as
+  a faint sheen where a lit lamp hangs over the lane. Making it read would
+  mean a stronger `wear_roughness` or darkening in `kit_px_world`, which
+  changes R01 too. That's a look decision, not done here.
+- **R01's wear speckle changed once:** the noise lattice is world-anchored
+  now. R01's lanes are where they were, but the dithered speckle along them
+  is rearranged (`r01_relief_lane` mean diff 0.47 against noise of about
+  0.4).
+- **One y band:** the shared map has one height band (the union of the live
+  `y_range`s). Rooms stacked on different floors over the same x/z would
+  share wear. Phase 4 needs a band per floor.
+- **A baked room is a snapshot.** It doesn't follow later grammar or rules
+  edits. Regenerating means baking again (and losing hand edits).
+- **Editor:** wear still only shows at runtime.
+
+**Next:** phase 2 is complete (slices 1-4). Next on the §10 roadmap is
+phase 3 (props and persistence). Phase 4's "one baked room" can use this
+bake.

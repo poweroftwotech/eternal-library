@@ -68,9 +68,10 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 	check(room.get_node("Connectors").get_child_count() == 3, "three door connectors")
 	# Floor wear (polish C item 9): the walked lanes are polished, under the rug is not.
 	var wear: FloorWear = room.get_node_or_null("FloorWear")
-	check(wear != null and wear.texture != null, "FloorWear baked a wear map")
-	if wear != null and wear.texture != null:
-		var lanes: Vector3 = Vector3(wear_at(wear, 4.0, -10.0), wear_at(wear, 6.0, -10.0), wear_at(wear, 8.0, -10.0))
+	FloorWear.rebuild_now()
+	check(wear != null and FloorWear.map != null, "FloorWear baked a wear map")
+	if wear != null and FloorWear.map != null:
+		var lanes: Vector3 = Vector3(wear_at(room, 4.0, -10.0), wear_at(room, 6.0, -10.0), wear_at(room, 8.0, -10.0))
 		check(lanes.x > 0.4 and lanes.z > 0.4 and lanes.y == 0.0,
 			"wear runs down both lanes beside the rug, none mid-rug (%s)" % lanes)
 	var floor_mat: ShaderMaterial = load("res://kit/materials/floor_stone.tres") as ShaderMaterial
@@ -175,10 +176,9 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 
 ## Pins every stair_style socket in the room to `label`, as the Sockets panel
 ## would. Returns how many stairs were pinned.
-## Baked wear (0..1) at room x/z.
-func wear_at(wear: FloorWear, x: float, z: float) -> float:
-	var p: Vector2 = (Vector2(x, z) - wear.rect.position) * FloorWear.TEXEL
-	return wear.texture.get_image().get_pixel(int(p.x), int(p.y)).r
+## Shared wear (0..1) at room x/z.
+func wear_at(room: Node3D, x: float, z: float) -> float:
+	return FloorWear.wear_at(room.to_global(Vector3(x, 0, z)))
 
 
 func pin_stairs(room: RoomTemplate, label: String) -> int:

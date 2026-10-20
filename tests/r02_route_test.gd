@@ -70,6 +70,7 @@ func run() -> void:
 	check(stats["collapsed_seeds"] >= 1, "collapsed bays occur (%d of %d seeds)" % [stats["collapsed_seeds"], SEEDS])
 	var near: float = float(stats["near_lit"]) / maxf(stats["near"], 1)
 	var far: float = float(stats["far_lit"]) / maxf(stats["far"], 1)
+	print("  slice 4: wear map rebuilt in up to %.0f ms (R01 + gallery)" % stats.get("wear_ms", 0.0))
 	print("  slice 3: %d seeds with alcoves, %d with collapsed bays, lamps lit %.0f%% within 3 bays and %.0f%% from 8 bays" % [stats["alcove_seeds"], stats["collapsed_seeds"], near * 100.0, far * 100.0])
 	check(near > far + 0.15, "lamps fall off with distance: %.0f%% lit within 3 bays, %.0f%% from 8 bays (%s)" % [near * 100.0, far * 100.0, stats])
 	await dead_end()
@@ -98,6 +99,8 @@ func audit(room: RoomTemplate, g: GeneratedRoom, grammar: StackGalleryGrammar, s
 	var cross: int = g.modules.filter(func(m: Node3D) -> bool: return m.scene_file_path.ends_with("vault_cross_4m.tscn")).size()
 	check(cross == corners(g), "%s: a groin vault on each of %d corners (%d)" % [tag, corners(g), cross])
 	await features(g, grammar, tag)
+	wear(room, g, tag)
+	var wear_before: String = str(g.grid.wear)
 	# Validate Room on the corridor and on R01 (which must not see the corridor).
 	var gv: Dictionary = KitValidateRoom.run(g)
 	check((gv["errors"] as PackedStringArray).is_empty() and (gv["warnings"] as PackedStringArray).is_empty(),
@@ -112,6 +115,7 @@ func audit(room: RoomTemplate, g: GeneratedRoom, grammar: StackGalleryGrammar, s
 	var first: String = g.module_signature()
 	g.generate()
 	check(g.module_signature() == first, "%s: regenerating gives the same build" % tag)
+	check(str(g.grid.wear) == wear_before and not g.grid.wear.is_empty(), "%s: regenerating gives the same wear lanes" % tag)
 	# Joined face to face: the entry connector sits on R01's west door.
 	var entry: Node3D = g.get_node("Connectors/SNAP_entry")
 	var door: Node3D = room.get_node("Connectors/SNAP_door_west")
@@ -270,6 +274,62 @@ func features(g: GeneratedRoom, grammar: StackGalleryGrammar, tag: String) -> vo
 		ok = side >= 0 and grid.is_free(beyond) and m.transform.origin.distance_to(CellGrid.door_transform(last, side).origin) < 0.01 \
 			and (-m.transform.basis.z).dot(outward.normalized()) > 0.99 and by_name.has("prop_exit_" + CellGrid.key(last, side))
 	check(ok, "%s: an exit door on the last bay with its connector, a free cell beyond and the glow stub" % tag)
+
+
+## Slice 4: generated FloorWear lanes in the shared wear map. Worn across
+## every run cell and alcove and at the joint with R01 on both sides of its
+## wall; unworn 0.5 m off every solid side wall of a straight bay; busier
+## near the entry than far out.
+func wear(room: RoomTemplate, g: GeneratedRoom, tag: String) -> void:
+	FloorWear.rebuild_now()
+	var grid: CellGrid = g.grid
+	var order: Array[Vector3i] = grid.run_order()
+	var unworn: PackedStringArray = []
+	var walls: PackedStringArray = []
+	var near: Array[float] = []
+	var far: Array[float] = []
+	for i: int in order.size():
+		var c: Vector3i = order[i]
+		var o: Vector3 = CellGrid.cell_centre(c)
+		var peak: float = maxf(line_wear(g, o + Vector3(-1, 0, 0), o + Vector3(1, 0, 0)), line_wear(g, o + Vector3(0, 0, -1), o + Vector3(0, 0, 1)))
+		if peak <= 0.0:
+			unworn.append(str(c))
+		if grid.cells[c]["bay"] <= 2:
+			near.append(peak)
+		elif grid.cells[c]["bay"] >= 9:
+			far.append(peak)
+		if grid.cells[c]["kind"] == "corner" or i == order.size() - 1:
+			continue
+		for side: int in StackGalleryGrammar.side_walls(grid, c):
+			var e: Dictionary = grid.edge(c, side)
+			if e["mark"] != CellGrid.Mark.SOLID:
+				continue
+			var mid: Vector3 = CellGrid.door_transform(c, side).origin
+			var p: Vector3 = mid + (o - mid).normalized() * 0.5
+			if FloorWear.wear_at(g.to_global(p)) > 0.0:
+				walls.append("%s %s" % [c, CellGrid.SIDE_NAMES[side]])
+	for c: Vector3i in grid.cells:
+		if grid.cells[c]["kind"] == "alcove":
+			var o: Vector3 = CellGrid.cell_centre(c)
+			if maxf(line_wear(g, o + Vector3(-1, 0, 0), o + Vector3(1, 0, 0)), line_wear(g, o + Vector3(0, 0, -1), o + Vector3(0, 0, 1))) <= 0.0:
+				unworn.append("alcove %s" % c)
+	check(unworn.is_empty(), "%s: wear lanes cross every bay and alcove (unworn: %s)" % [tag, unworn])
+	check(walls.is_empty(), "%s: no wear 0.5 m off the side walls (%s)" % [tag, walls])
+	var joint: Vector2 = Vector2(FloorWear.wear_at(Vector3(0.2, 0, -6)), FloorWear.wear_at(g.to_global(Vector3(2, 0, -0.5))))
+	check(joint.x > 0.0 and joint.y > 0.0, "%s: worn on both sides of R01's west wall (%s)" % [tag, joint])
+	if not far.is_empty():
+		var mn: float = near.reduce(func(a: float, b: float) -> float: return a + b, 0.0) / near.size()
+		var mf: float = far.reduce(func(a: float, b: float) -> float: return a + b, 0.0) / far.size()
+		check(mn > mf, "%s: busier near R01 than far out (%.2f vs %.2f)" % [tag, mn, mf])
+	stats["wear_ms"] = maxf(float(stats.get("wear_ms", 0.0)), FloorWear.last_build_ms)
+
+
+## The most wear on a room-space line (sampled every 4 cm).
+func line_wear(g: Node3D, a: Vector3, b: Vector3) -> float:
+	var best: float = 0.0
+	for i: int in 51:
+		best = maxf(best, FloorWear.wear_at(g.to_global(a.lerp(b, i / 50.0))))
+	return best
 
 
 func alcoves(g: GeneratedRoom) -> int:
