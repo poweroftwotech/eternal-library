@@ -2,7 +2,7 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · Design: [approval brief](../phase-3-approval.md), [technical](../phase-3-design.md)
 
-**In short:** steps 1-3 are built. You can knock over or break R01's floor vases and push the things on its tables. You can pull books off any shelf, and take two lore books (with gilt bands) into your satchel and read them. The library remembers all of it after you quit, and every change keeps the thing's original place, so a future janitor can put it back.
+**In short:** phase 3's finish line is met (steps 1-4 built). You can knock over or break R01's floor vases, push the things on its tables, pull books off any shelf, and take and read two lore books. All of it survives quitting. Let years pass from the Esc menu and untended lamps fail and go dark, while the lamps you tended stay lit. Every change keeps its original, so a future janitor can put things back.
 
 ---
 
@@ -213,7 +213,7 @@ The API is in [phase-3-design.md §6.5.9](../phase-3-design.md).
 - **Not checked by hand:** quitting and restarting in a real window, and
   the two new menu entries.
 
-## Step 3: pull a lore book and take it (built 2026-10-20, waiting for your review)
+## Step 3: pull a lore book and take it (done 2026-10-20, approved and committed as 90decb1)
 
 This meets the first half of phase 3's finish line: knock over a vase, pull
 a lore book and take it, quit, and in a new process both stay changed.
@@ -329,3 +329,111 @@ a lore book and take it, quit, and in a new process both stay changed.
 - **Generated galleries have no lore books yet.** A grammar `lore_chance`
   comes later.
 - **Not checked by hand:** the feel in a real window.
+
+## Step 4: years pass (done 2026-10-20, approved; chandeliers made ageless)
+
+This meets all of phase 3's finish line. Advancing the world clock darkens
+untouched lamps only, and that holds across separate processes.
+
+**Try it:**
+
+1. Esc → **Visit the reading room** (or the stack gallery). Climb a stair
+   to a side gallery. The lanterns hang over the galleries, and you can
+   reach them from up there: aim at one and you'll see **Light the lamp**
+   or **Douse the lamp**. Tend one, making sure it's lit.
+2. Esc → **Let ten years pass (now year N)**, a few times. Untended lamps
+   start to flicker, then go dark. The one you tended stays lit, and so
+   does anything you've changed.
+3. Quit and restart. It's still the same year, with the same lamps.
+4. **Tidy up** resets a lamp you tended back to whatever the years have
+   made it.
+
+**Built:**
+
+| Piece | File |
+|---|---|
+| `AgeRule` (socket set, chain, one curve per step), `AgeRules` (a stratum's rules) | `scripts/world/age_rule.gd`, `scripts/world/age_rules.gd` |
+| Stratum 1 rules: lamps lit → failing → dark. Failing: 35 % by 5 years, 92 % by 40. Dark: 8 % by 5, 80 % by 30, 88 % by 40 (seeded once, then tuned in the Inspector) | `world/strata/stratum1_age.tres`, `tools/seed_age_rules.gd` |
+| The clock (`years`, `advance_years`, `--advance-years=N`) and the fixed per-socket age draw | `scripts/world/world_state.gd` |
+| `VariantSocket.pick_index()`: the pick without spawning | `scripts/world/variant_socket.gd` |
+| Pin layers in `resolve_sockets`: the player's state, then aging (forward only, untouched only, unless marked ageless), then the base pick. `refresh_aging()`, `resolve_world()`, `tend_lamp()`; a janitor's revert of a tended lamp | `scripts/world/room_template.gd` |
+| `LampTend`: a 0.35 m sphere at each lamp's glass, layer 2 only; Light / Douse | `scripts/world/lamp_tend.gd` |
+| Esc → **Let ten years pass (now year N)** | `scripts/main.gd` |
+
+**How aging works:**
+
+- Nothing about aging is saved except the clock. Each lamp draws a fixed
+  number from its id. The rule's curves turn the years into how far along
+  lit → failing → dark it has gone.
+- So aging is the same in every process. More years never relight a lamp.
+- A lamp never goes back past its base look: one that started dark stays
+  dark.
+- A socket the player has touched never ages. Neither does a socket (or
+  its module) with the meta `ageless`.
+
+**Changed from the design while building:**
+
+- **R01's tendable lamps are the four lanterns over the side galleries.**
+  Their glass is at about 6 m, so you reach them from the gallery floor,
+  not the hall. The chandeliers, the iwan lamp and the gallery's corridor
+  lanterns are out of reach. The oil lamps on the tables have no state
+  socket.
+- **Tending from the menu or a test** goes through `RoomTemplate.tend_lamp`,
+  the same path E uses.
+- **R01's two chandeliers never age (your call after review).** Both
+  `lantern_cluster` instances carry the meta `ageless` in
+  `reading_room.tscn`, so the hall keeps its main light. `ageless` is now
+  checked on the socket and on every node up to the room, so a designer can
+  mark a whole placed module in the Inspector.
+
+**Gates (all pass):**
+
+- `age_test` (new), 20 checks:
+  - the curves are monotone, and dark never runs ahead of failing; year 0
+    changes nothing;
+  - every lamp has a LampTend, on layer 2, reachable from the gallery;
+  - E lights, douses and lights again, and the save remembers it;
+  - after 40 years every untouched, ageing lamp is at its base step or
+    further, and at least half are dark;
+  - the tended lamp, an ageless lamp and R01's two chandeliers stay lit,
+    and no non-lamp socket changes;
+  - aging again at the same year changes nothing;
+  - reverting a tended lamp shows its aged state.
+- **The persistence gate, now five OS processes** (`sh tests/persist_gate.sh`):
+  - `save` 15 and `load` 26, as before;
+  - `reverted` (8): the real player on the west gallery aims at the
+    lantern with the real ray, and E lights it. Every lamp's year-0 state
+    and every other socket's pick is recorded, then it saves and quits;
+  - `age` (9), started with `--advance-years=40`: it's year 40; every
+    untouched lamp is where it was or further along, at least half are
+    dark; the tended lamp and both chandeliers are lit; no other socket
+    changed; the lore book is still in the satchel;
+  - `age_again` (3), a plain restart: still year 40, and every lamp shows
+    the same state.
+- `prop_test` 51, `book_test` 27, `room_playtest` 31, `kit_test` 906,
+  `socket_modes_test` 246, `reading_room_test` 87, `validate_room_test` 26,
+  `r02_bake_test` 105, camp `playtest` 43, `spill_settle_test` 6,
+  `room_atmosphere_test` 32, `atmosphere_test` 9.
+- 240-frame runs, all clean:
+  - `main` (camp);
+  - `main` with R01, R01+R02 and three doors;
+  - the `Multrooms-test1` and graybox scenes.
+- `r02_route_test`: 2321 checks, 0 failures. That run was before the
+  chandelier change, which touches only R01's scene metadata and the
+  ageless lookup, not generation or routes.
+- GPU (`tests/age_capture.gd`, R01 + gallery seed 7, one lantern over the
+  west gallery tended):
+  - `previews/p3s4_hall_y0.png`, `p3s4_hall_y10.png` and
+    `p3s4_hall_y40.png`, from the entrance;
+  - `p3s4_gallery_y0.png` and `p3s4_gallery_y40.png`, down the gallery.
+
+  At year 40, 11 of 17 lamps are dark. The hall keeps its chandeliers. The
+  tended west lantern is lit and the untended east one is dark.
+
+**Caveats:**
+
+- **Untended lamps look at most "failing" early on, and failing lamps
+  flicker.** Several lamps flickering at once can be busy.
+- **Real time doesn't move the clock yet,** by design (Q9).
+- **Not checked by hand:** tending lamps from the galleries and the menu
+  entry in a real window.

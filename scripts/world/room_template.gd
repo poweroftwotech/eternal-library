@@ -81,7 +81,9 @@ func resolve_sockets(seed_value: int) -> Dictionary:
 	for s: VariantSocket in all.filter(func(v: VariantSocket) -> bool: return v.needs_look == "") + all.filter(func(v: VariantSocket) -> bool: return v.needs_look != ""):
 		var key: String = socket_key(s)
 		var group: String = s.socket_set.style_group if s.socket_set != null else ""
-		picks[key] = s.resolve(socket_seed(seed_value, key), pin_for(key), styles.get(group, -1))
+		var sseed: int = socket_seed(seed_value, key)
+		var world_pin: int = _world_pin(s, key, sseed, pin_for(key), styles.get(group, -1))     # the save and the years (6.5.6)
+		picks[key] = s.resolve(sseed, world_pin if world_pin >= 0 else pin_for(key), styles.get(group, -1))
 	apply_claims()
 	return picks
 
@@ -235,6 +237,7 @@ func restore_world() -> void:
 	_world_restored = true
 	ws.call("register_room", self)
 	ws.connect("saving", _flush_moving)
+	_add_lamp_tends()
 	for p: WorldProp in world_props():
 		var id: String = room_key() + "/" + thing_path(p)
 		_track(p, id)
@@ -254,6 +257,11 @@ func restore_world() -> void:
 ## Puts one changed thing back as it was originally (WorldState.revert calls
 ## this; it also drops the delta). Returns whether it found the thing.
 func revert_thing(id: String) -> bool:
+	var path: String = id.substr(room_key().length() + 1)
+	var state_socket := get_node_or_null(NodePath(path)) as VariantSocket if not path.contains("#") else null
+	if state_socket != null:
+		resolve_world(state_socket, true)     # a tended lamp goes back to what the years made it
+		return true
 	for p: WorldProp in world_props():
 		if p.get_meta("world_id", "") == id:
 			if p.has_meta("shelf_index") and p.get_parent() is ShelfFill:
@@ -449,3 +457,100 @@ func _on_prop_taken(p: WorldProp) -> void:
 		return
 	ws.call("set_delta", p.get_meta("world_id"), {"s": "taken", "item": String(p.item.id) if p.item != null else "",
 		"orig": WorldStateData.arr(_original(p)), "scene": p.scene_file_path})
+
+
+# --- the years: aging and tended lamps (ENVIRONMENT_PLAN.md 6.5.6) ---------------
+# Pin layers, strongest first: the player's state delta (a tended lamp), then
+# aging (only forward along its rule's chain, only if untouched), then the base
+# pick (socket_pins, generated_pins, style, seed). Nothing about aging is
+# stored: the years and a fixed draw per socket decide it.
+
+## The index the save or the years force on a socket, or -1 to keep its pick.
+func _world_pin(s: VariantSocket, key: String, sseed: int, pin: int, style: int, ignore_player: bool = false) -> int:
+	var ws: Node = world_state()
+	if ws == null or s.socket_set == null:
+		return -1
+	var id: String = room_key() + "/" + key
+	var d: Dictionary = ws.call("delta", id)
+	if not ignore_player and str(d.get("s", "")) == "state":
+		ws.call("note_applied", id)
+		return s.socket_set.index_of(str(d.get("label", "")))
+	return aged_index(s, id, s.pick_index(sseed, pin, style))
+
+
+## What `base` becomes after the world's years, or -1 if it doesn't age: no
+## rule for its set, marked ageless, touched by the player, or not old enough.
+func aged_index(s: VariantSocket, id: String, base: int) -> int:
+	var ws: Node = world_state()
+	if ws == null or base < 0 or is_ageless(s):
+		return -1
+	var rule: AgeRule = (ws.call("age_rules") as AgeRules).rule_for(s.socket_set)
+	if rule == null:
+		return -1
+	var base_step: int = rule.chain.find(s.socket_set.entries[base].label)
+	if base_step < 0:
+		return -1
+	for changed: String in ws.call("changed_ids", room_key()):
+		if changed == id or changed.begins_with(id + "#") or changed.begins_with(id + "/"):
+			return -1     # the player has touched it: only untouched things age
+	var step: int = rule.step_at(float(ws.call("years")), float(ws.call("age_draw", id)))
+	return s.socket_set.index_of(rule.chain[step]) if step > base_step else -1
+
+
+## Re-resolves one socket with the current save and years (a lamp just
+## tended, the years just moved on, or a janitor's revert).
+func resolve_world(s: VariantSocket, ignore_player: bool = false) -> void:
+	var key: String = socket_key(s)
+	var group: String = s.socket_set.style_group if s.socket_set != null else ""
+	var style: int = style_picks(current_seed()).get(group, -1) if group != "" else -1
+	var sseed: int = socket_seed(current_seed(), key)
+	var world_pin: int = _world_pin(s, key, sseed, pin_for(key), style, ignore_player)
+	s.resolve(sseed, world_pin if world_pin >= 0 else pin_for(key), style)
+
+
+## The years moved on: every socket an age rule covers looks its age now.
+func refresh_aging() -> int:
+	var ws: Node = world_state()
+	if ws == null:
+		return 0
+	var n: int = 0
+	for s: VariantSocket in sockets():
+		if (ws.call("age_rules") as AgeRules).rule_for(s.socket_set) != null:
+			resolve_world(s)
+			n += 1
+	return n
+
+
+## Sets a lamp's state for the player (Light / Douse) and remembers it; the
+## lamp no longer ages. `orig` is what it showed before (for a janitor).
+func tend_lamp(s: VariantSocket, label: String) -> void:
+	var ws: Node = world_state()
+	if ws == null:
+		return
+	var before: String = s.picked_label()
+	ws.call("set_delta", room_key() + "/" + socket_key(s), {"s": "state", "label": label,
+		"day": float((ws.get("data") as Dictionary).get("clock_days", 0.0)), "orig": before})
+	resolve_world(s)
+
+
+## Lamp sockets get a reach target (LampTend) at their glass.
+func _add_lamp_tends() -> void:
+	var ws: Node = world_state()
+	if ws == null:
+		return
+	for s: VariantSocket in sockets():
+		if s.mode != VariantSocket.Mode.STATE or s.socket_set == null or s.socket_set.index_of("lit") < 0:
+			continue
+		LampTend.attach(self, s)
+
+
+## A designer's "never ages": meta `ageless` on the socket or on any node
+## between it and this room, such as a placed module instance (R01 marks its
+## two chandeliers so the hall keeps its main light).
+func is_ageless(s: Node) -> bool:
+	var n: Node = s
+	while n != null and n != self:
+		if n.get_meta("ageless", false):
+			return true
+		n = n.get_parent()
+	return false

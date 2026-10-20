@@ -1,0 +1,25 @@
+[gd_resource type="Resource" script_class="AgeRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/age_rule.gd" id="1_kic8g"]
+[ext_resource type="Resource" path="res://kit/sockets/lamp_state.tres" id="2_ffm4y"]
+[ext_resource type="Script" path="res://scripts/world/age_rules.gd" id="3_7qckj"]
+
+[sub_resource type="Curve" id="Curve_kenq2"]
+_limits = [0.0, 1.0, 0.0, 60.0]
+_data = [Vector2(0, 0), 0.0, 0.06, 1, 1, Vector2(2, 0.12), 0.06, 0.07666666, 1, 1, Vector2(5, 0.35), 0.07666666, 0.035, 1, 1, Vector2(15, 0.7), 0.035, 0.008800001, 1, 1, Vector2(40, 0.92), 0.008800001, 0.0025000006, 1, 1, Vector2(60, 0.97), 0.0025000006, 0.0, 1, 1]
+point_count = 6
+
+[sub_resource type="Curve" id="Curve_bblig"]
+_limits = [0.0, 1.0, 0.0, 60.0]
+_data = [Vector2(0, 0), 0.0, 0.015999999, 1, 1, Vector2(5, 0.08), 0.015999999, 0.038571425, 1, 1, Vector2(12, 0.35), 0.038571425, 0.025000002, 1, 1, Vector2(30, 0.8), 0.025000002, 0.0079999985, 1, 1, Vector2(40, 0.88), 0.0079999985, 0.0034999994, 1, 1, Vector2(60, 0.95), 0.0034999994, 0.0, 1, 1]
+point_count = 6
+
+[sub_resource type="Resource" id="Resource_pr7oc"]
+script = ExtResource("1_kic8g")
+socket_set = ExtResource("2_ffm4y")
+chain = PackedStringArray("lit", "failing", "dark")
+step_chance = Array[Curve]([SubResource("Curve_kenq2"), SubResource("Curve_bblig")])
+
+[resource]
+script = ExtResource("3_7qckj")
+rules = Array[ExtResource("1_kic8g")]([SubResource("Resource_pr7oc")])

@@ -12,4 +12,8 @@ timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test
 grep -E "persist_test|FAIL" /tmp/persist_load.log
 timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- reverted "$SAVE" > /tmp/persist_reverted.log 2>&1 || { grep -E "persist_test|FAIL|ERROR" /tmp/persist_reverted.log; exit 1; }
 grep -E "persist_test|FAIL" /tmp/persist_reverted.log
-echo "persist_gate: all three processes passed"
+timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- age "$SAVE" --advance-years=40 > /tmp/persist_age.log 2>&1 || { grep -E "persist_test|FAIL|ERROR" /tmp/persist_age.log; exit 1; }
+grep -E "persist_test|FAIL" /tmp/persist_age.log
+timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- age_again "$SAVE" > /tmp/persist_age_again.log 2>&1 || { grep -E "persist_test|FAIL|ERROR" /tmp/persist_age_again.log; exit 1; }
+grep -E "persist_test|FAIL" /tmp/persist_age_again.log
+echo "persist_gate: all five processes passed"

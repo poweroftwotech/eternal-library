@@ -8,13 +8,14 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 3 step 3: pull a lore book and take it** (half of the phase finish line met) | [Progress: phase 3, step 3](docs/environment/progress/phase-3-props.md) ("Try it") | Find the gilt spine by the entrance, pull it, take it, read it (J). Approve or rewrite the two placeholder lore texts. Step 4 (years pass) starts after your OK. Step 3 is not committed |
+| Nothing right now | | Phase 3 is complete and committed. Next on the roadmap: phase 4 (areas and streaming), which needs its own design and approval brief |
 
 ## What's new
 
 | Date | Change |
 |---|---|
-| 2026-10-20 | **Phase 3 step 3 built:** pull any shelf book; two lore books in R01 to take and read (J, Satchel); all saved across restarts. Lore texts are placeholders ([progress](docs/environment/progress/phase-3-props.md)). |
+| 2026-10-20 | **Phase 3 complete (step 4 committed):** a world clock (Esc → Let ten years pass); untended lamps fail and go dark, tended ones stay lit; proved across five separate processes R01's two chandeliers never age, by your choice ([progress](docs/environment/progress/phase-3-props.md)). |
+| 2026-10-20 | **Phase 3 step 3 committed** (90decb1): pull any shelf book; two lore books in R01 to take and read (J, Satchel); all saved across restarts. Lore texts are placeholders ([progress](docs/environment/progress/phase-3-props.md)). |
 | 2026-10-20 | **Phase 3 step 2 committed** (2c60c70): the game saves (`user://saves/slot0.json`) and resumes where you quit. Every change keeps its original, so a future janitor can put things back (Esc → Tidy up tests it). Proved across three separate processes ([progress](docs/environment/progress/phase-3-props.md)). |
 | 2026-10-20 | **Phase 3 step 1 committed** (7472a94): two breakable floor vases in R01, pushable table props, and the player's physics layer fixed ([progress](docs/environment/progress/phase-3-props.md)). |
 | 2026-10-20 | Phase 3 design **approved** with the recommended answers to Q1–Q9. |
@@ -31,7 +32,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 1. Authored Reading Room (R01) | A hand-built hall from kit pieces; variety from sockets; playable from the Esc menu | ✅ Done 2026-10-19 |
 | R01 weathering and polish | Fallen books, debris, plants, stains, stairs, growth, surface relief, floor wear | ✅ Done 2026-10-19 |
 | 2. Generated Stack Gallery (R02) | A seeded corridor off any R01 door; bakeable to a scene | ✅ Done 2026-10-20 |
-| **3. Props and persistence** | Push and break props, take lore books, save and restore, aging lamps | 🔨 Step 3 of 4 built, waiting for your review (steps 1-2 committed) |
+| **3. Props and persistence** | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | Not started |
 | 5. Kit breadth | More room types, mostly from data | Not started |
 

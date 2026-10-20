@@ -284,6 +284,8 @@ func show_menu() -> void:
 	if in_room():
 		# Test hook for a future janitor (NPC or event): puts every changed thing back.
 		options.append({"text":"Tidy up (janitor test: %d changed)" % ws().changed_ids().size(),"action":"tidy"})
+		# Test hook for the world clock (ENVIRONMENT_PLAN.md 6.5.6): untended lamps age.
+		options.append({"text":"Let ten years pass (now year %d)" % int(ws().years()),"action":"years"})
 	options.append_array([
 		{"text":"Controls & settings","action":"controls"},
 		{"text":"Begin another outing","action":"restart"},
@@ -336,6 +338,13 @@ func on_choice(action: String) -> void:
 			ws().forget()
 			room_override = scene_path
 			get_tree().reload_current_scene()
+		"years":
+			ws().advance_years(10.0)
+			for key: String in ws().rooms.keys():
+				ws().rooms[key].refresh_aging()
+			ws().save_now()
+			close_panel()
+			hud.notify("Ten years pass. It is year %d; untended lamps have had time to fail." % int(ws().years()))
 		"tidy":
 			var n: int = 0
 			for key: String in ws().rooms.keys():

@@ -36,6 +36,7 @@ var rooms: Dictionary = {}
 var _applied: Dictionary = {}     # ids a live room found and applied
 var _dirty: bool = false
 var _timer: float = 0.0
+var _age_rules: AgeRules
 
 
 func _ready() -> void:
@@ -55,6 +56,9 @@ func _ready() -> void:
 	data = blank()
 	if not fresh:
 		loaded = load_save()
+	for arg: String in args:
+		if arg.begins_with("--advance-years="):     # tests and checks: years pass at start
+			advance_years(arg.trim_prefix("--advance-years=").to_float())
 
 
 func blank() -> Dictionary:
@@ -173,6 +177,33 @@ func revert_room(room_key: String) -> int:
 
 static func room_key_of(id: String) -> String:
 	return id.get_slice("/", 0)
+
+
+# --- the world clock and aging (ENVIRONMENT_PLAN.md 6.5.6) ------------------------
+# The clock only moves when told to in phase 3 (the Esc menu, --advance-years).
+# Aging stores nothing: each socket draws a fixed number from its id, and the
+# rules turn years into how far along its chain it has gone.
+
+## Years since the world began.
+func years() -> float:
+	return float(data.get("clock_days", 0.0)) / 365.0
+
+
+func advance_years(n: float) -> void:
+	data["clock_days"] = float(data.get("clock_days", 0.0)) + n * 365.0
+	mark_dirty()
+
+
+func age_rules() -> AgeRules:
+	if _age_rules == null:
+		_age_rules = AgeRules.default()
+	return _age_rules
+
+
+## The fixed draw (0..1) a thing ages by: the same in every process.
+func age_draw(id: String) -> float:
+	var h: int = hash([int(data.get("world_seed", 1)), id, "age"])
+	return float(posmod(h, 1000003)) / 1000003.0
 
 
 # --- the satchel (ENVIRONMENT_PLAN.md 6.5.1: Inventory) ---------------------------

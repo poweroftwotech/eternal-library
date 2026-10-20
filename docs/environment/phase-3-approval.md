@@ -1,6 +1,6 @@
 # Phase 3 approval brief: props and persistence
 
-[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **approved 2026-10-20 (Q1–Q9 as recommended); step 1 in progress** ·
+[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **approved 2026-10-20 (Q1–Q9 as recommended); all four steps built and committed** ·
 Technical detail: [phase-3-design.md](phase-3-design.md)
 
 This page is what you're approving. It says what you'll be able to do when

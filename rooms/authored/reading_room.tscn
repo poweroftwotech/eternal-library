@@ -380,9 +380,11 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0, -13.5)
 
 [node name="lantern_cluster" parent="Lights" unique_id=499785762 instance=ExtResource("19_xadva")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -6)
+metadata/ageless = true
 
 [node name="lantern_cluster2" parent="Lights" unique_id=1651737353 instance=ExtResource("19_xadva")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -14)
+metadata/ageless = true
 
 [node name="lantern_hanging" parent="Lights" unique_id=668699186 instance=ExtResource("20_ncy22")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -2)

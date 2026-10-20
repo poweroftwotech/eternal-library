@@ -86,6 +86,22 @@ func room() -> Node:
 	return null
 
 
+## The entry resolve() would pick, without spawning anything (aging needs the
+## pick before it ages: ENVIRONMENT_PLAN.md 6.5.3 step 4).
+func pick_index(seed_value: int, room_pin_value: int = -1, style_pick: int = -1) -> int:
+	if socket_set == null or socket_set.entries.is_empty():
+		return -1
+	var n: int = socket_set.entries.size()
+	var force: int = room_pin_value if room_pin_value >= 0 and room_pin_value < n else (pinned if pinned >= 0 and pinned < n else -1)
+	if force < 0 and style_pick >= 0 and style_pick < n:
+		force = style_pick
+	if force >= 0:
+		return force
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_value
+	return socket_set.pick(rng)
+
+
 ## style_pick: the room's pick for this set's style group (-1 = none); pins win.
 func resolve(seed_value: int, room_pin_value: int = -1, style_pick: int = -1) -> int:
 	_seed = seed_value

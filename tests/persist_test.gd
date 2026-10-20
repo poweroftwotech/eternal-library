@@ -62,6 +62,10 @@ func run() -> void:
 			await load_mode()
 		"reverted":
 			await reverted_mode()
+		"age":
+			await age_mode()
+		"age_again":
+			await age_again_mode()
 	finish(mode, true)
 
 
@@ -69,7 +73,7 @@ func finish(mode: String, through_game: bool) -> void:
 	print("persist_test %s: %d checks, %d failures" % [mode, checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
-	if failures.is_empty() and through_game and mode != "reverted":
+	if failures.is_empty() and through_game and mode != "age_again":
 		game.save_and_quit()     # the game's own quit path writes the save
 	else:
 		quit(1 if not failures.is_empty() else 0)
@@ -261,6 +265,7 @@ func reverted_mode() -> void:
 		await physics_frame
 	var table: WorldProp = prop_by_id(expect["table_id"])
 	check(table != null and near(room_xf(table), WorldStateData.xf(expect["table_orig"])), "the table prop is on the table")
+	await tend_and_record(expect)
 
 
 func fill_of(r: RoomTemplate, socket_path: String) -> ShelfFill:
@@ -271,3 +276,105 @@ func fill_of(r: RoomTemplate, socket_path: String) -> ShelfFill:
 		if n is ShelfFill:
 			return n as ShelfFill
 	return null
+
+
+# --- step 4: the years (ENVIRONMENT_PLAN.md 6.5.6) --------------------------------
+const TENDED: String = "Lights/lantern_hanging3"     # over the west gallery
+
+
+## Lamp sockets of R01 and the gallery: {"<room_key>/<socket path>": socket}.
+func lamp_sockets() -> Dictionary:
+	var out: Dictionary = {}
+	for r: RoomTemplate in [room, room.get_node("StackGallery") as RoomTemplate]:
+		for s: VariantSocket in r.sockets():
+			if s.mode == VariantSocket.Mode.STATE and s.socket_set != null and s.socket_set.index_of("lit") >= 0:
+				out[r.room_key() + "/" + r.socket_key(s)] = s
+	return out
+
+
+## Non-lamp socket picks of both rooms.
+func other_picks() -> Dictionary:
+	var out: Dictionary = {}
+	for r: RoomTemplate in [room, room.get_node("StackGallery") as RoomTemplate]:
+		for s: VariantSocket in r.sockets():
+			if s.mode != VariantSocket.Mode.STATE:
+				out[r.room_key() + "/" + r.socket_key(s)] = s.last_pick
+	return out
+
+
+## Third process: at year 0, tend the gallery lantern (E until it's lit), and
+## record every lamp's year-0 step and the other sockets' picks.
+func tend_and_record(expect: Dictionary) -> void:
+	var lamps: Dictionary = lamp_sockets()
+	var socket: VariantSocket = room.get_node(TENDED).find_children("SOCKET_lamp_state*", "VariantSocket", true, false).front()
+	var tend: LampTend = socket.get_children(true).filter(func(c: Node) -> bool: return c is LampTend).front()
+	# From the gallery floor below it, aim at the glass with the real ray.
+	game.player.teleport(Vector3(1.0, 4.2, tend.global_position.z + 1.2), 0.0)
+	for _i: int in 3:
+		await physics_frame
+	game.look_toward(tend.global_position)
+	for _i: int in 3:
+		await physics_frame
+	check(game.player.get_target() == tend, "from the gallery, the ray finds the lantern (%s)" % game.player.get_target())
+	for _i: int in 2:
+		if not tend.is_lit():
+			game.interact(tend)
+	if not tend.is_lit():
+		game.interact(tend)
+	check(tend.is_lit() and str(ws.call("delta", "reading_room@1/" + room.socket_key(socket)).get("s", "")) == "state", "E lit it, and the save remembers the tended lamp")
+	var base: Dictionary = {}
+	for id: String in lamps:
+		base[id] = ["lit", "failing", "dark"].find((lamps[id] as VariantSocket).picked_label())
+	expect["tended"] = "reading_room@1/" + room.socket_key(socket)
+	expect["lamps_year0"] = base
+	expect["others"] = other_picks()
+	var f: FileAccess = FileAccess.open(EXPECT, FileAccess.WRITE)
+	f.store_string(JSON.stringify(expect))
+	f.close()
+
+
+## Fourth process, started with --advance-years=40.
+func age_mode() -> void:
+	var expect: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(EXPECT))
+	check(absf(float(ws.call("years")) - 40.0) < 0.01, "40 years have passed (%.2f)" % float(ws.call("years")))
+	var lamps: Dictionary = lamp_sockets()
+	var base: Dictionary = expect.get("lamps_year0", {})
+	var forward: bool = true
+	var dark: int = 0
+	var untouched: int = 0
+	var states: Dictionary = {}
+	for id: String in lamps:
+		var label: String = (lamps[id] as VariantSocket).picked_label()
+		states[id] = label
+		if id == expect["tended"] or room.is_ageless(lamps[id]):
+			continue
+		untouched += 1
+		forward = forward and ["lit", "failing", "dark"].find(label) >= int(base.get(id, 0))
+		if label == "dark":
+			dark += 1
+	check(base.size() == lamps.size() and lamps.size() >= 10, "the same %d lamps as at year 0" % lamps.size())
+	check(forward, "every untouched lamp is where it was or further along lit → failing → dark")
+	check(dark * 2 >= untouched, "at least half the untouched lamps have gone dark (%d of %d)" % [dark, untouched])
+	check(states.get(expect["tended"], "") == "lit", "the tended lamp is still lit")
+	var chandeliers: Array = lamps.keys().filter(func(id: String) -> bool: return room.is_ageless(lamps[id]))
+	check(chandeliers.size() == 2 and chandeliers.all(func(id: String) -> bool: return states[id] == "lit"), "R01's ageless chandeliers are still lit")
+	var was: Dictionary = expect.get("others", {})
+	var now: Dictionary = other_picks()
+	var changed: Array = now.keys().filter(func(k: String) -> bool: return not was.has(k) or int(was[k]) != int(now[k]))
+	check(not now.is_empty() and was.size() == now.size() and changed.is_empty(), "no other socket changed: only lamps age (%s)" % [changed])
+	check(ws.call("owns", &"lore_hollow_index"), "the satchel still holds the lore book")
+	expect["lamps_year40"] = states
+	var f: FileAccess = FileAccess.open(EXPECT, FileAccess.WRITE)
+	f.store_string(JSON.stringify(expect))
+	f.close()
+
+
+## Fifth process, no --advance-years: still year 40, the same lamps.
+func age_again_mode() -> void:
+	var expect: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(EXPECT))
+	check(absf(float(ws.call("years")) - 40.0) < 0.01, "a restart is still at year 40 (the clock is saved)")
+	var lamps: Dictionary = lamp_sockets()
+	var same: bool = true
+	for id: String in lamps:
+		same = same and expect["lamps_year40"].get(id, "") == (lamps[id] as VariantSocket).picked_label()
+	check(same, "every lamp shows the same state as in the run that aged it")

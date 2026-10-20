@@ -1,6 +1,6 @@
 # Phase 3 design: props and persistence (technical)
 
-[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **approved 2026-10-20 (Q1–Q9 as recommended); step 1 in progress** ·
+[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **approved 2026-10-20 (Q1–Q9 as recommended); all four steps built and committed** ·
 Plain-language version: [phase-3-approval.md](phase-3-approval.md)
 
 This is the engineering detail behind the approval brief: classes, ids, save
