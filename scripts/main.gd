@@ -39,6 +39,9 @@ var resuming: bool = false
 
 func _ready() -> void:
 	install_inputs()
+	var preset: String = GraphicsPreset.requested()
+	if preset != "" and not GraphicsPreset.apply(get_viewport(), preset):
+		push_warning("main: no graphics preset '%s'" % preset)
 	resuming = not booted and ws().loaded and room_override == "" and not Array(OS.get_cmdline_user_args()).any(func(a: String) -> bool: return a.begins_with("--room=") or a.begins_with("--area="))
 	booted = true
 	for arg: String in OS.get_cmdline_user_args():

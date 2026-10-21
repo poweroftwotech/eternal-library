@@ -1,20 +1,29 @@
 extends SceneTree
-## Frame log of the real game walking the library wing while rooms stream
-## (phase-4-design.md 8.1.7; step 2's first log, step 3's gate). Needs a
-## display, not --headless; run `godot --headless --import` first.
-##   godot --path . --resolution 1600x900 --script res://tests/area_walk_capture.gd -- <out.csv> [area seed] [speed m/s]
+## Frame log and frame gate of the real game walking the library wing while
+## rooms stream (phase-4-design.md 8.1.7). Needs a display, not --headless;
+## run `godot --headless --import` first.
+##   godot --path . --resolution 1920x1080 --script res://tests/area_walk_capture.gd -- <out.csv> [area seed] [speed m/s] [--preset=medium] [--gate]
 ## The player walks (3.3 m/s, the game's speed) from R01's hall out to every
 ## leaf gallery's far end and back, looking where it goes, with vsync off.
-## Every frame is logged: its time, the streamer's work, rooms live, loaded
-## and unloaded, draw calls and the room the player is in. Prints the mean,
-## 99th percentile and worst frame, how many frames went over 8.3 and 16.7
-## ms, and the worst frames with what happened in them.
+## Every frame is logged: its time, GPU time, the streamer's work, rooms
+## live, loaded and unloaded, draw calls (all passes), shadowed lights, lights
+## within reach, video memory and the room the player is in.
+##
+## --gate checks the base-spec frame target (Q7, revised; 8.1.7), measured
+## here at the Medium preset, 1080p:
+##   GPU time per frame: mean <= 3 ms, no frame over 4 ms;
+##   CPU time per frame (the frame's wall time; the GPU is never the wait at
+##   this speed): mean <= 4 ms, no frame over 8 ms;
+##   per frame: draw calls <= 1500, triangles <= 3 M, shadowed lights <= 4,
+##   lights within 35 m <= 48, video memory <= 6 GB.
+## The 4x (GPU) and 2x (CPU) dev-to-RTX-3060 factors behind these are an
+## estimate (architecture.md 8.2). Exits 1 if the gate fails.
 
-const STARTS: Dictionary = {
-	&"SNAP_door_west": Vector3(1.5, 0.0, -6),
-	&"SNAP_door_east": Vector3(10.5, 0.0, -6),
-	&"SNAP_entrance": Vector3(6, 0.0, -1.5),
-}
+const TARGET: Dictionary = {"gpu_mean": 3.0, "gpu_max": 4.0, "cpu_mean": 4.0, "cpu_max": 8.0,
+	"draws": 1500, "tris": 3000000, "shadowed": 4, "lights": 48, "vram_mb": 6144.0}
+## Lights this close to the camera count as "in reach" (the distance fade
+## begins at 30 m and ends at 35 m).
+const REACH_M: float = 35.0
 
 
 func _initialize() -> void:
@@ -22,7 +31,11 @@ func _initialize() -> void:
 
 
 func capture() -> void:
-	var args: PackedStringArray = OS.get_cmdline_user_args()
+	var args: PackedStringArray = []
+	for a: String in OS.get_cmdline_user_args():
+		if not a.begins_with("--"):
+			args.append(a)
+	var gate: bool = OS.get_cmdline_user_args().has("--gate")
 	var out: String = args[0] if args.size() > 0 else "user://p4_frames.csv"
 	var area_seed: int = int(args[1]) if args.size() > 1 else 1
 	var speed: float = float(args[2]) if args.size() > 2 else 3.3
@@ -34,22 +47,32 @@ func capture() -> void:
 	root.add_child(game)
 	var boot_ms: float = (Time.get_ticks_usec() - t0) / 1000.0
 	game.hud.toast_time = 0
+	game.stats.visible = false     # the panel would cost frames of its own
 	game.player.blocked = true     # the script walks it
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
+	var vp_rid: RID = root.get_viewport().get_viewport_rid()
+	RenderingServer.viewport_set_measure_render_time(vp_rid, true)
 	var area: Area = game.world
 	var st: AreaStreamer = area.streamer
-	var path: Array[Vector3] = tour(area.plan)
+	var path: Array[Vector3] = AreaTour.tour(area.plan)
+	# Start where the walk starts: a teleport makes the bounce light catch up
+	# (one GPU frame of about 4.5 ms), which is not what walking costs.
+	game.player.global_position = path[0] + Vector3(0, 0.05, 0)
+	game.look_toward(path[1] + Vector3(0, 1.6, 0))
 	for i: int in 60:     # settle the start
 		await process_frame
-	var lines: PackedStringArray = ["frame,ms,stream_ms,live,loads,unloads,draw_calls,room,event"]
+	var lines: PackedStringArray = ["frame,ms,gpu_ms,stream_ms,live,loads,unloads,draw_calls,triangles,shadowed,lights,vram_mb,room,event"]
 	var times: Array[float] = []
+	var gpus: Array[float] = []
 	var worst: Array = []      # [ms, line]
+	var peak: Dictionary = {"draws": 0.0, "tris": 0.0, "shadowed": 0.0, "lights": 0.0, "vram_mb": 0.0}
 	var seg: int = 0
 	var pos: Vector3 = path[0]
 	var last: int = Time.get_ticks_usec()
 	var loads: int = st.stats["loads"]
 	var unloads: int = st.stats["unloads"]
 	var frame: int = 0
+	var in_reach: int = 0
 	while seg < path.size() - 1:
 		await process_frame
 		var now: int = Time.get_ticks_usec()
@@ -77,10 +100,23 @@ func capture() -> void:
 			event += "unload"
 		loads = st.stats["loads"]
 		unloads = st.stats["unloads"]
-		var draws: int = root.get_viewport().get_render_info(Viewport.RENDER_INFO_TYPE_VISIBLE, Viewport.RENDER_INFO_DRAW_CALLS_IN_FRAME)
-		var line: String = "%d,%.3f,%.3f,%d,%d,%d,%d,%s,%s" % [frame, ms, st.stats["last_frame_ms"], st.live_count(), loads, unloads, draws, st.player_room, event.strip_edges()]
+		if frame % 15 == 0 or event != "":
+			var cam: Vector3 = game.player.camera.global_position
+			in_reach = area.find_children("*", "Light3D", true, false).filter(func(l: Node) -> bool:
+				return (l as Light3D).is_visible_in_tree() and (l as Light3D).global_position.distance_to(cam) < REACH_M).size()
+		var gpu: float = RenderingServer.viewport_get_measured_render_time_gpu(vp_rid)
+		var draws: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
+		var tris: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
+		var shadowed: int = area.light_budget.casting()
+		var vram: float = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
+		var now_vals: Dictionary = {"draws": draws, "tris": tris, "shadowed": shadowed, "lights": in_reach, "vram_mb": vram}
+		for k: String in peak:
+			peak[k] = maxf(float(peak[k]), float(now_vals[k]))
+		var line: String = "%d,%.3f,%.3f,%.3f,%d,%d,%d,%d,%d,%d,%d,%.0f,%s,%s" % [frame, ms, gpu, st.stats["last_frame_ms"], st.live_count(), loads, unloads,
+			draws, tris, shadowed, in_reach, vram, st.player_room, event.strip_edges()]
 		lines.append(line)
 		times.append(ms)
+		gpus.append(gpu)
 		worst.append([ms, line])
 		frame += 1
 	var f: FileAccess = FileAccess.open(out, FileAccess.WRITE)
@@ -88,77 +124,33 @@ func capture() -> void:
 	f.close()
 	var sorted: Array[float] = times.duplicate()
 	sorted.sort()
-	var mean: float = sorted.reduce(func(a: float, b: float) -> float: return a + b, 0.0) / sorted.size()
+	var mean: float = _mean(times)
+	var gpu_mean: float = _mean(gpus)
+	var gpu_max: float = gpus.max()
 	var over_8: int = sorted.filter(func(t: float) -> bool: return t > 8.3).size()
 	var over_16: int = sorted.filter(func(t: float) -> bool: return t > 16.7).size()
-	print("area_walk_capture: seed %d, %d rooms, boot %.0f ms; %d frames over %.0f m; frame %.2f ms mean, %.2f p99, %.2f worst; %d over 8.3 ms, %d over 16.7 ms; built %d, unloaded %d; slowest streaming frame %.1f ms; wear regions up to %.0f ms (thread), upload %.1f ms; wrote %s" % [
-		area_seed, area.plan.rooms.size(), boot_ms, frame, length(path), mean, sorted[int(sorted.size() * 0.99) - 1], sorted[-1], over_8, over_16,
-		st.stats["loads"], st.stats["unloads"], st.stats["max_frame_ms"], FloorWear.max_region_ms, FloorWear.last_upload_ms, out])
+	var preset: String = GraphicsPreset.requested() if GraphicsPreset.requested() != "" else "project settings"
+	print("area_walk_capture: seed %d, %d rooms, %s, %dx%d, boot %.0f ms; %d frames over %.0f m; frame %.2f ms mean, %.2f p99, %.2f worst; gpu %.2f ms mean, %.2f worst; %d over 8.3 ms, %d over 16.7 ms; peaks %s; built %d, unloaded %d; slowest streaming frame %.1f ms; wear regions up to %.0f ms (thread), upload %.1f ms; wrote %s" % [
+		area_seed, area.plan.rooms.size(), preset, root.size.x, root.size.y, boot_ms, frame, AreaTour.length(path), mean, sorted[int(sorted.size() * 0.99) - 1], sorted[-1],
+		gpu_mean, gpu_max, over_8, over_16, peak, st.stats["loads"], st.stats["unloads"], st.stats["max_frame_ms"], FloorWear.max_region_ms, FloorWear.last_upload_ms, out])
 	worst.sort_custom(func(a: Array, b: Array) -> bool: return a[0] > b[0])
-	print("  worst frames (frame,ms,stream_ms,live,loads,unloads,draw_calls,room,event):")
+	print("  worst frames (%s):" % lines[0])
 	for w: Array in worst.slice(0, 8):
 		print("    " + str(w[1]))
+	var fails: PackedStringArray = []
+	if gate:
+		var checks: Array = [["gpu mean", gpu_mean, TARGET["gpu_mean"]], ["gpu worst", gpu_max, TARGET["gpu_max"]],
+			["cpu mean", mean, TARGET["cpu_mean"]], ["cpu worst", sorted[-1], TARGET["cpu_max"]],
+			["draw calls", peak["draws"], TARGET["draws"]], ["triangles", peak["tris"], TARGET["tris"]],
+			["shadowed lights", peak["shadowed"], TARGET["shadowed"]], ["lights in reach", peak["lights"], TARGET["lights"]],
+			["video memory MB", peak["vram_mb"], TARGET["vram_mb"]]]
+		for c: Array in checks:
+			if float(c[1]) > float(c[2]):
+				fails.append("%s %.2f > %.2f" % [c[0], c[1], c[2]])
+		print("area_walk_capture gate: %s" % ("PASS" if fails.is_empty() else "FAIL " + "; ".join(fails)))
 	main_script.room_override = ""
-	quit()
+	quit(1 if not fails.is_empty() else 0)
 
 
-func length(path: Array[Vector3]) -> float:
-	var total: float = 0.0
-	for i: int in path.size() - 1:
-		total += path[i].distance_to(path[i + 1])
-	return total
-
-
-## Floor points from R01's hall out to every leaf's far end and back (cell
-## centres; R01's door spots as in area_route_test).
-func tour(p: AreaPlan) -> Array[Vector3]:
-	var out: Array[Vector3] = []
-	for r: AreaPlan.Room in p.rooms:
-		if r.parent == "" or r.children_count() > 0:
-			continue
-		var chain: Array[AreaPlan.Room] = []
-		var at: AreaPlan.Room = r
-		while at.parent != "":
-			chain.push_front(at)
-			at = p.room(at.parent)
-		var start: Vector3 = STARTS[chain[0].parent_connector]
-		var leg: Array[Vector3] = [start]
-		for i: int in chain.size():
-			var room: AreaPlan.Room = chain[i]
-			var in_xf: Transform3D = room.connectors[room.entry]["xf"]
-			var from: Vector3i = AreaPlan.cell_of(in_xf.origin + in_xf.basis.z * 2.0)
-			var goal: Vector3i = Vector3i.MAX
-			if i + 1 < chain.size():
-				var out_xf: Transform3D = room.connectors[chain[i + 1].parent_connector]["xf"]
-				goal = AreaPlan.cell_of(out_xf.origin + out_xf.basis.z * 2.0)
-			for c: Vector3i in cell_path(room, from, goal):
-				leg.append(AreaPlan.cell_box(c).get_center() * Vector3(1, 0, 1))
-		var back: Array[Vector3] = leg.duplicate()
-		back.reverse()
-		out.append_array(leg + back)
-	return out
-
-
-func cell_path(r: AreaPlan.Room, from: Vector3i, to: Vector3i) -> Array[Vector3i]:
-	var parent: Dictionary = {from: from}
-	var order: Array[Vector3i] = [from]
-	var head: int = 0
-	while head < order.size():
-		var c: Vector3i = order[head]
-		head += 1
-		for side: int in CellGrid.ALL_SIDES:
-			var n: Vector3i = CellGrid.neighbour(c, side)
-			if parent.has(n) or not r.floor_cells.has(n) or not r.sight.has(CellGrid.key(c, side)):
-				continue
-			parent[n] = c
-			order.append(n)
-	var goal: Vector3i = to if to != Vector3i.MAX else order[-1]
-	if not parent.has(goal):
-		return [from]
-	var out: Array[Vector3i] = []
-	var c: Vector3i = goal
-	while c != from:
-		out.push_front(c)
-		c = parent[c]
-	out.push_front(from)
-	return out
+func _mean(values: Array[float]) -> float:
+	return values.reduce(func(a: float, b: float) -> float: return a + b, 0.0) / maxf(values.size(), 1)

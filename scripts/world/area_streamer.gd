@@ -199,7 +199,7 @@ func unload(slot: String) -> void:
 var _leaving: Array[Dictionary] = []
 
 
-## Removes pieces of leaving rooms until `deadline` (at least one): first
+## Removes and frees pieces of leaving rooms until `deadline` (at least one): first
 ## every grandchild of the room (modules, props, sockets' holders), then its
 ## children, then the room. Returns true if any room is still leaving.
 func _take_apart(deadline: int) -> bool:
@@ -214,11 +214,12 @@ func _take_apart(deadline: int) -> bool:
 			pieces.append(room)
 		while not pieces.is_empty():
 			var n: Node = pieces.pop_front()
+			var last: bool = n == room
 			if is_instance_valid(n):
 				if n.get_parent() != null:
 					n.get_parent().remove_child(n)
-				n.queue_free()
-			if n == room:
+				n.free()     # now, inside the budget (queue_free left the cost to the end of the frame)
+			if last:
 				_leaving.pop_front()
 				room_unloaded.emit(job["slot"])
 				break

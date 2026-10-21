@@ -25,6 +25,7 @@ var rooms: Dictionary = {}
 ## INF: the root room's PlayerSpawn. The rooms around it are built first.
 var start_point: Vector3 = Vector3.INF
 var streamer: AreaStreamer
+var light_budget: LightBudget
 ## What building cost: plan_ms, wear_ms, total_ms, and with streaming off per
 ## room {slot: {instance_ms, enter_ms}} (enter = generate, sockets, save restore).
 var timings: Dictionary = {}
@@ -57,13 +58,19 @@ func _ready() -> void:
 		_env.name = "AreaEnvironment"
 		_env.environment = recipe.atmosphere.build_environment()
 		add_child(_env)
+	var settings: StreamSettings = stream_settings if stream_settings != null else StreamSettings.default()
+	light_budget = LightBudget.new()
+	light_budget.name = "LightBudget"
+	light_budget.shadow_budget = settings.shadow_budget
+	light_budget.light_fade_m = settings.light_fade_m
+	add_child(light_budget)
 	var b: AABB = plan.bounds()
 	FloorWear.fixed_rect = Rect2(b.position.x - 2.0, b.position.z - 2.0, b.size.x + 4.0, b.size.z + 4.0)
 	if streaming:
 		streamer = AreaStreamer.new()
 		streamer.name = "Streamer"
 		streamer.area = self
-		streamer.settings = stream_settings if stream_settings != null else StreamSettings.default()
+		streamer.settings = settings
 		var at: AreaPlan.Room = plan.room_at(start_point) if start_point != Vector3.INF else null
 		streamer.start(at.slot_id if at != null else plan.rooms[0].slot_id)
 		add_child(streamer)
@@ -131,6 +138,7 @@ func make_room(r: AreaPlan.Room) -> RoomTemplate:
 func enter_room(r: AreaPlan.Room, room: RoomTemplate) -> void:
 	add_child(room)
 	rooms[r.slot_id] = room
+	light_budget.add_room(room)
 
 
 ## Where a new visit starts: the root room's PlayerSpawn.

@@ -2,7 +2,7 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · Design: [approval brief](../phase-4-approval.md), [technical](../phase-4-design.md)
 
-**In short:** steps 1 and 2 are built. The Reading Room is now the heart of a wing of 6–9 rooms: the baked gallery on its west door, generated galleries on its east door and entrance, and 2–5 more galleries growing from their far ends. The whole wing is laid out as data first (in about 30 ms). Since step 2, only the rooms near you exist: the next ones are built ahead of you, a few milliseconds a frame, and the ones you leave behind go.
+**In short:** steps 1–3 are built, and phase 4's finish line is met. The Reading Room is now the heart of a wing of 6–9 rooms: the baked gallery on its west door, generated galleries on its east door and entrance, and 2–5 more galleries growing from their far ends. The whole wing is laid out as data first (in about 30 ms). Since step 2, only the rooms near you exist: the next ones are built ahead of you, a few milliseconds a frame, and the ones you leave behind go.
 
 ---
 
@@ -278,3 +278,97 @@ included, so it reads higher than the main view's count in the capture logs
 Built in `scripts/stats_overlay.gd` (CanvasLayer → MarginContainer →
 PanelContainer → VBoxContainer, per AGENTS.md section 3); toggled in
 `scripts/main.gd`. Picture: `previews/p4_stats_r01.png`.
+
+---
+
+## Step 3: no stutter, at the RTX 3060 target (done 2026-10-20, committed)
+
+**This step meets phase 4's finish line:** the wing streams without hitches
+at the frame target.
+
+**Try it:** Esc → **Walk the library wing** with the stats panel on (F3).
+Walk the galleries. The panel's **shadowed lights** never go above 4, and
+the frame graph stays flat as rooms come and go. To see the Medium preset
+the gate measures at, start the game with `-- --preset=medium`.
+
+- Only the four nearest lit chandeliers, braziers and exit glows cast
+  shadows. A lamp gaining or losing its shadow fades over 0.3 s.
+- Every light fades out between 30 m and 35 m away. R01 is 31 m long, so a
+  lamp at the far end of the hall fades in before you reach the middle.
+
+**Built:**
+
+| Piece | File |
+|---|---|
+| `LightBudget`: ranks the shadow-capable lights by distance every 0.2 s; the nearest 4 keep their shadows, fading in and out over 0.3 s; a newcomer waits for a free slot, so never more than 4 at once; distance fade on every light (30 m, then 5 m) | `scripts/world/light_budget.gd`; `Area.enter_room` registers each room's lights |
+| `shadow_budget` 4 and `light_fade_m` 30 in the Medium preset's settings | `scripts/world/stream_settings.gd` |
+| Unloading frees each piece at once, inside the streaming budget (it used to be freed at the end of the frame, outside it) | `AreaStreamer._take_apart` |
+| `--preset=medium`: shadow atlas 4096, soft shadows low, bounce light at half resolution, FXAA instead of MSAA. A stand-in for the graphics settings slice | `scripts/graphics_preset.gd`, `scripts/main.gd` |
+| The frame gate: GPU and CPU time per frame, draw calls, triangles, shadowed lights, lights in reach and video memory against the base-spec targets; exits 1 if missed | `tests/area_walk_capture.gd -- --gate` |
+| The pop check: lighting before and after a room arrives, against the scene's own flicker | `tests/area_pop_capture.gd` |
+| The walking route the GPU tests share | `tests/area_tour.gd` |
+
+**The frame gate** (the real game walking the whole wing, out to every
+leaf and back, at the Medium preset, 1920×1080, vsync off, RTX 5090). The
+targets are scaled to the RTX 3060 (architecture.md 8.2): GPU mean ≤ 3 ms,
+no frame over 4 ms; CPU mean ≤ 4 ms, no frame over 8 ms.
+
+Three runs in a row, all **PASS**:
+
+| Wing | Walk | Frame (CPU) mean / worst | GPU mean / worst | Over 8.3 ms | Peaks: draw calls, triangles, shadowed, lights in reach, video memory | Built / unloaded | Slowest streaming frame |
+|---|---|---|---|---|---|---|---|
+| Seed 1, 6 rooms | 354 m, 74 k frames | 1.44 / 6.28 ms | 0.86 / 1.83 ms | 0 | 1,042 · 280 k · 4 · 36 · 648 MB | 2 / 2 | 3.2 ms |
+| Seed 2, 8 rooms | 514 m, 109 k frames | 1.42 / 7.68 ms | 0.84 / 1.80 ms | 0 | 1,001 · 258 k · 4 · 42 · 650 MB | 10 / 10 | 4.0 ms |
+| Seed 5, 8 rooms | 562 m, 120 k frames | 1.42 / 6.35 ms | 0.83 / 1.80 ms | 0 | 1,090 · 260 k · 4 · 44 · 659 MB | 9 / 8 | 4.1 ms |
+
+Against step 2's walk (full settings, 1600×900): the worst frame went from
+8.5 to 6.3–7.7 ms, now that unloading frees inside its budget. Both the GPU
+mean (under 0.9 ms) and the GPU worst (1.8 ms) leave a lot of room under the
+3060 targets. The CPU worst frame (up to 7.7 ms) is the closest to its limit
+(8 ms): it's a room arriving or leaving while the frame does everything else.
+
+**Gates (all pass):** the frame gate above (three runs); `stream_test` 40;
+`area_plan_test` 145; `area_route_test` 198; 240-frame runs clean (camp,
+R01, `--area=library`); `prop_test` 51, `book_test` 27, `age_test` 20,
+`room_playtest` 31, `kit_test` 906, `socket_modes_test` 246,
+`reading_room_test` 87, `validate_room_test` 26, `r02_bake_test` 105, camp
+`playtest` 43, `spill_settle_test` 6, `room_atmosphere_test` 32,
+`atmosphere_test` 9, `r02_route_test` 2321; the persistence gate, all five
+processes.
+
+**Lighting doesn't pop when a room arrives** (`area_pop_capture`, 7 arrivals
+over 6 wings). Standing still while a room arrives, then 1.5 s later, the
+view changes by at most 0.84 (mean, 0–255) and 0.1% of pixels. That's no
+more than the lamps' own sway and flicker over the same 1.5 s (up to 1.3
+and 0.2%). With rooms loading two doorways ahead, a room arrives out of
+sight, and the bounce light (SDFGI) takes it in without a visible change.
+The per-room baked-lighting fallback (VoxelGI) isn't needed. Before and
+after pictures of the largest change are in `previews/p4_step3/`.
+
+**What changed from the design, and why:**
+
+- **No shader warm-up pass.** The frame logs show no first-draw stutter:
+  frames where a room arrives take at most 2.6 ms of GPU time. Godot 4.7's
+  ubershaders already cover first use. Start-up still prepares every room
+  once (step 2), which warms the CPU side.
+- **Shadows can't overlap their budget while fading:** a light gaining its
+  shadow waits (up to 0.3 s) for one fading out to finish. The first run
+  showed 5 at once for a moment.
+- **The gate starts where the walk starts.** Teleporting from the spawn to
+  the walk's first point made the bounce light catch up, costing one 4.5 ms
+  GPU frame. Walking never does that.
+
+**Caveats:**
+
+- **The RTX 3060 targets are estimates**, not measured on a 3060: this
+  machine's times scaled by 4 (GPU) and 2 (CPU), as architecture.md 8.2
+  says. A run on a real 3060 should replace them.
+- **One stray frame.** One run of wing 1 had a single 8.3 ms frame with
+  nothing happening in it (no streaming, no load, normal GPU time). It
+  didn't repeat in two more runs of the same wing, so I've put it down to
+  Windows scheduling. It's above the 8 ms limit, so a gate run can
+  occasionally fail on such a frame.
+- **Few arrivals to check for pops.** A wing this small has most rooms live
+  already, so a walk sees only 0–3 rooms arrive.
+- `--preset=medium` sets only the rendering values above. The full settings
+  menu and presets are the graphics settings slice (not phase 4).

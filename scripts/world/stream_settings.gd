@@ -14,6 +14,10 @@ extends Resource
 @export_range(0.5, 16.0, 0.1) var build_budget_ms: float = 4.0
 ## How often the player's room is worked out, seconds.
 @export_range(0.05, 2.0, 0.05) var check_interval_s: float = 0.25
+## Lights casting shadows at once (Q8; LightBudget).
+@export_range(0, 16) var shadow_budget: int = 4
+## Lights fade out from this distance, metres (LightBudget).
+@export_range(5.0, 100.0, 0.5) var light_fade_m: float = 30.0
 
 
 static func default() -> StreamSettings:
