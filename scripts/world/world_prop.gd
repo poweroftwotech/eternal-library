@@ -100,6 +100,11 @@ func interact(actor: Node3D, hit: Vector3) -> void:
 		push(dir.normalized() * settings.push_speed * mass, hit)
 
 
+## A prop whose room unloads (AreaStreamer) is no longer awake anywhere.
+func _exit_tree() -> void:
+	awake_props.erase(self)
+
+
 ## Puts the item in the satchel (WorldState) and removes the prop.
 func take() -> bool:
 	var ws: Node = get_node_or_null("/root/WorldState")

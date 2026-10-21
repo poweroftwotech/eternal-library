@@ -8,12 +8,13 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| Nothing right now: step 2 (rooms load as you walk) is being built | [Phase 4 progress](docs/environment/progress/phase-4-areas.md) | — |
+| **Try phase 4 step 2 in the game** (rooms load as you walk) | [Phase 4 progress](docs/environment/progress/phase-4-areas.md), step 2 | Esc → **Walk the library wing** and walk out along the galleries; the Esc menu shows how many rooms are live. Say if it's good to go on to step 3 (no stutter at the RTX 3060 target) |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-20 | **Phase 4 step 2 built:** only the rooms near you exist; the next ones are built a few milliseconds a frame and the rest go. Walking every branch of three wings on the RTX 5090: no frame over 16.7 ms, worst 8.5 ms ([progress](docs/environment/progress/phase-4-areas.md)). You walked it; committed. |
 | 2026-10-20 | **Phase 4 approved** with the recommended answers to Q1–Q11. **Step 1 built:** Esc → Walk the library wing, a wing of 6–9 rooms laid out from a plan, all loaded at once ([progress](docs/environment/progress/phase-4-areas.md)). You walked it in the game; committed. |
 | 2026-10-20 | **World structure and graphics tiers written down** ([architecture §2.1 and §8.2](docs/environment/architecture.md)): strata of areas joined by thresholds, buildings carved into cavern walls, levels, a map with no overlaps; Low–Ultra settings with an RTX 3060 at Medium 1080p 60 fps as the base, FSR 2.2 built in, DLSS a research step. Phase 4 brief revised: five future-proofing changes, Q7 now targets the 3060, new Q11 (how deep you can see). |
 | 2026-10-20 | **Phase 4 design drafted:** [approval brief](docs/environment/phase-4-approval.md) and [technical design](docs/environment/phase-4-design.md). Waiting for your approval. |
@@ -36,7 +37,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | R01 weathering and polish | Fallen books, debris, plants, stains, stairs, growth, surface relief, floor wear | ✅ Done 2026-10-19 |
 | 2. Generated Stack Gallery (R02) | A seeded corridor off any R01 door; bakeable to a scene | ✅ Done 2026-10-20 |
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
-| **4. Areas and streaming** | 6–10 connected rooms that load as you walk | Approved 2026-10-20; step 1 of 4 done, step 2 in progress |
+| **4. Areas and streaming** | 6–10 connected rooms that load as you walk | Approved 2026-10-20; steps 1–2 of 4 done |
 | 5. Kit breadth | More room types, mostly from data | Not started |
 
 ## 10. Roadmap (each phase is a playable slice)

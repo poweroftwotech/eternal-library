@@ -66,6 +66,8 @@ class Room:
 	var end_kind: String = ""
 	## Nodes the built room drops (relative paths): a baked exit stub where a room joins.
 	var drop_nodes: PackedStringArray = []
+	## Always live (AreaSlot.pinned).
+	var pinned: bool = false
 	## Doorways from the root.
 	var depth: int = 0
 

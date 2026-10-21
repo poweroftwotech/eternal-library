@@ -47,11 +47,16 @@ var style_overrides: Dictionary = {}
 ## recesses, a far lamp goes dark: ENVIRONMENT_PLAN.md 5.5.6). Never saved;
 ## socket_pins win over it.
 var generated_pins: Dictionary = {}
+## Set by AreaStreamer (phase-4-design.md 8.1.4): the room's sockets were
+## resolved off the tree, in slices, before it entered; _ready only restores
+## the save's changes.
+var prepared: bool = false
 var _last_seed: int = 1
 
 
 func _ready() -> void:
-	resolve_sockets(preview_seed if Engine.is_editor_hint() or area_seed < 0 else area_seed)
+	if not prepared:
+		resolve_sockets(preview_seed if Engine.is_editor_hint() or area_seed < 0 else area_seed)
 	restore_world()
 
 
@@ -73,19 +78,48 @@ func current_seed() -> int:
 
 ## Returns {socket path: picked index}.
 func resolve_sockets(seed_value: int) -> Dictionary:
+	begin_resolve(seed_value)
+	resolve_next(-1)
+	return _resolve_picks
+
+
+# The resolve in slices (AreaStreamer, phase-4-design.md 8.1.4): begin_resolve,
+# then resolve_next until it returns true. resolve_sockets does it all at once.
+var _resolve_queue: Array[VariantSocket] = []
+var _resolve_at: int = 0
+var _resolve_picks: Dictionary = {}
+var _resolve_styles: Dictionary = {}
+
+
+func begin_resolve(seed_value: int) -> void:
 	_last_seed = seed_value
-	var picks: Dictionary = {}
-	var styles: Dictionary = style_picks(seed_value)
+	_resolve_picks = {}
+	_resolve_styles = style_picks(seed_value)
 	var all: Array[VariantSocket] = sockets()
 	# Sockets gated on a sibling's look (VariantSocket.needs_look) go after the looks.
-	for s: VariantSocket in all.filter(func(v: VariantSocket) -> bool: return v.needs_look == "") + all.filter(func(v: VariantSocket) -> bool: return v.needs_look != ""):
+	_resolve_queue = all.filter(func(v: VariantSocket) -> bool: return v.needs_look == "") + all.filter(func(v: VariantSocket) -> bool: return v.needs_look != "")
+	_resolve_at = 0
+
+
+## Resolves sockets until `deadline_usec` (Time.get_ticks_usec(); -1: no
+## limit), at least one. Returns true once every socket is resolved and the
+## claims are applied.
+func resolve_next(deadline_usec: int) -> bool:
+	while _resolve_at < _resolve_queue.size():
+		var s: VariantSocket = _resolve_queue[_resolve_at]
+		_resolve_at += 1
 		var key: String = socket_key(s)
 		var group: String = s.socket_set.style_group if s.socket_set != null else ""
-		var sseed: int = socket_seed(seed_value, key)
-		var world_pin: int = _world_pin(s, key, sseed, pin_for(key), styles.get(group, -1))     # the save and the years (6.5.6)
-		picks[key] = s.resolve(sseed, world_pin if world_pin >= 0 else pin_for(key), styles.get(group, -1))
+		var sseed: int = socket_seed(_last_seed, key)
+		var world_pin: int = _world_pin(s, key, sseed, pin_for(key), _resolve_styles.get(group, -1))     # the save and the years (6.5.6)
+		_resolve_picks[key] = s.resolve(sseed, world_pin if world_pin >= 0 else pin_for(key), _resolve_styles.get(group, -1))
+		if deadline_usec >= 0 and Time.get_ticks_usec() >= deadline_usec:
+			break
+	if _resolve_at < _resolve_queue.size():
+		return false
 	apply_claims()
-	return picks
+	_resolve_queue = []
+	return true
 
 
 ## {style group: entry index}, rolled once per room from the seed with the
@@ -196,10 +230,15 @@ func room_key() -> String:
 
 
 ## The WorldState autoload, or null (in the editor, or a tool run without it).
+## Also found for a room being prepared off the tree (AreaStreamer), so its
+## sockets resolve with the save and the years as a live room's do.
 func world_state() -> Node:
-	if Engine.is_editor_hint() or not is_inside_tree():
+	if Engine.is_editor_hint():
 		return null
-	return get_node_or_null("/root/WorldState")
+	if is_inside_tree():
+		return get_node_or_null("/root/WorldState")
+	var tree := Engine.get_main_loop() as SceneTree
+	return tree.root.get_node_or_null("WorldState") if tree != null else null
 
 
 ## WorldProps this room owns, including socket spawns (internal children), but

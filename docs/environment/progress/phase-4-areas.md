@@ -2,7 +2,7 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · Design: [approval brief](../phase-4-approval.md), [technical](../phase-4-design.md)
 
-**In short:** step 1 is built. The Reading Room is now the heart of a wing of 6–9 rooms: the baked gallery on its west door, generated galleries on its east door and entrance, and 2–5 more galleries growing from their far ends. The whole wing is laid out as data first (in about 30 ms), then every room is built at once. Nothing streams yet; that's step 2.
+**In short:** steps 1 and 2 are built. The Reading Room is now the heart of a wing of 6–9 rooms: the baked gallery on its west door, generated galleries on its east door and entrance, and 2–5 more galleries growing from their far ends. The whole wing is laid out as data first (in about 30 ms). Since step 2, only the rooms near you exist: the next ones are built ahead of you, a few milliseconds a frame, and the ones you leave behind go.
 
 ---
 
@@ -129,3 +129,119 @@ What this means for step 2:
 - The planner treats the inside of an authored room as open for sightlines
   (it doesn't model R01's inner pillars). That's the cautious side: it can
   only over-count what you see.
+
+---
+
+## Step 2: rooms load as you walk (done 2026-10-20, walked in the game by you and committed)
+
+**Try it:** Esc menu → **Walk the library wing**, as in step 1. Walk out
+along any gallery and keep going.
+
+- Rooms appear ahead of you before you reach their door: you should never
+  see one arrive, and never meet a closed doorway.
+- Rooms you've left behind go once they're more than three doorways away
+  and out of sight for 10 seconds.
+- Open the Esc menu at any point: its text says how many rooms are live
+  (e.g. **live: 5 of 8 rooms**), how many have been built and unloaded, and
+  the slowest frame the streaming has cost so far.
+- Change something in a far gallery (light or douse a lamp), walk away
+  until it has unloaded (the live count drops), and come back: it's as you
+  left it.
+
+**Built:**
+
+| Piece | File |
+|---|---|
+| `AreaStreamer`: which rooms should be live (within 2 doorways, everything visible from here or one doorway on, pinned rooms); the build queue, nearest first; unloading after 10 s far and out of sight; three room states (`UNLOADED`, `STAND_IN` not used yet, `LIVE`); the Esc menu's line | `scripts/world/area_streamer.gd` |
+| Building in steps within 4 ms a frame: make the node, build a generated room's modules off the tree, resolve its sockets off the tree in slices, enter the tree in one call | `area_streamer.gd`; `RoomTemplate.begin_resolve` / `resolve_next` / `prepared`; `GeneratedRoom.build_planned_modules` |
+| A room being prepared off the tree reads the save and the years, as a live one does | `RoomTemplate.world_state()` |
+| Unloading: moving props saved first, then the room leaves the tree a few pieces a frame | `AreaStreamer.unload`, `_take_apart` |
+| `DoorSeal`: a blocker and a dark card on any doorway onto a room that isn't built; one shared material, mesh and box | `scripts/world/door_seal.gd` |
+| `StreamSettings` (the Medium preset's values: load radius 2, unload radius 3, 10 s, 4 ms budget, 0.25 s checks) | `scripts/world/stream_settings.gd`, `world/area/stream_settings.tres` |
+| R01 is pinned (always live) | `AreaSlot.pinned`, `gen/recipes/library_wing.tres` |
+| Floor wear: in an area, a room arriving or leaving redraws only its own part of the map, composed on a worker thread | `scripts/world/floor_wear.gd` |
+| Props leave the awake list when their room unloads | `WorldProp._exit_tree` |
+| A resumed save builds the rooms around where you were first | `Area.start_point`, `scripts/main.gd` |
+| Gates | `tests/stream_test.gd`, `tests/area_walk_capture.gd` (GPU frame log) |
+
+**What changed from the design, and why** (all found by measuring):
+
+- **No threaded loading.** Every scene a room uses is already loaded with
+  the recipe and the kit, so there's nothing to read from disk while you
+  walk. What cost time on a room's first build was first use: R01 took
+  34 ms to enter the tree the first time and 4 ms the second; the baked
+  gallery 14 ms then 2.4 ms. So the start-up wait now also **prepares every
+  other room once off the tree and throws it away**, which makes every later
+  build a warm one.
+- **R01 is pinned**, as the design's fallback said: even warm it takes
+  about 7 ms in all to build.
+- **Door seals share one material.** A new material per seal cost 20–25 ms
+  on the GPU each time one appeared, the biggest stutter in the first log.
+- **Unloading is spread over frames** (pieces of the room leave within the
+  budget) rather than one call.
+
+**What the walks measured** (the real game, RTX 5090, 1600×900, today's full
+settings, vsync off; out to every leaf gallery and back at 3.3 m/s):
+
+| Wing | Walk | Frame time | Over 8.3 ms | Over 16.7 ms | Slowest streaming frame | Rooms built / unloaded |
+|---|---|---|---|---|---|---|
+| Seed 1, 6 rooms | 354 m, 65 k frames | 1.64 ms mean, 2.33 p99, 4.9 worst | 0 | 0 | 3.2 ms | 2 / 2 |
+| Seed 2, 8 rooms | 514 m, 98 k frames | 1.59 ms mean, 2.25 p99, 8.5 worst | 1 | 0 | 3.9 ms | 10 / 10 |
+| Seed 5, 8 rooms | 562 m, 107 k frames | 1.59 ms mean, 2.24 p99, 8.4 worst | 1 | 0 | 4.6 ms | 9 / 8 |
+
+- Start-up (plan, the rooms near you, warming the rest, the wear map):
+  0.6–0.7 s.
+- A wear map region takes 32–62 ms on a worker thread; copying it into the
+  map and uploading it takes about 1 ms on the main thread.
+- Headless (`stream_test`, CPU only): the slowest streaming frame is
+  2.5–4.2 ms; the slowest single step is the baked gallery entering the tree
+  (3.4–3.9 ms).
+
+**What step 3 needs to know:**
+
+- **The worst frames (8.4–8.5 ms) are unloads.** The streamer's own work
+  stays near its 4 ms, but the pieces it removed are freed at the end of the
+  frame, outside the budget, which costs about another 4 ms. Step 3 should
+  free them inside the budget.
+- **The baked gallery's tree entry (up to 3.9 ms) is one call.** It's the
+  biggest single step and the hardest to split.
+- **In a wing this small, streaming saves little.** With rooms loading two
+  doorways ahead plus everything in view, 6–8 of a wing's rooms are often
+  live at once (the whole wing at the Reading Room). Streaming will matter
+  for bigger areas; for this wing the gain is the shape of the system, not
+  memory.
+- These frames are at today's full settings. The Medium-preset check against
+  the RTX 3060 target (no frame over 4 ms of graphics work or 8 ms of
+  processor work) is step 3's gate.
+
+**Gates (all pass):**
+
+- `stream_test` (new): 40 checks over 5 seeds.
+  - The walk runs from R01 to every leaf gallery and back, a cell at a time.
+  - At every step, every wanted room is live.
+  - Once the delay has passed, nothing further than 3 doorways and out of
+    sight stays live.
+  - No seal is ever on a doorway of the player's room or its neighbours.
+  - An unloaded room leaves no node, awake prop, floor wear or WorldState
+    entry.
+  - A lamp tended in the farthest gallery is still tended after that gallery
+    has unloaded and been rebuilt.
+- `area_walk_capture` (new, GPU): the frame logs above.
+- `area_plan_test` 145, `area_route_test` 198 (now with streaming off).
+- 240-frame runs clean: the camp, R01, and `--area=library`.
+- `prop_test` 51, `book_test` 27, `age_test` 20, `room_playtest` 31,
+  `kit_test` 906, `socket_modes_test` 246, `reading_room_test` 87,
+  `validate_room_test` 26, `r02_bake_test` 105, camp `playtest` 43,
+  `spill_settle_test` 6, `room_atmosphere_test` 32, `atmosphere_test` 9,
+  `r02_route_test` 2321.
+- The persistence gate (`sh tests/persist_gate.sh`): all five processes pass.
+
+**Caveats:**
+
+- **Resuming inside the wing in a new process isn't gated yet** (step 4's
+  two persistence modes). The code builds the rooms around the saved
+  position first.
+- The frame logs (`previews/p4_frames_seed*.csv`, about 5 MB each) are kept
+  out of git; rerun `tests/area_walk_capture.gd` to get them.
+- Lighting popping as rooms arrive hasn't been looked at yet (step 3's
+  doorway captures).

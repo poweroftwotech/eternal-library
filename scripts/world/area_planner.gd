@@ -90,6 +90,7 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot) -> AreaPla
 		var why: String = _fault(r, s.grammar)
 		if why != "":
 			p.errors.append("%s (seed %d) on %s %s: %s" % [s.slot_id, seed_value, s.parent, s.connector, why])
+	r.pinned = s.pinned
 	p.add_room(r)
 	if parent_room != null:
 		p.join(r, parent_room, s.connector)

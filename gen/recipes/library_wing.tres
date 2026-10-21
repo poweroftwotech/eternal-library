@@ -12,6 +12,7 @@
 [sub_resource type="Resource" id="Resource_r01"]
 script = ExtResource("2_slot")
 slot_id = "reading_room"
+pinned = true
 scene = ExtResource("5_r01")
 seed_mode = 0
 

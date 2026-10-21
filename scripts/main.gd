@@ -61,6 +61,9 @@ func _ready() -> void:
 	elif room_path.begins_with(AREA_PREFIX):
 		world = Area.new()
 		world.recipe = load(AREAS[room_path.trim_prefix(AREA_PREFIX)])
+		var saved_pos: Array = (ws().data.get("player", {}) as Dictionary).get("pos", [])
+		if resuming and saved_pos.size() == 3:
+			world.start_point = Vector3(saved_pos[0], saved_pos[1], saved_pos[2])     # build the rooms around you first
 	else:
 		world = (load(room_path) as PackedScene).instantiate()
 	world.name = "Environment"
@@ -85,6 +88,8 @@ func _ready() -> void:
 		var p: Array = pose["pos"]
 		player.teleport(Vector3(p[0], p[1], p[2]), float(pose.get("yaw", 0.0)), float(pose.get("pitch", 0.0)))
 	player.blocked = false
+	if world is Area and (world as Area).streamer != null:
+		(world as Area).streamer.target = player
 	player.interact_requested.connect(interact)
 	for k: String in inventory:     # the satchel's ingredients come from the save
 		inventory[k] = ws().item_count(StringName(k))
@@ -324,7 +329,11 @@ func show_menu() -> void:
 		{"text":"Begin another outing","action":"restart"},
 		{"text":"Forget this library (start the world over)","action":"forget"},
 		{"text":"Quit","action":"quit"}])
-	open_panel(room_title().capitalize() if in_room() else "The reading garden","A moment by the shelves.",options,"menu")
+	var text: String = "A moment by the shelves."
+	if world is Area and (world as Area).streamer != null:
+		var s: AreaStreamer = (world as Area).streamer
+		text += "\n[color=#8a8a80]live: %d of %d rooms · built %d, unloaded %d · slowest streaming frame %.1f ms[/color]" % [s.live_count(), (world as Area).plan.rooms.size(), s.stats["loads"], s.stats["unloads"], s.stats["max_frame_ms"]]
+	open_panel(room_title().capitalize() if in_room() else "The reading garden",text,options,"menu")
 
 func show_controls() -> void:
 	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen\n\nMovement pauses while a panel is open.",[

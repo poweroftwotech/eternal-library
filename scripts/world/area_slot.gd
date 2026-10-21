@@ -22,3 +22,6 @@ enum SeedMode { FIXED, AREA }
 ## baked from, a generated room `fixed_seed`. AREA: derived from the area seed.
 @export var seed_mode: SeedMode = SeedMode.AREA
 @export var fixed_seed: int = 1
+## Always live once the area is (phase-4-design.md 8.1.8 risks: the root room
+## costs too much to stream in while you walk).
+@export var pinned: bool = false

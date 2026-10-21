@@ -157,8 +157,9 @@ func generate() -> void:
 
 
 ## Modules, connectors, lights, pins, floors and wear for a laid-out grid,
-## then the sockets resolve with `styles` winning over the room's own roll.
-func _build(laid_out: CellGrid, s: int, styles: Dictionary) -> void:
+## then the sockets resolve with `styles` winning over the room's own roll
+## (unless `resolve` is false: AreaStreamer resolves them in slices).
+func _build(laid_out: CellGrid, s: int, styles: Dictionary, resolve: bool = true) -> void:
 	grid = laid_out
 	if grammar == null:
 		push_warning("%s: no grammar" % name)
@@ -175,8 +176,15 @@ func _build(laid_out: CellGrid, s: int, styles: Dictionary) -> void:
 	_add_safety_floor()
 	_add_floor_wear()
 	style_overrides = styles.duplicate()
-	resolve_sockets(s)
+	if resolve:
+		resolve_sockets(s)
 	_draw_overlay()
+
+
+## AreaStreamer: builds a planned room's modules off the tree (no sockets yet).
+func build_planned_modules() -> void:
+	clear_generated()
+	_build(planned_grid, planned_seed, planned_styles, false)
 
 
 ## Removes everything generate() made (found by meta, so it also works after

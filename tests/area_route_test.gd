@@ -2,7 +2,7 @@ extends SceneTree
 ## Gate for a whole area built from its plan, everything loaded at once
 ## (phase-4-design.md 8.1.7, step 1).
 ##   godot --headless --path . --script res://tests/area_route_test.gd [-- seeds=N]
-## For area seeds 1-5 of the library wing: every planned room is built as a
+## For area seeds 1-5 of the library wing, streaming off: every planned room is built as a
 ## direct child of the Area; Validate Room is clean on every generated room
 ## and error-free on R01 and the baked gallery; every joint meets face to
 ## face; floor collision under every generated cell; every solid side and
@@ -79,6 +79,7 @@ func audit(s: int) -> void:
 	Area.seed_override = s
 	var area := Area.new()
 	area.recipe = load(RECIPE)
+	area.streaming = false     # step 1: every room at once
 	root.add_child(area)
 	await physics_frame
 	await physics_frame

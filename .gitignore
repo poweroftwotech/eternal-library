@@ -3,3 +3,6 @@
 *.blend1
 # Python bytecode from Blender tool imports
 __pycache__/
+
+# Frame logs from tests/area_walk_capture.gd (about 5 MB each; summaries are in the progress logs)
+previews/p4_frames*.csv
