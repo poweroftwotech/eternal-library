@@ -245,3 +245,36 @@ settings, vsync off; out to every leaf gallery and back at 3.3 m/s):
   out of git; rerun `tests/area_walk_capture.gd` to get them.
 - Lighting popping as rooms arrive hasn't been looked at yet (step 3's
   doorway captures).
+
+---
+
+## Live stats panel (added 2026-10-20 at your request; committed)
+
+Press **F3**, or Esc → **Controls & settings** → **Performance stats**, to
+show a panel in the top right. The choice is remembered in
+`user://settings.cfg`, apart from the save.
+
+- **Performance:**
+  - frames per second;
+  - the average and worst frame over the last 2 seconds;
+  - CPU process and physics time;
+  - GPU time and render CPU time;
+  - a graph of the last 120 frames, with lines at 8.3 ms and 16.7 ms.
+- **Draw cost against the base-spec budgets** (architecture.md 8.2): draw
+  calls out of 1,500, triangles out of 3 million, video memory out of 6 GB.
+  A value over its budget turns amber.
+- **Streaming (in the wing):**
+  - the room you're in and the rooms that are live;
+  - live, seal, built and unloaded counts;
+  - what's being built (and which stage), queued or taken apart;
+  - the streaming cost this frame and the worst so far, against the 4 ms
+    budget;
+  - whether the floor wear map is redrawing.
+
+Note: its draw call count is Godot's total for the frame, shadow passes
+included, so it reads higher than the main view's count in the capture logs
+(777 against 142 in R01's hall).
+
+Built in `scripts/stats_overlay.gd` (CanvasLayer → MarginContainer →
+PanelContainer → VBoxContainer, per AGENTS.md section 3); toggled in
+`scripts/main.gd`. Picture: `previews/p4_stats_r01.png`.

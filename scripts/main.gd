@@ -5,6 +5,8 @@ const Hud = preload("res://scripts/hud.gd")
 var world
 var player
 var hud
+## Live performance and streaming stats (F3 or the controls menu).
+var stats: StatsOverlay
 var inventory: Dictionary = {"mushroom":0,"root":0,"herb":0}
 var nourishment: float = 80
 var warmth: float = 65
@@ -96,6 +98,11 @@ func _ready() -> void:
 	hud = Hud.new()
 	add_child(hud)
 	hud.choice_selected.connect(on_choice)
+	stats = StatsOverlay.new()
+	stats.ui_theme = hud.theme
+	stats.area = world as Area
+	stats.visible = StatsOverlay.saved_visible()
+	add_child(stats)
 	audio = AudioStreamPlayer.new()
 	audio.stream = load("res://assets/reading_garden_tar.ogg")
 	if audio.stream is AudioStreamOggVorbis:
@@ -172,13 +179,18 @@ func _on_saving() -> void:
 		var p: Vector3 = player.global_position
 		ws().data["player"] = {"pos": [p.x, p.y, p.z], "yaw": player.rotation.y, "pitch": player.camera.rotation.x}
 
+## Shows or hides the stats panel and remembers it (user://settings.cfg, not the save).
+func toggle_stats() -> void:
+	stats.visible = not stats.visible
+	StatsOverlay.save_visible(stats.visible)
+
 ## Saves, then quits (the menu's Quit and closing the window).
 func save_and_quit() -> void:
 	ws().save_now()
 	get_tree().quit()
 
 func install_inputs() -> void:
-	var actions = {"forward":[KEY_W,KEY_UP],"back":[KEY_S,KEY_DOWN],"left":[KEY_A,KEY_LEFT],"right":[KEY_D,KEY_RIGHT],"interact":[KEY_E],"jump":[KEY_SPACE],"sprint":[KEY_SHIFT],"notes":[KEY_J],"fullscreen":[KEY_F11]}
+	var actions = {"forward":[KEY_W,KEY_UP],"back":[KEY_S,KEY_DOWN],"left":[KEY_A,KEY_LEFT],"right":[KEY_D,KEY_RIGHT],"interact":[KEY_E],"jump":[KEY_SPACE],"sprint":[KEY_SHIFT],"notes":[KEY_J],"fullscreen":[KEY_F11],"stats":[KEY_F3]}
 	for action in actions:
 		if not InputMap.has_action(action):
 			InputMap.add_action(action)
@@ -336,10 +348,11 @@ func show_menu() -> void:
 	open_panel(room_title().capitalize() if in_room() else "The reading garden",text,options,"menu")
 
 func show_controls() -> void:
-	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen\n\nMovement pauses while a panel is open.",[
+	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen     F3 — performance stats\n\nMovement pauses while a panel is open.",[
 		{"text":"Mouse sensitivity: %.4f — cycle" % player.sensitivity,"action":"sensitivity"},
 		{"text":"Invert look: %s" % ("On" if player.invert_y else "Off"),"action":"invert"},
 		{"text":"Music: %s" % ("Off" if mute else "On"),"action":"mute"},
+		{"text":"Performance stats: %s  (F3)" % ("On" if stats.visible else "Off"),"action":"stats"},
 		{"text":"Back","action":"menu"}],"controls")
 
 func on_choice(action: String) -> void:
@@ -359,6 +372,9 @@ func on_choice(action: String) -> void:
 		"mute":
 			mute = not mute
 			audio.volume_db = -80 if mute else -14
+			show_controls()
+		"stats":
+			toggle_stats()
 			show_controls()
 		"restart":
 			open_panel("Another outing?","Start again with an empty satchel and fresh ingredients in the garden?",[{"text":"Begin again","action":"restart_confirm"},{"text":"Keep this outing","action":"menu"}],"restart")
@@ -447,6 +463,8 @@ func _unhandled_input(event: InputEvent) -> void:
 			close_panel()
 		else:
 			show_notes()
+	elif event.is_action_pressed("stats"):
+		toggle_stats()
 	elif event.is_action_pressed("fullscreen"):
 		DisplayServer.window_set_mode(DisplayServer.WINDOW_MODE_WINDOWED if DisplayServer.window_get_mode()==DisplayServer.WINDOW_MODE_FULLSCREEN else DisplayServer.WINDOW_MODE_FULLSCREEN)
 
