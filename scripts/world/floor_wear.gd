@@ -51,6 +51,10 @@ static var map_rect: Rect2 = Rect2()
 static var map_y: Vector2 = Vector2.ZERO
 ## Milliseconds the last rebuild took.
 static var last_build_ms: float = 0.0
+## An Area sets the map's world x/z rect from its plan (phase-4-design.md
+## 8.1.1), so the map keeps its size as rooms come and go. Empty: the map
+## covers the live wears.
+static var fixed_rect: Rect2 = Rect2()
 static var _live: Array[FloorWear] = []
 static var _queued: bool = false
 
@@ -88,6 +92,8 @@ static func rebuild_now() -> void:
 		bounds = r if i == 0 else bounds.merge(r)
 		var y0: float = live[i].global_position.y
 		band = Vector2(minf(band.x, y0 + live[i].y_range.x), maxf(band.y, y0 + live[i].y_range.y))
+	if fixed_rect.has_area():
+		bounds = fixed_rect
 	bounds = Rect2(bounds.position.floor(), Vector2.ZERO).expand(bounds.end.ceil())
 	if bounds.size.x * TEXEL > MAX_TEXELS or bounds.size.y * TEXEL > MAX_TEXELS:
 		push_warning("FloorWear: the live rooms span %s m; wear is cut to %d m" % [bounds.size, MAX_TEXELS / TEXEL])
@@ -259,4 +265,10 @@ func _queue_rebuild() -> void:
 	if _queued:
 		return
 	_queued = true
-	FloorWear.rebuild_now.call_deferred()
+	FloorWear._flush_queued.call_deferred()
+
+
+## The deferred rebuild, skipped if rebuild_now() already ran since it was queued.
+static func _flush_queued() -> void:
+	if _queued:
+		rebuild_now()

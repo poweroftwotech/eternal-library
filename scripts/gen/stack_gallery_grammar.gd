@@ -140,7 +140,7 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 			best = path
 		if best.size() >= want:
 			break
-	if best.size() < mini(min_bays, max_bays):
+	if best.size() < mini(min_bays, max_bays) and not grid.quiet:
 		push_warning("StackGalleryGrammar: the run stops after %d bays (min_bays %d): the space is boxed in" % [best.size(), min_bays])
 	mark(grid, best, seed_value)
 
@@ -261,14 +261,15 @@ func mark(grid: CellGrid, path: Array, seed_value: int) -> void:
 ## The side of the last bay that becomes the exit door: straight on if a room
 ## could be built there, else either side; -1 for a dead end.
 func exit_side_for(grid: CellGrid, path: Array, taken: Dictionary) -> int:
-	if end_kind != "exit":
+	if (grid.end_kind if grid.end_kind != "" else end_kind) != "exit":
 		return -1
 	var last: Vector3i = path[-1][0]
 	var dir: Vector3i = path[-1][1]
 	for d: Vector3i in [dir, Vector3i(-dir.z, 0, dir.x), Vector3i(dir.z, 0, -dir.x)]:
 		if fits(grid, taken, last + d, last):
 			return side_of(d)
-	push_warning("StackGalleryGrammar: no room for an exit beyond bay %d; the run ends in a dead end" % (path.size() - 1))
+	if not grid.quiet:
+		push_warning("StackGalleryGrammar: no room for an exit beyond bay %d; the run ends in a dead end" % (path.size() - 1))
 	return -1
 
 

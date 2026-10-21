@@ -1,0 +1,60 @@
+[gd_resource type="Resource" script_class="AreaRecipe" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="1_recipe"]
+[ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="2_slot"]
+[ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="3_grow"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="4_place"]
+[ext_resource type="PackedScene" path="res://rooms/authored/reading_room.tscn" id="5_r01"]
+[ext_resource type="PackedScene" path="res://rooms/baked/stack_gallery_west_7.tscn" id="6_baked"]
+[ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="7_r02"]
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="8_atmos"]
+
+[sub_resource type="Resource" id="Resource_r01"]
+script = ExtResource("2_slot")
+slot_id = "reading_room"
+scene = ExtResource("5_r01")
+seed_mode = 0
+
+[sub_resource type="Resource" id="Resource_west"]
+script = ExtResource("2_slot")
+slot_id = "stack_gallery_west"
+scene = ExtResource("6_baked")
+parent = "reading_room"
+connector = &"SNAP_door_west"
+seed_mode = 0
+
+[sub_resource type="Resource" id="Resource_east"]
+script = ExtResource("2_slot")
+slot_id = "stack_gallery_east"
+display_name = "The East Stacks"
+grammar = ExtResource("7_r02")
+parent = "reading_room"
+connector = &"SNAP_door_east"
+
+[sub_resource type="Resource" id="Resource_entrance"]
+script = ExtResource("2_slot")
+slot_id = "stack_gallery_entrance"
+display_name = "The Front Stacks"
+grammar = ExtResource("7_r02")
+parent = "reading_room"
+connector = &"SNAP_entrance"
+
+[sub_resource type="Resource" id="Resource_grow"]
+script = ExtResource("3_grow")
+grammar = ExtResource("7_r02")
+display_name = "The Far Stacks"
+count = Vector2i(2, 5)
+slot_prefix = "gallery"
+
+[sub_resource type="Resource" id="Resource_place"]
+script = ExtResource("4_place")
+
+[resource]
+script = ExtResource("1_recipe")
+id = "library"
+display_name = "The Library Wing"
+slots = Array[ExtResource("2_slot")]([SubResource("Resource_r01"), SubResource("Resource_west"), SubResource("Resource_east"), SubResource("Resource_entrance")])
+grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow")])
+room_count = Vector2i(6, 9)
+placement = SubResource("Resource_place")
+atmosphere = ExtResource("8_atmos")

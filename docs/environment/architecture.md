@@ -19,12 +19,12 @@ them, so they stay the same.
 | Section | What it covers |
 |---|---|
 | §0 | Decisions you have already made |
-| §1–2 | What changes from the prototype; the layers (kit → room → area → stratum) |
+| §1–2 | What changes from the prototype; the layers (kit → room → area → stratum); §2.1 world structure (strata, areas, thresholds, cavern facades, levels, the map) |
 | §3 | The kit: grid rules, Blender side, Godot side |
 | §4 | Authored rooms and sockets |
 | §5.1–5.4 | Generated rooms (the phase 2 detail is in [phase-2-design.md](phase-2-design.md)) |
 | §6.1–6.4 | Interactive objects, persistence, collision layers (the phase 3 detail is in [phase-3-design.md](phase-3-design.md)) |
-| §7–9 | NPC readiness, streaming and lighting, folder layout |
+| §7–9 | NPC readiness, streaming and lighting, folder layout; §8.2 graphics settings and hardware tiers |
 | §11 | Risks |
 
 ---
@@ -93,6 +93,82 @@ flowchart LR
 | **Room** | An authored template scene, or the output of a room generator | Authored: you, in the editor. Generated: the rules, in `.tres` files |
 | **Area** | A connected set of rooms (a few hundred metres), the unit of streaming and saving | `AreaRecipe` resource |
 | **Stratum** | Style, ecology and rule set for a depth band | `StratumProfile` resource |
+
+### 2.1 World structure (agreed direction 2026-10-20)
+
+This is the shape of the whole world, settled before phase 4 so later phases
+grow into it without rework. Phase 4 builds only one area on one level, but its
+data already follows these rules (see [phase-4-design.md](phase-4-design.md)
+§8.1.9).
+
+**The hierarchy.**
+
+| Unit | Size | How it exists | Moving inside it |
+|---|---|---|---|
+| **World** | Several strata, stacked by depth | A world seed | Descending between strata is a major transition (a long stair, a lift, a shaft); a loading screen is acceptable here |
+| **Stratum** | Kilometres across, many areas | A **stratum plan**: data that reserves each area's 3D space and its threshold positions in one shared frame | Between areas: through a **threshold** (below) |
+| **Area** | A few hundred metres, 6–30 rooms | A recipe plus a seed, giving an `AreaPlan`, placed at its reserved origin in the stratum frame. Never a saved scene | Rooms stream in and out with no loading screen |
+| **Room** | One authored, baked or generated room | Built from the plan when it streams in | — |
+
+**Thresholds between areas.** Every connection between two areas is a
+threshold connector: a winding stair, a gate passage, a tunnel with a turn.
+A threshold blocks every sightline from one area into the other, and it is
+long enough to walk for the next area to load. If the next area isn't ready
+when you reach the far end, a short loading screen covers the gap, so the
+threshold works seamlessly on fast machines and still works on slow ones.
+Today's glowing gallery-end arch (phase 4, Q10) is where these will attach.
+
+**Sightlines.** Rooms load by graph distance (doorways), and Godot 4 has no
+built-in portal system. So the **planner owns visibility**. It traces straight
+lines through doorway openings on the cell grid, and:
+
+- it rejects a layout that can see deeper than `max_sight_depth` rooms (2 by
+  default) along any doorway line. Offset doorways, turns, screens, closed
+  doors and level changes are the tools to break a line;
+- it stores, for each room, the set of rooms visible from it. The streamer
+  loads `graph radius ∪ visible set`, so you can never look into a room that
+  isn't there.
+
+A deliberate long view (a grand axis, a cavern vista) is allowed when the
+far room is marked to stream as a **stand-in**: a merged low-detail shell with
+no props, lights or collision. A room is therefore always in one of three
+states: `unloaded`, `stand_in` or `live`.
+
+**Cavern exteriors are facades, not whole buildings.** Seen from a cavern or
+chasm area (R10 Chasm Spans, the Overlook), buildings are carved into the
+cavern walls:
+
+- the **facade** belongs to the cavern area. It is made from kit facade,
+  loggia and cliff-ledge modules, is always loaded with the cavern, and its
+  lit windows are emissive cards, not real rooms behind glass;
+- the **interior** behind it is a separate interior area, entered through a
+  threshold at the facade's door;
+- the cavern area defines **frontage slots** along its walls. An interior area
+  attached to a slot is planned behind that slot's wall plane, so the outside
+  and the inside always agree;
+- free-standing buildings are rare, hand-made landmarks (towers, bridges,
+  colossi);
+- the cavern's walls, bends and haze cap how far you can see, and far
+  cavern geometry is drawn as merged low-detail meshes.
+
+**Levels.** The world is 3D in its data from the start. Plan footprints are
+boxes with a storey (4 m, §3.1). Connectors record their storey, and stair,
+ramp and spiral connectors change storey. Overlap checks are 3D: rooms may
+stack above one another, but no two rooms (or areas) may occupy the same
+space. Finding "the room the player is in" uses those 3D boxes. Per-level
+data (floor wear, the map) is kept per storey.
+
+**The map.** The world map is drawn from plans, not geometry: the stratum
+plan's area envelopes and each area's room boxes, sliced by storey, revealed
+as rooms are visited. Because areas are planned inside envelopes reserved in
+one shared frame, **nothing overlaps on the same level, by construction**.
+This holds whether you cross between areas seamlessly or through a loading
+screen.
+
+**Coordinates.** Each area has its own local frame and an origin in the
+stratum frame. The player's saved position is area-relative. At runtime the
+live area sits near the world origin, which avoids 32-bit float jitter in a
+stratum several kilometres wide.
 
 ---
 
@@ -398,7 +474,97 @@ spawns in its place. Lore books are pinned slots that are always promotable.
   their own light with a **light budget**: only the nearest N cast shadows; the rest
   use cheap omni lights with no shadows.
 - Keep the prototype's frame time (about 5.5 ms) as the target for a
-  fully dressed room.
+  fully dressed room. That's measured on the dev machine; §8.2 adds the
+  hardware-independent budgets and the base-spec target.
+- **Streaming follows §2.1:** a room is `unloaded`, `stand_in` or `live`;
+  the live set is the graph radius plus the rooms the planner found visible.
+
+### 8.2 Graphics settings and hardware tiers (agreed direction 2026-10-20)
+
+The game must be a good experience on modest hardware and richer on high-end
+hardware.
+
+**Target machines.**
+
+| Tier | Reference hardware | Target |
+|---|---|---|
+| **Base spec** | RTX 3060 (12 GB), a 6-core CPU of the Ryzen 5 5600 class, 16 GB RAM | **Medium preset, 1080p, 60 fps**, no frame over 16.7 ms while rooms stream. 1440p at 60 fps with an upscaler at Quality |
+| **High end** | RTX 5090, Ryzen 7 9800X3D (the dev machine) | **Ultra preset, 4K, well above 60 fps**, with every effect on |
+
+**Settings the player can change** (the usual set). Each preset (Low, Medium,
+High, Ultra, plus Custom) is a row of these values:
+
+| Setting | Godot mechanism (4.7.2) | Low → Ultra |
+|---|---|---|
+| Resolution, window mode, vsync, frame cap | `DisplayServer`, `Engine.max_fps` | — |
+| Upscaler and render scale | `Viewport.scaling_3d_mode`: off, FSR 1.0, **FSR 2.2**; `scaling_3d_scale` (Performance 50 %, Balanced 59 %, Quality 67 %, Native 100 %) | FSR 2.2 Performance → native |
+| Anti-aliasing | MSAA 2×/4×, TAA, FXAA, **SMAA** (all built in) | FXAA → MSAA 4× or TAA |
+| Global illumination | SDFGI on/off, cascades, half resolution; per-room `VoxelGI` or ambient-only as the cheap path | ambient-only → SDFGI full |
+| Shadows | positional atlas 2048 → 8192, soft filter quality, **shadowed-light budget** (`LightBudget`, 2 → 8) | 2 lights, 2048 → 8 lights, 8192 |
+| Lights | `light_fade_m` distance fade, 20 → 45 m | — |
+| Volumetric fog | on/off, volume size and depth | off → full |
+| SSAO / SSIL / SSR | on/off, quality, half size | off → high |
+| Glow | on/off (it's part of the look, so Low keeps it at reduced quality) | — |
+| Draw distance and detail | `visibility_range` multipliers on dressing and small props; mesh LOD threshold; stand-in distance | short → long |
+| Streaming radius | `load_radius` 1 → 2 (2 is the default; Low may use 1 with a smaller per-frame build budget) | — |
+| Physics props | how many props may be awake at once (`PropDirector` budget) | — |
+| Field of view, motion blur off by default, sharpening | camera, FSR sharpness | — |
+
+**Rules that keep the look intact across tiers.**
+
+- **`AtmosphereProfile` is the art direction, `GraphicsSettings` is a cap
+  on top.** A setting can turn an effect down or off; it never re-tunes the
+  grade, fog colour or light colours. Art captures and concept matching
+  (`ART_DIRECTION.md`) are taken at the **High** preset, and every
+  phase's visual gate also takes one capture at **Medium**.
+- **Low must still read as the Library:** warm lamp pools, teal-and-amber
+  grade, haze. When SDFGI is off, the cheap path adds a per-room ambient
+  fill so rooms don't go flat or black.
+- **Pixel textures and temporal upscalers.** The kit's 32 tx/m nearest-filtered
+  textures can shimmer or smear under TAA and FSR 2.2. This is tested at the
+  first settings slice; if it shows, the fix is texture-side (mip bias,
+  sharpening), not dropping the upscaler.
+- **Settings live apart from the save:** `user://settings.cfg`, applied at
+  start before the first frame. The first launch picks a preset from the GPU
+  name and its VRAM (`RenderingServer.get_video_adapter_name()`), with a
+  fallback to Medium.
+- **The settings menu is UI,** built with containers per `AGENTS.md` §3.
+
+**Upscalers, specifically.**
+
+- **FSR 1.0 and FSR 2.2 are built into Godot 4.7.2** (checked in the binary:
+  the 3D scaling modes are bilinear, FSR, FSR2 and Apple's MetalFX). FSR 2.2
+  runs on every vendor, including the RTX 3060, so it's the upscaler from day
+  one.
+- **DLSS is not in Godot 4.7.2.** It needs either a third-party GDExtension
+  built on NVIDIA's Streamline SDK, or a custom engine build with a DLSS
+  module. Both need Godot's motion vectors and the jittered projection (which
+  FSR 2.2 already uses), and a custom build would also have to be the .NET
+  (Mono) variant this project uses. So DLSS is a **research spike**: find a
+  maintained integration, check it on Godot 4.7, the .NET build and Forward+,
+  and check its licence and NVIDIA's terms. Only then add "DLSS" to the
+  upscaler list. The settings code treats the upscaler as an enum with an
+  "available on this machine" check, so DLSS (or a later FSR or XeSS) slots in
+  without changing the menu or the presets.
+- Frame generation is out of scope until an upscaler integration exists.
+
+**Measuring without a 3060 on the desk.** Milliseconds on the RTX 5090 don't
+carry over, so every frame gate also logs budgets that do, per view:
+
+| Budget (base spec, Medium) | Value |
+|---|---|
+| Draw calls | ≤ 1,500 (merged statics keep this down, §8) |
+| Visible lights / shadowed lights | ≤ 48 / ≤ 4 |
+| Triangles drawn | ≤ 3 million |
+| Per-frame room build work | ≤ 4 ms on the dev CPU, treated as ≤ 8–10 ms on the base CPU, so the base spec stays under its 16.7 ms frame |
+| VRAM (textures, meshes, shadow atlas) | ≤ 6 GB, leaving headroom on 8 GB cards below base spec |
+
+As a working rule until real hardware is tested, a frame on the base spec at
+Medium takes about **four times** the dev machine's GPU time and **twice** its
+CPU time at the same settings. So a dev-machine run at Medium, 1080p, should
+stay under about **4 ms GPU and 8 ms CPU** per frame. These factors are a
+guess to be replaced by a real run on a 3060 before release (borrowed,
+rented or a tester's machine).
 
 ---
 
@@ -439,6 +605,10 @@ tools/export_kit.py|.bat, tools/kit_import.gd, tools/kit_catalog.gd
   that move (doors, bridges that collapse) need UVs.
 - **SDFGI with streaming** can pop when rooms load. Measure in phase 4; fallback is
   per-room `VoxelGI` for authored rooms.
+- **DLSS availability.** Not built into Godot 4.7.2; depends on a third-party
+  or custom-engine integration (§8.2). FSR 2.2 covers every GPU meanwhile.
+- **Base-spec numbers are estimated** from the dev machine (§8.2's 4× GPU,
+  2× CPU rule) until a real RTX 3060 run.
 - **Save size** grows with deltas. Cap dropped props per area and compact old deltas.
 - ~~Missing references in `AGENTS.md`~~: resolved 2026-10-18. `AGENTS.md` had been
   copied from another project; it was rewritten for this one and no longer cites

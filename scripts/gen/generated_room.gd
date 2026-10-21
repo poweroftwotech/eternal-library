@@ -71,6 +71,12 @@ static var seed_override: int = -1
 		_draw_overlay()
 
 var grid: CellGrid
+## Set by Area before the room enters the tree (phase-4-design.md 8.1.1): the
+## layout the area plan made, its seed and its inherited styles. A planned
+## room never looks for a host or siblings and ignores seed_override.
+var planned_grid: CellGrid
+var planned_seed: int = -1
+var planned_styles: Dictionary = {}
 var modules: Array[Node3D] = []
 var _pending: bool = false
 var _overlay_node: Node3D
@@ -83,6 +89,8 @@ func _ready() -> void:
 
 
 func effective_seed() -> int:
+	if planned_grid != null:
+		return planned_seed
 	if seed_override >= 0 and not Engine.is_editor_hint():
 		return seed_override
 	return gen_seed
@@ -107,6 +115,9 @@ func generate() -> void:
 	if not is_inside_tree():
 		return
 	clear_generated()
+	if planned_grid != null:
+		_build(planned_grid, planned_seed, planned_styles)
+		return
 	var host: RoomTemplate = host_room()
 	if host != null and join_connector != &"":
 		_join(host)
@@ -136,6 +147,22 @@ func generate() -> void:
 	grammar.wear_lanes(grid, s)
 	for p: String in grid.check():
 		push_warning("%s (seed %d): %s" % [name, s, p])
+	var styles: Dictionary = {}
+	if host != null:
+		for g: String in inherit_style_groups:
+			var idx: int = host.style_choice(g, host.current_seed())
+			if idx >= 0:
+				styles[g] = idx
+	_build(grid, s, styles)
+
+
+## Modules, connectors, lights, pins, floors and wear for a laid-out grid,
+## then the sockets resolve with `styles` winning over the room's own roll.
+func _build(laid_out: CellGrid, s: int, styles: Dictionary) -> void:
+	grid = laid_out
+	if grammar == null:
+		push_warning("%s: no grammar" % name)
+		return
 	var shell: Node3D = _group("Shell")
 	_group("Sockets")
 	_group("Connectors")
@@ -147,12 +174,7 @@ func generate() -> void:
 	_pin_from_grid()
 	_add_safety_floor()
 	_add_floor_wear()
-	style_overrides = {}
-	if host != null:
-		for g: String in inherit_style_groups:
-			var idx: int = host.style_choice(g, host.current_seed())
-			if idx >= 0:
-				style_overrides[g] = idx
+	style_overrides = styles.duplicate()
 	resolve_sockets(s)
 	_draw_overlay()
 

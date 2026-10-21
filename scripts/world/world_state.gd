@@ -20,10 +20,11 @@ signal reverted(id: String)
 ## rooms record props that are still moving.
 signal saving
 
-const VERSION: int = 1
+const VERSION: int = 2
 const DEFAULT_PATH: String = "user://saves/slot0.json"
-## Until phase 4's AreaRecipe names areas, every room is in one area.
-const AREA: String = "library"
+## The area every room outside an Area belongs to (phase 3 saves used only
+## this one), and the first AreaRecipe's id (phase-4-design.md 8.1.6).
+const DEFAULT_AREA: String = "library"
 ## Seconds after a change before it is written.
 const SAVE_DELAY: float = 1.0
 
@@ -62,19 +63,26 @@ func _ready() -> void:
 
 
 func blank() -> Dictionary:
+	# area/room: where the player is when inside an Area ("" elsewhere: the camp
+	# or a test scene, which `scene` names); area_seed_override as gen_seed_override.
 	return {"version": VERSION, "world_seed": 1, "clock_days": 0.0, "scene": "", "player": {},
-		"gen_seed_override": -1, "inventory": {}, "areas": {AREA: {"deltas": {}, "spawned": []}}}
+		"area": "", "room": "", "area_seed_override": -1,
+		"gen_seed_override": -1, "inventory": {}, "areas": {DEFAULT_AREA: {"recipe_version": 1, "deltas": {}, "spawned": []}}}
 
 
+## Reads the save. A version 1 save (phase 3) is read as version 2: it was
+## never in an area, and its changes are already under areas.library.
 func load_save() -> bool:
 	if not FileAccess.file_exists(path):
 		return false
 	var parsed: Variant = JSON.parse_string(FileAccess.get_file_as_string(path))
-	if not parsed is Dictionary or int((parsed as Dictionary).get("version", 0)) != VERSION:
-		push_warning("WorldState: %s is not a version %d save; starting a new world" % [path, VERSION])
+	var version: int = int((parsed as Dictionary).get("version", 0)) if parsed is Dictionary else 0
+	if version != VERSION and version != 1:
+		push_warning("WorldState: %s is not a version 1 or %d save; starting a new world" % [path, VERSION])
 		return false
 	data = blank()
 	data.merge(parsed as Dictionary, true)
+	data["version"] = VERSION
 	return true
 
 
@@ -119,8 +127,36 @@ func forget() -> void:
 
 # --- deltas --------------------------------------------------------------------
 
+## Which area's changes rooms read and write (8.1.6): an Area sets it before
+## any room enters; everything else is in DEFAULT_AREA.
+var area_id: String = DEFAULT_AREA
+
+
+## An Area is about to build its rooms: their changes live under areas[id]. A
+## recipe newer than the save's keeps every delta whose room key still exists.
+func enter_area(id: String, recipe_version: int) -> void:
+	area_id = id
+	var bucket: Dictionary = area_bucket()
+	if int(bucket.get("recipe_version", recipe_version)) < recipe_version:
+		push_warning("WorldState: area %s was saved with recipe version %d, now %d; moved rooms' changes go stale" % [id, int(bucket["recipe_version"]), recipe_version])
+	bucket["recipe_version"] = recipe_version
+
+
+## The Area left the tree: rooms outside areas use DEFAULT_AREA again.
+func leave_area() -> void:
+	area_id = DEFAULT_AREA
+
+
+## This area's part of the save, created if it isn't there yet.
+func area_bucket() -> Dictionary:
+	var areas: Dictionary = data["areas"]
+	if not areas.has(area_id):
+		areas[area_id] = {"recipe_version": 1, "deltas": {}, "spawned": []}
+	return areas[area_id]
+
+
 func deltas() -> Dictionary:
-	return data["areas"][AREA]["deltas"]
+	return area_bucket()["deltas"]
 
 
 func delta(id: String) -> Dictionary:

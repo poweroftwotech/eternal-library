@@ -45,6 +45,12 @@ var fills: Dictionary = {}
 ## Walked lanes for FloorWear: [{points: room x/z PackedVector2Array, weight}]
 ## (RoomGrammar.wear_lanes).
 var wear: Array = []
+## The far end the room must have ("exit" or "dead_end"; "" = the grammar's
+## own end_kind). An area plan sets it per room (phase-4-design.md 8.1.2).
+var end_kind: String = ""
+## A planner's trial layout: the grammar keeps its "boxed in" warnings to
+## itself (the planner reports what it rejects).
+var quiet: bool = false
 
 
 func add_cell(c: Vector3i, kind: String, run: Vector3i, bay: int) -> void:

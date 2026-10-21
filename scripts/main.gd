@@ -23,6 +23,10 @@ const READING_ROOM: String = "res://rooms/authored/reading_room.tscn"
 ## R01 with a generated R02 Stack Gallery off its west door (ENVIRONMENT_PLAN.md
 ## phase 2). `-- --gen-seed=N` (or the menu's reseed) picks the corridor.
 const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
+## Areas you can walk (phase-4-design.md 8.1.3): `-- --area=<id>` or the Esc
+## menu; "area:<id>" wherever a room path goes (room_override, the save's scene).
+const AREAS: Dictionary = {"library": "res://gen/recipes/library_wing.tres"}
+const AREA_PREFIX: String = "area:"
 ## Set by the menu before a reload; survives reload_current_scene().
 static var room_override: String = ""
 ## The first boot of this process resumes from the save (ENVIRONMENT_PLAN.md 6.5.3, Q4).
@@ -33,21 +37,30 @@ var resuming: bool = false
 
 func _ready() -> void:
 	install_inputs()
-	resuming = not booted and ws().loaded and room_override == "" and not Array(OS.get_cmdline_user_args()).any(func(a: String) -> bool: return a.begins_with("--room="))
+	resuming = not booted and ws().loaded and room_override == "" and not Array(OS.get_cmdline_user_args()).any(func(a: String) -> bool: return a.begins_with("--room=") or a.begins_with("--area="))
 	booted = true
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("--gen-seed=") and GeneratedRoom.seed_override < 0:
 			GeneratedRoom.seed_override = arg.trim_prefix("--gen-seed=").to_int()
+		if arg.begins_with("--area-seed=") and Area.seed_override < 0:
+			Area.seed_override = arg.trim_prefix("--area-seed=").to_int()
 	if resuming and GeneratedRoom.seed_override < 0:
 		GeneratedRoom.seed_override = int(ws().data.get("gen_seed_override", -1))
+	if resuming and Area.seed_override < 0:
+		Area.seed_override = int(ws().data.get("area_seed_override", -1))
 	var room_path: String = requested_room()
 	if resuming:
 		var saved: String = str(ws().data.get("scene", ""))
-		room_path = saved if saved != "camp" and ResourceLoader.exists(saved) else ""
+		if str(ws().data.get("area", "")) != "":
+			saved = AREA_PREFIX + str(ws().data["area"])     # an area wins over the scene (8.1.6)
+		room_path = saved if saved != "camp" and _exists(saved) else ""
 	scene_path = room_path if room_path != "" else "camp"
 	ws().saving.connect(_on_saving)
 	if room_path.is_empty():
 		world = World.new()
+	elif room_path.begins_with(AREA_PREFIX):
+		world = Area.new()
+		world.recipe = load(AREAS[room_path.trim_prefix(AREA_PREFIX)])
 	else:
 		world = (load(room_path) as PackedScene).instantiate()
 	world.name = "Environment"
@@ -59,6 +72,8 @@ func _ready() -> void:
 	if in_room():
 		var spawn: Node3D = world.get_node_or_null("PlayerSpawn")
 		var pose: Transform3D = spawn.global_transform if spawn != null else Transform3D(Basis(), Vector3(0, .1, 0))
+		if world is Area:
+			pose = (world as Area).spawn_transform()
 		player.teleport(pose.origin, pose.basis.get_euler().y)
 		player.respawn_point = pose.origin
 	else:
@@ -98,17 +113,27 @@ func requested_room() -> String:
 	if room_override != "":
 		return "" if room_override == "camp" else room_override
 	for arg: String in OS.get_cmdline_user_args():
-		if arg.begins_with("--room="):
-			var path: String = arg.trim_prefix("--room=")
-			if ResourceLoader.exists(path):
+		if arg.begins_with("--room=") or arg.begins_with("--area="):
+			var path: String = arg.trim_prefix("--room=") if arg.begins_with("--room=") else AREA_PREFIX + arg.trim_prefix("--area=")
+			if _exists(path):
 				return path
-			push_warning("main: no room at %s, starting the camp" % path)
+			push_warning("main: no room or area at %s, starting the camp" % path)
 	return ""
 
+## A room scene that exists, or "area:<id>" of a known area.
+func _exists(path: String) -> bool:
+	return AREAS.has(path.trim_prefix(AREA_PREFIX)) if path.begins_with(AREA_PREFIX) else ResourceLoader.exists(path)
+
 func in_room() -> bool:
-	return world is RoomTemplate
+	return world is RoomTemplate or world is Area
 
 func room_title() -> String:
+	if world is Area:
+		var r: AreaPlan.Room = (world as Area).room_at(player.global_position) if player != null else null
+		if r != null and (world as Area).rooms.has(r.slot_id):
+			var shown: String = ((world as Area).rooms[r.slot_id] as RoomTemplate).display_name
+			return (shown if shown != "" else r.slot_id).to_upper()
+		return (world as Area).recipe.display_name.to_upper()
 	var title: String = (world as RoomTemplate).display_name
 	return (title if title != "" else String(world.name)).to_upper()
 
@@ -129,6 +154,10 @@ func travel(path: String) -> void:
 func _on_saving() -> void:
 	ws().data["scene"] = scene_path
 	ws().data["gen_seed_override"] = GeneratedRoom.seed_override
+	ws().data["area_seed_override"] = Area.seed_override
+	ws().data["area"] = (world as Area).recipe.id if world is Area else ""
+	var at: AreaPlan.Room = (world as Area).room_at(player.global_position) if world is Area and is_instance_valid(player) else null
+	ws().data["room"] = at.slot_id if at != null else ""
 	for k: String in inventory:     # ingredients the cooking pot spent
 		if int(inventory[k]) > 0:
 			ws().satchel()["stacks"][k] = int(inventory[k])
@@ -275,10 +304,14 @@ func show_book(item_id: StringName) -> void:
 
 func show_menu() -> void:
 	var trips: Array = [{"text":"Return to the camp","action":"go_camp"}] if in_room() else [{"text":"Visit the reading room","action":"go_reading_room"}]
-	if not in_room() or generated_rooms().is_empty():
-		trips.append({"text":"Visit the stack gallery","action":"go_stack_gallery"})
+	if world is Area:
+		trips.append({"text":"Reseed the library wing (seed %d, %d rooms)" % [(world as Area).plan.area_seed, (world as Area).plan.rooms.size()],"action":"reseed_area"})
 	else:
-		trips.append({"text":"Reseed the stack gallery (seed %d)" % generated_rooms()[0].effective_seed(),"action":"reseed"})
+		trips.append({"text":"Walk the library wing","action":"go_area"})
+		if not in_room() or generated_rooms().is_empty():
+			trips.append({"text":"Visit the stack gallery","action":"go_stack_gallery"})
+		else:
+			trips.append({"text":"Reseed the stack gallery (seed %d)" % generated_rooms()[0].effective_seed(),"action":"reseed"})
 	var options: Array = [{"text":"Resume exploring","action":"close"}]
 	options.append_array(trips)
 	if in_room():
@@ -327,6 +360,10 @@ func on_choice(action: String) -> void:
 		"notes": show_notes()
 		"go_reading_room": travel(READING_ROOM)
 		"go_stack_gallery": travel(STACK_GALLERY)
+		"go_area": travel(AREA_PREFIX + "library")
+		"reseed_area":
+			Area.seed_override = randi() % 100000
+			travel(AREA_PREFIX + "library")
 		"reseed":
 			GeneratedRoom.seed_override = randi() % 100000
 			travel(room_override if room_override != "" else requested_room())
@@ -366,6 +403,8 @@ func _process(delta: float) -> void:
 	var target = player.get_target()
 	hud.set_prompt(prompt_for(target))
 	if in_room():
+		if world is Area and (world as Area).room_at(player.global_position) != null:
+			hud.zone_label.text = room_title()     # the room you're in (a doorway keeps the last one)
 		# No hearth or cold archive here; only the slow nourishment drain.
 		nourishment = maxf(0,nourishment-delta*.013)
 		hud.update_values(inventory,nourishment,warmth)
