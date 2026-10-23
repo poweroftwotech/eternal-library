@@ -8,6 +8,14 @@ uniform vec3 shallow_tint : source_color = vec3(.78,.9,.8);
 uniform vec3 deep_tint : source_color = vec3(.10,.20,.18);
 uniform vec2 flow = vec2(0.0, .22);          // m/s, along +z toward the camp
 uniform float texel = 32.0;
+// Water this deep (m) along the view looks fully deep_tint (the garden's
+// channel: .6). The cistern's deeper, clearer water sets more.
+uniform float murk_depth = .6;
+// How much of the tint the surface itself shows (lit by the lamps).
+uniform float surface_tint = .25;
+// A faint glow of the tint where no lamp reaches (the atlas's cool cistern
+// ambient; the garden has daylight and needs none).
+uniform float glow = 0.0;
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 varying vec3 world_pos;
@@ -38,12 +46,12 @@ void fragment(){
 	vec4 view = INV_PROJECTION_MATRIX * vec4(SCREEN_UV * 2.0 - 1.0, depth, 1.0);
 	view.xyz /= view.w;
 	float thickness = max(VERTEX.z - view.z, 0.0);
-	float murk = clamp(thickness / .6, 0.0, 1.0);
+	float murk = clamp(thickness / murk_depth, 0.0, 1.0);
 	vec3 bed = textureLod(screen_tex, SCREEN_UV + vec2(dx, dz) * .05 * murk, 0.0).rgb;
 	float foam = step(thickness, .03 + h * .035);       // contact lines at banks and stones
 	vec3 tint = mix(shallow_tint, deep_tint, murk);
-	ALBEDO = mix(tint * .25, vec3(.80, .84, .76), foam * .8);
-	EMISSION = bed * tint * (1.0 - foam * .8);
+	ALBEDO = mix(tint * surface_tint, vec3(.80, .84, .76), foam * .8);
+	EMISSION = (bed + vec3(glow)) * tint * (1.0 - foam * .8);
 	ROUGHNESS = .2;
 	SPECULAR = .3;
 	METALLIC = 0.0;

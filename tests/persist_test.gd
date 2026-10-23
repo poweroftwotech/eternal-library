@@ -441,7 +441,10 @@ func area_save_mode() -> void:
 	# F: the deepest leaf. Q: the room furthest from it (not the root).
 	var far: AreaPlan.Room = null
 	for r: AreaPlan.Room in p.rooms:
-		if r.parent != "" and r.children_count() == 0 and not r.pinned and (far == null or r.depth > far.depth or (r.depth == far.depth and r.slot_id < far.slot_id)):
+		# A leaf of the rooms that stream (a pinned cistern never unloads; the
+		# gallery it grows from counts as a leaf), as stream_test picks them.
+		var leaf: bool = p.rooms.all(func(c: AreaPlan.Room) -> bool: return c.parent != r.slot_id or c.pinned)
+		if r.parent != "" and leaf and not r.pinned and (far == null or r.depth > far.depth or (r.depth == far.depth and r.slot_id < far.slot_id)):
 			far = r
 	var from_far: Dictionary = st.distances(far.slot_id)
 	var quit_room: AreaPlan.Room = null

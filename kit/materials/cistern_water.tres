@@ -5,4 +5,8 @@
 [resource]
 resource_name = "cistern_water"
 shader = ExtResource("1_water")
-shader_parameter/flow = Vector2(0, 0)
+shader_parameter/deep_tint = Color(0.22, 0.4, 0.38, 1)
+shader_parameter/flow = Vector2(0, 0.03)
+shader_parameter/murk_depth = 2.0
+shader_parameter/surface_tint = 0.45
+shader_parameter/glow = 0.025

@@ -2,8 +2,8 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · Design: [approval brief](../phase-5-approval.md), [technical](../phase-5-design.md)
 
-**In short:** steps 1 to 3 are done and committed (the cistern's water is being
-brightened). A new area, the Lower Stacks, starts in a
+**In short:** steps 1 to 3 are done and committed (the cistern's water
+brightened after your walk). A new area, the Lower Stacks, starts in a
 generated Hypostyle hall: a grid of bays under small tiled domes on twisted
 columns, freestanding bookcases between them, and clear aisles from every
 door to a landmark under an oculus. Generated galleries lead off its doors.
@@ -15,7 +15,7 @@ book crates, under the Reading Garden's water.
 
 ---
 
-## Step 3: the Cistern Archive (done 2026-10-23, walked in the game by you and committed; the water too dark, being worked on)
+## Step 3: the Cistern Archive (done 2026-10-23, walked in the game by you and committed; the water brightened after your walk)
 
 **Try it:** Esc → **Walk the Lower Stacks** (or `-- --area=lower_stacks
 --area-seed=1`). One of the galleries off the hall leads to the cistern
@@ -126,16 +126,44 @@ frame gate ran with the real cluster lights.
 
 **Caveats, for your review:**
 
-- **The water's ripples are still.** The Reading Garden animates its water
-  from its own atmosphere script, which the Lower Stacks doesn't run; in the
-  cistern the ripples are frozen (still water suits a cistern, but a slow
-  shimmer would need a small driver).
-- **The cistern is dark away from its lanterns**, as the atlas has it; the
-  water shows mostly as glints and near the lanterns.
+- ~~The water's ripples are still~~ and ~~the water is too dark~~: fixed
+  after your walk (below).
 - **Changes you saved in the Lower Stacks while walking step 2 went stale**
   (the recipe is version 3 now): kept in the save, never applied, as the
   phase 4 design says.
 - The bronze door has no states yet, and the cistern has no side doors.
+
+### After your walk: the water (2026-10-23, you approved it; committed)
+
+You found the water too dark. The garden's shader turns water its deep
+tint once it is 0.6 m deep along the view, made for the garden's 0.2 m
+channel; the cistern's shallows are 0.5 m and its deep bays 1.6 m, so it was
+all deep tint, and its surface showed only a quarter of that tint.
+
+- **Three new settings on the garden's water shader**, their defaults the
+  garden's old values (so the garden is unchanged): `murk_depth` (0.6),
+  `surface_tint` (0.25) and `glow` (0, a faint glow of the tint where no lamp
+  reaches, the atlas's cool cistern ambient). The cistern's water sets 2.0,
+  0.45 and 0.025, with a lighter deep tint. (A glow of 0.08 made the water
+  milky; 0.025 keeps the bed and the depth.) Pictures: `previews/p5_step3/`.
+- **The ripples move:** the Area runs the cistern water's clock, as the
+  garden's atmosphere runs its own; a slow drift (`flow` 0.03 m/s).
+- **The persistence test picks its far gallery as the stream test does**
+  (the gallery a pinned cistern grows from counts as a leaf).
+- **Step 2's pictures retaken** with the clusters' real light
+  (`previews/p5_step2/r03_*_cluster.png` and the rest).
+
+Gates after the change: `persist_gate.sh` all nine processes pass;
+`r11_route_test` 46, `atmosphere_test` 9, `room_atmosphere_test` 32, camp
+`playtest` 43; 240-frame runs clean. **The frame gate: two of three runs
+pass; one failed by 0.01 ms** (8.01 against 8.00). Its slowest frames are
+not streaming: at the same two spots every run (turning into gallery 1, and
+back in the hall, where the draw calls jump from 181 to 406), two frames in
+a row cost 6–8 ms, the first sight of a lot of the area at once. All seven
+rooms are live there, so pinning the cistern isn't the cause; the area is
+simply bigger than step 2's (whose same spots cost 6.0–6.7 ms). The margin
+at the RTX 3060 estimate is now nil; a measurement on a real 3060 would
+settle it, and the light-well (step 4) will need its own answer.
 
 ---
 

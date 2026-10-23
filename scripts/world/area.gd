@@ -32,6 +32,15 @@ var light_budget: LightBudget
 ## room {slot: {instance_ms, enter_ms}} (enter = generate, sockets, save restore).
 var timings: Dictionary = {}
 var _env: WorldEnvironment
+## The kit's water (the cistern's): the Reading Garden's shader, its ripples
+## run by the area's clock as atmosphere.gd runs the garden's (phase 5 step 3).
+const KIT_WATER: ShaderMaterial = preload("res://kit/materials/cistern_water.tres")
+var _water_time: float = 0.0
+
+
+func _process(delta: float) -> void:
+	_water_time += delta
+	KIT_WATER.set_shader_parameter("simulation_time", _water_time)
 
 
 ## The seed this area plans from.
