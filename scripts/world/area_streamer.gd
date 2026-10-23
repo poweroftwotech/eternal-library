@@ -71,6 +71,18 @@ func busy() -> bool:
 	return not queue.is_empty() or not _job.is_empty() or not _leaving.is_empty()
 
 
+## Throws away the room being built, if any, and queues it again: the years
+## moved on, and sockets it resolved before that would show the old year.
+func restart_job() -> void:
+	if _job.is_empty():
+		return
+	var room: Node = _job.get("room")
+	if room != null and is_instance_valid(room) and not room.is_inside_tree():
+		room.free()
+	_job = {}
+	_refresh_queue()
+
+
 func live_count() -> int:
 	return states.values().filter(func(s: int) -> bool: return s == RoomState.LIVE).size()
 

@@ -8,12 +8,13 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| Nothing right now. Phase 4 step 4 (it all remembers, area-wide) is next, when you want it | [Phase 4 progress](docs/environment/progress/phase-4-areas.md) | — |
+| Nothing right now. Phase 4 is complete; phase 5 (kit breadth: more room types) is next and needs a design brief first, when you want it | [Roadmap](#10-roadmap-each-phase-is-a-playable-slice) | — |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-22 | **Phase 4 step 4 built:** quit anywhere in the wing and you resume in the same gallery; changes in rooms that aren't loaded are kept; after Let ten years pass, a gallery you walk into has aged exactly as a fresh process says. The persistence gate grows to seven processes, all passing. Travel shows a plain dark loading panel ([progress](docs/environment/progress/phase-4-areas.md)). You walked it; committed. **Phase 4 complete.** |
 | 2026-10-20 | **Phase 4 step 3 built; the phase's finish line is met:** the wing streams without hitches at the RTX 3060 target (Medium, 1080p), passing three gate runs in a row: GPU worst 1.8 ms (limit 4), CPU worst 7.7 ms (limit 8). Only the nearest four lamps cast shadows; lighting doesn't pop when rooms arrive ([progress](docs/environment/progress/phase-4-areas.md)). Committed. |
 | 2026-10-20 | **Live stats panel** (F3): performance, base-spec budgets and streaming ([progress](docs/environment/progress/phase-4-areas.md)). Committed. |
 | 2026-10-20 | **Phase 4 step 2 built:** only the rooms near you exist; the next ones are built a few milliseconds a frame and the rest go. Walking every branch of three wings on the RTX 5090: no frame over 16.7 ms, worst 8.5 ms ([progress](docs/environment/progress/phase-4-areas.md)). You walked it; committed. |
@@ -39,7 +40,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | R01 weathering and polish | Fallen books, debris, plants, stains, stairs, growth, surface relief, floor wear | ✅ Done 2026-10-19 |
 | 2. Generated Stack Gallery (R02) | A seeded corridor off any R01 door; bakeable to a scene | ✅ Done 2026-10-20 |
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
-| **4. Areas and streaming** | 6–10 connected rooms that load as you walk | Approved 2026-10-20; steps 1–3 done (finish line met); step 4 next |
+| 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
 | 5. Kit breadth | More room types, mostly from data | Not started |
 
 ## 10. Roadmap (each phase is a playable slice)

@@ -2,7 +2,7 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · Design: [approval brief](../phase-4-approval.md), [technical](../phase-4-design.md)
 
-**In short:** steps 1–3 are built, and phase 4's finish line is met. The Reading Room is now the heart of a wing of 6–9 rooms: the baked gallery on its west door, generated galleries on its east door and entrance, and 2–5 more galleries growing from their far ends. The whole wing is laid out as data first (in about 30 ms). Since step 2, only the rooms near you exist: the next ones are built ahead of you, a few milliseconds a frame, and the ones you leave behind go.
+**In short:** phase 4 is complete: all four steps are built, walked and committed, and its finish line is met. Since step 4, the wing remembers: quit anywhere and you're back in the same gallery, with changes kept even in rooms that weren't loaded. The Reading Room is now the heart of a wing of 6–9 rooms: the baked gallery on its west door, generated galleries on its east door and entrance, and 2–5 more galleries growing from their far ends. The whole wing is laid out as data first (in about 30 ms). Since step 2, only the rooms near you exist: the next ones are built ahead of you, a few milliseconds a frame, and the ones you leave behind go.
 
 ---
 
@@ -372,3 +372,86 @@ after pictures of the largest change are in `previews/p4_step3/`.
   already, so a walk sees only 0–3 rooms arrive.
 - `--preset=medium` sets only the rendering values above. The full settings
   menu and presets are the graphics settings slice (not phase 4).
+
+---
+
+## Step 4: it all remembers, area-wide (done 2026-10-22, walked in the game by you and committed)
+
+**Try it:**
+
+1. Esc → **Walk the library wing**. Knock something over in the Reading
+   Room, then walk out two or three galleries and pull a book onto the
+   floor or light/douse a lamp (E).
+2. Walk to a gallery on another side of the wing, so the first one unloads
+   (F3 shows "live" rooms), and **Quit** from the Esc menu.
+3. Start the game again. You're back in the same gallery, facing the same
+   way. Walk back: the book is on the floor and the lamp as you left it,
+   and the Reading Room's vase is still down.
+4. Esc → **Let ten years pass**, then walk into a gallery you haven't
+   visited: some of its lamps have failed or gone dark. Your tended lamp
+   hasn't.
+5. **Tidy up** now puts back changes everywhere in the wing, including in
+   rooms that aren't loaded.
+
+Travelling (to the wing, back to the camp, reseeding) shows a plain dark
+panel with one line, **Finding the way…**, while the next place is built.
+A start that resumes in the wing shows a plain dark screen (the boot
+splash, now without the Godot logo).
+
+**Built:**
+
+| Piece | File |
+|---|---|
+| Resume in the saved room: the save records the room you were last in (also from a doorway), and start-up builds that room and its neighbours first, all at once | `scripts/main.gd` (`_on_saving`), `Area.start_room` |
+| Ten years with a room half built: the streamer throws it away and builds it again at the new year, so no room mixes two years | `AreaStreamer.restart_job`, the menu's `years` |
+| Tidy up reaches the whole area (a room that isn't loaded just drops its changes) | `scripts/main.gd` (`tidy`) |
+| The loading panel: a full-screen container over everything (above the stats panel) | `Hud.show_loading`, `main.travel` |
+| Boot splash: the game's dark colour, no logo | `project.godot` |
+| The persistence gate's processes 6 and 7, in their own save file (wing seed 2, 8 rooms) | `tests/persist_test.gd` (`area_save`, `area_load`), `tests/persist_gate.sh` |
+| Shared walking legs for tests (Reading Room → any room, room → room) | `tests/area_tour.gd` |
+| A GPU picture of the loading panel | `tests/loading_capture.gd`, `previews/p4_step4_loading.png` |
+
+**What the two new processes check** (16 checks each):
+
+- **Process 6** knocks R01's west vase over; walks to the deepest gallery
+  (gallery_4), tends a lamp and drops a book there; walks to the gallery
+  furthest from it (gallery_2) until gallery_4 has unloaded. Then it lets
+  ten years pass, walks into a gallery that wasn't loaded (gallery_1) and
+  records its lamps as it streamed in, walks back to gallery_2 and quits
+  through the game's own Quit.
+- **Process 7** resumes in gallery_2 at the same spot and heading; gallery_4
+  isn't loaded at the start; the vase is down; it's still year 10. Walking
+  into gallery_1, its lamps match process 6's exactly. Walking into
+  gallery_4, the tended lamp is as tended, the book lies where it fell with
+  its shelf slot empty, and every untended lamp is where it was or further
+  along lit → failing → dark. Nothing in the wing went stale.
+- Ten years aged 1 of gallery_1's 4 lamps and 3 of gallery_4's 4 untended
+  ones.
+- A deliberate wrong run (process 7 run twice, so it resumes where the
+  first run quit) fails the "back where we quit" checks, as it should.
+
+**Gates (all pass):** the persistence gate, all **seven** processes;
+`stream_test` 40; `area_plan_test` 145; `area_route_test` 198; 240-frame
+runs clean (camp, R01, `--area=library`); `prop_test` 51, `book_test` 27,
+`age_test` 20, `room_playtest` 31, camp `playtest` 43, `kit_test` 906,
+`socket_modes_test` 246, `reading_room_test` 87, `validate_room_test` 26,
+`r02_bake_test` 105, `spill_settle_test` 6, `room_atmosphere_test` 32,
+`atmosphere_test` 9.
+
+**What changed from the design, and why:**
+
+- **Most of step 4's resume was already in place** from steps 1 and 2 (the
+  save's `area`, `room` and position, the synchronous start-up build). Step
+  4 added the doorway fallback, the years fix and the gate.
+- **No load thread.** The design planned the area on a thread behind the
+  load screen. The plan takes about 30 ms, so the panel covers the whole
+  build in one blocked frame instead.
+
+**Caveats:**
+
+- **The resume start has no text**, only the dark boot splash: the game
+  builds the wing before its first frame, so there's nothing to draw a
+  line of text with. Travel within the game does show the text.
+- Not rerun, because nothing they exercise changed: `r02_route_test` and
+  the GPU frame gate (the streaming per-frame path is untouched;
+  `restart_job` runs only when the years pass).

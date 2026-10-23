@@ -247,6 +247,19 @@ func notify(text: String) -> void:
 	toast.text = text
 	toast_time = 5.0
 
+## A plain dark panel over everything with one line of text, while a
+## travel's next place is built (phase-4-design.md 8.1.8 step 4).
+func show_loading(text: String) -> void:
+	var cover = PanelContainer.new()
+	cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	cover.add_theme_stylebox_override("panel",panel_style(Color(0.035,0.06,0.075),Color(0.035,0.06,0.075),0))
+	cover.theme = theme
+	var center = CenterContainer.new()
+	cover.add_child(center)
+	center.add_child(label(text,20))
+	layer = 10
+	add_child(cover)
+
 func open(title: String, text: String, choices: Array) -> void:
 	modal_title.text = title
 	modal_text.text = text

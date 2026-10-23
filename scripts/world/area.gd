@@ -24,6 +24,8 @@ var rooms: Dictionary = {}
 ## Where the visit starts, in the area frame (a resumed save's position);
 ## INF: the root room's PlayerSpawn. The rooms around it are built first.
 var start_point: Vector3 = Vector3.INF
+## The saved room's slot, for a start point in a doorway (no room there).
+var start_room: String = ""
 var streamer: AreaStreamer
 var light_budget: LightBudget
 ## What building cost: plan_ms, wear_ms, total_ms, and with streaming off per
@@ -72,6 +74,8 @@ func _ready() -> void:
 		streamer.area = self
 		streamer.settings = settings
 		var at: AreaPlan.Room = plan.room_at(start_point) if start_point != Vector3.INF else null
+		if at == null and start_room != "":
+			at = plan.room(start_room)
 		streamer.start(at.slot_id if at != null else plan.rooms[0].slot_id)
 		add_child(streamer)
 	else:

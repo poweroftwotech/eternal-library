@@ -13,6 +13,9 @@ extends SceneTree
 ##           is kept but not applied. Then the janitor hook (revert_room) puts
 ##           everything back in place, and the game saves and quits.
 ## reverted: a third process finds no changes left and everything original.
+## age, age_again: the years (phase 3 step 4, below).
+## area_save, area_load: the library wing (phase-4-design.md 8.1.8 step 4),
+##           in their own save file; see area_save_mode.
 
 var main_script: GDScript = load("res://scripts/main.gd")
 const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
@@ -28,6 +31,8 @@ var checks: int = 0
 var game: Node
 var room: RoomTemplate
 var ws: Node
+## The library wing in the area modes (room is then its R01).
+var area: Area
 
 
 func _initialize() -> void:
@@ -50,11 +55,16 @@ func run() -> void:
 		return
 	if mode == "save":
 		main_script.room_override = STACK_GALLERY
+	elif mode == "area_save":
+		main_script.room_override = "area:library"
 	game = (load("res://main.tscn") as PackedScene).instantiate()
 	root.add_child(game)
 	for _i: int in 12:
 		await physics_frame
 	room = game.world as RoomTemplate
+	if game.world is Area:
+		area = game.world as Area
+		room = area.rooms.get("reading_room")
 	match mode:
 		"save":
 			await save_mode()
@@ -66,6 +76,10 @@ func run() -> void:
 			await age_mode()
 		"age_again":
 			await age_again_mode()
+		"area_save":
+			await area_save_mode()
+		"area_load":
+			await area_load_mode()
 	finish(mode, true)
 
 
@@ -145,32 +159,10 @@ func save_mode() -> void:
 		game.interact(lore)
 	check(ws.call("owns", &"lore_hollow_index") and str(ws.call("delta", LORE_ID).get("s", "")) == "taken", "the lore book is in the satchel and saved as taken")
 	var g: GeneratedRoom = room.get_node("StackGallery")
-	var gfill: ShelfFill = null
-	var gi: int = -1
-	for f: ShelfFill in g.shelf_fills():
-		for i: int in f.built_transforms.size():
-			if f.book_levels[i] == 1 and f.built_transforms[i].basis.x.length() > 0.01:
-				gfill = f
-				gi = i
-				break
-		if gfill != null:
-			break
-	check(gfill != null, "the gallery has a shelf with books")
-	var gbook_id: String = ""
-	var gbook_xf: Array = []
-	if gfill != null:
-		var gbook: WorldProp = gfill.pull(gi)
-		for _i: int in 30:
-			await physics_frame
-		var actor := Node3D.new()
-		g.add_child(actor)
-		actor.global_position = gfill.to_global(Vector3(0, 0, -1.6))
-		gbook.interact(actor, gbook.global_position)
-		await wait_still()
-		gbook_id = gbook.get_meta("world_id", "")
-		gbook_xf = WorldStateData.arr(g.global_transform.affine_inverse() * gbook.global_transform)
-		check(gbook_id.begins_with("stack_gallery_west@7/") and str(ws.call("delta", gbook_id).get("s", "")) == "moved", "the gallery book is saved, in the gallery's own room (%s)" % gbook_id)
-		check(gbook.global_position.y < 0.3, "and it lies on the gallery floor (%s)" % gbook.global_position)
+	var dropped: Dictionary = await drop_a_book(g)
+	var gbook_id: String = dropped.get("id", "")
+	var gbook_xf: Array = dropped.get("xf", [])
+	check(gbook_id.begins_with("stack_gallery_west@7/") and str(ws.call("delta", gbook_id).get("s", "")) == "moved", "the gallery book is saved, in the gallery's own room (%s)" % gbook_id)
 	game.player.teleport(POSE, POSE_YAW)
 	await physics_frame
 	var shards: Array[Shards] = room.room_shards()
@@ -266,6 +258,35 @@ func reverted_mode() -> void:
 	var table: WorldProp = prop_by_id(expect["table_id"])
 	check(table != null and near(room_xf(table), WorldStateData.xf(expect["table_orig"])), "the table prop is on the table")
 	await tend_and_record(expect)
+
+
+## Pulls a book off a gallery shelf and knocks it onto the floor; returns
+## {id, xf} (xf in the gallery's frame) once it lies still, or {}.
+func drop_a_book(g: RoomTemplate) -> Dictionary:
+	var gfill: ShelfFill = null
+	var gi: int = -1
+	for f: ShelfFill in g.shelf_fills():
+		for i: int in f.built_transforms.size():
+			if f.book_levels[i] == 1 and f.built_transforms[i].basis.x.length() > 0.01:
+				gfill = f
+				gi = i
+				break
+		if gfill != null:
+			break
+	check(gfill != null, "%s has a shelf with books" % g.room_key())
+	if gfill == null:
+		return {}
+	var gbook: WorldProp = gfill.pull(gi)
+	for _i: int in 30:
+		await physics_frame
+	var actor := Node3D.new()
+	g.add_child(actor)
+	actor.global_position = gfill.to_global(Vector3(0, 0, -1.6))
+	gbook.interact(actor, gbook.global_position)
+	await wait_still()
+	actor.queue_free()
+	check(gbook.global_position.y < g.global_position.y + 0.3, "%s: the book lies on the floor (%s)" % [g.room_key(), gbook.global_position])
+	return {"id": gbook.get_meta("world_id", ""), "xf": WorldStateData.arr(g.global_transform.affine_inverse() * gbook.global_transform)}
 
 
 func fill_of(r: RoomTemplate, socket_path: String) -> ShelfFill:
@@ -378,3 +399,218 @@ func age_again_mode() -> void:
 	for id: String in lamps:
 		same = same and expect["lamps_year40"].get(id, "") == (lamps[id] as VariantSocket).picked_label()
 	check(same, "every lamp shows the same state as in the run that aged it")
+
+
+# --- phase 4 step 4: the library wing remembers (phase-4-design.md 8.1.8) --------
+const AREA_EXPECT: String = "user://test/persist_area_expect.json"
+
+
+## Sixth process (a fresh save, `--area-seed=N`): in the wing, knock R01's west
+## vase over; walk to the farthest gallery (F), tend a lamp and drop a book
+## there; walk to the gallery furthest from it (Q) until F has unloaded. Then
+## Let ten years pass, walk into a gallery that wasn't loaded (U), record its
+## lamps at year 10 as this process streamed them in, walk back to Q and quit.
+func area_save_mode() -> void:
+	check(area != null and room != null, "the game starts in the library wing, R01 live")
+	if area == null or room == null:
+		return
+	fast_unloads()
+	var p: AreaPlan = area.plan
+	var st: AreaStreamer = area.streamer
+	var ever_live: Dictionary = {}
+	for s: String in st.states:
+		if st.is_live(s):
+			ever_live[s] = true
+	st.room_loaded.connect(func(s: String) -> void: ever_live[s] = true)
+	# R01: E knocks the west vase over.
+	var west: WorldProp = room.get_node("Props/VaseIwanWest")
+	game.player.teleport(room.to_global(Vector3(2.2, 0.05, -15.0)), room.global_rotation.y, -0.62)
+	for _i: int in 3:
+		await physics_frame
+	game.interact(west)
+	await wait_still()
+	check(str(ws.call("delta", west.get_meta("world_id", "")).get("s", "")) == "moved", "R01's knocked-over vase is saved as moved")
+	# F: the deepest leaf. Q: the room furthest from it (not R01).
+	var far: AreaPlan.Room = null
+	for r: AreaPlan.Room in p.rooms:
+		if r.parent != "" and r.children_count() == 0 and (far == null or r.depth > far.depth or (r.depth == far.depth and r.slot_id < far.slot_id)):
+			far = r
+	var from_far: Dictionary = st.distances(far.slot_id)
+	var quit_room: AreaPlan.Room = null
+	for r: AreaPlan.Room in p.rooms:
+		if r.parent != "" and (quit_room == null or int(from_far[r.slot_id]) > int(from_far[quit_room.slot_id])):
+			quit_room = r
+	check(int(from_far[quit_room.slot_id]) > st.settings.unload_radius, "seed %d: a gallery %d doorways from %s, enough for it to unload" % [p.area_seed, int(from_far[quit_room.slot_id]), far.slot_id])
+	await walk(AreaTour.leg(p, far))
+	var f_room: RoomTemplate = area.rooms.get(far.slot_id)
+	check(f_room != null and st.player_room == far.slot_id, "walked into %s" % far.slot_id)
+	if f_room == null:
+		return
+	var tended: Dictionary = tend_first_lamp(f_room)
+	check(not tended.is_empty(), "%s has a lamp to tend" % far.slot_id)
+	var book: Dictionary = await drop_a_book(f_room)
+	check(str(ws.call("delta", book.get("id", "")).get("s", "")) == "moved", "the book in %s is saved as moved (%s)" % [far.slot_id, book.get("id", "")])
+	var far_year0: Dictionary = lamp_labels(f_room)
+	await walk(AreaTour.between(p, far, quit_room))
+	await until(func() -> bool: return not st.is_live(far.slot_id))
+	check(not st.is_live(far.slot_id) and not area.rooms.has(far.slot_id), "%s unloaded once we were in %s" % [far.slot_id, quit_room.slot_id])
+	# U: a gallery that isn't loaded, preferably one never loaded at all.
+	var unseen: AreaPlan.Room = null
+	for r: AreaPlan.Room in p.rooms:
+		if r.parent == "" or r == far or st.is_live(r.slot_id):
+			continue
+		if unseen == null or (not ever_live.has(r.slot_id) and ever_live.has(unseen.slot_id)):
+			unseen = r
+	check(unseen != null, "a gallery other than %s isn't loaded" % far.slot_id)
+	if unseen == null:
+		return
+	var u_year0: Dictionary = labels_off_tree(unseen.slot_id)
+	game.on_choice("years")
+	check(absf(float(ws.call("years")) - 10.0) < 0.01, "Let ten years pass: year 10 (%.2f)" % float(ws.call("years")))
+	await walk(AreaTour.between(p, quit_room, unseen))
+	var u_room: RoomTemplate = area.rooms.get(unseen.slot_id)
+	check(u_room != null, "walked into %s, which wasn't loaded when the years passed" % unseen.slot_id)
+	var u_year10: Dictionary = lamp_labels(u_room) if u_room != null else {}
+	check(not u_year10.is_empty() and u_year10.size() == u_year0.size(), "%s: the same %d lamps as at year 0" % [unseen.slot_id, u_year10.size()])
+	var aged: int = aged_forward(u_year0, u_year10, unseen.slot_id)
+	print("  %s: %d of %d lamps aged in ten years" % [unseen.slot_id, aged, u_year10.size()])
+	await walk(AreaTour.between(p, unseen, quit_room))
+	await until(func() -> bool: return not st.is_live(far.slot_id))
+	check(not st.is_live(far.slot_id), "%s is still unloaded as we quit" % far.slot_id)
+	var at: Vector3 = game.player.global_position
+	var expect: Dictionary = {"seed": p.area_seed, "far": far.slot_id, "quit_room": quit_room.slot_id, "unseen": unseen.slot_id,
+		"pos": [at.x, at.y, at.z], "yaw": game.player.rotation.y,
+		"west_id": west.get_meta("world_id", ""), "west": WorldStateData.arr(room_xf(west)),
+		"tended": tended, "book": book, "far_year0": far_year0, "u_year0": u_year0, "u_year10": u_year10, "u_aged": aged}
+	DirAccess.make_dir_recursive_absolute("user://test")
+	var f: FileAccess = FileAccess.open(AREA_EXPECT, FileAccess.WRITE)
+	f.store_string(JSON.stringify(expect))
+	f.close()
+
+
+## Seventh process: resumes in Q, where it quit; F loads only when walked to.
+## Both changes are there, U shows the lamps the sixth process gave it at year
+## 10, and F's untended lamps have aged too.
+func area_load_mode() -> void:
+	var expect: Variant = JSON.parse_string(FileAccess.get_file_as_string(AREA_EXPECT))
+	check(expect is Dictionary, "the area save run left its expectations")
+	check(area != null and room != null, "the game resumes in the library wing")
+	if not expect is Dictionary or area == null or room == null:
+		return
+	fast_unloads()
+	var p: AreaPlan = area.plan
+	var st: AreaStreamer = area.streamer
+	check(p.area_seed == int(expect["seed"]), "the same wing (seed %d, saved %d)" % [p.area_seed, int(expect["seed"])])
+	var pos: Vector3 = Vector3(expect["pos"][0], expect["pos"][1], expect["pos"][2])
+	check(st.player_room == expect["quit_room"] and Vector2(game.player.global_position.x - pos.x, game.player.global_position.z - pos.z).length() < 0.05 and absf(game.player.rotation.y - float(expect["yaw"])) < 0.01,
+		"back in %s, where we quit (%s in %s)" % [expect["quit_room"], game.player.global_position, st.player_room])
+	check(not st.is_live(expect["far"]), "%s isn't loaded at the start" % expect["far"])
+	check(absf(float(ws.call("years")) - 10.0) < 0.01, "still year 10")
+	var west: WorldProp = room.get_node_or_null("Props/VaseIwanWest")
+	check(west != null and west.freeze and near(room_xf(west), WorldStateData.xf(expect["west"])), "R01's west vase lies where it was knocked over")
+	var quit_room: AreaPlan.Room = p.room(expect["quit_room"])
+	var unseen: AreaPlan.Room = p.room(expect["unseen"])
+	var far: AreaPlan.Room = p.room(expect["far"])
+	await walk(AreaTour.between(p, quit_room, unseen))
+	var u_room: RoomTemplate = area.rooms.get(unseen.slot_id)
+	var u_now: Dictionary = lamp_labels(u_room) if u_room != null else {}
+	check(u_room != null and u_now == expect["u_year10"], "%s's lamps are as the run that let the years pass made them (%s, then %s)" % [unseen.slot_id, expect["u_year10"], u_now])
+	await walk(AreaTour.between(p, unseen, far))
+	var f_room: RoomTemplate = area.rooms.get(far.slot_id)
+	check(f_room != null, "walked into %s" % far.slot_id)
+	if f_room == null:
+		return
+	var tended: Dictionary = expect["tended"]
+	var labels: Dictionary = lamp_labels(f_room)
+	check(labels.get(tended["path"], "") == tended["label"], "%s: the tended lamp is still %s after ten years (%s)" % [far.slot_id, tended["label"], labels.get(tended["path"], "")])
+	var untended: Dictionary = (expect["far_year0"] as Dictionary).duplicate()
+	untended.erase(tended["path"])
+	var now: Dictionary = labels.duplicate()
+	now.erase(tended["path"])
+	var aged: int = aged_forward(untended, now, far.slot_id)
+	print("  %s: %d of %d untended lamps aged in ten years; %s: %d of %d" % [far.slot_id, aged, now.size(), unseen.slot_id, int(expect["u_aged"]), (expect["u_year10"] as Dictionary).size()])
+	check(aged + int(expect["u_aged"]) > 0, "ten years aged at least one untended lamp in the galleries that weren't loaded")
+	var bk: Dictionary = expect["book"]
+	var gbook: WorldProp = null
+	for prop: WorldProp in f_room.world_props():
+		if prop.get_meta("world_id", "") == bk.get("id", ""):
+			gbook = prop
+	check(gbook != null and near(f_room.global_transform.affine_inverse() * gbook.global_transform, WorldStateData.xf(bk["xf"])), "%s: the book lies where it fell" % far.slot_id)
+	check(gbook != null and (gbook.get_parent() as ShelfFill).hidden.has(int(gbook.get_meta("shelf_index"))), "and its shelf slot is empty")
+	check((ws.call("stale_ids") as PackedStringArray).is_empty(), "no change in the wing went stale (%s)" % [ws.call("stale_ids")])
+
+
+## Short unload delays, so the test needn't wait 10 s per room.
+func fast_unloads() -> void:
+	area.streamer.settings.unload_delay_s = 0.4
+	area.streamer.settings.check_interval_s = 0.05
+
+
+## Teleports the player along floor points, letting the streamer catch up at each.
+func walk(points: Array[Vector3]) -> void:
+	for i: int in points.size():
+		var to: Vector3 = area.to_global(points[i])
+		var yaw: float = game.player.rotation.y
+		if i + 1 < points.size():
+			var d: Vector3 = area.to_global(points[i + 1]) - to
+			if d.length() > 0.1:
+				yaw = atan2(-d.x, -d.z)
+		game.player.teleport(to + Vector3(0, 0.05, 0), yaw)
+		var until_ms: int = Time.get_ticks_msec() + 80
+		while Time.get_ticks_msec() < until_ms:
+			await physics_frame
+		await until(func() -> bool: return not area.streamer.busy() and not FloorWear.busy())
+
+
+## Frames until `cond` holds (at most 10 s).
+func until(cond: Callable) -> void:
+	var stop_ms: int = Time.get_ticks_msec() + 10000
+	while not cond.call() and Time.get_ticks_msec() < stop_ms:
+		await process_frame
+
+
+## {socket key: label} of a room's lamps.
+func lamp_labels(r: RoomTemplate) -> Dictionary:
+	var out: Dictionary = {}
+	for s: VariantSocket in r.sockets():
+		if s.mode == VariantSocket.Mode.STATE and s.socket_set != null and s.socket_set.index_of("lit") >= 0:
+			out[r.socket_key(s)] = s.picked_label()
+	return out
+
+
+## A room's lamps as the streamer would build it now, off the tree.
+func labels_off_tree(slot: String) -> Dictionary:
+	var st: AreaStreamer = area.streamer
+	var job: Dictionary = st._new_job(slot)
+	while job["stage"] != "enter":
+		st._run_stage(job, -1)
+	var r: RoomTemplate = job["room"]
+	var out: Dictionary = lamp_labels(r)
+	r.free()
+	return out
+
+
+## Tends a room's first lamp to the opposite of what it shows; {path, label}.
+func tend_first_lamp(r: RoomTemplate) -> Dictionary:
+	for s: VariantSocket in r.sockets():
+		if s.mode == VariantSocket.Mode.STATE and s.socket_set != null and s.socket_set.index_of("lit") >= 0 and s.socket_set.index_of("dark") >= 0:
+			var label: String = "dark" if s.picked_label() == "lit" else "lit"
+			r.tend_lamp(s, label)
+			return {"path": r.socket_key(s), "label": label}
+	return {}
+
+
+## Checks every lamp is where it was or further along lit → failing → dark;
+## returns how many moved on.
+func aged_forward(before: Dictionary, after: Dictionary, what: String) -> int:
+	var chain: Array = ["lit", "failing", "dark"]
+	var forward: bool = before.size() == after.size()
+	var moved: int = 0
+	for k: String in after:
+		var a: int = chain.find(str(before.get(k, "")))
+		var b: int = chain.find(str(after[k]))
+		forward = forward and a >= 0 and b >= a
+		if b > a:
+			moved += 1
+	check(forward, "%s: every untended lamp is where it was or further along (%s, then %s)" % [what, before, after])
+	return moved

@@ -69,6 +69,7 @@ func _ready() -> void:
 		var saved_pos: Array = (ws().data.get("player", {}) as Dictionary).get("pos", [])
 		if resuming and saved_pos.size() == 3:
 			world.start_point = Vector3(saved_pos[0], saved_pos[1], saved_pos[2])     # build the rooms around you first
+			world.start_room = str(ws().data.get("room", ""))
 	else:
 		world = (load(room_path) as PackedScene).instantiate()
 	world.name = "Environment"
@@ -160,9 +161,16 @@ func generated_rooms() -> Array[GeneratedRoom]:
 			out.append(n as GeneratedRoom)
 	return out
 
+## Saves, covers the screen while the next place is built, then goes there.
 func travel(path: String) -> void:
 	ws().save_now()
 	room_override = path
+	if hud != null:
+		close_panel()
+		player.blocked = true
+		hud.show_loading("Finding the way…" if path != "camp" else "Back to the camp…")
+		for _i: int in 2:     # let the panel reach the screen: the build blocks the frame
+			await get_tree().process_frame
 	get_tree().reload_current_scene()
 
 ## Just before every save: where the player is, so the next start resumes there.
@@ -171,8 +179,8 @@ func _on_saving() -> void:
 	ws().data["gen_seed_override"] = GeneratedRoom.seed_override
 	ws().data["area_seed_override"] = Area.seed_override
 	ws().data["area"] = (world as Area).recipe.id if world is Area else ""
-	var at: AreaPlan.Room = (world as Area).room_at(player.global_position) if world is Area and is_instance_valid(player) else null
-	ws().data["room"] = at.slot_id if at != null else ""
+	# The room you were last in, even from a doorway: the start-up builds around it.
+	ws().data["room"] = (world as Area).streamer.player_room if world is Area and (world as Area).streamer != null else ""
 	for k: String in inventory:     # ingredients the cooking pot spent
 		if int(inventory[k]) > 0:
 			ws().satchel()["stacks"][k] = int(inventory[k])
@@ -407,13 +415,15 @@ func on_choice(action: String) -> void:
 			ws().advance_years(10.0)
 			for key: String in ws().rooms.keys():
 				ws().rooms[key].refresh_aging()
+			if world is Area and (world as Area).streamer != null:
+				(world as Area).streamer.restart_job()     # a half-built room would mix two years
+			# Rooms that aren't loaded store nothing about age: they're built at the new year.
 			ws().save_now()
 			close_panel()
 			hud.notify("Ten years pass. It is year %d; untended lamps have had time to fail." % int(ws().years()))
 		"tidy":
-			var n: int = 0
-			for key: String in ws().rooms.keys():
-				n += ws().revert_room(key)
+			# Everywhere in this area: a room that isn't loaded just drops its changes.
+			var n: int = ws().revert_room("")
 			close_panel()
 			hud.notify("Tidied: %d thing%s put back where it stood." % [n, "" if n == 1 else "s"])
 		"roast", "broth":
