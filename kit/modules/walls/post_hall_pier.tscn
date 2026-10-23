@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_p4pul"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/post_hall_pier.glb" id="2_1wj3x"]
+
+[node name="post_hall_pier" type="Node3D" unique_id=1122898003]
+script = ExtResource("1_p4pul")
+shape = 2
+family = "walls"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("brick", "structure", "hall")
+source_glb = "res://assets/kit/walls/post_hall_pier.glb"
+
+[node name="Mesh" parent="." unique_id=484969686 instance=ExtResource("2_1wj3x")]

@@ -27,7 +27,9 @@ const READING_ROOM: String = "res://rooms/authored/reading_room.tscn"
 const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
 ## Areas you can walk (phase-4-design.md 8.1.3): `-- --area=<id>` or the Esc
 ## menu; "area:<id>" wherever a room path goes (room_override, the save's scene).
-const AREAS: Dictionary = {"library": "res://gen/recipes/library_wing.tres"}
+const AREAS: Dictionary = {"library": "res://gen/recipes/library_wing.tres", "lower_stacks": "res://gen/recipes/lower_stacks.tres"}
+## How the Esc menu names each area ("Walk the library wing").
+const AREA_NAMES: Dictionary = {"library": "the library wing", "lower_stacks": "the Lower Stacks"}
 const AREA_PREFIX: String = "area:"
 ## Set by the menu before a reload; survives reload_current_scene().
 static var room_override: String = ""
@@ -333,9 +335,12 @@ func show_book(item_id: StringName) -> void:
 func show_menu() -> void:
 	var trips: Array = [{"text":"Return to the camp","action":"go_camp"}] if in_room() else [{"text":"Visit the reading room","action":"go_reading_room"}]
 	if world is Area:
-		trips.append({"text":"Reseed the library wing (seed %d, %d rooms)" % [(world as Area).plan.area_seed, (world as Area).plan.rooms.size()],"action":"reseed_area"})
-	else:
-		trips.append({"text":"Walk the library wing","action":"go_area"})
+		trips.append({"text":"Reseed %s (seed %d, %d rooms)" % [AREA_NAMES.get((world as Area).recipe.id, (world as Area).recipe.display_name),
+			(world as Area).plan.area_seed, (world as Area).plan.rooms.size()],"action":"reseed_area"})
+	for id: String in AREAS:
+		if not (world is Area and (world as Area).recipe.id == id):
+			trips.append({"text":"Walk %s" % AREA_NAMES[id],"action":"go_area:" + id})
+	if not world is Area:
 		if not in_room() or generated_rooms().is_empty():
 			trips.append({"text":"Visit the stack gallery","action":"go_stack_gallery"})
 		else:
@@ -370,6 +375,10 @@ func on_choice(action: String) -> void:
 	if action.begins_with("read:"):
 		show_book(StringName(action.trim_prefix("read:")))
 		return
+	if action.begins_with("go_area:"):
+		Area.seed_override = -1     # each area plans from its own seed
+		travel(AREA_PREFIX + action.trim_prefix("go_area:"))
+		return
 	match action:
 		"close": close_panel()
 		"menu": show_menu()
@@ -396,10 +405,9 @@ func on_choice(action: String) -> void:
 		"notes": show_notes()
 		"go_reading_room": travel(READING_ROOM)
 		"go_stack_gallery": travel(STACK_GALLERY)
-		"go_area": travel(AREA_PREFIX + "library")
 		"reseed_area":
 			Area.seed_override = randi() % 100000
-			travel(AREA_PREFIX + "library")
+			travel(AREA_PREFIX + (world as Area).recipe.id)
 		"reseed":
 			GeneratedRoom.seed_override = randi() % 100000
 			travel(room_override if room_override != "" else requested_room())

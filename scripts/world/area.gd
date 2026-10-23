@@ -205,11 +205,16 @@ static func _mesh_bounds(m: Node3D) -> AABB:
 	return out
 
 
-## Where a new visit starts: the root room's PlayerSpawn.
+## Where a new visit starts: the root room's PlayerSpawn, or (a generated
+## root) the middle of its first cell, facing in.
 func spawn_transform() -> Transform3D:
 	var root_room: RoomTemplate = rooms.get(plan.rooms[0].slot_id) if plan != null and not plan.rooms.is_empty() else null
 	var spawn: Node3D = root_room.get_node_or_null("PlayerSpawn") if root_room != null else null
-	return spawn.global_transform if spawn != null else global_transform
+	if spawn != null:
+		return spawn.global_transform
+	if root_room is GeneratedRoom:
+		return root_room.global_transform * Transform3D(Basis(), CellGrid.cell_centre(Vector3i.ZERO) + Vector3(0, 0.1, 0))
+	return global_transform
 
 
 ## The plan room at a world point, or null.

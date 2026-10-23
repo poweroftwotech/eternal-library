@@ -1,0 +1,36 @@
+[gd_resource type="Resource" script_class="AreaRecipe" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="1_recipe"]
+[ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="2_slot"]
+[ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="3_grow"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="4_place"]
+[ext_resource type="Resource" path="res://gen/grammars/r03_hypostyle.tres" id="5_r03"]
+[ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="6_r02"]
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="7_atmos"]
+
+[sub_resource type="Resource" id="Resource_hall"]
+script = ExtResource("2_slot")
+slot_id = "hall"
+display_name = "The Hypostyle Stacks"
+grammar = ExtResource("5_r03")
+pinned = true
+
+[sub_resource type="Resource" id="Resource_grow"]
+script = ExtResource("3_grow")
+grammar = ExtResource("6_r02")
+display_name = "The Lower Galleries"
+count = Vector2i(3, 5)
+slot_prefix = "gallery"
+
+[sub_resource type="Resource" id="Resource_place"]
+script = ExtResource("4_place")
+
+[resource]
+script = ExtResource("1_recipe")
+id = "lower_stacks"
+display_name = "The Lower Stacks"
+slots = Array[ExtResource("2_slot")]([SubResource("Resource_hall")])
+grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow")])
+room_count = Vector2i(4, 6)
+placement = SubResource("Resource_place")
+atmosphere = ExtResource("7_atmos")

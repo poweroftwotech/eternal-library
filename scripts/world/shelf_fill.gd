@@ -238,12 +238,15 @@ func _add_reach() -> void:
 	reach.fill = self
 	reach.collision_layer = 2      # interaction targets only: never blocks movement
 	reach.collision_mask = 0
+	# A recess's books stand behind its wall line (z 0..back_z); a freestanding
+	# case's stand wholly in front of its divider (front_z..back_z).
+	var z0: float = 0.0 if back_z > 0.0 else front_z
 	for k: int in shelf_levels.size():
 		var shape := CollisionShape3D.new()
 		var box := BoxShape3D.new()
-		box.size = Vector3(half_width * 2.0, 0.4, back_z)
+		box.size = Vector3(half_width * 2.0, 0.4, back_z - z0)
 		shape.shape = box
-		shape.position = Vector3(0, shelf_levels[k] + 0.2, back_z * 0.5)
+		shape.position = Vector3(0, shelf_levels[k] + 0.2, (back_z + z0) * 0.5)
 		reach.add_child(shape)
 	add_child(reach, false, Node.INTERNAL_MODE_FRONT)
 

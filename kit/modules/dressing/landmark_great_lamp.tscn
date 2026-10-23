@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_jmmag"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/landmark_great_lamp.glb" id="2_ia3x7"]
+
+[node name="landmark_great_lamp" type="Node3D" unique_id=1510392610]
+script = ExtResource("1_jmmag")
+family = "dressing"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("brass", "light", "landmark")
+source_glb = "res://assets/kit/dressing/landmark_great_lamp.glb"
+
+[node name="Mesh" parent="." unique_id=2115196980 instance=ExtResource("2_ia3x7")]

@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_8uwbd"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/arcade_arch_4m.glb" id="2_387in"]
+
+[node name="arcade_arch_4m" type="Node3D" unique_id=1941473426]
+script = ExtResource("1_8uwbd")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "open"
+tags = PackedStringArray("brick", "arch", "hall")
+source_glb = "res://assets/kit/walls/arcade_arch_4m.glb"
+
+[node name="Mesh" parent="." unique_id=543015480 instance=ExtResource("2_387in")]

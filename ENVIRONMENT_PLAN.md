@@ -8,12 +8,14 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| Nothing right now. Phase 4 is complete; phase 5 (kit breadth: more room types) is next and needs a design brief first, when you want it | [Roadmap](#10-roadmap-each-phase-is-a-playable-slice) | — |
+| Nothing to approve. Two look questions are open (the columns read as blocks; the plaster domes are dark), and step 2 (the big hall) is next | [Phase 5 progress, step 1](docs/environment/progress/phase-5-kit-breadth.md) (Caveats) | Answer the look questions whenever you like, or say go for step 2 |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-22 | **Phase 5 step 1 built:** a new area on the Esc menu, the Lower Stacks, starts in a generated column hall: twisted columns, small tiled domes, freestanding bookcases, aisles to a landmark under an oculus (great lamp, reading tree or catalogue desk). The generator now follows its rules files, and every gallery still comes out exactly as before ([progress](docs/environment/progress/phase-5-kit-breadth.md)). You walked it; committed. |
+| 2026-10-22 | **Phase 5 design drafted:** [approval brief](docs/environment/phase-5-approval.md) and [technical design](docs/environment/phase-5-design.md). Four new room types in a new area, the Lower Stacks; recommends moving the Overlook and R10 to a later phase (Q1). Waiting for your approval. |
 | 2026-10-22 | **Fix:** the pale arch "trim" floating in R01's upper shelves above its doors (in the wing only) was each gallery's first vault seen through the recess; those vault bays now stop short of R01's recesses. A new route check guards it ([progress](docs/environment/progress/phase-4-areas.md)). You checked it; committed. |
 | 2026-10-22 | **Phase 4 step 4 built:** quit anywhere in the wing and you resume in the same gallery; changes in rooms that aren't loaded are kept; after Let ten years pass, a gallery you walk into has aged exactly as a fresh process says. The persistence gate grows to seven processes, all passing. Travel shows a plain dark loading panel ([progress](docs/environment/progress/phase-4-areas.md)). You walked it; committed. **Phase 4 complete.** |
 | 2026-10-20 | **Phase 4 step 3 built; the phase's finish line is met:** the wing streams without hitches at the RTX 3060 target (Medium, 1080p), passing three gate runs in a row: GPU worst 1.8 ms (limit 4), CPU worst 7.7 ms (limit 8). Only the nearest four lamps cast shadows; lighting doesn't pop when rooms arrive ([progress](docs/environment/progress/phase-4-areas.md)). Committed. |
@@ -42,7 +44,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 2. Generated Stack Gallery (R02) | A seeded corridor off any R01 door; bakeable to a scene | ✅ Done 2026-10-20 |
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
-| 5. Kit breadth | More room types, mostly from data | Not started |
+| **5. Kit breadth** | More room types, mostly from data | Approved 2026-10-22 (Q1–Q12 as recommended); step 1 done; step 2 next |
 
 ## 10. Roadmap (each phase is a playable slice)
 
@@ -56,7 +58,7 @@ relevant, the route audit and the two-process persistence test.
 | **2. Generated R02** | Cell grid, edge marking, `ModuleRules`, the R02 `RoomGrammar`, `GeneratorPreview` with overlay and bake, and connector joining to R01 | Walking from R01 into a generated gallery works; changing `max_straight_bays` and pressing Generate visibly changes the corridor; the route audit passes on 20 seeds. |
 | 3. Props and persistence | `WorldProp`, wake and sleep, breakables, book promotion, `ItemDef` pickup, `AreaState`, aging rules | Knock over a vase, pull a lore book and take it, quit; in a new process both stay changed. Advancing the world clock darkens untouched lamps only. |
 | **4. Areas and streaming** | `AreaRecipe`, graph and routing, threaded room streaming, light budget | An area of 6–10 rooms (R01, several R02, one baked room) streams without hitches at the frame target. |
-| **5. Kit breadth** | R03 grid generator, R05 courtyard template, R09 ring generator, R11 (R03 plus water), and porting the Overlook and R10 from `vista.gd` | Each new type is added mostly through modules and `.tres` rules, with little new code. That is the test of the architecture. |
+| **5. Kit breadth** | R03 grid generator, R11 (R03 plus water), R09 ring generator, R05 courtyard template, in a new area (the Lower Stacks). Porting the Overlook and R10 from `vista.gd` moved to a later phase (phase 5 Q1) | Each new type is added mostly through modules and `.tres` rules, with little new code. That is the test of the architecture. |
 
 ## The documents
 
@@ -68,7 +70,9 @@ relevant, the route audit and the two-process persistence test.
 | [Phase 3 design](docs/environment/phase-3-design.md) | Technical detail behind the brief (§6.5) | Built; reference |
 | [Phase 4 approval brief](docs/environment/phase-4-approval.md) | Plain-language: what you get, the steps, the decisions | Approved; reference |
 | [Phase 4 design](docs/environment/phase-4-design.md) | Technical detail behind the brief (§8.1) | Optional |
-| Progress logs in `docs/environment/progress/` | What was built, how it was verified, caveats: [phase 0](docs/environment/progress/phase-0-kit.md), [phase 1](docs/environment/progress/phase-1-reading-room.md), [R01 weathering](docs/environment/progress/r01-weathering.md), [R01 polish](docs/environment/progress/r01-polish.md), [phase 2](docs/environment/progress/phase-2-stack-gallery.md), [phase 3](docs/environment/progress/phase-3-props.md), [phase 4](docs/environment/progress/phase-4-areas.md) | When you want the detail of a finished step |
+| [Phase 5 approval brief](docs/environment/phase-5-approval.md) | Plain-language: the four new rooms, the steps, the decisions | Approved; reference |
+| [Phase 5 design](docs/environment/phase-5-design.md) | Technical detail behind the brief (§5.6) | Optional |
+| Progress logs in `docs/environment/progress/` | What was built, how it was verified, caveats: [phase 0](docs/environment/progress/phase-0-kit.md), [phase 1](docs/environment/progress/phase-1-reading-room.md), [R01 weathering](docs/environment/progress/r01-weathering.md), [R01 polish](docs/environment/progress/r01-polish.md), [phase 2](docs/environment/progress/phase-2-stack-gallery.md), [phase 3](docs/environment/progress/phase-3-props.md), [phase 4](docs/environment/progress/phase-4-areas.md), [phase 5](docs/environment/progress/phase-5-kit-breadth.md) | When you want the detail of a finished step |
 
 Room types and their mocks are in `design/room-atlas.html`. The look is in
 `ART_DIRECTION.md`.

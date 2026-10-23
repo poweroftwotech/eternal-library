@@ -25,13 +25,19 @@ const CELL_HEIGHT: float = 7.0
 
 ## Vector3i -> {kind: String, run: Vector3i (barrel axis), bay: int (cells from
 ## the entry)}. kind: floor, corner, collapsed, or alcove (a one-cell dead end
-## off a bay of the run; its `bay` is that bay's).
+## off a bay of the run; its `bay` is that bay's). Optional (phase 5):
+## floor_slot and ceiling_slot (ModuleRules slots, "" = none) and gables
+## (false: no gable at the ceiling's ends); RoomBuilder's defaults are R02's.
 var cells: Dictionary = {}
 ## edge key -> {cell: Vector3i, side: int, mark: int, host: bool}. `cell` and
 ## `side` are the room cell the edge faces into (its module's interior side).
 var edges: Dictionary = {}
 ## Vector3i -> lamp origin height above the cell's floor.
 var lamps: Dictionary = {}
+## Corner key (RoomBuilder._corner_key) -> ModuleRules slot: the post a wall
+## corner takes instead of "post", or a free-standing post where no wall
+## meets (a hall's columns; phase-5-design.md 5.6.1).
+var posts: Dictionary = {}
 ## Room-space boxes the room may not build into (the host's and sibling
 ## rooms' modules, and the bays outside their doors).
 var blockers: Array[AABB] = []
@@ -51,6 +57,9 @@ var end_kind: String = ""
 ## A planner's trial layout: the grammar keeps its "boxed in" warnings to
 ## itself (the planner reports what it rejects).
 var quiet: bool = false
+## An area's root room has no host: its entry door is an exit like the
+## others (phase-5-design.md 5.6.8). Grammars that support it read this.
+var root: bool = false
 
 
 func add_cell(c: Vector3i, kind: String, run: Vector3i, bay: int) -> void:

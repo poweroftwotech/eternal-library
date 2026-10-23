@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_p3u7e"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/post_column_twisted.glb" id="2_gx3pi"]
+
+[node name="post_column_twisted" type="Node3D" unique_id=1850406485]
+script = ExtResource("1_p3u7e")
+shape = 2
+family = "walls"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("stone", "column", "hall")
+source_glb = "res://assets/kit/walls/post_column_twisted.glb"
+
+[node name="Mesh" parent="." unique_id=1474991915 instance=ExtResource("2_gx3pi")]

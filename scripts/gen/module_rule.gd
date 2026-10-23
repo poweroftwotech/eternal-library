@@ -13,8 +13,9 @@ const SLOT_SHAPES: Dictionary = {
 	"dressing:rubble": KitModule.Shape.FREE, "stub:exit": KitModule.Shape.FREE,
 }
 
-@export_enum("edge:solid", "edge:solid_corner", "edge:recess", "edge:opening", "edge:door", "gable", "cell:floor", "cell:ceiling",
-		"cell:ceiling_cross", "post", "lamp", "dressing:rubble", "stub:exit")
+## A slot RoomBuilder asks for: one of SLOT_SHAPES, or a grammar's own named by
+## its shape (edge:…, cell:…, post:…; anything else is FREE dressing).
+@export_custom(PROPERTY_HINT_ENUM_SUGGESTION, "edge:solid,edge:solid_corner,edge:recess,edge:opening,edge:door,edge:arcade,gable,cell:floor,cell:ceiling,cell:ceiling_cross,cell:dome,cell:oculus,post,post:column,post:engaged,lamp,dressing:rubble,dressing:case,landmark,stub:exit")
 var slot: String = "edge:solid":
 	set(value):
 		slot = value
@@ -34,6 +35,19 @@ var slot: String = "edge:solid":
 			if c != null and not c.changed.is_connected(emit_changed):
 				c.changed.connect(emit_changed)
 		emit_changed()
+
+
+## The module shape a slot takes.
+static func shape_of(slot_name: String) -> KitModule.Shape:
+	if SLOT_SHAPES.has(slot_name):
+		return SLOT_SHAPES[slot_name]
+	if slot_name.begins_with("edge:"):
+		return KitModule.Shape.EDGE
+	if slot_name.begins_with("cell:"):
+		return KitModule.Shape.CELL
+	if slot_name.begins_with("post:"):
+		return KitModule.Shape.POST
+	return KitModule.Shape.FREE
 
 
 func matches(slot_name: String, room_styles: PackedStringArray) -> bool:

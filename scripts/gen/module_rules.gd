@@ -31,7 +31,7 @@ func pick(slot: String, styles: PackedStringArray, rng: RandomNumberGenerator) -
 	return r.pick(rng) if r != null else null
 
 
-## Problems: unknown slots, empty rules, and modules whose KitModule shape
+## Problems: rules without a slot or choices, and modules whose KitModule shape
 ## doesn't fit their slot (a floor offered for a wall).
 func check() -> PackedStringArray:
 	var out: PackedStringArray = []
@@ -40,8 +40,8 @@ func check() -> PackedStringArray:
 		if r == null:
 			out.append("rule %d is empty" % i)
 			continue
-		if not ModuleRule.SLOT_SHAPES.has(r.slot):
-			out.append("rule %d: unknown slot %s" % [i, r.slot])
+		if r.slot.strip_edges() == "":
+			out.append("rule %d has no slot" % i)
 			continue
 		if r.choices.is_empty():
 			out.append("rule %d (%s): no choices" % [i, r.slot])
@@ -53,7 +53,7 @@ func check() -> PackedStringArray:
 			var m := inst as KitModule
 			if m == null:
 				out.append("rule %d (%s): %s is not a kit module" % [i, r.slot, c.scene.resource_path])
-			elif m.shape != ModuleRule.SLOT_SHAPES[r.slot]:
+			elif m.shape != ModuleRule.shape_of(r.slot):
 				out.append("rule %d (%s): %s is a %s module" % [i, r.slot, c.scene.resource_path, KitModule.Shape.keys()[m.shape]])
 			inst.free()
 	return out

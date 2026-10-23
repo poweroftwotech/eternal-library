@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/shelf_fill.gd" id="1_fill"]
+
+[node name="case_books_sparse" type="MultiMeshInstance3D"]
+script = ExtResource("1_fill")
+shelf_levels = PackedFloat32Array(0.17, 0.59, 1.01, 1.43, 1.85)
+half_width = 1.44
+back_z = -0.02
+front_z = -0.33
+density = 0.45
+face_z = -0.35
+palette = PackedColorArray(0.48, 0.17, 0.13, 1, 0.17, 0.25, 0.42, 1, 0.42, 0.29, 0.12, 1, 0.18, 0.36, 0.29, 1, 0.54, 0.42, 0.17, 1, 0.29, 0.16, 0.29, 1, 0.64, 0.33, 0.23, 1, 0.78, 0.71, 0.54, 1)

@@ -257,13 +257,14 @@ static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, di
 	r.rules = rules
 	r.seed_value = seed_value
 	r.end_kind = end_kind
-	r.entry = &"SNAP_entry"
+	r.entry = &"SNAP_entry" if parent_room != null else &""
 	if parent_room != null:
 		r.xf = _joined_xf(parent_room, conn, GeneratedRoom.ENTRY)
 	r.storey = AreaPlan.cell_of(r.xf.origin).y
 	var grid := CellGrid.new()
 	grid.end_kind = end_kind
 	grid.quiet = true
+	grid.root = parent_room == null
 	var to_local: Transform3D = r.xf.affine_inverse()
 	for b: AABB in _blockers(p, recipe, parent_room, conn):
 		grid.blockers.append(to_local * b)
@@ -273,7 +274,8 @@ static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, di
 	grammar.layout(grid, seed_value)
 	grammar.wear_lanes(grid, seed_value)
 	r.grid = grid
-	r.connectors[&"SNAP_entry"] = {"xf": r.xf * GeneratedRoom.ENTRY, "storey": r.storey, "joined": "", "cap": ""}
+	if parent_room != null:
+		r.connectors[&"SNAP_entry"] = {"xf": r.xf * GeneratedRoom.ENTRY, "storey": r.storey, "joined": "", "cap": ""}
 	for k: String in grid.edges:
 		var e: Dictionary = grid.edges[k]
 		if e["mark"] == CellGrid.Mark.DOOR and not e["host"]:
