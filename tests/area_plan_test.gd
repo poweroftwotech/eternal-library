@@ -9,8 +9,13 @@ extends SceneTree
 ## reading_room@1. Hand-made plans: four rooms in a straight line are rejected,
 ## three pass; two rooms stacked one storey apart don't overlap, on one storey
 ## they do. Option map=<dir> writes each seed's plan map as a PNG.
+## The Lower Stacks (phase-5-design.md 5.6.9), seeds 1-20: the plan checks
+## clean with its room_count, planning twice gives the same plan, and the
+## generated hall is the root at the origin, sees every room joined to it,
+## and has a bay a walk goes round for each case, heap and the landmark.
 
 const RECIPE: String = "res://gen/recipes/library_wing.tres"
+const LOWER_STACKS: String = "res://gen/recipes/lower_stacks.tres"
 const SEEDS: int = 20
 
 var failures: PackedStringArray = []
@@ -74,11 +79,34 @@ func run() -> void:
 			p.draw_map().save_png("%s/area_plan_seed_%d.png" % [map_dir, s])
 	print("  room counts over %d seeds: %s; dead ends %d; slowest plan %.0f ms; grow tries %s" % [seeds, counts, dead_ends, slowest, totals])
 	check(counts.keys().all(func(n: int) -> bool: return n >= 6 and n <= 9), "every seed has 6-9 rooms (%s)" % [counts])
+	lower_stacks(seeds)
 	hand_made()
 	print("area_plan_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
 	quit(1 if not failures.is_empty() else 0)
+
+
+func lower_stacks(seeds: int) -> void:
+	var recipe: AreaRecipe = load(LOWER_STACKS)
+	var counts: Dictionary = {}
+	for s: int in range(1, seeds + 1):
+		var tag: String = "lower stacks %d" % s
+		var p: AreaPlan = AreaPlanner.plan(recipe, s)
+		var problems: PackedStringArray = p.check()
+		check(problems.is_empty(), "%s: the plan checks clean (%s)" % [tag, problems])
+		check(AreaPlanner.plan(recipe, s).signature() == p.signature(), "%s: planning twice gives the same plan" % tag)
+		var hall: AreaPlan.Room = p.rooms[0]
+		check(hall.slot_id == "hall" and hall.kind == "generated" and hall.parent == "" and hall.xf == Transform3D(),
+			"%s: the generated hall is the root at the origin" % tag)
+		var joined: Array = p.rooms.filter(func(r: AreaPlan.Room) -> bool: return r.parent == "hall").map(func(r: AreaPlan.Room) -> String: return r.slot_id)
+		var sees: PackedStringArray = p.visible.get("hall", PackedStringArray())
+		check(not joined.is_empty() and joined.all(func(id: String) -> bool: return sees.has(id)), "%s: the hall sees every room joined to it (%s; sees %s)" % [tag, joined, sees])
+		var stand: int = hall.grid.props.values().filter(func(pr: Dictionary) -> bool: return pr["slot"] in ["dressing:case", "dressing:rubble_heap", "landmark"]).size()
+		check(hall.blocked_cells.size() == stand, "%s: a bay to walk round for each case, heap and the landmark (%d of %d)" % [tag, hall.blocked_cells.size(), stand])
+		counts[p.rooms.size()] = int(counts.get(p.rooms.size(), 0)) + 1
+	print("  lower stacks room counts over %d seeds: %s" % [seeds, counts])
+	check(counts.keys().all(func(n: int) -> bool: return n >= recipe.room_count.x and n <= recipe.room_count.y), "every Lower Stacks seed has %d-%d rooms (%s)" % [recipe.room_count.x, recipe.room_count.y, counts])
 
 
 ## Synthetic plans: straight lines of rooms, and stacked rooms.

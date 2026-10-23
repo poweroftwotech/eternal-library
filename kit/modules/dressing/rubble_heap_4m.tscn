@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_2knhg"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/rubble_heap_4m.glb" id="2_iba8p"]
+
+[node name="rubble_heap_4m" type="Node3D" unique_id=921177507]
+script = ExtResource("1_2knhg")
+family = "dressing"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "debris", "hall")
+source_glb = "res://assets/kit/dressing/rubble_heap_4m.glb"
+
+[node name="Mesh" parent="." unique_id=827517069 instance=ExtResource("2_iba8p")]

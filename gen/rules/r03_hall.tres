@@ -19,6 +19,9 @@
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/case_freestanding_4m.tscn" id="16_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/landmark_plinth.tscn" id="17_m"]
 [ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="18_m"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_dome_cluster.tscn" id="19_m"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/dome_cell_4m_fallen.tscn" id="20_m"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rubble_heap_4m.tscn" id="21_m"]
 
 [sub_resource type="Resource" id="Choice_1"]
 script = ExtResource("2_choice")
@@ -170,6 +173,36 @@ script = ExtResource("1_rule")
 slot = "stub:exit"
 choices = Array[ExtResource("2_choice")]([SubResource("Choice_16")])
 
+[sub_resource type="Resource" id="Choice_17"]
+script = ExtResource("2_choice")
+scene = ExtResource("19_m")
+weight = 1.0
+
+[sub_resource type="Resource" id="Rule_15"]
+script = ExtResource("1_rule")
+slot = "lamp:cluster"
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_17")])
+
+[sub_resource type="Resource" id="Choice_18"]
+script = ExtResource("2_choice")
+scene = ExtResource("20_m")
+weight = 1.0
+
+[sub_resource type="Resource" id="Rule_16"]
+script = ExtResource("1_rule")
+slot = "cell:dome_fallen"
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_18")])
+
+[sub_resource type="Resource" id="Choice_19"]
+script = ExtResource("2_choice")
+scene = ExtResource("21_m")
+weight = 1.0
+
+[sub_resource type="Resource" id="Rule_17"]
+script = ExtResource("1_rule")
+slot = "dressing:rubble_heap"
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_19")])
+
 [resource]
 script = ExtResource("0_rules")
-rules = Array[ExtResource("1_rule")]([SubResource("Rule_1"), SubResource("Rule_2"), SubResource("Rule_3"), SubResource("Rule_4"), SubResource("Rule_5"), SubResource("Rule_6"), SubResource("Rule_7"), SubResource("Rule_8"), SubResource("Rule_9"), SubResource("Rule_10"), SubResource("Rule_11"), SubResource("Rule_12"), SubResource("Rule_13"), SubResource("Rule_14")])
+rules = Array[ExtResource("1_rule")]([SubResource("Rule_1"), SubResource("Rule_2"), SubResource("Rule_3"), SubResource("Rule_4"), SubResource("Rule_5"), SubResource("Rule_6"), SubResource("Rule_7"), SubResource("Rule_8"), SubResource("Rule_9"), SubResource("Rule_10"), SubResource("Rule_11"), SubResource("Rule_12"), SubResource("Rule_13"), SubResource("Rule_14"), SubResource("Rule_15"), SubResource("Rule_16"), SubResource("Rule_17")])

@@ -403,6 +403,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "rubble_heap_4m",
+"scene": "res://kit/modules/dressing/rubble_heap_4m.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("stone", "debris", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "stair_steps_masonry",
 "scene": "res://kit/modules/dressing/stair_steps_masonry.tscn",
 "shape": "free",
@@ -466,6 +475,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "dome_cell_4m_fallen",
+"scene": "res://kit/modules/walls/dome_cell_4m_fallen.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("tile", "dome", "ruin", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "floor_4m",
 "scene": "res://kit/modules/walls/floor_4m.tscn",
 "shape": "cell",
@@ -522,6 +540,15 @@ modules = Array[Dictionary]([{
 "family": "walls",
 "name": "lantern_dome",
 "scene": "res://kit/modules/walls/lantern_dome.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brass", "light", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lantern_dome_cluster",
+"scene": "res://kit/modules/walls/lantern_dome_cluster.tscn",
 "shape": "free",
 "size_cells": Vector3i(0, 1, 0),
 "tags": PackedStringArray("brass", "light", "hall"),

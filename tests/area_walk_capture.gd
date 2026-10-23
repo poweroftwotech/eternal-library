@@ -1,9 +1,10 @@
 extends SceneTree
-## Frame log and frame gate of the real game walking the library wing while
+## Frame log and frame gate of the real game walking an area (the library
+## wing, or --area=<id>: the Lower Stacks, phase-5-design.md 5.6.3) while
 ## rooms stream (phase-4-design.md 8.1.7). Needs a display, not --headless;
 ## run `godot --headless --import` first.
-##   godot --path . --resolution 1920x1080 --script res://tests/area_walk_capture.gd -- <out.csv> [area seed] [speed m/s] [--preset=medium] [--gate]
-## The player walks (3.3 m/s, the game's speed) from R01's hall out to every
+##   godot --path . --resolution 1920x1080 --script res://tests/area_walk_capture.gd -- <out.csv> [area seed] [speed m/s] [--preset=medium] [--gate] [--area=<id>]
+## The player walks (3.3 m/s, the game's speed) from the root room (AreaTour) out to every
 ## leaf gallery's far end and back, looking where it goes, with vsync off.
 ## Every frame is logged: its time, GPU time, the streamer's work, rooms
 ## live, loaded and unloaded, draw calls (all passes), shadowed lights, lights
@@ -40,7 +41,11 @@ func capture() -> void:
 	var area_seed: int = int(args[1]) if args.size() > 1 else 1
 	var speed: float = float(args[2]) if args.size() > 2 else 3.3
 	var main_script: GDScript = load("res://scripts/main.gd")
-	main_script.room_override = "area:library"
+	var area_id: String = "library"
+	for a: String in OS.get_cmdline_user_args():
+		if a.begins_with("--area="):
+			area_id = a.trim_prefix("--area=")
+	main_script.room_override = "area:" + area_id
 	Area.seed_override = area_seed
 	var t0: int = Time.get_ticks_usec()
 	var game: Node = (load("res://main.tscn") as PackedScene).instantiate()
@@ -73,10 +78,16 @@ func capture() -> void:
 	var unloads: int = st.stats["unloads"]
 	var frame: int = 0
 	var in_reach: int = 0
+	# The light count below is the test's own work (a walk of every node in the
+	# area): timed, and taken off the frame it lands in, so a big hall isn't
+	# charged for it.
+	var probe_us: int = 0
+	var probe_max_ms: float = 0.0
 	while seg < path.size() - 1:
 		await process_frame
 		var now: int = Time.get_ticks_usec()
-		var ms: float = (now - last) / 1000.0
+		var ms: float = (now - last - probe_us) / 1000.0
+		probe_us = 0
 		last = now
 		# Walk on by real time, as a player would.
 		var step: float = speed * minf(ms, 50.0) / 1000.0
@@ -101,9 +112,12 @@ func capture() -> void:
 		loads = st.stats["loads"]
 		unloads = st.stats["unloads"]
 		if frame % 15 == 0 or event != "":
+			var probe_t0: int = Time.get_ticks_usec()
 			var cam: Vector3 = game.player.camera.global_position
 			in_reach = area.find_children("*", "Light3D", true, false).filter(func(l: Node) -> bool:
 				return (l as Light3D).is_visible_in_tree() and (l as Light3D).global_position.distance_to(cam) < REACH_M).size()
+			probe_us = Time.get_ticks_usec() - probe_t0
+			probe_max_ms = maxf(probe_max_ms, probe_us / 1000.0)
 		var gpu: float = RenderingServer.viewport_get_measured_render_time_gpu(vp_rid)
 		var draws: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
 		var tris: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
@@ -130,9 +144,9 @@ func capture() -> void:
 	var over_8: int = sorted.filter(func(t: float) -> bool: return t > 8.3).size()
 	var over_16: int = sorted.filter(func(t: float) -> bool: return t > 16.7).size()
 	var preset: String = GraphicsPreset.requested() if GraphicsPreset.requested() != "" else "project settings"
-	print("area_walk_capture: seed %d, %d rooms, %s, %dx%d, boot %.0f ms; %d frames over %.0f m; frame %.2f ms mean, %.2f p99, %.2f worst; gpu %.2f ms mean, %.2f worst; %d over 8.3 ms, %d over 16.7 ms; peaks %s; built %d, unloaded %d; slowest streaming frame %.1f ms; wear regions up to %.0f ms (thread), upload %.1f ms; wrote %s" % [
-		area_seed, area.plan.rooms.size(), preset, root.size.x, root.size.y, boot_ms, frame, AreaTour.length(path), mean, sorted[int(sorted.size() * 0.99) - 1], sorted[-1],
-		gpu_mean, gpu_max, over_8, over_16, peak, st.stats["loads"], st.stats["unloads"], st.stats["max_frame_ms"], FloorWear.max_region_ms, FloorWear.last_upload_ms, out])
+	print("area_walk_capture: %s seed %d, %d rooms, %s, %dx%d, boot %.0f ms; %d frames over %.0f m; frame %.2f ms mean, %.2f p99, %.2f worst; gpu %.2f ms mean, %.2f worst; %d over 8.3 ms, %d over 16.7 ms; peaks %s; built %d, unloaded %d; slowest streaming frame %.1f ms; wear regions up to %.0f ms (thread), upload up to %.1f ms (map %s); light count (not charged) up to %.1f ms; wrote %s" % [
+		area_id, area_seed, area.plan.rooms.size(), preset, root.size.x, root.size.y, boot_ms, frame, AreaTour.length(path), mean, sorted[int(sorted.size() * 0.99) - 1], sorted[-1],
+		gpu_mean, gpu_max, over_8, over_16, peak, st.stats["loads"], st.stats["unloads"], st.stats["max_frame_ms"], FloorWear.max_region_ms, FloorWear.max_upload_ms, FloorWear.map_image.get_size() if FloorWear.map_image != null else Vector2i.ZERO, probe_max_ms, out])
 	worst.sort_custom(func(a: Array, b: Array) -> bool: return a[0] > b[0])
 	print("  worst frames (%s):" % lines[0])
 	for w: Array in worst.slice(0, 8):

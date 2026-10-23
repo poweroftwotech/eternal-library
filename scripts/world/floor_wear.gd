@@ -166,8 +166,9 @@ static var _task_started: int = 0
 ## Milliseconds the last region took on its worker thread, and the most yet.
 static var last_region_ms: float = 0.0
 static var max_region_ms: float = 0.0
-## Milliseconds the last copy into the map and upload took (main thread).
+## Milliseconds the last copy into the map and upload took (main thread), and the most yet.
 static var last_upload_ms: float = 0.0
+static var max_upload_ms: float = 0.0
 
 
 ## Asks for the world x/z rect `r` of the map to be redrawn from the live wears.
@@ -199,6 +200,7 @@ static func poll() -> void:
 			map_y = _band(_live_wears())
 			_publish()
 			last_upload_ms = (Time.get_ticks_usec() - t0) / 1000.0
+			max_upload_ms = maxf(max_upload_ms, last_upload_ms)
 		_task_image = null
 	if _pending.is_empty() or map_image == null:
 		return

@@ -10,6 +10,8 @@ extends SceneTree
 ##   aisle      low, along a row of bookcases
 ##   domes      looking up at the domes and arches
 ##   landmark   close on the landmark under its oculus
+##   collapse   a collapsed bay: the rubble heap and the shaft its dome left (step 2)
+##   cluster    a cluster of lanterns hanging from a dome (step 2)
 
 func _initialize() -> void:
 	call_deferred("run")
@@ -63,6 +65,20 @@ func run() -> void:
 		"domes": [CellGrid.cell_centre(Vector3i.ZERO) + Vector3(0, 1.6, -0.5), CellGrid.cell_centre(Vector3i(0, 0, 2)) + Vector3(0, 7.5, 0)],
 		"landmark": [c0 + Vector3(4.5, 1.8, 4.5) * Vector3(1, 1, -1) * 0.8, c0 + Vector3(0, 2.0, 0)],
 	}
+	# Step 2: a collapsed bay (its heap and the shaft its dome left) and a lamp
+	# cluster, each seen from a clear neighbouring bay, when the hall has one.
+	for k: String in g.props:
+		var slot: String = g.props[k]["slot"]
+		if (slot != "dressing:rubble_heap" or views.has("collapse")) and (slot != "lamp:cluster" or views.has("cluster")):
+			continue
+		var at: Vector3 = (g.props[k]["xf"] as Transform3D) * (Vector3(2.0, 0.0, -2.0) if slot == "dressing:rubble_heap" else Vector3.ZERO)
+		var cell := Vector3i(AreaPlan.cell_of(at + Vector3(0, 0.1, 0)).x, 0, AreaPlan.cell_of(at + Vector3(0, 0.1, 0)).z)
+		for dir: int in CellGrid.ALL_SIDES:
+			var n: Vector3i = CellGrid.neighbour(cell, dir)
+			if g.cells.has(n) and not g.cells[n].get("blocked", false):
+				var from: Vector3 = CellGrid.cell_centre(n) + (CellGrid.cell_centre(n) - CellGrid.cell_centre(cell)) * 0.25
+				views["collapse" if slot == "dressing:rubble_heap" else "cluster"] = [from + Vector3(0, 1.6, 0), at + Vector3(0, 3.2 if slot == "dressing:rubble_heap" else 3.0, 0)]
+				break
 	var vp_rid: RID = root.get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(vp_rid, true)
 	print("r03_capture: seed %d, hall %d x %d bays, %d modules, landmark %s" % [area_seed, xs.max() - xs.min() + 1, zs.max() - zs.min() + 1, hall.modules.size(), _landmark(hall)])

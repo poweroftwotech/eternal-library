@@ -7,7 +7,8 @@ extends SceneTree
 ## through every joined door into the gallery beyond, and back. Then, in every
 ## bay with a bookcase, it slides along the case on both sides
 ## (body_test_motion, not blocked), and straight across it is blocked. The
-## validator is clean on the hall.
+## validator is clean on the hall. Collapsed bays (step 2) are left out of the
+## tour, and walking into one from any neighbouring bay is blocked.
 
 const RECIPE: String = "res://gen/recipes/lower_stacks.tres"
 const SEEDS: int = 5
@@ -15,6 +16,7 @@ const SPEED: float = 8.0
 
 var failures: PackedStringArray = []
 var checks: int = 0
+var total_heaps: int = 0
 
 
 func _initialize() -> void:
@@ -35,6 +37,7 @@ func run() -> void:
 	for s: int in range(1, seeds + 1):
 		await walk_seed(s)
 	Area.seed_override = -1
+	check(total_heaps > 0, "the halls walked have collapsed bays to test (%d)" % total_heaps)
 	print("r03_route_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures.slice(0, 30):
 		print("  FAIL ", f)
@@ -60,6 +63,12 @@ func walk_seed(s: int) -> void:
 			var xf: Transform3D = g.props[k]["xf"]
 			var at: Vector3i = AreaPlan.cell_of(xf * Vector3(2.0, 0.1, -2.0))
 			cases[Vector3i(at.x, 0, at.z)] = xf.basis.x.abs().round()
+	var heaps: Dictionary = {}        # collapsed bays: cell -> true
+	for k: String in g.props:
+		if g.props[k]["slot"] == "dressing:rubble_heap":
+			var at: Vector3i = AreaPlan.cell_of((g.props[k]["xf"] as Transform3D) * Vector3(2.0, 0.1, -2.0))
+			heaps[Vector3i(at.x, 0, at.z)] = true
+	total_heaps += heaps.size()
 	var centre: Vector3i = Vector3i.MAX
 	for c: Vector3i in g.cells:
 		if g.cells[c].get("ceiling_slot", "") == "cell:oculus":
@@ -71,9 +80,9 @@ func walk_seed(s: int) -> void:
 	# A tour of the clear bays: depth first from the entry, back out of each branch.
 	var tour: Array[Vector3] = []
 	var seen: Dictionary = {}
-	_tour(g, Vector3i.ZERO, cases, centre, seen, tour, hall)
+	_tour(g, Vector3i.ZERO, cases.merged(heaps), centre, seen, tour, hall)
 	var reached: int = await follow(body, tour)
-	var clear_bays: int = g.cells.size() - cases.size() - 1
+	var clear_bays: int = g.cells.size() - cases.size() - heaps.size() - 1
 	check(reached == tour.size(), "%s: the capsule walks the tour of the clear bays (%d of %d points)" % [tag, reached, tour.size()])
 	check(seen.size() >= clear_bays * 0.9, "%s: the tour covers the clear bays (%d of %d; the rest sit between bookcases)" % [tag, seen.size(), clear_bays])
 	# Out through every joined door and back.
@@ -85,7 +94,7 @@ func walk_seed(s: int) -> void:
 		var door_xf: Transform3D = conn["xf"]
 		var inside: Vector3 = door_xf.origin + door_xf.basis.z * 2.0     # connectors point -Z out of the room
 		var outside: Vector3 = door_xf.origin - door_xf.basis.z * 2.5
-		var path: Array[Vector3] = _path_to(g, AreaPlan.cell_of(hall.to_local(body.global_position)), AreaPlan.cell_of(hall.to_local(inside)), cases, centre, hall)
+		var path: Array[Vector3] = _path_to(g, AreaPlan.cell_of(hall.to_local(body.global_position)), AreaPlan.cell_of(hall.to_local(inside)), cases.merged(heaps), centre, hall)
 		path.append_array([inside, outside, inside])
 		var got: int = await follow(body, path)
 		check(got == path.size(), "%s: out through %s into %s and back (%d of %d)" % [tag, name, conn["joined"], got, path.size()])
@@ -105,7 +114,19 @@ func walk_seed(s: int) -> void:
 			crossings_open.append(str(c))
 	check(lanes_bad.is_empty(), "%s: every bookcase can be passed along both sides (%s)" % [tag, lanes_bad.slice(0, 6)])
 	check(crossings_open.is_empty(), "%s: no bookcase can be walked through (%s)" % [tag, crossings_open.slice(0, 6)])
-	print("  %s: hall %d bays, %d cases, tour %d points, %d doors" % [tag, g.cells.size(), cases.size(), tour.size(), doors])
+	# Collapsed bays: from every neighbouring bay, walking in is blocked.
+	var heaps_open: PackedStringArray = []
+	for c: Vector3i in heaps:
+		for side: int in CellGrid.ALL_SIDES:
+			var n: Vector3i = CellGrid.neighbour(c, side)
+			if not g.cells.has(n) or cases.has(n) or heaps.has(n):
+				continue
+			var from: Vector3 = hall.to_global(CellGrid.cell_centre(n)) + Vector3(0, 1.0, 0)
+			var to: Vector3 = hall.to_global(CellGrid.cell_centre(c)) + Vector3(0, 1.0, 0)
+			if not await blocked(body, from, to - from):
+				heaps_open.append("%s from %s" % [c, n])
+	check(heaps_open.is_empty(), "%s: no collapsed bay can be walked into (%s)" % [tag, heaps_open.slice(0, 6)])
+	print("  %s: hall %d bays, %d cases, %d collapsed, tour %d points, %d doors" % [tag, g.cells.size(), cases.size(), heaps.size(), tour.size(), doors])
 	area.queue_free()
 	await process_frame
 	await process_frame

@@ -1,9 +1,13 @@
 class_name AreaTour
 extends RefCounted
-## The walking route the area GPU tests share (area_walk_capture,
-## area_pop_capture): from R01's hall out to every leaf room's far end and
-## back, as floor points (cell centres, y 0), plus R01's door spots.
+## The walking routes the area tests share (stream_test, area_walk_capture,
+## area_pop_capture, persist_test): from the root room out to every leaf
+## room's far end and back, as floor points (cell centres, y 0, area frame).
+## The root is R01 (its door spots) or a generated room (from its first bay,
+## through its bays to the door); walks go round a room's blocked bays (a
+## hall's bookcases and rubble heaps, phase 5).
 
+## R01's door spots, by the connector a room joins it at.
 const STARTS: Dictionary = {
 	&"SNAP_door_west": Vector3(1.5, 0.0, -6),
 	&"SNAP_door_east": Vector3(10.5, 0.0, -6),
@@ -18,8 +22,7 @@ static func length(path: Array[Vector3]) -> float:
 	return total
 
 
-## Floor points from R01's hall out to every leaf's far end and back (cell
-## centres; R01's door spots as in area_route_test).
+## Floor points from the root out to every leaf's far end and back.
 static func tour(p: AreaPlan) -> Array[Vector3]:
 	var out: Array[Vector3] = []
 	for r: AreaPlan.Room in p.rooms:
@@ -32,8 +35,17 @@ static func tour(p: AreaPlan) -> Array[Vector3]:
 	return out
 
 
-## Floor points from R01's door spot to room `r`'s far end (the root room: just
-## R01's west door spot).
+## Where a walk starts in the root room: R01's west door spot, or a generated
+## root's first bay (the game's spawn).
+static func start(p: AreaPlan) -> Vector3:
+	var root_room: AreaPlan.Room = p.rooms[0]
+	if root_room.kind != "generated":
+		return STARTS[&"SNAP_door_west"]
+	return _centre(AreaPlan.cell_of(root_room.xf * CellGrid.cell_centre(Vector3i.ZERO)))
+
+
+## Floor points from the root's start to room `r`'s far end (the root room:
+## just the start).
 static func leg(p: AreaPlan, r: AreaPlan.Room) -> Array[Vector3]:
 	var chain: Array[AreaPlan.Room] = []
 	var at: AreaPlan.Room = r
@@ -41,8 +53,15 @@ static func leg(p: AreaPlan, r: AreaPlan.Room) -> Array[Vector3]:
 		chain.push_front(at)
 		at = p.room(at.parent)
 	if chain.is_empty():
-		return [STARTS[&"SNAP_door_west"]]
-	var out: Array[Vector3] = [STARTS[chain[0].parent_connector]]
+		return [start(p)]
+	var out: Array[Vector3] = []
+	if at.kind == "generated":
+		var first_xf: Transform3D = chain[0].connectors[chain[0].entry]["xf"]
+		var door: Vector3i = AreaPlan.cell_of(first_xf.origin - first_xf.basis.z * 2.0)
+		for c: Vector3i in cell_path(at, AreaPlan.cell_of(start(p)), door):
+			out.append(_centre(c))
+	else:
+		out.append(STARTS[chain[0].parent_connector])
 	for i: int in chain.size():
 		var room: AreaPlan.Room = chain[i]
 		var in_xf: Transform3D = room.connectors[room.entry]["xf"]
@@ -52,11 +71,11 @@ static func leg(p: AreaPlan, r: AreaPlan.Room) -> Array[Vector3]:
 			var out_xf: Transform3D = room.connectors[chain[i + 1].parent_connector]["xf"]
 			goal = AreaPlan.cell_of(out_xf.origin + out_xf.basis.z * 2.0)
 		for c: Vector3i in cell_path(room, from, goal):
-			out.append(AreaPlan.cell_box(c).get_center() * Vector3(1, 0, 1))
+			out.append(_centre(c))
 	return out
 
 
-## Floor points from room `a`'s far end to room `b`'s, by way of R01's hall.
+## Floor points from room `a`'s far end to room `b`'s, by way of the root.
 static func between(p: AreaPlan, a: AreaPlan.Room, b: AreaPlan.Room) -> Array[Vector3]:
 	var out: Array[Vector3] = leg(p, a)
 	out.reverse()
@@ -64,6 +83,8 @@ static func between(p: AreaPlan, a: AreaPlan.Room, b: AreaPlan.Room) -> Array[Ve
 	return out
 
 
+## Cells from `from` to `to` (Vector3i.MAX: the farthest cell) through the
+## room's open edges, round its blocked cells (breadth first).
 static func cell_path(r: AreaPlan.Room, from: Vector3i, to: Vector3i) -> Array[Vector3i]:
 	var parent: Dictionary = {from: from}
 	var order: Array[Vector3i] = [from]
@@ -73,7 +94,7 @@ static func cell_path(r: AreaPlan.Room, from: Vector3i, to: Vector3i) -> Array[V
 		head += 1
 		for side: int in CellGrid.ALL_SIDES:
 			var n: Vector3i = CellGrid.neighbour(c, side)
-			if parent.has(n) or not r.floor_cells.has(n) or not r.sight.has(CellGrid.key(c, side)):
+			if parent.has(n) or not r.floor_cells.has(n) or r.blocked_cells.has(n) or not r.sight.has(CellGrid.key(c, side)):
 				continue
 			parent[n] = c
 			order.append(n)
@@ -87,3 +108,7 @@ static func cell_path(r: AreaPlan.Room, from: Vector3i, to: Vector3i) -> Array[V
 		c = parent[c]
 	out.push_front(from)
 	return out
+
+
+static func _centre(c: Vector3i) -> Vector3:
+	return AreaPlan.cell_box(c).get_center() * Vector3(1, 0, 1)

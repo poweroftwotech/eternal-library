@@ -287,6 +287,8 @@ static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, di
 		var at: Vector3i = AreaPlan.cell_of(r.xf * _centre(c))
 		to_area[c] = at
 		r.floor_cells[at] = true
+		if grid.cells[c].get("blocked", false):
+			r.blocked_cells[at] = true
 		for s: int in tall + 1:
 			r.cells[Vector3i(at.x, at.y + s, at.z)] = true
 		r.blockers.append(r.xf * AABB(Vector3(c.x * CellGrid.BAY, c.y * CellGrid.BAY, -c.z * CellGrid.BAY - CellGrid.BAY),

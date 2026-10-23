@@ -14,7 +14,8 @@ extends SceneTree
 ##           everything back in place, and the game saves and quits.
 ## reverted: a third process finds no changes left and everything original.
 ## age, age_again: the years (phase 3 step 4, below).
-## area_save, area_load: the library wing (phase-4-design.md 8.1.8 step 4),
+## area_save, area_load: the library wing (phase-4-design.md 8.1.8 step 4), or
+##           with --area-id=lower_stacks the Lower Stacks (phase-5-design.md 5.6.9),
 ##           in their own save file; see area_save_mode.
 
 var main_script: GDScript = load("res://scripts/main.gd")
@@ -31,7 +32,7 @@ var checks: int = 0
 var game: Node
 var room: RoomTemplate
 var ws: Node
-## The library wing in the area modes (room is then its R01).
+## The area in the area modes (room is then its root: R01, or the Lower Stacks' hall).
 var area: Area
 
 
@@ -56,7 +57,7 @@ func run() -> void:
 	if mode == "save":
 		main_script.room_override = STACK_GALLERY
 	elif mode == "area_save":
-		main_script.room_override = "area:library"
+		main_script.room_override = "area:" + area_id()
 	game = (load("res://main.tscn") as PackedScene).instantiate()
 	root.add_child(game)
 	for _i: int in 12:
@@ -64,7 +65,7 @@ func run() -> void:
 	room = game.world as RoomTemplate
 	if game.world is Area:
 		area = game.world as Area
-		room = area.rooms.get("reading_room")
+		room = area.rooms.get(area.plan.rooms[0].slot_id)
 	match mode:
 		"save":
 			await save_mode()
@@ -402,16 +403,30 @@ func age_again_mode() -> void:
 
 
 # --- phase 4 step 4: the library wing remembers (phase-4-design.md 8.1.8) --------
-const AREA_EXPECT: String = "user://test/persist_area_expect.json"
+const AREA_EXPECT: String = "user://test/persist_area_expect%s.json"
 
 
-## Sixth process (a fresh save, `--area-seed=N`): in the wing, knock R01's west
-## vase over; walk to the farthest gallery (F), tend a lamp and drop a book
+## The area the area modes walk (`--area-id=<id>`; not `--area=`, which would
+## stop the load process resuming from the save).
+func area_id() -> String:
+	for a: String in OS.get_cmdline_user_args():
+		if a.begins_with("--area-id="):
+			return a.trim_prefix("--area-id=")
+	return "library"
+
+
+func area_expect() -> String:
+	return AREA_EXPECT % ("" if area_id() == "library" else "_" + area_id())
+
+
+## Sixth process (a fresh save, `--area-seed=N`): in the area's root room,
+## knock R01's west vase over, or pull a book from one of the hall's shelves onto
+## the floor; walk to the farthest gallery (F), tend a lamp and drop a book
 ## there; walk to the gallery furthest from it (Q) until F has unloaded. Then
 ## Let ten years pass, walk into a gallery that wasn't loaded (U), record its
 ## lamps at year 10 as this process streamed them in, walk back to Q and quit.
 func area_save_mode() -> void:
-	check(area != null and room != null, "the game starts in the library wing, R01 live")
+	check(area != null and room != null, "the game starts in %s, its root room live" % area_id())
 	if area == null or room == null:
 		return
 	fast_unloads()
@@ -422,15 +437,8 @@ func area_save_mode() -> void:
 		if st.is_live(s):
 			ever_live[s] = true
 	st.room_loaded.connect(func(s: String) -> void: ever_live[s] = true)
-	# R01: E knocks the west vase over.
-	var west: WorldProp = room.get_node("Props/VaseIwanWest")
-	game.player.teleport(room.to_global(Vector3(2.2, 0.05, -15.0)), room.global_rotation.y, -0.62)
-	for _i: int in 3:
-		await physics_frame
-	game.interact(west)
-	await wait_still()
-	check(str(ws.call("delta", west.get_meta("world_id", "")).get("s", "")) == "moved", "R01's knocked-over vase is saved as moved")
-	# F: the deepest leaf. Q: the room furthest from it (not R01).
+	var root_change: Dictionary = await change_root()
+	# F: the deepest leaf. Q: the room furthest from it (not the root).
 	var far: AreaPlan.Room = null
 	for r: AreaPlan.Room in p.rooms:
 		if r.parent != "" and r.children_count() == 0 and (far == null or r.depth > far.depth or (r.depth == far.depth and r.slot_id < far.slot_id)):
@@ -477,13 +485,22 @@ func area_save_mode() -> void:
 	await walk(AreaTour.between(p, unseen, quit_room))
 	await until(func() -> bool: return not st.is_live(far.slot_id))
 	check(not st.is_live(far.slot_id), "%s is still unloaded as we quit" % far.slot_id)
+	# What the save holds: the root's change where it lies as we quit (a book
+	# may still settle against the clutter at a wall's foot after the drop),
+	# and F's book as F's unload stored it.
+	for prop: WorldProp in room.world_props():
+		if prop.get_meta("world_id", "") == root_change.get("id", ""):
+			root_change["xf"] = WorldStateData.arr(room_xf(prop))
+	var stored: Dictionary = ws.call("delta", book.get("id", ""))
+	check(stored.has("xf"), "%s's unload stored its book (%s)" % [far.slot_id, book.get("id", "")])
+	if stored.has("xf"):
+		book["xf"] = stored["xf"]
 	var at: Vector3 = game.player.global_position
 	var expect: Dictionary = {"seed": p.area_seed, "far": far.slot_id, "quit_room": quit_room.slot_id, "unseen": unseen.slot_id,
-		"pos": [at.x, at.y, at.z], "yaw": game.player.rotation.y,
-		"west_id": west.get_meta("world_id", ""), "west": WorldStateData.arr(room_xf(west)),
+		"pos": [at.x, at.y, at.z], "yaw": game.player.rotation.y, "root_change": root_change,
 		"tended": tended, "book": book, "far_year0": far_year0, "u_year0": u_year0, "u_year10": u_year10, "u_aged": aged}
 	DirAccess.make_dir_recursive_absolute("user://test")
-	var f: FileAccess = FileAccess.open(AREA_EXPECT, FileAccess.WRITE)
+	var f: FileAccess = FileAccess.open(area_expect(), FileAccess.WRITE)
 	f.store_string(JSON.stringify(expect))
 	f.close()
 
@@ -492,22 +509,26 @@ func area_save_mode() -> void:
 ## Both changes are there, U shows the lamps the sixth process gave it at year
 ## 10, and F's untended lamps have aged too.
 func area_load_mode() -> void:
-	var expect: Variant = JSON.parse_string(FileAccess.get_file_as_string(AREA_EXPECT))
+	var expect: Variant = JSON.parse_string(FileAccess.get_file_as_string(area_expect()))
 	check(expect is Dictionary, "the area save run left its expectations")
-	check(area != null and room != null, "the game resumes in the library wing")
+	check(area != null and room != null and area.recipe.id == area_id(), "the game resumes in %s" % area_id())
 	if not expect is Dictionary or area == null or room == null:
 		return
 	fast_unloads()
 	var p: AreaPlan = area.plan
 	var st: AreaStreamer = area.streamer
-	check(p.area_seed == int(expect["seed"]), "the same wing (seed %d, saved %d)" % [p.area_seed, int(expect["seed"])])
+	check(p.area_seed == int(expect["seed"]), "the same area (seed %d, saved %d)" % [p.area_seed, int(expect["seed"])])
 	var pos: Vector3 = Vector3(expect["pos"][0], expect["pos"][1], expect["pos"][2])
 	check(st.player_room == expect["quit_room"] and Vector2(game.player.global_position.x - pos.x, game.player.global_position.z - pos.z).length() < 0.05 and absf(game.player.rotation.y - float(expect["yaw"])) < 0.01,
 		"back in %s, where we quit (%s in %s)" % [expect["quit_room"], game.player.global_position, st.player_room])
 	check(not st.is_live(expect["far"]), "%s isn't loaded at the start" % expect["far"])
 	check(absf(float(ws.call("years")) - 10.0) < 0.01, "still year 10")
-	var west: WorldProp = room.get_node_or_null("Props/VaseIwanWest")
-	check(west != null and west.freeze and near(room_xf(west), WorldStateData.xf(expect["west"])), "R01's west vase lies where it was knocked over")
+	var rc: Dictionary = expect["root_change"]
+	if rc.get("kind", "") == "vase":
+		var west: WorldProp = room.get_node_or_null("Props/VaseIwanWest")
+		check(west != null and west.freeze and near(room_xf(west), WorldStateData.xf(rc["xf"])), "R01's west vase lies where it was knocked over")
+	else:
+		check(book_lies(room, rc), "%s: the book pulled from a shelf lies where it fell, its slot empty" % room.room_key())
 	var quit_room: AreaPlan.Room = p.room(expect["quit_room"])
 	var unseen: AreaPlan.Room = p.room(expect["unseen"])
 	var far: AreaPlan.Room = p.room(expect["far"])
@@ -530,14 +551,36 @@ func area_load_mode() -> void:
 	var aged: int = aged_forward(untended, now, far.slot_id)
 	print("  %s: %d of %d untended lamps aged in ten years; %s: %d of %d" % [far.slot_id, aged, now.size(), unseen.slot_id, int(expect["u_aged"]), (expect["u_year10"] as Dictionary).size()])
 	check(aged + int(expect["u_aged"]) > 0, "ten years aged at least one untended lamp in the galleries that weren't loaded")
-	var bk: Dictionary = expect["book"]
-	var gbook: WorldProp = null
-	for prop: WorldProp in f_room.world_props():
+	check(book_lies(f_room, expect["book"]), "%s: the book lies where it fell, its shelf slot empty" % far.slot_id)
+	check((ws.call("stale_ids") as PackedStringArray).is_empty(), "no change in the area went stale (%s)" % [ws.call("stale_ids")])
+
+
+## The root room's change: R01's west vase knocked over (E), or else a book
+## pulled from a shelf (a hall's bookcase or wall recess) onto the floor.
+## Returns {kind, id, xf (room frame)}.
+func change_root() -> Dictionary:
+	var west: WorldProp = room.get_node_or_null("Props/VaseIwanWest")
+	if west == null:
+		var book: Dictionary = await drop_a_book(room)
+		check(str(ws.call("delta", book.get("id", "")).get("s", "")) == "moved", "%s: the book pulled from a shelf is saved as moved (%s)" % [room.room_key(), book.get("id", "")])
+		book["kind"] = "book"
+		return book
+	game.player.teleport(room.to_global(Vector3(2.2, 0.05, -15.0)), room.global_rotation.y, -0.62)
+	for _i: int in 3:
+		await physics_frame
+	game.interact(west)
+	await wait_still()
+	check(str(ws.call("delta", west.get_meta("world_id", "")).get("s", "")) == "moved", "R01's knocked-over vase is saved as moved")
+	return {"kind": "vase", "id": west.get_meta("world_id", ""), "xf": WorldStateData.arr(room_xf(west))}
+
+
+## The book `bk` ({id, xf} from drop_a_book) lies where it fell in room `r`, its shelf slot empty.
+func book_lies(r: RoomTemplate, bk: Dictionary) -> bool:
+	for prop: WorldProp in r.world_props():
 		if prop.get_meta("world_id", "") == bk.get("id", ""):
-			gbook = prop
-	check(gbook != null and near(f_room.global_transform.affine_inverse() * gbook.global_transform, WorldStateData.xf(bk["xf"])), "%s: the book lies where it fell" % far.slot_id)
-	check(gbook != null and (gbook.get_parent() as ShelfFill).hidden.has(int(gbook.get_meta("shelf_index"))), "and its shelf slot is empty")
-	check((ws.call("stale_ids") as PackedStringArray).is_empty(), "no change in the wing went stale (%s)" % [ws.call("stale_ids")])
+			return near(r.global_transform.affine_inverse() * prop.global_transform, WorldStateData.xf(bk["xf"])) \
+				and (prop.get_parent() as ShelfFill).hidden.has(int(prop.get_meta("shelf_index")))
+	return false
 
 
 ## Short unload delays, so the test needn't wait 10 s per room.

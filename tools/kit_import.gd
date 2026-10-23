@@ -19,6 +19,7 @@ const LIGHT_PROFILES: Dictionary = {
 	"brazier": {"color": Color(1.0, 0.55, 0.25), "energy": 2.0, "range": 7.0, "attenuation": 1.0, "shadow": true},
 	"chandelier": {"color": Color(1.0, 0.74, 0.42), "energy": 2.2, "range": 10.0, "attenuation": 1.0, "shadow": true, "size": 0.35},
 	"cold": {"color": Color(0.66, 0.86, 1.0), "energy": 1.0, "range": 6.0, "attenuation": 1.2, "shadow": false},
+	"cluster": {"color": Color(1.0, 0.72, 0.38), "energy": 2.0, "range": 8.5, "attenuation": 1.1, "shadow": false},
 }
 const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_"]
 

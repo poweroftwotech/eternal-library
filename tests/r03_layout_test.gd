@@ -10,6 +10,12 @@ extends SceneTree
 ## the bays along the walls, or in the landmark square; every bay can be
 ## reached from the entry (a bookcase is passed along its length only); the
 ## same seed gives the same layout; and how many bays hold a case.
+## Step 2: halls up to size_max (10); a collapsed bay (a rubble heap under a
+## fallen dome) is never on an aisle, the walk along the walls or the landmark
+## square, and is never needed to reach another bay; lamp clusters hang only
+## on the lattice, never over a heap or with a single lamp; bays with a case,
+## a heap or the landmark are marked blocked. Across all halls, some collapse, some reach
+## 9 or 10 bays, and every hall has clusters.
 
 const RECIPE: String = "res://gen/recipes/lower_stacks.tres"
 const GRAMMAR: String = "res://gen/grammars/r03_hypostyle.tres"
@@ -50,19 +56,32 @@ func run() -> void:
 		fill.append(audit("standalone %d" % s, g, false))
 	var total: int = 0
 	var cased: int = 0
+	var heaps: int = 0
+	var biggest: int = 0
+	var halls_with_heaps: int = 0
+	var clusters: int = 0
 	for f: Array in fill:
 		total += int(f[0])
 		cased += int(f[1])
+		heaps += int(f[2])
+		halls_with_heaps += 1 if int(f[2]) > 0 else 0
+		biggest = maxi(biggest, int(f[3]))
+		clusters += int(f[4])
+		check(int(f[4]) > 0, "every hall has lamp clusters")
 	var share: float = float(cased) / maxf(total, 1.0)
-	print("r03_layout_test: %d of %d bays off the aisles hold a case (%.0f%%, case_density %.0f%%)" % [cased, total, share * 100.0, grammar.case_density * 100.0])
+	print("r03_layout_test: %d of %d bays off the aisles hold a case (%.0f%%, case_density %.0f%%); %d collapsed bays in %d of %d halls; %d clusters; widest hall %d bays" % [
+		cased, total, share * 100.0, grammar.case_density * 100.0, heaps, halls_with_heaps, fill.size(), clusters, biggest])
 	check(absf(share - grammar.case_density) < 0.15, "bookcases fill about case_density of the free bays (%.2f)" % share)
+	check(heaps > 0, "some bays collapse (%d)" % heaps)
+	check(biggest >= 9, "some halls are 9 or 10 bays across (widest %d)" % biggest)
 	print("r03_layout_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures.slice(0, 30):
 		print("  FAIL ", f)
 	quit(1 if not failures.is_empty() else 0)
 
 
-## Checks one hall; returns [bays a case could stand in, bays with a case].
+## Checks one hall; returns [bays a case could stand in, bays with a case,
+## collapsed bays, widest side in bays, clusters].
 func audit(tag: String, g: CellGrid, planned: bool) -> Array:
 	check(g.check().is_empty(), "%s: the grid checks clean (%s)" % [tag, g.check()])
 	var xs: Array = []
@@ -102,10 +121,26 @@ func audit(tag: String, g: CellGrid, planned: bool) -> Array:
 			c = Vector3i(c.x, 0, c.z)
 			var along: Vector3 = xf.basis.x
 			case_at[c] = Vector3i(roundi(absf(along.x)), 0, roundi(absf(along.z)))
+	var heap_at: Dictionary = {}
+	var cluster_at: Dictionary = {}
+	for k: String in g.props:
+		var at: Vector3i = AreaPlan.cell_of((g.props[k]["xf"] as Transform3D) * Vector3(2.0, 0.1, -2.0))
+		if g.props[k]["slot"] == "dressing:rubble_heap":
+			heap_at[Vector3i(at.x, 0, at.z)] = true
+		elif g.props[k]["slot"] == "lamp:cluster":
+			cluster_at[AreaPlan.cell_of((g.props[k]["xf"] as Transform3D).origin + Vector3(0, 0.1, 0))] = true
+	for c: Vector3i in g.cells:
+		check((g.cells[c].get("ceiling_slot", "") == "cell:dome_fallen") == heap_at.has(c), "%s: a fallen dome over every heap and only there (%s)" % [tag, c])
+		check(bool(g.cells[c].get("blocked", false)) == (heap_at.has(c) or case_at.has(c) or c == centre), "%s: bays with a case, a heap or the landmark, and only those, are marked blocked (%s)" % [tag, c])
+		check(not (heap_at.has(c) and case_at.has(c)), "%s: no case in a collapsed bay (%s)" % [tag, c])
+	for c: Vector3i in cluster_at:
+		var dc: Vector3i = c - centre
+		check(c != centre and dc.x % grammar.lamp_cluster_every == 0 and dc.z % grammar.lamp_cluster_every == 0, "%s: the cluster at %s is on the lattice" % [tag, c])
+		check(not heap_at.has(c) and not g.lamps.has(c), "%s: no heap or single lamp under the cluster at %s" % [tag, c])
 	for dr: Array in doors:
 		check(not case_at.has(dr[0]), "%s: no bookcase in the door bay %s" % [tag, dr[0]])
 		var aisle: Array[Vector3i] = grammar.aisle_to(dr[0], dr[1], centre, 0)
-		check(aisle[-1] == centre and aisle.all(func(c: Vector3i) -> bool: return g.cells.has(c) and not case_at.has(c)),
+		check(aisle[-1] == centre and aisle.all(func(c: Vector3i) -> bool: return g.cells.has(c) and not case_at.has(c) and not heap_at.has(c)),
 			"%s: the aisle from the door at %s reaches the landmark clear" % [tag, dr[0]])
 	var aisles: Dictionary = {}
 	for dr: Array in doors:
@@ -119,10 +154,12 @@ func audit(tag: String, g: CellGrid, planned: bool) -> Array:
 		var ring: bool = c.x == xs.min() or c.x == xs.max() or c.z == zs.min() or c.z == zs.max()
 		var near_centre: bool = (c - centre).abs().x <= 1 and (c - centre).abs().z <= 1
 		if ring:
-			check(not case_at.has(c), "%s: no bookcase along the walls (%s)" % [tag, c])
+			check(not case_at.has(c) and not heap_at.has(c), "%s: no bookcase or heap along the walls (%s)" % [tag, c])
+		if aisles.has(c):
+			check(not heap_at.has(c), "%s: no heap on an aisle (%s)" % [tag, c])
 		if c == centre or (near_centre and w >= grammar.landmark_wide_from and d >= grammar.landmark_wide_from):
-			check(not case_at.has(c), "%s: no bookcase in the landmark square (%s)" % [tag, c])
-		elif not ring and not aisles.has(c):
+			check(not case_at.has(c) and not heap_at.has(c), "%s: no bookcase or heap in the landmark square (%s)" % [tag, c])
+		elif not ring and not aisles.has(c) and not heap_at.has(c):
 			free_bays += 1
 	# Every bay reachable from the entry; a case is passed along its length only.
 	var seen: Dictionary = {Vector3i.ZERO: true}
@@ -131,14 +168,14 @@ func audit(tag: String, g: CellGrid, planned: bool) -> Array:
 		var c: Vector3i = todo.pop_back()
 		for side: int in CellGrid.ALL_SIDES:
 			var n: Vector3i = CellGrid.neighbour(c, side)
-			if not g.cells.has(n) or seen.has(n):
+			if not g.cells.has(n) or seen.has(n) or heap_at.has(n):
 				continue
 			var step: Vector3i = (n - c).abs()
 			if (case_at.has(c) and case_at[c] != step) or (case_at.has(n) and case_at[n] != step):
 				continue
 			seen[n] = true
 			todo.append(n)
-	check(seen.size() == g.cells.size(), "%s: all %d bays can be reached from the entry (%d)" % [tag, g.cells.size(), seen.size()])
+	check(seen.size() == g.cells.size() - heap_at.size(), "%s: all %d bays but the %d collapsed can be reached from the entry (%d)" % [tag, g.cells.size(), heap_at.size(), seen.size()])
 	if planned:
 		check(not g.lamps.has(centre), "%s: no lamp over the landmark" % tag)
-	return [free_bays, case_at.size()]
+	return [free_bays, case_at.size(), heap_at.size(), maxi(w, d), cluster_at.size()]

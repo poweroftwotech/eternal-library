@@ -45,7 +45,7 @@ import bmesh
 import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kit_blender import (T, add_box, add_ngon_prism, add_prism, arch_outline, cut, rebuild,  # noqa: E402
+from kit_blender import (T, add_box, add_lathe, add_ngon_prism, add_obox, add_plan_prism, add_prism, arch_outline, cut, rebuild,  # noqa: E402
                          marker, mesh_object, module)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -311,6 +311,100 @@ def catalogue_desk(r):
     marker("ANCHOR_librarian__desk", r, (0.0, 0.0, 0.0))
 
 
+# --- step 2: the big hall -------------------------------------------------------
+
+def lantern_at(bm, glass, cx, cy, z0, half, height):
+    """lantern_box moved off the axis to (cx, cy)."""
+    nb, ng = len(bm.verts), len(glass.verts)
+    lantern_box(bm, glass, z0, half, height)
+    for (b, n) in ((bm, nb), (glass, ng)):
+        b.verts.ensure_lookup_table()
+        bmesh.ops.translate(b, verts=b.verts[n:], vec=(cx, cy, 0.0))
+
+
+def lantern_dome_cluster(r):
+    """A big lantern with three small ones round it on a brass crown, on one
+    chain from the dome's crown; one light for the four (light budget)."""
+    bm = bmesh.new()
+    glass = bmesh.new()
+    lantern_box(bm, glass, 2.9, 0.22, 0.65)
+    for i in range(3):
+        a = 2 * math.pi * i / 3 + math.pi / 6
+        cx, cy = 0.55 * math.cos(a), 0.55 * math.sin(a)
+        lantern_at(bm, glass, cx, cy, 3.1, 0.13, 0.42)
+        add_box(bm, cx - 0.012, cx + 0.012, cy - 0.012, cy + 0.012, 3.57, 3.72)
+    add_ngon_prism(bm, 12, 0.62, 3.72, 3.76)
+    add_ngon_prism(bm, 12, 0.5, 3.76, 3.8)
+    mesh_object("lantern_dome_cluster__body", bm, ["brass"], r)
+    mesh_object("lantern_dome_cluster__glass", glass, ["emit_lantern"], r)
+    bm = bmesh.new()
+    add_box(bm, -0.015, 0.015, -0.015, 0.015, 3.6, DOME_CROWN + 0.1)
+    mesh_object("lantern_dome_cluster__chain", bm, ["iron"], r)
+    marker("LIGHT_cluster__dome", r, (0.0, 0.0, 3.25))
+    marker("SOCKET_lamp_state__cluster", r, (0.0, 0.0, 3.25), LAMP_SOCKET)
+
+
+def dome_fallen(r):
+    """A bay whose dome has fallen: the slab's ring, a broken stub of the
+    dome's foot, and the rough brick shaft it left, closed at 9.6 m."""
+    import random
+    rng = random.Random(17)
+    bm = bmesh.new()
+    slab_with_hole(bm, BAND_TOP, BAND_TOP + 0.2)
+    mesh_object("dome_cell_4m_fallen__slab-col", bm, ["vault_plaster"], r)
+    bm = bmesh.new()
+    segs = 24
+    for i in range(segs):
+        a0, a1 = 2 * math.pi * i / segs, 2 * math.pi * (i + 1) / segs
+        h = 0.2 + 0.7 * rng.random() ** 1.5
+        ring = [(2.0 + rad * math.cos(a), 2.0 + rad * math.sin(a))
+                for (rad, a) in ((DOME_R, a0), (DOME_R, a1), (DOME_R + 0.18, a1), (DOME_R + 0.18, a0))]
+        add_plan_prism(bm, list(reversed(ring)), BAND_TOP + 0.2, BAND_TOP + 0.2 + h)
+    mesh_object("dome_cell_4m_fallen__stub", bm, ["tile"], r)
+    bm = bmesh.new()
+    top = 9.6
+    w = 0.12
+    add_box(bm, 0.05, 3.95, 0.05, 0.05 + w, BAND_TOP + 0.2, top)
+    add_box(bm, 0.05, 3.95, 3.95 - w, 3.95, BAND_TOP + 0.2, top)
+    add_box(bm, 0.05, 0.05 + w, 0.05 + w, 3.95 - w, BAND_TOP + 0.2, top)
+    add_box(bm, 3.95 - w, 3.95, 0.05 + w, 3.95 - w, BAND_TOP + 0.2, top)
+    add_box(bm, 0.05, 3.95, 0.05, 3.95, top, top + 0.2)
+    mesh_object("dome_cell_4m_fallen__shaft", bm, ["brick"], r)
+
+
+def rubble_heap(r):
+    """Centred in a cell (X and Y 0..4): the fallen dome as a heap of masonry,
+    brick and tile, 1.2 m high. Its collision is one box, so nobody climbs it."""
+    import random
+    rng = random.Random(23)
+    bm = bmesh.new()
+    add_lathe(bm, [(1.55, 0.0), (1.3, 0.3), (0.95, 0.65), (0.5, 0.95), (0.0, 1.1)], cx=2.0, cy=2.0, segs=10)
+    for _ in range(26):
+        t, d = rng.uniform(0, 2 * math.pi), 1.45 * math.sqrt(rng.random())
+        z = 1.1 * (1.0 - d / 1.55) ** 1.2
+        size = (rng.uniform(0.25, 0.6), rng.uniform(0.2, 0.45), rng.uniform(0.15, 0.3))
+        add_obox(bm, (2.0 + d * math.cos(t), 2.0 + d * math.sin(t), z), size,
+                 (rng.uniform(-0.5, 0.5), rng.uniform(-0.5, 0.5), rng.uniform(0, math.pi)))
+    mesh_object("rubble_heap_4m__stone", bm, ["arch_stone"], r)
+    bm = bmesh.new()
+    for _ in range(40):
+        t, d = rng.uniform(0, 2 * math.pi), 1.7 * math.sqrt(rng.random())
+        z = max(0.04, 1.1 * max(0.0, 1.0 - d / 1.55) ** 1.2)
+        add_obox(bm, (2.0 + d * math.cos(t), 2.0 + d * math.sin(t), z), (0.23, 0.11, 0.07),
+                 (rng.uniform(-0.6, 0.6), rng.uniform(-0.6, 0.6), rng.uniform(0, math.pi)))
+    mesh_object("rubble_heap_4m__bricks", bm, ["brick"], r)
+    bm = bmesh.new()
+    for _ in range(18):
+        t, d = rng.uniform(0, 2 * math.pi), 1.6 * math.sqrt(rng.random())
+        z = max(0.02, 1.1 * max(0.0, 1.0 - d / 1.55) ** 1.2) + 0.03
+        add_obox(bm, (2.0 + d * math.cos(t), 2.0 + d * math.sin(t), z), (rng.uniform(0.25, 0.5), rng.uniform(0.2, 0.4), 0.035),
+                 (rng.uniform(-0.7, 0.7), rng.uniform(-0.7, 0.7), rng.uniform(0, math.pi)))
+    mesh_object("rubble_heap_4m__tiles", bm, ["tile"], r)
+    bm = bmesh.new()
+    add_box(bm, 0.5, 3.5, 0.5, 3.5, 0.0, 1.2)
+    mesh_object("rubble_heap_4m__block-colonly", bm, ["arch_stone"], r)
+
+
 MODULES = [
     ("M_post_column_twisted", props("post", [0, 1, 0], "", "stone,column,hall"), column_twisted),
     ("M_post_hall_pier", props("post", [0, 2, 0], "", "brick,structure,hall"), hall_pier),
@@ -325,6 +419,10 @@ MODULES = [
     ("M_landmark_plinth", props("free", [1, 0, 1], "", "stone,landmark,hall", family="dressing"), plinth),
     ("M_landmark_great_lamp", props("free", [0, 1, 0], "", "brass,light,landmark", family="dressing"), great_lamp),
     ("M_landmark_catalogue_desk", props("free", [1, 0, 1], "", "wood,landmark", family="dressing"), catalogue_desk),
+    # Step 2: the big hall.
+    ("M_lantern_dome_cluster", props("free", [0, 1, 0], "", "brass,light,hall"), lantern_dome_cluster),
+    ("M_dome_cell_4m_fallen", props("cell", [1, 1, 1], "", "tile,dome,ruin,hall"), dome_fallen),
+    ("M_rubble_heap_4m", props("free", [1, 0, 1], "", "stone,debris,hall", family="dressing"), rubble_heap),
 ]
 
 # Script-made modules remade in place at a new revision (kit_blender.rebuild):

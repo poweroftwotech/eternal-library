@@ -1,9 +1,10 @@
 extends SceneTree
 ## Gate for rooms loading as you walk (phase-4-design.md 8.1.7, step 2).
-##   godot --headless --path . --script res://tests/stream_test.gd [-- seeds=N]
-## For area seeds 1-5 of the library wing, a scripted walk from R01 out to
+##   godot --headless --path . --script res://tests/stream_test.gd [-- seeds=N] [area=<id>]
+## For area seeds 1-5 of the library wing and of the Lower Stacks (phase 5),
+## a scripted walk from the root room (AreaTour) out to
 ## every leaf gallery and back, a cell at a time. At every cell: every room
-## within 2 doorways, every room visible from here or one doorway on, and R01
+## within 2 doorways, every room visible from here or one doorway on, and the root
 ## (pinned) is live; no doorway of this room or its neighbours is sealed.
 ## Each time the walk enters a new room and the unload delay has passed,
 ## nothing further than 3 doorways and out of sight is still live. An
@@ -12,13 +13,9 @@ extends SceneTree
 ## has unloaded and loaded again. Prints the streaming work per frame and
 ## per room (headless, so CPU only).
 
-const RECIPE: String = "res://gen/recipes/library_wing.tres"
+## Both areas (phase-5-design.md 5.6.9); `area=<id>` runs one.
+const RECIPES: Dictionary = {"library": "res://gen/recipes/library_wing.tres", "lower_stacks": "res://gen/recipes/lower_stacks.tres"}
 const SEEDS: int = 5
-const STARTS: Dictionary = {
-	&"SNAP_door_west": Vector3(1.5, 0.95, -6),
-	&"SNAP_door_east": Vector3(10.5, 0.95, -6),
-	&"SNAP_entrance": Vector3(6, 0.95, -1.5),
-}
 
 var failures: PackedStringArray = []
 var checks: int = 0
@@ -40,22 +37,27 @@ func check(ok: bool, what: String) -> void:
 
 func run() -> void:
 	var seeds: int = SEEDS
+	var areas: Array = RECIPES.keys()
 	for a: String in OS.get_cmdline_user_args():
 		if a.begins_with("seeds="):
 			seeds = a.trim_prefix("seeds=").to_int()
-	for s: int in range(1, seeds + 1):
-		await walk_seed(s)
+		elif a.begins_with("area="):
+			areas = [a.trim_prefix("area=")]
+	for id: String in areas:
+		for s: int in range(1, seeds + 1):
+			await walk_seed(id, s)
+	Area.seed_override = -1
 	print("stream_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
 	quit(1 if not failures.is_empty() else 0)
 
 
-func walk_seed(s: int) -> void:
-	var tag: String = "area seed %d" % s
+func walk_seed(id: String, s: int) -> void:
+	var tag: String = "%s seed %d" % [id, s]
 	Area.seed_override = s
 	area = Area.new()
-	area.recipe = load(RECIPE)
+	area.recipe = load(RECIPES[id])
 	var settings := StreamSettings.new()
 	settings.unload_delay_s = 0.4
 	settings.check_interval_s = 0.05
@@ -70,7 +72,7 @@ func walk_seed(s: int) -> void:
 	var p: AreaPlan = area.plan
 	var st: AreaStreamer = area.streamer
 	var want0: Dictionary = st.wanted(st.player_room)
-	check(st.is_live("reading_room") and st.live_count() == want0.size() and want0.keys().all(func(k: String) -> bool: return st.is_live(k)),
+	check(st.is_live(p.rooms[0].slot_id) and st.live_count() == want0.size() and want0.keys().all(func(k: String) -> bool: return st.is_live(k)),
 		"%s: at the start exactly the wanted rooms are live (%d of %d; wanted %s)" % [tag, st.live_count(), p.rooms.size(), want0.keys()])
 	# The farthest leaf: walked to first, a lamp tended there, checked again at the end.
 	var leaves: Array[AreaPlan.Room] = []
@@ -90,10 +92,7 @@ func walk_seed(s: int) -> void:
 	var walks: Array = leaves + [far]
 	for walk_i: int in walks.size():
 		var leaf: AreaPlan.Room = walks[walk_i]
-		var chain: Array[AreaPlan.Room] = chain_to(p, leaf)
-		var start: Vector3 = STARTS[chain[0].parent_connector]
-		var route: Array[Vector3] = [start]
-		route.append_array(route_through(p, chain))
+		var route: Array[Vector3] = AreaTour.leg(p, leaf)
 		var back: Array[Vector3] = route.duplicate()
 		back.reverse()
 		var last_room: String = ""
@@ -139,7 +138,12 @@ func walk_seed(s: int) -> void:
 	if tended.is_empty():
 		check(false, "%s: found a lamp to tend in %s" % [tag, far.slot_id])
 	else:
-		check(far_unloaded, "%s: %s unloaded while we were away" % [tag, far.slot_id])
+		# A hall whose galleries all open off it keeps every room within reach.
+		var far_reach: int = st.distances(far.slot_id).values().max()
+		if far_reach > settings.unload_radius:
+			check(far_unloaded, "%s: %s unloaded while we were away" % [tag, far.slot_id])
+		else:
+			print("  %s: every room is within %d doorways of %s, so it never unloads" % [tag, far_reach, far.slot_id])
 		check(came_back == tended["label"], "%s: the lamp tended in %s is still %s after it unloaded and came back (%s)" % [tag, far.slot_id, tended["label"], came_back])
 	report(tag, st, max_live)
 	area.streamer.room_unloaded.disconnect(_on_unloaded)
@@ -203,57 +207,6 @@ func wait_seconds(t: float) -> void:
 	var until: int = Time.get_ticks_msec() + int(t * 1000.0)
 	while Time.get_ticks_msec() < until:
 		await process_frame
-
-
-func chain_to(p: AreaPlan, r: AreaPlan.Room) -> Array[AreaPlan.Room]:
-	var chain: Array[AreaPlan.Room] = []
-	var at: AreaPlan.Room = r
-	while at.parent != "":
-		chain.push_front(at)
-		at = p.room(at.parent)
-	return chain
-
-
-## Cell centres (world, y 0) from R01's door through each room of `chain`, to
-## the last room's farthest cell (as area_route_test).
-func route_through(p: AreaPlan, chain: Array[AreaPlan.Room]) -> Array[Vector3]:
-	var out: Array[Vector3] = []
-	for i: int in chain.size():
-		var r: AreaPlan.Room = chain[i]
-		var in_xf: Transform3D = r.connectors[r.entry]["xf"]
-		var entry_cell: Vector3i = AreaPlan.cell_of(in_xf.origin + in_xf.basis.z * 2.0)
-		var goal: Vector3i = Vector3i.MAX
-		if i + 1 < chain.size():
-			var out_xf: Transform3D = r.connectors[chain[i + 1].parent_connector]["xf"]
-			goal = AreaPlan.cell_of(out_xf.origin + out_xf.basis.z * 2.0)
-		for c: Vector3i in cell_path(r, entry_cell, goal):
-			out.append(AreaPlan.cell_box(c).get_center() * Vector3(1, 0, 1))
-	return out
-
-
-func cell_path(r: AreaPlan.Room, from: Vector3i, to: Vector3i) -> Array[Vector3i]:
-	var parent: Dictionary = {from: from}
-	var order: Array[Vector3i] = [from]
-	var head: int = 0
-	while head < order.size():
-		var c: Vector3i = order[head]
-		head += 1
-		for side: int in CellGrid.ALL_SIDES:
-			var n: Vector3i = CellGrid.neighbour(c, side)
-			if parent.has(n) or not r.floor_cells.has(n) or not r.sight.has(CellGrid.key(c, side)):
-				continue
-			parent[n] = c
-			order.append(n)
-	var goal: Vector3i = to if to != Vector3i.MAX else order[-1]
-	var out: Array[Vector3i] = []
-	if not parent.has(goal):
-		return [from]
-	var c: Vector3i = goal
-	while c != from:
-		out.push_front(c)
-		c = parent[c]
-	out.push_front(from)
-	return out
 
 
 func lamp_label(slot: String, path: String) -> String:

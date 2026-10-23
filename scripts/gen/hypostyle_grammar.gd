@@ -16,7 +16,7 @@ extends RoomGrammar
 	set(value):
 		size_min = value
 		emit_changed()
-@export_range(3, 20) var size_max: int = 8:
+@export_range(3, 20) var size_max: int = 10:
 	set(value):
 		size_max = value
 		emit_changed()
@@ -63,6 +63,18 @@ extends RoomGrammar
 	set(value):
 		lamp_every_bays = value
 		emit_changed()
+## A cluster of lanterns hangs from the dome of every Nth bay both ways from
+## the landmark, aisle or not (0 = none); it takes the place of a single lamp.
+@export_range(0, 8) var lamp_cluster_every: int = 3:
+	set(value):
+		lamp_cluster_every = value
+		emit_changed()
+## Chance that a bay off the aisles has collapsed: its dome lies in a heap of
+## rubble on the floor and the bay can't be entered.
+@export_range(0.0, 1.0, 0.01) var collapse_chance: float = 0.06:
+	set(value):
+		collapse_chance = value
+		emit_changed()
 
 ## A bookcase's long side runs along X or Z (the seed picks one per hall).
 const CASE_AXES: Array[Vector3i] = [Vector3i(0, 0, 1), Vector3i(1, 0, 0)]
@@ -108,13 +120,15 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 	mark_edges(grid, rect, doors)
 	place_posts(grid, rect)
 	grid.props["landmark"] = {"slot": "landmark", "xf": Transform3D(Basis(), CellGrid.cell_centre(centre))}
-	place_cases(grid, cells, clear, seed_value)
+	grid.cells[centre]["blocked"] = true      # its plinth and what stands on it: walk round
+	var fallen: Dictionary = pick_collapses(cells, clear, seed_value)
+	place_cases(grid, cells, clear, fallen, seed_value)
 	var walk: Dictionary = aisle.duplicate()
 	if wall_aisle:
 		for c: Vector3i in cells:
 			if c.x == rect.position.x or c.x == rect.end.x - 1 or c.z == rect.position.y or c.z == rect.end.y - 1:
 				walk[c] = true
-	place_lamps(grid, walk, centre, seed_value)
+	place_lamps(grid, walk, centre, fallen, seed_value)
 	lanes(grid, doors, centre)
 
 
@@ -245,48 +259,71 @@ func place_posts(grid: CellGrid, rect: Rect2i) -> void:
 	grid.posts["1_0_0"] = "post:pier_cap"
 
 
-## A bookcase in each bay off the aisles and the landmark, by case_density;
-## then any case that cuts a bay off from the entry is taken out again. A
-## case along X can be passed along X only, and one along Z along Z only
-## (its ends nearly touch the columns).
-func place_cases(grid: CellGrid, cells: Array[Vector3i], clear: Dictionary, seed_value: int) -> void:
+## Bays off the aisles that have collapsed, by collapse_chance: cell -> true.
+func pick_collapses(cells: Array[Vector3i], clear: Dictionary, seed_value: int) -> Dictionary:
+	var out: Dictionary = {}
+	for c: Vector3i in cells:
+		if clear.has(c):
+			continue
+		var roll := RandomNumberGenerator.new()
+		roll.seed = hash([seed_value, "collapse", CellGrid.cell_name(c)])
+		if roll.randf() < collapse_chance:
+			out[c] = true
+	return out
+
+
+## A bookcase in each bay off the aisles, the landmark and the collapsed bays,
+## by case_density; then any case or collapse that cuts a bay off from the
+## entry is taken out again. A case along X can be passed along X only, and
+## one along Z along Z only (its ends nearly touch the columns); a collapsed
+## bay can't be entered at all. Bays that keep a case or a heap (and the
+## landmark's, set in layout) are marked "blocked" in the grid (the tests
+## walk round them).
+func place_cases(grid: CellGrid, cells: Array[Vector3i], clear: Dictionary, fallen: Dictionary, seed_value: int) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([seed_value, "case_axis"])
 	var axis: Vector3i = CASE_AXES[rng.randi_range(0, 1)]
 	var cased: Dictionary = {}
 	for c: Vector3i in cells:
-		if clear.has(c):
+		if clear.has(c) or fallen.has(c):
 			continue
 		var roll := RandomNumberGenerator.new()
 		roll.seed = hash([seed_value, "case", CellGrid.cell_name(c)])
 		if roll.randf() < case_density:
 			cased[c] = true
-	var order: Array = cased.keys()
+	var order: Array = cased.keys() + fallen.keys()
 	order.sort()
 	while true:
-		var cut_off: Vector3i = _first_cut_off(grid, cased, axis)
+		var cut_off: Vector3i = _first_cut_off(grid, cased, fallen, axis)
 		if cut_off == Vector3i.MAX:
 			break
-		# Take out the case nearest the unreachable bay (deterministic order).
+		# Take out the case or heap nearest the unreachable bay (deterministic order).
 		var best: Vector3i = Vector3i.MAX
 		for c: Vector3i in order:
-			if cased.has(c) and (best == Vector3i.MAX or (c - cut_off).length_squared() < (best - cut_off).length_squared()):
+			if (cased.has(c) or fallen.has(c)) and (best == Vector3i.MAX or (c - cut_off).length_squared() < (best - cut_off).length_squared()):
 				best = c
 		cased.erase(best)
+		fallen.erase(best)
 	for c: Vector3i in order:
 		if cased.has(c):
 			grid.props["case_" + CellGrid.cell_name(c)] = {"slot": "dressing:case", "xf": CellGrid.cell_transform(c, Vector3i(1, 0, 0) if axis.z != 0 else Vector3i(0, 0, 1))}
+			grid.cells[c]["blocked"] = true
+		elif fallen.has(c):
+			grid.props["rubble_" + CellGrid.cell_name(c)] = {"slot": "dressing:rubble_heap", "xf": CellGrid.cell_transform(c, Vector3i(1, 0, 0))}
+			grid.cells[c]["ceiling_slot"] = "cell:dome_fallen"
+			grid.cells[c]["blocked"] = true
 
 
-## The first bay (sorted) the entry can't reach, or Vector3i.MAX.
-func _first_cut_off(grid: CellGrid, cased: Dictionary, axis: Vector3i) -> Vector3i:
+## The first bay (sorted) the entry can't reach, or Vector3i.MAX. Collapsed
+## bays are neither entered nor counted.
+func _first_cut_off(grid: CellGrid, cased: Dictionary, fallen: Dictionary, axis: Vector3i) -> Vector3i:
 	var seen: Dictionary = {Vector3i.ZERO: true}
 	var todo: Array[Vector3i] = [Vector3i.ZERO]
 	while not todo.is_empty():
 		var c: Vector3i = todo.pop_back()
 		for side: int in CellGrid.ALL_SIDES:
 			var n: Vector3i = CellGrid.neighbour(c, side)
-			if not grid.cells.has(n) or seen.has(n):
+			if not grid.cells.has(n) or seen.has(n) or fallen.has(n):
 				continue
 			# A case's long side runs along `axis`: you pass it that way only.
 			if (cased.has(c) or cased.has(n)) and (n - c).abs() != axis:
@@ -296,19 +333,28 @@ func _first_cut_off(grid: CellGrid, cased: Dictionary, axis: Vector3i) -> Vector
 	var keys: Array = grid.cells.keys()
 	keys.sort()
 	for c: Vector3i in keys:
-		if not seen.has(c):
+		if not seen.has(c) and not fallen.has(c):
 			return c
 	return Vector3i.MAX
 
 
-## Lamps hang over every lamp_every_bays-th bay of the aisles and the walk
-## along the walls (counted from the landmark), never over the landmark,
-## whose oculus lights it.
-func place_lamps(grid: CellGrid, aisle: Dictionary, centre: Vector3i, _seed_value: int) -> void:
+## Clusters hang on a lattice every lamp_cluster_every bays both ways from the
+## landmark (not over a collapsed bay); single lamps over every
+## lamp_every_bays-th bay of the aisles and the walk along the walls (counted
+## from the landmark) where no cluster hangs. Never over the landmark, whose
+## oculus lights it.
+func place_lamps(grid: CellGrid, aisle: Dictionary, centre: Vector3i, fallen: Dictionary, _seed_value: int) -> void:
+	var clustered: Dictionary = {}
+	if lamp_cluster_every > 0:
+		for c: Vector3i in grid.cells:
+			var d: Vector3i = c - centre
+			if c != centre and not fallen.has(c) and d.x % lamp_cluster_every == 0 and d.z % lamp_cluster_every == 0:
+				grid.props["cluster_" + CellGrid.cell_name(c)] = {"slot": "lamp:cluster", "xf": Transform3D(Basis(), CellGrid.cell_centre(c))}
+				clustered[c] = true
 	if lamp_every_bays <= 0:
 		return
 	for c: Vector3i in aisle:
-		if c == centre:
+		if c == centre or clustered.has(c):
 			continue
 		var d: Vector3i = (c - centre).abs()
 		if (d.x + d.z) % lamp_every_bays == 1 % lamp_every_bays:

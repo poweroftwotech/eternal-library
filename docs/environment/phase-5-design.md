@@ -121,6 +121,11 @@ Gate: `area_walk_capture --gate` on a Lower Stacks walk that crosses the
 largest hall (10 × 10): draw calls ≤ 1,500, and the base-spec frame
 targets (Q7 of phase 4).
 
+**Outcome (step 2, 2026-10-23): not built.** Step 1 measured 43–109 draw
+calls a view in a 7 × 7 hall, and the gate on a 10 × 10 hall peaks at 443
+in all passes: Godot 4.7's Forward+ renderer already merges repeated meshes.
+The gate passes without batching ([progress](progress/phase-5-kit-breadth.md)).
+
 #### 5.6.4 R11 Cistern Archive: `CisternGrammar extends HypostyleGrammar`
 
 The hall's layout with these overrides (`gen/grammars/r11_cistern.tres`,

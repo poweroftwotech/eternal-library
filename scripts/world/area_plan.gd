@@ -56,6 +56,9 @@ class Room:
 	var floor_cells: Dictionary = {}
 	## Edges between its own floor cells a line may cross: area edge key -> half width.
 	var sight: Dictionary = {}
+	## Floor cells a walk goes round (a hall's bookcase or rubble heap; the
+	## grid's "blocked" bays): Vector3i -> true. Sight still crosses them.
+	var blocked_cells: Dictionary = {}
 	## Area-frame boxes later rooms' layouts keep out of.
 	var blockers: Array[AABB] = []
 	## A scene room's recess cavities past its walls (area frame): no other

@@ -1,27 +1,22 @@
 extends SceneTree
 ## Gate for a whole area built from its plan, everything loaded at once
 ## (phase-4-design.md 8.1.7, step 1).
-##   godot --headless --path . --script res://tests/area_route_test.gd [-- seeds=N]
-## For area seeds 1-5 of the library wing, streaming off: every planned room is built as a
+##   godot --headless --path . --script res://tests/area_route_test.gd [-- seeds=N] [area=<id>]
+## For area seeds 1-5 of the library wing and the Lower Stacks (phase 5),
+## streaming off: every planned room is built as a
 ## direct child of the Area; Validate Room is clean on every generated room
 ## and error-free on R01 and the baked gallery; every joint meets face to
 ## face; floor collision under every generated cell; every solid side and
 ## every unjoined exit blocks; and the real player's capsule (radius 0.35,
-## height 1.8) walks from R01's hall out to every leaf room's far end and
+## height 1.8) walks from the root room (AreaTour) out to every leaf room's far end and
 ## back, through every room on the way. Prints what each room cost to build
 ## (to size step 2) and the wear map's size and time.
 
-const RECIPE: String = "res://gen/recipes/library_wing.tres"
+## Both areas (phase-5-design.md 5.6.9); `area=<id>` runs one.
+const RECIPES: Dictionary = {"library": "res://gen/recipes/library_wing.tres", "lower_stacks": "res://gen/recipes/lower_stacks.tres"}
 const SEEDS: int = 5
 ## Audit walking speed: 0.13 m per physics step, well under the capsule radius.
 const SPEED: float = 8.0
-## Spots in R01's hall to walk from, per door (clear of the tables and stairs),
-## as in r02_route_test.
-const STARTS: Dictionary = {
-	&"SNAP_door_west": Vector3(1.5, 0.95, -6),
-	&"SNAP_door_east": Vector3(10.5, 0.95, -6),
-	&"SNAP_entrance": Vector3(6, 0.95, -1.5),
-}
 
 var failures: PackedStringArray = []
 var checks: int = 0
@@ -39,12 +34,17 @@ func check(ok: bool, what: String) -> void:
 
 func run() -> void:
 	var seeds: int = SEEDS
+	var areas: Array = RECIPES.keys()
 	for a: String in OS.get_cmdline_user_args():
 		if a.begins_with("seeds="):
 			seeds = a.trim_prefix("seeds=").to_int()
+		elif a.begins_with("area="):
+			areas = [a.trim_prefix("area=")]
 	save_format()
-	for s: int in range(1, seeds + 1):
-		await audit(s)
+	for id: String in areas:
+		for s: int in range(1, seeds + 1):
+			await audit(id, s)
+	Area.seed_override = -1
 	print("area_route_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -74,17 +74,17 @@ func save_format() -> void:
 	ws.set("data", ws.call("blank"))
 
 
-func audit(s: int) -> void:
-	var tag: String = "area seed %d" % s
+func audit(id: String, s: int) -> void:
+	var tag: String = "%s seed %d" % [id, s]
 	Area.seed_override = s
 	var area := Area.new()
-	area.recipe = load(RECIPE)
+	area.recipe = load(RECIPES[id])
 	area.streaming = false     # step 1: every room at once
 	root.add_child(area)
 	await physics_frame
 	await physics_frame
 	var ws: Node = root.get_node("/root/WorldState")
-	check(ws.get("area_id") == "library", "%s: rooms read and write the library area's changes" % tag)
+	check(ws.get("area_id") == id, "%s: rooms read and write the %s area's changes" % [tag, id])
 	var p: AreaPlan = area.plan
 	check(p.check().is_empty(), "%s: the plan checks clean (%s)" % [tag, p.check()])
 	check(area.rooms.size() == p.rooms.size() and area.get_children().filter(func(n: Node) -> bool: return n is RoomTemplate).size() == p.rooms.size(),
@@ -117,9 +117,16 @@ func audit(s: int) -> void:
 		var leaks: PackedStringArray = []
 		for cell: Vector3i in g.grid.cells:
 			var c: Vector3 = g.to_global(CellGrid.cell_centre(cell))
-			var hit: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(c + Vector3(0, 0.5, 0), c - Vector3(0, 1, 0), 1))
-			if not hit.is_empty() and absf((hit["position"] as Vector3).y) < 0.05:
-				floors += 1
+			# Down to the floor, through whatever stands on it (a hall's cases, heaps, landmark).
+			var ray := PhysicsRayQueryParameters3D.create(c + Vector3(0, 0.5, 0), c - Vector3(0, 1, 0), 1)
+			for _try: int in 4:
+				var hit: Dictionary = space.intersect_ray(ray)
+				if hit.is_empty():
+					break
+				if absf((hit["position"] as Vector3).y) < 0.05:
+					floors += 1
+					break
+				ray.exclude = ray.exclude + [hit["rid"]]
 			for side: int in CellGrid.ALL_SIDES:
 				var edge: Dictionary = g.grid.edge(cell, side)
 				if edge.is_empty() or edge["host"]:
@@ -142,7 +149,7 @@ func audit(s: int) -> void:
 			var xf: Transform3D = r.connectors[name]["xf"]
 			var inside: Vector3 = xf.origin + xf.basis.z * 2.0 + Vector3(0, 0.95, 0)
 			check(await blocked(body, inside, -xf.basis.z * 3.0), "%s: %s's unjoined %s blocks" % [tag, r.slot_id, name])
-	# Walk from R01's hall to every leaf's far end and back.
+	# Walk from the root room to every leaf's far end and back (AreaTour).
 	var walked: Dictionary = {}
 	for r: AreaPlan.Room in p.rooms:
 		if r.children_count() > 0 or r.parent == "":
@@ -152,8 +159,8 @@ func audit(s: int) -> void:
 		while at.parent != "":
 			chain.push_front(at)
 			at = p.room(at.parent)
-		var start: Vector3 = STARTS[chain[0].parent_connector]
-		var route: Array[Vector3] = route_through(p, chain)
+		var route: Array[Vector3] = AreaTour.leg(p, r)
+		var start: Vector3 = route.pop_front() + Vector3(0, 0.95, 0)
 		body.global_position = start
 		await physics_frame
 		var reached: int = await follow(body, route)
@@ -168,58 +175,12 @@ func audit(s: int) -> void:
 			names.append(c.slot_id)
 			walked[c.slot_id] = true
 		check(reached == route.size() and returned == back.size() and absf(feet_out) < 0.1 and absf(feet) < 0.1,
-			"%s: walk from R01 through %s to the far end and back (%d of %d stops out, %d of %d back, feet %.2f / %.2f)" % [tag, " > ".join(names), reached, route.size(), returned, back.size(), feet_out, feet])
-	check(walked.size() == p.rooms.size() - 1, "%s: the walks pass through every room but R01 (%d of %d)" % [tag, walked.size(), p.rooms.size() - 1])
+			"%s: walk from the root through %s to the far end and back (%d of %d stops out, %d of %d back, feet %.2f / %.2f)" % [tag, " > ".join(names), reached, route.size(), returned, back.size(), feet_out, feet])
+	check(walked.size() == p.rooms.size() - 1, "%s: the walks pass through every room but the root (%d of %d)" % [tag, walked.size(), p.rooms.size() - 1])
 	body.queue_free()
 	area.queue_free()
 	await process_frame
 	await process_frame
-
-
-## Cell centres (world, y 0) from R01's door through each room of `chain`, to
-## the last room's farthest cell.
-func route_through(p: AreaPlan, chain: Array[AreaPlan.Room]) -> Array[Vector3]:
-	var out: Array[Vector3] = []
-	for i: int in chain.size():
-		var r: AreaPlan.Room = chain[i]
-		var in_xf: Transform3D = r.connectors[r.entry]["xf"]
-		var entry_cell: Vector3i = AreaPlan.cell_of(in_xf.origin + in_xf.basis.z * 2.0)
-		var goal: Vector3i = Vector3i.MAX
-		if i + 1 < chain.size():
-			var next: AreaPlan.Room = chain[i + 1]
-			var out_xf: Transform3D = r.connectors[next.parent_connector]["xf"]
-			goal = AreaPlan.cell_of(out_xf.origin + out_xf.basis.z * 2.0)
-		for c: Vector3i in cell_path(r, entry_cell, goal):
-			out.append(AreaPlan.cell_box(c).get_center() * Vector3(1, 0, 1))
-	return out
-
-
-## Cells from `from` to `to` through `r`'s floor (open edges of a generated
-## room, any neighbour in a scene room); to = MAX: to the farthest cell.
-func cell_path(r: AreaPlan.Room, from: Vector3i, to: Vector3i) -> Array[Vector3i]:
-	var parent: Dictionary = {from: from}
-	var order: Array[Vector3i] = [from]
-	var head: int = 0
-	while head < order.size():
-		var c: Vector3i = order[head]
-		head += 1
-		for side: int in CellGrid.ALL_SIDES:
-			var n: Vector3i = CellGrid.neighbour(c, side)
-			if parent.has(n) or not r.floor_cells.has(n) or not r.sight.has(CellGrid.key(c, side)):
-				continue
-			parent[n] = c
-			order.append(n)
-	var goal: Vector3i = to if to != Vector3i.MAX else order[-1]
-	var out: Array[Vector3i] = []
-	if not parent.has(goal):
-		push_warning("area_route_test: %s has no path from %s to %s" % [r.slot_id, from, goal])
-		return [from]
-	var c: Vector3i = goal
-	while c != from:
-		out.push_front(c)
-		c = parent[c]
-	out.push_front(from)
-	return out
 
 
 ## What building cost, per room and in all (sizes step 2's budget).
