@@ -14,6 +14,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | Date | Change |
 |---|---|
+| 2026-10-22 | **Fix:** the pale arch "trim" floating in R01's upper shelves above its doors (in the wing only) was each gallery's first vault seen through the recess; those vault bays now stop short of R01's recesses. A new route check guards it ([progress](docs/environment/progress/phase-4-areas.md)). You checked it; committed. |
 | 2026-10-22 | **Phase 4 step 4 built:** quit anywhere in the wing and you resume in the same gallery; changes in rooms that aren't loaded are kept; after Let ten years pass, a gallery you walk into has aged exactly as a fresh process says. The persistence gate grows to seven processes, all passing. Travel shows a plain dark loading panel ([progress](docs/environment/progress/phase-4-areas.md)). You walked it; committed. **Phase 4 complete.** |
 | 2026-10-20 | **Phase 4 step 3 built; the phase's finish line is met:** the wing streams without hitches at the RTX 3060 target (Medium, 1080p), passing three gate runs in a row: GPU worst 1.8 ms (limit 4), CPU worst 7.7 ms (limit 8). Only the nearest four lamps cast shadows; lighting doesn't pop when rooms arrive ([progress](docs/environment/progress/phase-4-areas.md)). Committed. |
 | 2026-10-20 | **Live stats panel** (F3): performance, base-spec budgets and streaming ([progress](docs/environment/progress/phase-4-areas.md)). Committed. |

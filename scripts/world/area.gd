@@ -141,8 +141,68 @@ func make_room(r: AreaPlan.Room) -> RoomTemplate:
 ## Puts a room from make_room into the area.
 func enter_room(r: AreaPlan.Room, room: RoomTemplate) -> void:
 	add_child(room)
+	_clear_recesses(r, room)
 	rooms[r.slot_id] = room
 	light_budget.add_room(room)
+
+
+## How far past the back of a neighbour's recess a shortened module starts.
+const RECESS_CLEARANCE: float = 0.05
+
+
+## A recess bay's cavity goes 0.25 m past its room's edge (made for walls
+## backed by rock; AreaPlan.Room.recess_cavities). A cell module of this room
+## that reaches into another room's cavity (a gallery's first vault bay, over
+## R01's door) would show inside it, so it's shortened to start just past the
+## cavity. What it loses was inside the neighbour's wall; its materials map in
+## world space, so nothing stretches.
+func _clear_recesses(r: AreaPlan.Room, room: RoomTemplate) -> void:
+	var cavities: Array[AABB] = []
+	for other: AreaPlan.Room in plan.rooms:
+		if other != r:
+			for c: AABB in other.recess_cavities:
+				if r.blockers.any(func(b: AABB) -> bool: return b.intersects(c)):     # most rooms touch none
+					cavities.append(global_transform * c)
+	if cavities.is_empty():
+		return
+	for n: Node in room.find_children("*", "KitModule", true, false):
+		var m := n as KitModule
+		if m.shape != KitModule.Shape.CELL:
+			continue
+		var bounds: AABB = _mesh_bounds(m)
+		for c: AABB in cavities:
+			if not bounds.has_volume() or not bounds.intersects(c):
+				continue
+			var k: int = Vector3.AXIS_X if c.size.x < c.size.z else Vector3.AXIS_Z     # the wall's normal: the cavity's thin side
+			var a0: float = bounds.position[k]
+			var a1: float = bounds.end[k]
+			var s0: float = a0
+			var s1: float = a1
+			if c.end[k] - a0 < a1 - c.position[k]:
+				s0 = c.end[k] + RECESS_CLEARANCE     # the cavity is at the module's low end
+			else:
+				s1 = c.position[k] - RECESS_CLEARANCE
+			var f: float = (s1 - s0) / (a1 - a0)
+			var squash := Vector3.ONE
+			squash[k] = f
+			var offset := Vector3.ZERO
+			offset[k] = s0 - a0 * f
+			m.global_transform = Transform3D(Basis.from_scale(squash), offset) * m.global_transform
+			bounds = _mesh_bounds(m)
+
+
+## The world bounds of a module's meshes.
+static func _mesh_bounds(m: Node3D) -> AABB:
+	var out := AABB()
+	var first: bool = true
+	for node: Node in m.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if mi.mesh == null:
+			continue
+		var b: AABB = mi.global_transform * mi.get_aabb()
+		out = b if first else out.merge(b)
+		first = false
+	return out
 
 
 ## Where a new visit starts: the root room's PlayerSpawn.

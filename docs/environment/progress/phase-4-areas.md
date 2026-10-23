@@ -455,3 +455,51 @@ runs clean (camp, R01, `--area=library`); `prop_test` 51, `book_test` 27,
 - Not rerun, because nothing they exercise changed: `r02_route_test` and
   the GPU frame gate (the streaming per-frame path is untouched;
   `restart_job` runs only when the years pass).
+
+---
+
+## Fix: arch "trim" in R01's upper shelves (2026-10-22, you spotted it; you checked it in the game; committed)
+
+**What you saw:** in the wing, the upper shelf recess directly above each of
+R01's three doors had a pale curved band floating across its shelves.
+
+**Why:** it was the end of the gallery's first vault bay, seen in cross
+section. A shelf recess is cut 0.25 m past the room's wall line, because it
+was made for walls with rock behind them. Each gallery's vault starts on that
+line, at the same height as R01's upper storey, so the recess opened into it.
+The standalone Reading Room has nothing behind its walls, so it never showed
+there.
+
+**The fix:** the planner now records every recess cavity of an authored or
+baked room (`AreaPlan.Room.recess_cavities`). When a room enters the wing, any
+of its cell modules that reaches into another room's cavity is shortened to
+start 5 cm past it (`Area._clear_recesses`). For the three galleries on R01's
+doors, that's their first vault bay, 0.3 m shorter at the R01 end. The part
+it loses was inside R01's wall. From inside a gallery the vault still meets
+R01's wall above the door with no gap, and the vault's texture is mapped in
+world space, so nothing stretches. R01 itself is unchanged: every recess,
+shelf and book is still there, including *On Lamps That Remember* above the
+west door.
+
+Tried first and dropped: a wooden back board in the recess on the wall line.
+It hid the crescents but also the books, which sit behind the line.
+
+**Checked:**
+
+- `area_route_test` gained a check: no room's meshes reach into another
+  room's recess cavity (seeds 1–5). With the fix off it finds exactly the
+  three recesses, R01's `wall_shelfbay_4m5`, `_4m6` and `_4m15` against each
+  gallery's `vault_0_0_0`; with it on, all 203 checks pass.
+- GPU pictures from the gallery (the three recesses now match the
+  standalone room) and from inside each gallery looking back at its joint
+  with R01 (no gap).
+- The frame gate, wing seed 2: **PASS**, CPU worst 7.42 ms (step 3: 7.68),
+  GPU worst 1.81 ms. Streaming in a room adjacent to R01 costs about 0.1–0.3 ms
+  more, for the check.
+- `stream_test` 40, `area_plan_test` 145, the persistence gate (all seven
+  processes), 240-frame runs clean.
+
+**Caveat:** a gallery's side wall still reaches 5 cm into the side of the
+lower R01 recess next to each door, where its thicker back meets R01's
+wall. It's against the recess's side face and I couldn't see it in the
+captures, so I left it.

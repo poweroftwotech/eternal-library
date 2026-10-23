@@ -105,6 +105,8 @@ func audit(s: int) -> void:
 		var b: Node3D = area.rooms[e["b"]].get_node(NodePath("Connectors/" + String(e["b_conn"])))
 		check(a != null and b != null and a.global_position.distance_to(b.global_position) < 0.01 and a.global_basis.z.dot(b.global_basis.z) < -0.99,
 			"%s: %s/%s meets %s/%s face to face" % [tag, e["a"], e["a_conn"], e["b"], e["b_conn"]])
+	var intruders: PackedStringArray = recess_intruders(area)
+	check(intruders.is_empty(), "%s: no room's geometry reaches into another room's shelf recesses (%s)" % [tag, intruders.slice(0, 6)])
 	var space: PhysicsDirectSpaceState3D = area.get_world_3d().direct_space_state
 	var body: CharacterBody3D = make_capsule(area)
 	for r: AreaPlan.Room in p.rooms:
@@ -221,6 +223,33 @@ func cell_path(r: AreaPlan.Room, from: Vector3i, to: Vector3i) -> Array[Vector3i
 
 
 ## What building cost, per room and in all (sizes step 2's budget).
+## Recess bays (Area._clear_recesses keeps them clear) whose cavity
+## (0.25 m past the wall line; the 3 m arch as two boxes: full width up to the
+## spring at 1.9 m, the middle 1.2 m up to 3.3 m) another room's meshes reach
+## into: what the gallery vaults did through R01's upper recesses over its
+## doors. Mesh bounds, so it can over-report.
+const RECESS_CAVITY: Array[AABB] = [AABB(Vector3(0.6, 0.2, 0.02), Vector3(2.8, 1.7, 0.23)), AABB(Vector3(1.4, 0.2, 0.02), Vector3(1.2, 3.1, 0.23))]
+func recess_intruders(area: Area) -> PackedStringArray:
+	var out: PackedStringArray = []
+	for slot: String in area.rooms:
+		var room: RoomTemplate = area.rooms[slot]
+		for n: Node in room.find_children("*", "KitModule", true, false):
+			var m := n as KitModule
+			if m.edge != "recess":
+				continue
+			for other_slot: String in area.rooms:
+				if other_slot == slot:
+					continue
+				for g: Node in (area.rooms[other_slot] as Node).find_children("*", "MeshInstance3D", true, false):
+					var mi := g as MeshInstance3D
+					if mi.mesh == null or not mi.is_visible_in_tree():
+						continue
+					var bounds: AABB = mi.global_transform * mi.get_aabb()
+					if RECESS_CAVITY.any(func(c: AABB) -> bool: return (m.global_transform * c).intersects(bounds)):
+						out.append("%s/%s ← %s/%s" % [slot, room.get_path_to(m), other_slot, (area.rooms[other_slot] as Node).get_path_to(mi)])
+	return out
+
+
 func report(area: Area, tag: String) -> void:
 	var t: Dictionary = area.timings
 	var lines: PackedStringArray = []

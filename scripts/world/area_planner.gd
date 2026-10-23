@@ -236,6 +236,8 @@ static func _scene_room(p: AreaPlan, slot_id: String, display_name: String, scen
 			"cap": "glow" if String(name).begins_with("SNAP_exit") else ("" if name == r.entry else "open")}
 	for box: AABB in info["boxes"]:
 		r.blockers.append(r.xf * box)
+	for box: AABB in info["recess_cavities"]:
+		r.recess_cavities.append(r.xf * box)
 	for c: Vector3i in info["cells"]:
 		var at: Vector3i = AreaPlan.cell_of(r.xf * _centre(c))
 		for s: int in range(info["storeys"].x, info["storeys"].y + 1):
@@ -348,19 +350,25 @@ static func _centre(c: Vector3i) -> Vector3:
 
 # --- authored and baked scenes ---------------------------------------------------------
 
+## A recess edge module's cavity past its wall line, in the module's frame: the
+## 3 m arch opening, 3.45 m up, 0.25 m deep (tools/kit_seed_walls.py's cutter).
+const RECESS_CAVITY: AABB = AABB(Vector3(0.5, 0.0, 0.0), Vector3(3.0, 3.45, 0.25))
+
+
 ## What the planner needs from an authored or baked room, read from an off-tree
 ## instance once per session (seed -1: the scene's own preview_seed): {seed,
 ## display_name, connectors {name: room-frame Transform3D}, boxes (room-frame
 ## module boxes, as GeneratedRoom._module_boxes), cells (room-frame grid cells
 ## its CELL modules stand on, storey 0), storeys (Vector2i: lowest and highest
-## storey above the floor its modules reach), styles {group: index}}.
+## storey above the floor its modules reach), styles {group: index},
+## recess_cavities (room-frame boxes, RECESS_CAVITY of each recess module)}.
 static func _scene_info(scene: PackedScene, seed_value: int) -> Dictionary:
 	var key: String = "%s@%d" % [scene.resource_path, seed_value]
 	if _scene_cache.has(key):
 		return _scene_cache[key]
 	var room := scene.instantiate() as RoomTemplate
 	var info: Dictionary = {"seed": room.preview_seed if seed_value < 0 else seed_value, "display_name": room.display_name,
-		"connectors": {}, "boxes": [], "cells": {}, "storeys": Vector2i.ZERO, "styles": {}}
+		"connectors": {}, "boxes": [], "cells": {}, "storeys": Vector2i.ZERO, "styles": {}, "recess_cavities": []}
 	var holder: Node = room.get_node_or_null("Connectors")
 	for c: Node in holder.get_children() if holder != null else []:
 		if c is Node3D:
@@ -371,6 +379,8 @@ static func _scene_info(scene: PackedScene, seed_value: int) -> Dictionary:
 	for m: KitModule in found:
 		if m.shape == KitModule.Shape.FREE or m.shape == KitModule.Shape.POST:
 			continue
+		if m.edge == "recess":
+			(info["recess_cavities"] as Array).append(KitValidateRoom._relative(room, m) * RECESS_CAVITY)
 		var module_box := AABB()
 		var first: bool = true
 		for node: Node in m.find_children("*", "MeshInstance3D", true, false):

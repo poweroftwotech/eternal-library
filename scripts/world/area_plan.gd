@@ -58,6 +58,9 @@ class Room:
 	var sight: Dictionary = {}
 	## Area-frame boxes later rooms' layouts keep out of.
 	var blockers: Array[AABB] = []
+	## A scene room's recess cavities past its walls (area frame): no other
+	## room's geometry may reach into them (Area._clear_recesses).
+	var recess_cavities: Array[AABB] = []
 	## {style group: entry index} the built room takes (inherited from its parent).
 	var style_overrides: Dictionary = {}
 	## A generated room's planned layout (room frame).
