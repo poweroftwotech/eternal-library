@@ -8,12 +8,13 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| Nothing to approve. Two look questions are open (the columns read as blocks; the plaster domes are dark), and step 2 (the big hall) is next | [Phase 5 progress, step 1](docs/environment/progress/phase-5-kit-breadth.md) (Caveats) | Answer the look questions whenever you like, or say go for step 2 |
+| Nothing right now. Next is **phase 5 step 2**, the big hall (up to 10 × 10 bays, more landmarks, the frame gate on any area) | [Phase 5 approval brief](docs/environment/phase-5-approval.md) | Say when to start step 2 |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-22 | **Hall look settled:** the columns have 8 shallow flutes turning a third of a turn up the shaft (softened after the first try looked busy up close); the plaster domes are paler, with a tile band at the foot (`previews/p5_look/`, [progress](docs/environment/progress/phase-5-kit-breadth.md)). Your choices; committed. |
 | 2026-10-22 | **Phase 5 step 1 built:** a new area on the Esc menu, the Lower Stacks, starts in a generated column hall: twisted columns, small tiled domes, freestanding bookcases, aisles to a landmark under an oculus (great lamp, reading tree or catalogue desk). The generator now follows its rules files, and every gallery still comes out exactly as before ([progress](docs/environment/progress/phase-5-kit-breadth.md)). You walked it; committed. |
 | 2026-10-22 | **Phase 5 design drafted:** [approval brief](docs/environment/phase-5-approval.md) and [technical design](docs/environment/phase-5-design.md). Four new room types in a new area, the Lower Stacks; recommends moving the Overlook and R10 to a later phase (Q1). Waiting for your approval. |
 | 2026-10-22 | **Fix:** the pale arch "trim" floating in R01's upper shelves above its doors (in the wing only) was each gallery's first vault seen through the recess; those vault bays now stop short of R01's recesses. A new route check guards it ([progress](docs/environment/progress/phase-4-areas.md)). You checked it; committed. |

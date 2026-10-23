@@ -45,7 +45,7 @@ import bmesh
 import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kit_blender import (T, add_box, add_ngon_prism, add_prism, arch_outline, cut,  # noqa: E402
+from kit_blender import (T, add_box, add_ngon_prism, add_prism, arch_outline, cut, rebuild,  # noqa: E402
                          marker, mesh_object, module)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -130,11 +130,14 @@ def column_twisted(r):
     bm = bmesh.new()
     add_ngon_prism(bm, 8, 0.46, 0.0, 0.16)
     add_ngon_prism(bm, 8, 0.38, 0.16, 0.45)
+    # rev 3 (your look review): 8 flutes a third of a turn up the shaft, so the
+    # spiral reads from across the hall; shallower and in fewer drums than
+    # rev 2, which looked busy and jagged up close.
     steps = 10
     for k in range(steps):
         z0 = 0.45 + (3.55 - 0.45) * k / steps
         z1 = 0.45 + (3.55 - 0.45) * (k + 1) / steps
-        star_prism(bm, z0, z1, 0.27, 0.22, 6, k * math.radians(9.0))
+        star_prism(bm, z0, z1, 0.28, 0.21, 8, k * math.radians(12.0))
     add_ngon_prism(bm, 8, 0.32, 3.55, 3.7)
     add_box(bm, -0.36, 0.36, -0.36, 0.36, 3.7, 3.82)
     add_box(bm, -0.42, 0.42, -0.42, 0.42, 3.82, CAP)
@@ -182,13 +185,22 @@ def hall_band(r):
     mesh_object("wall_hall_band_4m__cornice", bm, ["arch_stone"], r)
 
 
-def dome(r, mat, hole=0.02, name="dome_cell_4m"):
+def dome(r, mat, hole=0.02, name="dome_cell_4m", band=False):
     bm = bmesh.new()
     slab_with_hole(bm, BAND_TOP, BAND_TOP + 0.2)
     mesh_object(name + "__slab-col", bm, ["vault_plaster"], r)
     bm = bmesh.new()
     revolve_loop(bm, dome_loop(hole), 2.0, 2.0, 24)
     mesh_object(name + "__dome", bm, [mat], r)
+    if band:
+        # A ring of tile round the dome's foot, 1.5 cm proud of its inner face.
+        n, top = 4, 0.42
+        ri = DOME_R - 0.015
+        inner = [(ri * math.cos(t), BAND_TOP + (DOME_CROWN - BAND_TOP) * math.sin(t)) for t in (top * i / n for i in range(n + 1))]
+        outer = [((ri + 0.01) * math.cos(t), z) for ((_r, z), t) in zip(inner, (top * i / n for i in range(n + 1)))]
+        bm = bmesh.new()
+        revolve_loop(bm, inner + list(reversed(outer)), 2.0, 2.0, 24)
+        mesh_object(name + "__band", bm, ["tile"], r)
 
 
 def dome_a(r):
@@ -196,7 +208,8 @@ def dome_a(r):
 
 
 def dome_b(r):
-    dome(r, "vault_plaster", name="dome_cell_4m_b")
+    # rev 2 (your look review): paler plaster, and a tile band at the foot.
+    dome(r, "dome_plaster", name="dome_cell_4m_b", band=True)
 
 
 def oculus(r):
@@ -314,6 +327,10 @@ MODULES = [
     ("M_landmark_catalogue_desk", props("free", [1, 0, 1], "", "wood,landmark", family="dressing"), catalogue_desk),
 ]
 
+# Script-made modules remade in place at a new revision (kit_blender.rebuild):
+# hand edits to them are lost, so only list ones nobody has changed in Blender.
+REBUILD = [("M_post_column_twisted", 3), ("M_dome_cell_4m_b", 2)]
+
 
 def main():
     if os.path.exists(BLEND):
@@ -327,11 +344,12 @@ def main():
             build(module(name, (x, ROW_Y, 0.0), p))
             added.append(name)
         x += 8.0
-    if not added:
+    rebuilt = ["%s (rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
+    if not added and not rebuilt:
         print("kit_add_r03: everything already present; nothing to do.")
         return
     bpy.ops.wm.save_as_mainfile(filepath=BLEND)
-    print("kit_add_r03: added " + ", ".join(added))
+    print("kit_add_r03: added %s; rebuilt %s" % (", ".join(added) or "nothing", ", ".join(rebuilt) or "nothing"))
 
 
 main()

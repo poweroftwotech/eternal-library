@@ -23,6 +23,7 @@ uniform float tint_strength = 0.12;    // +- albedo brightness at the extremes
 uniform vec3 tint_warm : source_color = vec3(1.04, 0.98, 0.9);   // hue of the darker patches
 uniform float rough_variation = 0.12;  // +- roughness
 uniform float tint_steps = 4.0;        // quantisation levels per side
+uniform vec3 albedo_scale = vec3(1.0);  // a paler or darker copy of a texture (dome_plaster)
 group_uniforms wear;
 uniform float wear_strength = 0.0;     // 0 off; floor_stone polishes walked paths
 uniform float wear_roughness = 0.3;    // roughness at full wear
@@ -114,7 +115,7 @@ void fragment() {
 		}
 	}
 
-	ALBEDO = albedo_tex.rgb * tint;
+	ALBEDO = albedo_tex.rgb * tint * albedo_scale;
 	ROUGHNESS = clamp(rough, 0.05, 1.0);
 	METALLIC = 0.0;
 	SPECULAR = specular;

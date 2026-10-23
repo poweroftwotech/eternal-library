@@ -84,12 +84,15 @@ menu) are 61 lines.
 
 **Caveats, for your review:**
 
-- **The columns read as stacked stone blocks more than twisted shafts.**
-  The world-mapped stone texture is large next to the shallow flutes. Deeper
-  flutes, more twist or a finer stone are all `.blend` or material changes;
-  tell me which way you'd like it.
-- **The plaster domes are dark** next to the tiled ones; the lamps hang
-  below the arches and barely reach them.
+- **Look review (2026-10-22, your choices; settled and committed):** the columns read as stacked
+  blocks, so they now have 8 flutes turning a third of a turn up the shaft
+  (rev 3: rev 2 turned half a turn with deeper flutes and looked busy up
+  close, so you asked for it softened). The plaster domes were dark, so they now
+  use a paler plaster (`kit/materials/dome_plaster.tres`, through a new
+  `albedo_scale` on the kit shader, 1 for every other material) with a tile
+  band at the foot. Both pieces were remade in place by
+  `tools/kit_add_r03.py` (column rev 3, dome rev 2). Before and after: `previews/p5_step1/` and
+  `previews/p5_look/`.
 - The Lower Stacks' galleries are ordinary R02 galleries with the wing's
   look and the wing's atmosphere; a deeper look for the Lower Stacks is
   later.
