@@ -441,12 +441,12 @@ func area_save_mode() -> void:
 	# F: the deepest leaf. Q: the room furthest from it (not the root).
 	var far: AreaPlan.Room = null
 	for r: AreaPlan.Room in p.rooms:
-		if r.parent != "" and r.children_count() == 0 and (far == null or r.depth > far.depth or (r.depth == far.depth and r.slot_id < far.slot_id)):
+		if r.parent != "" and r.children_count() == 0 and not r.pinned and (far == null or r.depth > far.depth or (r.depth == far.depth and r.slot_id < far.slot_id)):
 			far = r
 	var from_far: Dictionary = st.distances(far.slot_id)
 	var quit_room: AreaPlan.Room = null
 	for r: AreaPlan.Room in p.rooms:
-		if r.parent != "" and (quit_room == null or int(from_far[r.slot_id]) > int(from_far[quit_room.slot_id])):
+		if r.parent != "" and not r.pinned and (quit_room == null or int(from_far[r.slot_id]) > int(from_far[quit_room.slot_id])):
 			quit_room = r
 	check(int(from_far[quit_room.slot_id]) > st.settings.unload_radius, "seed %d: a gallery %d doorways from %s, enough for it to unload" % [p.area_seed, int(from_far[quit_room.slot_id]), far.slot_id])
 	await walk(AreaTour.leg(p, far))
@@ -465,7 +465,7 @@ func area_save_mode() -> void:
 	# U: a gallery that isn't loaded, preferably one never loaded at all.
 	var unseen: AreaPlan.Room = null
 	for r: AreaPlan.Room in p.rooms:
-		if r.parent == "" or r == far or st.is_live(r.slot_id):
+		if r.parent == "" or r.pinned or r == far or st.is_live(r.slot_id):
 			continue
 		if unseen == null or (not ever_live.has(r.slot_id) and ever_live.has(unseen.slot_id)):
 			unseen = r

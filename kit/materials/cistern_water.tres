@@ -1,0 +1,8 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/water.gdshader" id="1_water"]
+
+[resource]
+resource_name = "cistern_water"
+shader = ExtResource("1_water")
+shader_parameter/flow = Vector2(0, 0)

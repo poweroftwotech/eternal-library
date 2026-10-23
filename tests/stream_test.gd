@@ -77,7 +77,9 @@ func walk_seed(id: String, s: int) -> void:
 	# The farthest leaf: walked to first, a lamp tended there, checked again at the end.
 	var leaves: Array[AreaPlan.Room] = []
 	for r: AreaPlan.Room in p.rooms:
-		if r.parent != "" and r.children_count() == 0:
+		# Leaves of the rooms that stream: a pinned room (the cistern) never unloads,
+		# so the gallery it grows from is walked to instead.
+		if r.parent != "" and not r.pinned and p.rooms.all(func(c: AreaPlan.Room) -> bool: return c.parent != r.slot_id or c.pinned):
 			leaves.append(r)
 	leaves.sort_custom(func(a: AreaPlan.Room, b: AreaPlan.Room) -> bool: return a.depth > b.depth or (a.depth == b.depth and a.slot_id < b.slot_id))
 	var far: AreaPlan.Room = leaves[0]
@@ -134,12 +136,22 @@ func walk_seed(id: String, s: int) -> void:
 	check(bad_far.is_empty(), "%s: nothing far and out of sight stays live past the delay (%s)" % [tag, bad_far.slice(0, 6)])
 	check(sealed.is_empty(), "%s: no seal on a doorway of the player's room or its neighbours (%s)" % [tag, sealed.slice(0, 6)])
 	check(unload_problems.is_empty(), "%s: unloaded rooms leave nothing behind (%s)" % [tag, unload_problems.slice(0, 6)])
-	check(st.stats["unloads"] > 0 or p.rooms.size() <= 5, "%s: rooms were unloaded on the walk (%d)" % [tag, st.stats["unloads"]])
+	# How far apart the rooms that can stream get (a pinned room never unloads).
+	var streaming: Array = p.rooms.filter(func(r: AreaPlan.Room) -> bool: return not r.pinned)
+	var spread: int = 0
+	for a: AreaPlan.Room in streaming:
+		var d: Dictionary = st.distances(a.slot_id)
+		for b: AreaPlan.Room in streaming:
+			spread = maxi(spread, int(d.get(b.slot_id, 0)))
+	check(st.stats["unloads"] > 0 or spread <= settings.unload_radius, "%s: rooms were unloaded on the walk (%d; rooms that stream up to %d doorways apart)" % [tag, st.stats["unloads"], spread])
 	if tended.is_empty():
 		check(false, "%s: found a lamp to tend in %s" % [tag, far.slot_id])
 	else:
 		# A hall whose galleries all open off it keeps every room within reach.
-		var far_reach: int = st.distances(far.slot_id).values().max()
+		var from_far: Dictionary = st.distances(far.slot_id)
+		var far_reach: int = 0
+		for r: AreaPlan.Room in streaming:
+			far_reach = maxi(far_reach, int(from_far.get(r.slot_id, 0)))
 		if far_reach > settings.unload_radius:
 			check(far_unloaded, "%s: %s unloaded while we were away" % [tag, far.slot_id])
 		else:

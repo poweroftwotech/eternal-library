@@ -7,6 +7,7 @@
 [ext_resource type="Resource" path="res://gen/grammars/r03_hypostyle.tres" id="5_r03"]
 [ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="6_r02"]
 [ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="7_atmos"]
+[ext_resource type="Resource" path="res://gen/grammars/r11_cistern.tres" id="8_r11"]
 
 [sub_resource type="Resource" id="Resource_hall"]
 script = ExtResource("2_slot")
@@ -22,6 +23,15 @@ display_name = "The Lower Galleries"
 count = Vector2i(3, 5)
 slot_prefix = "gallery"
 
+[sub_resource type="Resource" id="Resource_cistern"]
+script = ExtResource("3_grow")
+grammar = ExtResource("8_r11")
+display_name = "The Cistern Archive"
+count = Vector2i(1, 1)
+slot_prefix = "cistern"
+pinned = true
+from = PackedStringArray("gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+
 [sub_resource type="Resource" id="Resource_place"]
 script = ExtResource("4_place")
 
@@ -30,7 +40,8 @@ script = ExtResource("1_recipe")
 id = "lower_stacks"
 display_name = "The Lower Stacks"
 slots = Array[ExtResource("2_slot")]([SubResource("Resource_hall")])
-grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow")])
-room_count = Vector2i(4, 6)
+grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow"), SubResource("Resource_cistern")])
+room_count = Vector2i(5, 7)
+version = 3
 placement = SubResource("Resource_place")
 atmosphere = ExtResource("7_atmos")

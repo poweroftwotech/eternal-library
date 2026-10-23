@@ -2,14 +2,140 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · Design: [approval brief](../phase-5-approval.md), [technical](../phase-5-design.md)
 
-**In short:** steps 1 and 2 are done and committed. A new area, the Lower Stacks, starts in a
+**In short:** steps 1 to 3 are done and committed (the cistern's water is being
+brightened). A new area, the Lower Stacks, starts in a
 generated Hypostyle hall: a grid of bays under small tiled domes on twisted
 columns, freestanding bookcases between them, and clear aisles from every
 door to a landmark under an oculus. Generated galleries lead off its doors.
-In step 2 the hall grows to 10 × 10
-bays, with brass lamp clusters and the odd collapsed bay, and it still runs
-at the base-spec frame target. The streaming, frame and save tests now walk
-the Lower Stacks as well as the wing.
+In step 2 the hall grows to 10 × 10 bays, with brass lamp clusters and the
+odd collapsed bay, and it still runs at the base-spec frame target. In step
+3 one gallery leads to a flooded cistern: a causeway to a sealed bronze door,
+shallows you wade at half speed, deep water that stops you, and platforms of
+book crates, under the Reading Garden's water.
+
+---
+
+## Step 3: the Cistern Archive (done 2026-10-23, walked in the game by you and committed; the water too dark, being worked on)
+
+**Try it:** Esc → **Walk the Lower Stacks** (or `-- --area=lower_stacks
+--area-seed=1`). One of the galleries off the hall leads to the cistern
+(19 seeds in 20 have one; seed 2 doesn't).
+
+- Walk the causeway from the door to the sealed bronze door at the far end,
+  a lantern on each side of it. The door doesn't open.
+- Step off the causeway anywhere: its sides slope into the water. In the
+  shallows (the water's surface 0.4 m below the causeway, the bed 0.9 m
+  down) you wade at half speed.
+- Deep bays (the bed 2 m down) stop you at their edge.
+- Timber platforms of book crates stand in the water between the piers.
+  You can't climb onto them.
+- Lanterns hang over the causeway and out over the water every second bay.
+
+Pictures (seed 1, Medium, 1920 × 1080): `previews/p5_step3/r11_1_*.png`
+(entry, door, across, wading, platform).
+
+**Built:**
+
+| Piece | File |
+|---|---|
+| Nine new kit pieces: the shallow and deep water bays (each carries its water surface; the deep one a wall only the player meets), the causeway (a 1.6 m path whose sides slope into the shallows), a quay, the wall below the floor along the water, a square brick pier standing in the water, a plain brick dome, the platform of book crates, and the sealed bronze door with its two lanterns | `tools/kit_add_r03.py`, `art_src/kit/kit_hall.blend` |
+| The water is the Reading Garden's water (`shaders/water.gdshader`: pixel ripples, the bed seen through it, darker with depth), held still | `kit/materials/cistern_water.tres` |
+| Import rules: a `*wade_stop` collision goes on a new physics layer only the player meets (8, `player_blockers`); a water piece's floor is marked for wading; the water's surface casts no shadow | `tools/kit_import.gd`, `project.godot` |
+| `CisternGrammar` (extends the hall's): the causeway, shallow and deep bays (the bays beside the causeway always shallow; any shallow bay you couldn't wade to made deep), platforms off the bays along the walls, the sealed door, the wall below the floor, lanterns on a lattice; each bay keeps its floor height | `scripts/gen/cistern_grammar.gd`, `gen/grammars/r11_cistern.tres`, `gen/rules/r11_cistern.tres` |
+| The player wades at `wade_speed_factor` (0.5) on a water floor, and collides with the deep-water walls | `scripts/player.gd` |
+| The Lower Stacks grows one cistern off a gallery (`room_count` 5–7; recipe version 3) | `gen/recipes/lower_stacks.tres` |
+| Small shared changes: a cell's floor can run across the room (`floor_run`); each grow entry numbers its own rooms (`cistern_1`); a generated room's safety floor is 2.5 m down (it reached under the cistern beside a gallery); Validate Room ignores walls only the player meets | `room_builder.gd`, `area_planner.gd`, `generated_room.gd`, `kit_validate_room.gd` |
+
+**"Little new code":** the cistern's grammar is 128 lines (99 without
+comments and blank lines); the shared changes above, wading included, are
+about 30 more. Under the 150-line target.
+
+**What changed from the design, and why:**
+
+- **No WaterPlane node.** Each water piece carries its own surface, and the
+  wading check is a mark on the floor's collision, so there is no water
+  area to keep in step with the room.
+- **Two depths, not a depth per bay.** The player can't climb steps, only
+  slopes, so the beds are at two fixed heights the causeway's sides reach:
+  shallow (0.9 m, you wade) and deep (2 m, blocked).
+- **No kerbs on the causeway:** they would stop you wading in.
+- **The causeway's sides slope at 37 degrees.** The first try (42) was too
+  steep: the test capsule stalled at the lip.
+- **Platforms are blocked**, like the hall's bookcases, and stand only
+  between the piers, not in the bays along the walls (the wall recesses'
+  spilled books would land on them).
+- **The bronze door has no states yet** (sealed, forced, open); it is
+  simply sealed.
+- **The cistern is a dead end** off a gallery: no side doors, so no quays
+  are used yet (the piece is ready for one).
+- **The pieces are in `kit_hall.blend`** with the hall's, not a new
+  `kit_water.blend`.
+- **The cistern is pinned** (always live once the Lower Stacks is, like the
+  hall). It is a column hall of its own, 2,000 nodes against a gallery's 700,
+  and joining the scene in one frame cost 5–6 ms, which put the frame gate
+  over its 8 ms limit by up to 0.8 ms on that frame in all three runs. A grow
+  entry can now be pinned (`AreaGrow.pinned`). The light-well (step 4) will be
+  as big; it will need a room's entry spread over frames instead.
+- **A big room's modules are built a frame's budget at a time while it
+  streams** (`RoomBuilder.plan()` then `place()`; `GeneratedRoom`'s
+  `begin_planned_modules` / `build_planned_step`). Every gallery still comes
+  out module for module the same (`gen_signature_test`).
+- **Generated rooms' safety floors are 2.5 m down** (they were 0.25 m down,
+  and reached 4 m under the cistern beside a gallery, holding the capsule
+  above the shallows).
+- **The recess check in `area_route_test` tests vertices, not just bounds**:
+  a gallery fern behind the cistern's wall was flagged only by its box.
+
+**Found on the way: step 2's lamp clusters had the plain lantern's light.**
+The cluster piece was first imported before its "cluster" light (brighter,
+8.5 m) was picked up, and nothing re-imported it, so in step 2's pictures
+and frame gate each cluster lit like one lantern. It's re-imported now (the
+light comes from the import, so a fresh checkout gets it right); this step's
+frame gate ran with the real cluster lights.
+
+**Gates:**
+
+- `r11_layout_test` (new): 19 cisterns as the planner lays them out and 20
+  standalone. **7,874 checks pass.** The causeway runs entry to far wall;
+  the sealed door is in line with the entry; the bays beside the causeway are
+  shallow; every open bay can be waded to; deep bays and platforms are
+  blocked; no platform along the walls.
+- `r11_route_test` (new): in the Lower Stacks' cisterns (seeds 1–5 but 2,
+  which has none) every bay's floor is at its height; a capsule like the
+  player's walks the causeway to the sealed door, which blocks, wades a tour
+  of every open bay with its feet on the bed, and can't walk into any deep
+  bay or platform; the real player walks the causeway at 3.7 m/s and wades
+  at 1.85 m/s. **37 checks pass.**
+- **The frame gate** on the Lower Stacks seed 90 (the 10 × 10 hall, a
+  cistern, 7 rooms, 464 m): **three runs in a row pass.** Worst frame
+  7.4–7.8 ms (limit 8), mean 1.5 ms; GPU worst 2.2–2.5 ms; 471 draw calls;
+  shadowed lights 2; lights in reach 48 (limit 48). Before the cistern was
+  pinned, all three runs failed by one frame (8.1–10.3 ms) as it streamed in.
+- `area_route_test` 383 checks and `stream_test` 80 checks (both areas;
+  the cistern's walks wade, and the walk reaches the gallery it grows from),
+  `area_plan_test` 246, `r03_layout_test` 11,001, `r03_route_test` 46;
+  `persist_gate.sh` **all nine processes pass**.
+- Every earlier gate passes: `gen_signature_test` 103 (every gallery
+  unchanged after the builder split), `kit_test` 1,219 (the deep-water walls
+  on layer 8), `prop_test` 51 (the player also meets layer 8),
+  `r02_route_test` 2,321, `r02_bake_test` 105, `book_test` 27,
+  `room_playtest` 31, `reading_room_test` 87, `validate_room_test` 26,
+  `socket_modes_test` 246, `age_test` 20, camp `playtest` 43,
+  `atmosphere_test` 9, `room_atmosphere_test` 32; 240-frame runs clean for
+  the camp, `--area=library` and `--area=lower_stacks`.
+
+**Caveats, for your review:**
+
+- **The water's ripples are still.** The Reading Garden animates its water
+  from its own atmosphere script, which the Lower Stacks doesn't run; in the
+  cistern the ripples are frozen (still water suits a cistern, but a slow
+  shimmer would need a small driver).
+- **The cistern is dark away from its lanterns**, as the atlas has it; the
+  water shows mostly as glints and near the lanterns.
+- **Changes you saved in the Lower Stacks while walking step 2 went stale**
+  (the recipe is version 3 now): kept in the save, never applied, as the
+  phase 4 design says.
+- The bronze door has no states yet, and the cistern has no side doors.
 
 ---
 

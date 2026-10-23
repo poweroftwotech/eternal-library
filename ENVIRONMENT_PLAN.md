@@ -8,12 +8,13 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| Nothing right now. Next is **phase 5 step 3**, the Cistern Archive (the hall flooded: brick piers in dark water, a causeway, wading in the shallows) | [Phase 5 approval brief](docs/environment/phase-5-approval.md) | Say when to start step 3 |
+| Nothing right now. I'm brightening the cistern's water (you found it too dark) and fixing the smaller issues found in step 3; then step 4, the light-well | [Phase 5 progress, step 3](docs/environment/progress/phase-5-kit-breadth.md) | Look at the water when I show it |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-23 | **Phase 5 step 3 built:** one of the Lower Stacks' galleries leads to the Cistern Archive: brick piers in still water under brick domes, a causeway to a sealed bronze door, shallows you wade at half speed, deep water that stops you, platforms of book crates, and the Reading Garden's water. The cistern is pinned (built with the area) because it is too big to stream in within a frame; the frame gate passes three runs in a row. 128 lines of new grammar ([progress](docs/environment/progress/phase-5-kit-breadth.md)). Also fixed: step 2's lamp clusters had a lantern's light. You walked it: the water is too dark (being brightened). Committed. |
 | 2026-10-23 | **Phase 5 step 2 built:** the Lower Stacks' hall grows to 10 × 10 bays (40 m), with brass lamp clusters on every third dome and the odd collapsed bay (a heap of rubble under the shaft its dome left). A 10 × 10 hall runs at the base-spec target (four frame-gate runs in a row; 443 draw calls of 1,500), so the planned batching isn't needed. The streaming, frame and save tests now walk the Lower Stacks too ([progress](docs/environment/progress/phase-5-kit-breadth.md)). You walked it; collapsed bays stay dark, by your choice. Committed. |
 | 2026-10-22 | **Hall look settled:** the columns have 8 shallow flutes turning a third of a turn up the shaft (softened after the first try looked busy up close); the plaster domes are paler, with a tile band at the foot (`previews/p5_look/`, [progress](docs/environment/progress/phase-5-kit-breadth.md)). Your choices; committed. |
 | 2026-10-22 | **Phase 5 step 1 built:** a new area on the Esc menu, the Lower Stacks, starts in a generated column hall: twisted columns, small tiled domes, freestanding bookcases, aisles to a landmark under an oculus (great lamp, reading tree or catalogue desk). The generator now follows its rules files, and every gallery still comes out exactly as before ([progress](docs/environment/progress/phase-5-kit-breadth.md)). You walked it; committed. |
@@ -46,7 +47,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 2. Generated Stack Gallery (R02) | A seeded corridor off any R01 door; bakeable to a scene | ✅ Done 2026-10-20 |
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
-| **5. Kit breadth** | More room types, mostly from data | Approved 2026-10-22 (Q1–Q12 as recommended); steps 1–2 done; step 3 (the cistern) next |
+| **5. Kit breadth** | More room types, mostly from data | Approved 2026-10-22 (Q1–Q12 as recommended); steps 1–3 done; brightening the cistern's water |
 
 ## 10. Roadmap (each phase is a playable slice)
 

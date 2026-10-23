@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_mnjrc"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/basin_cell_4m.glb" id="2_uat5f"]
+
+[node name="basin_cell_4m" type="Node3D" unique_id=288116024]
+script = ExtResource("1_mnjrc")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "water", "cistern")
+source_glb = "res://assets/kit/walls/basin_cell_4m.glb"
+
+[node name="Mesh" parent="." unique_id=165946993 instance=ExtResource("2_uat5f")]

@@ -54,6 +54,7 @@ scene={
 3d_physics/layer_5="npcs"
 3d_physics/layer_6="triggers"
 3d_physics/layer_7="water"
+3d_physics/layer_8="player_blockers"
 
 [rendering]
 

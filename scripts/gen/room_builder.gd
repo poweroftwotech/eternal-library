@@ -18,6 +18,17 @@ extends RefCounted
 static func build(shell: Node3D, grid: CellGrid, rules: ModuleRules, styles: PackedStringArray,
 		seed_value: int, dressing: Node3D = null) -> Array[Node3D]:
 	var out: Array[Node3D] = []
+	for entry: Array in plan(shell, grid, rules, styles, seed_value, dressing):
+		out.append(place(entry))
+	return out
+
+
+## Every module build() would add, in its order, as [holder, scene, node name,
+## transform], nothing instantiated yet: the streamer places them a few at a
+## time (place()), so a big room needn't be built in one frame.
+static func plan(shell: Node3D, grid: CellGrid, rules: ModuleRules, styles: PackedStringArray,
+		seed_value: int, dressing: Node3D = null) -> Array:
+	var out: Array = []
 	if rules == null:
 		push_warning("RoomBuilder: no ModuleRules")
 		return out
@@ -26,7 +37,7 @@ static func build(shell: Node3D, grid: CellGrid, rules: ModuleRules, styles: Pac
 		var n: String = CellGrid.cell_name(c)
 		var floor_slot: String = cell.get("floor_slot", "cell:floor")
 		if floor_slot != "":
-			_place(out, shell, rules, styles, seed_value, floor_slot, n, "floor_" + n, CellGrid.cell_transform(c, Vector3i(0, 0, 1)))
+			_place(out, shell, rules, styles, seed_value, floor_slot, n, "floor_" + n, CellGrid.cell_transform(c, cell.get("floor_run", Vector3i(0, 0, 1))))
 		var ceiling: String = cell.get("ceiling_slot", "cell:ceiling_cross" if cell["kind"] == "corner" else "cell:ceiling")
 		if ceiling != "":
 			_place(out, shell, rules, styles, seed_value, ceiling, n, "vault_" + n, CellGrid.cell_transform(c, cell["run"]))
@@ -91,7 +102,8 @@ static func _corner_point(ck: String) -> Vector3:
 	return Vector3(p[0].to_int() * CellGrid.BAY, p[1].to_int() * CellGrid.BAY, -p[2].to_int() * CellGrid.BAY)
 
 
-static func _place(out: Array[Node3D], shell: Node3D, rules: ModuleRules, styles: PackedStringArray,
+## Picks a module for `slot` (seeded by slot and key) and records it for place().
+static func _place(out: Array, shell: Node3D, rules: ModuleRules, styles: PackedStringArray,
 		seed_value: int, slot: String, key: String, node_name: String, xf: Transform3D) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([seed_value, slot, key])
@@ -99,8 +111,13 @@ static func _place(out: Array[Node3D], shell: Node3D, rules: ModuleRules, styles
 	if scene == null:
 		push_warning("RoomBuilder: no module for %s (styles %s)" % [slot, styles])
 		return
-	var node := scene.instantiate() as Node3D
-	node.name = node_name
-	node.transform = xf
-	shell.add_child(node)
-	out.append(node)
+	out.append([shell, scene, node_name, xf])
+
+
+## Instantiates one planned module under its holder; returns it.
+static func place(entry: Array) -> Node3D:
+	var node := (entry[1] as PackedScene).instantiate() as Node3D
+	node.name = entry[2]
+	node.transform = entry[3]
+	(entry[0] as Node3D).add_child(node)
+	return node

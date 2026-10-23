@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_s0pfi"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/wall_vault_door_4m.glb" id="2_atjne"]
+
+[node name="wall_vault_door_4m" type="Node3D" unique_id=1529091613]
+script = ExtResource("1_s0pfi")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brass", "door", "light", "cistern")
+source_glb = "res://assets/kit/walls/wall_vault_door_4m.glb"
+
+[node name="Mesh" parent="." unique_id=1526072665 instance=ExtResource("2_atjne")]

@@ -1,0 +1,15 @@
+[gd_resource type="Resource" script_class="CisternGrammar" format=3]
+
+[ext_resource type="Script" path="res://scripts/gen/cistern_grammar.gd" id="1_grammar"]
+[ext_resource type="Resource" path="res://gen/rules/r11_cistern.tres" id="2_rules"]
+
+[resource]
+script = ExtResource("1_grammar")
+styles = PackedStringArray("brick", "cistern")
+rules = ExtResource("2_rules")
+size_min = 4
+size_max = 7
+exit_min = 0
+exit_max = 0
+case_density = 0.4
+lamp_every_bays = 2

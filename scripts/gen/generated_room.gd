@@ -168,6 +168,12 @@ func _build(laid_out: CellGrid, s: int, styles: Dictionary, resolve: bool = true
 	_group("Sockets")
 	_group("Connectors")
 	modules = RoomBuilder.build(shell, grid, rules if rules != null else grammar.rules, grammar.styles, s, _group("Dressing"))
+	_finish_build(s, styles, resolve)
+
+
+## Everything after the modules: connectors, fills, pins, the safety floor,
+## floor wear and (unless streaming) the sockets.
+func _finish_build(s: int, styles: Dictionary, resolve: bool) -> void:
 	for m: Node3D in modules:
 		m.set_meta("generated", true)
 	_add_connectors()
@@ -183,8 +189,44 @@ func _build(laid_out: CellGrid, s: int, styles: Dictionary, resolve: bool = true
 
 ## AreaStreamer: builds a planned room's modules off the tree (no sockets yet).
 func build_planned_modules() -> void:
+	begin_planned_modules()
+	build_planned_step(-1)
+
+
+## The planned room's modules, not placed yet (begin_planned_modules).
+var _to_place: Array = []
+
+
+## AreaStreamer, phase 5 step 3: plans a planned room's modules (no sockets
+## yet); build_planned_step() then places them a frame's budget at a time, so
+## a big room (a cistern's 220 modules) needn't be built in one frame.
+func begin_planned_modules() -> void:
 	clear_generated()
-	_build(planned_grid, planned_seed, planned_styles, false)
+	grid = planned_grid
+	_to_place = []
+	if grammar == null:
+		push_warning("%s: no grammar" % name)
+		return
+	var shell: Node3D = _group("Shell")
+	_group("Sockets")
+	_group("Connectors")
+	_to_place = RoomBuilder.plan(shell, grid, rules if rules != null else grammar.rules, grammar.styles, planned_seed, _group("Dressing"))
+	_to_place.reverse()      # placed from the back, in build()'s order
+
+
+## Places planned modules until `deadline` (Time.get_ticks_usec(); -1: no
+## limit; at least one); true once every module is placed and the room is
+## finished as _build() would leave it.
+func build_planned_step(deadline: int) -> bool:
+	while not _to_place.is_empty():
+		modules.append(RoomBuilder.place(_to_place.pop_back()))
+		if deadline >= 0 and Time.get_ticks_usec() >= deadline:
+			break
+	if not _to_place.is_empty():
+		return false
+	if grammar != null:
+		_finish_build(planned_seed, planned_styles, false)
+	return true
 
 
 ## Removes everything generate() made (found by meta, so it also works after
@@ -404,8 +446,9 @@ func _pin_from_grid() -> void:
 				generated_pins[socket_key(s)] = idx
 
 
-## AGENTS.md: a temporary floor under unfinished areas (0.25 m under the
-## floor, 4 m past the cells), as R01 has.
+## AGENTS.md: a temporary floor under unfinished areas, 4 m past the cells,
+## as R01 has. Its top is 2.5 m down, below the deepest water bay's bed (a
+## cistern), because it reaches under the rooms beside this one.
 func _add_safety_floor() -> void:
 	if grid.cells.is_empty():
 		return
@@ -424,7 +467,7 @@ func _add_safety_floor() -> void:
 	var b := BoxShape3D.new()
 	b.size = Vector3(box.size.x + 8.0, 0.5, box.size.z + 8.0)
 	shape.shape = b
-	shape.position = Vector3(box.get_center().x, -0.5, box.get_center().z)
+	shape.position = Vector3(box.get_center().x, -2.75, box.get_center().z)
 	body.add_child(shape)
 	add_child(body)
 

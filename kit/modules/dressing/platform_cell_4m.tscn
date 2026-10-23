@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_yeb5m"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/platform_cell_4m.glb" id="2_f6tej"]
+
+[node name="platform_cell_4m" type="Node3D" unique_id=1575877056]
+script = ExtResource("1_yeb5m")
+family = "dressing"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("wood", "storage", "cistern")
+source_glb = "res://assets/kit/dressing/platform_cell_4m.glb"
+
+[node name="Mesh" parent="." unique_id=1302647166 instance=ExtResource("2_f6tej")]

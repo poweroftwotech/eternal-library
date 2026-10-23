@@ -295,6 +295,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "platform_cell_4m",
+"scene": "res://kit/modules/dressing/platform_cell_4m.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("wood", "storage", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "prop_book_open",
 "scene": "res://kit/modules/dressing/prop_book_open.tscn",
 "shape": "free",
@@ -457,6 +466,51 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "basin_cell_4m",
+"scene": "res://kit/modules/walls/basin_cell_4m.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("stone", "water", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "basin_cell_4m_deep",
+"scene": "res://kit/modules/walls/basin_cell_4m_deep.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("brick", "water", "deep", "cistern"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
+"name": "basin_edge_4m",
+"scene": "res://kit/modules/walls/basin_edge_4m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 0, 0),
+"tags": PackedStringArray("brick", "water", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "causeway_cell_4m",
+"scene": "res://kit/modules/walls/causeway_cell_4m.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("stone", "causeway", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "causeway_cell_4m_quay",
+"scene": "res://kit/modules/walls/causeway_cell_4m_quay.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("stone", "causeway", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "dome_cell_4m_a",
 "scene": "res://kit/modules/walls/dome_cell_4m_a.tscn",
 "shape": "cell",
@@ -471,6 +525,15 @@ modules = Array[Dictionary]([{
 "shape": "cell",
 "size_cells": Vector3i(1, 1, 1),
 "tags": PackedStringArray("plaster", "dome", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "dome_cell_4m_brick",
+"scene": "res://kit/modules/walls/dome_cell_4m_brick.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("brick", "dome", "cistern"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -637,6 +700,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "post_pier_brick",
+"scene": "res://kit/modules/walls/post_pier_brick.tscn",
+"shape": "post",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "structure", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "post_pier_corbel",
 "scene": "res://kit/modules/walls/post_pier_corbel.tscn",
 "shape": "post",
@@ -769,4 +841,13 @@ modules = Array[Dictionary]([{
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("brick", "structure", "storage"),
 "weight": 8.0
+}, {
+"edge": "solid",
+"family": "walls",
+"name": "wall_vault_door_4m",
+"scene": "res://kit/modules/walls/wall_vault_door_4m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("brass", "door", "light", "cistern"),
+"weight": 1.0
 }])

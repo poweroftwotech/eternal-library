@@ -175,6 +175,9 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 	for m: KitModule in modules:
 		for shape: Node in m.find_children("*", "CollisionShape3D", true, false):
 			var cs := shape as CollisionShape3D
+			var owner_body := cs.get_parent() as CollisionObject3D
+			if owner_body != null and owner_body.collision_layer & 1 == 0:
+				continue      # a wall only the player meets (deep water): items pass through it
 			if cs.shape != null and not cs.disabled:
 				var xf: Transform3D = _relative(root, cs)
 				bodies.append([m, xf * cs.shape.get_debug_mesh().get_aabb(), xf, cs.shape])

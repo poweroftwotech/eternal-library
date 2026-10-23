@@ -45,7 +45,7 @@ import bmesh
 import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kit_blender import (T, add_box, add_lathe, add_ngon_prism, add_obox, add_plan_prism, add_prism, arch_outline, cut, rebuild,  # noqa: E402
+from kit_blender import (T, add_box, add_lathe, add_ngon_prism, add_obox, add_plan_prism, add_prism, arch_outline, cut, rebuild, wall_body,  # noqa: E402
                          marker, mesh_object, module)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -405,6 +405,139 @@ def rubble_heap(r):
     mesh_object("rubble_heap_4m__block-colonly", bm, ["arch_stone"], r)
 
 
+# --- step 3: the Cistern Archive (R11) --------------------------------------------
+# The water's surface is 0.4 m below the hall's floor; a shallow bay's floor
+# 0.9 m down (you wade), a deep bay's 2 m down (you can't go in).
+WATER = -0.4
+SHALLOW = -0.9
+DEEP = -2.0
+FOOT = -2.2        # bottom of everything that stands in the water
+
+
+def water_quad(r, name, x0=0.0, x1=4.0, y0=0.0, y1=4.0):
+    bm = bmesh.new()
+    vs = [bm.verts.new((x, y, WATER)) for (x, y) in ((x0, y0), (x1, y0), (x1, y1), (x0, y1))]
+    bm.faces.new(vs)
+    mesh_object(name, bm, ["cistern_water"], r)
+
+
+def basin(r):
+    """A shallow bay: a stone floor 0.9 m down under the water; you wade here."""
+    bm = bmesh.new()
+    add_box(bm, 0.0, 4.0, 0.0, 4.0, SHALLOW - 0.2, SHALLOW)
+    mesh_object("basin_cell_4m__floor-col", bm, ["floor_stone"], r)
+    water_quad(r, "basin_cell_4m__water")
+
+
+def basin_deep(r):
+    """A deep bay: its floor 2 m down, lined with brick up to the shallows'
+    floor, and a wall nobody sees that only the player meets (wade_stop)."""
+    bm = bmesh.new()
+    add_box(bm, 0.0, 4.0, 0.0, 4.0, DEEP - 0.2, DEEP)
+    for (x0, x1, y0, y1) in ((0.0, 4.0, 0.0, 0.12), (0.0, 4.0, 3.88, 4.0), (0.0, 0.12, 0.12, 3.88), (3.88, 4.0, 0.12, 3.88)):
+        add_box(bm, x0, x1, y0, y1, DEEP, SHALLOW)
+    mesh_object("basin_cell_4m_deep__pit-col", bm, ["brick"], r)
+    water_quad(r, "basin_cell_4m_deep__water")
+    bm = bmesh.new()
+    add_box(bm, 0.0, 4.0, 0.0, 4.0, SHALLOW, 2.6)
+    mesh_object("basin_cell_4m_deep__wade_stop-colonly", bm, ["brick"], r)
+
+
+def causeway(r):
+    """A stone path 1.6 m wide along the cell (Y) at the floor's level, its sides
+    sloping into the shallows (37 degrees: you can wade in and climb out;
+    rev 3: 42 degrees, from a 2 m path, was too steep to climb at the lip)."""
+    bm = bmesh.new()
+    add_box(bm, 1.2, 2.8, 0.0, 4.0, FOOT, 0.0)
+    # Each side: the slope's cross-section (X, Z) run along the cell's Y.
+    add_prism(bm, [(1.2, 0.0), (0.0, SHALLOW), (0.0, FOOT), (1.2, FOOT)], 0.0, 0.0, 0.0, 4.0)
+    add_prism(bm, [(2.8, 0.0), (2.8, FOOT), (4.0, FOOT), (4.0, SHALLOW)], 0.0, 0.0, 0.0, 4.0)
+    bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
+    mesh_object("causeway_cell_4m__body-col", bm, ["floor_stone"], r)
+    water_quad(r, "causeway_cell_4m__water_w", 0.0, 1.2)
+    water_quad(r, "causeway_cell_4m__water_e", 2.8, 4.0)
+
+
+def quay(r):
+    """A whole bay at the floor's level, built up from the water (the
+    causeway's ends, its junctions, and a door's bay)."""
+    bm = bmesh.new()
+    add_box(bm, 0.0, 4.0, 0.0, 4.0, FOOT, 0.0)
+    mesh_object("causeway_cell_4m_quay__body-col", bm, ["floor_stone"], r)
+
+
+def basin_edge(r):
+    """The wall below the floor along a water bay's edge, down to the bed."""
+    bm = bmesh.new()
+    add_box(bm, 0.0, 4.0, -T, T, FOOT, 0.0)
+    mesh_object("basin_edge_4m__body-col", bm, ["brick"], r)
+
+
+def pier_brick(r):
+    """A square brick pier standing in the water, up to the arches at 4 m."""
+    bm = bmesh.new()
+    add_box(bm, -0.32, 0.32, -0.32, 0.32, FOOT, 3.8)
+    mesh_object("post_pier_brick__body-col", bm, ["brick"], r)
+    bm = bmesh.new()
+    add_box(bm, -0.4, 0.4, -0.4, 0.4, 3.8, CAP)
+    add_box(bm, -0.38, 0.38, -0.38, 0.38, WATER - 0.05, WATER + 0.25)
+    mesh_object("post_pier_brick__courses", bm, ["arch_stone"], r)
+
+
+def dome_brick(r):
+    dome(r, "brick", name="dome_cell_4m_brick")
+
+
+def platform(r):
+    """Centred in a cell: a timber deck on piles above the water, crates of
+    books on it. One box of collision: nobody climbs onto it."""
+    import random
+    rng = random.Random(31)
+    bm = bmesh.new()
+    add_box(bm, 0.55, 3.45, 0.55, 3.45, -0.08, 0.05)
+    for (x, y) in ((0.7, 0.7), (3.3, 0.7), (3.3, 3.3), (0.7, 3.3), (2.0, 0.7), (2.0, 3.3)):
+        add_box(bm, x - 0.09, x + 0.09, y - 0.09, y + 0.09, FOOT, -0.08)
+    for (cx, cy, s, h) in ((1.2, 1.2, 0.7, 0.6), (1.25, 1.2, 0.55, 0.5), (2.6, 1.3, 0.75, 0.65), (2.7, 2.7, 0.7, 0.55), (1.3, 2.7, 0.6, 0.5)):
+        z0 = 0.05 if h != 0.5 or cx > 1.24 else 0.65
+        add_box(bm, cx - s / 2, cx + s / 2, cy - s / 2, cy + s / 2, z0, z0 + h)
+    mesh_object("platform_cell_4m__timber", bm, ["wood"], r)
+    bm = bmesh.new()
+    for (cx, cy) in ((1.2, 1.2), (2.6, 1.3), (2.7, 2.7)):
+        for k in range(rng.randint(2, 4)):
+            w = rng.uniform(0.18, 0.3)
+            add_obox(bm, (cx + rng.uniform(-0.15, 0.15), cy + rng.uniform(-0.15, 0.15), 0.7 + 0.06 * k + (0.6 if cx < 1.3 else 0.0)),
+                     (w, w * 0.7, 0.05), (0.0, 0.0, rng.uniform(0, math.pi)))
+    mesh_object("platform_cell_4m__books", bm, ["book_leather"], r)
+    bm = bmesh.new()
+    add_box(bm, 0.5, 3.5, 0.5, 3.5, FOOT, 1.4)
+    mesh_object("platform_cell_4m__block-colonly", bm, ["wood"], r)
+
+
+def vault_door(r):
+    """The far wall's sealed bronze door, under a 3 m arch, a lantern on a
+    bracket each side (on the room side, Blender +Y)."""
+    body = wall_body("wall_vault_door_4m__body-col", r)
+    bm = bmesh.new()
+    add_prism(bm, arch_outline(3.0, 1.9, 0.6, 10), 0.5, -0.01, -T - 0.1, T + 0.1)
+    cutter = mesh_object("cutter", bm, ["brick"], r)
+    cut(body, cutter)
+    bm = bmesh.new()
+    add_prism(bm, arch_outline(3.0, 1.9, 0.6, 10), 0.5, 0.0, -0.08, 0.08)
+    for x in (1.0, 1.5, 2.5, 3.0):
+        add_box(bm, x - 0.04, x + 0.04, 0.08, 0.12, 0.1, 2.2)       # bands across the leaves
+    add_box(bm, 1.98, 2.02, 0.08, 0.14, 0.0, 2.85)                    # the seam
+    mesh_object("wall_vault_door_4m__door-col", bm, ["brass"], r)
+    glass = bmesh.new()
+    bm = bmesh.new()
+    for x in (0.2, 3.8):
+        lantern_at(bm, glass, x, T + 0.25, 2.3, 0.14, 0.42)
+        add_box(bm, x - 0.02, x + 0.02, T, T + 0.25, 2.76, 2.8)      # bracket
+    mesh_object("wall_vault_door_4m__lanterns", bm, ["brass"], r)
+    mesh_object("wall_vault_door_4m__glass", glass, ["emit_lantern"], r)
+    marker("LIGHT_lantern__door_l", r, (0.2, T + 0.25, 2.5))
+    marker("LIGHT_lantern__door_r", r, (3.8, T + 0.25, 2.5))
+
+
 MODULES = [
     ("M_post_column_twisted", props("post", [0, 1, 0], "", "stone,column,hall"), column_twisted),
     ("M_post_hall_pier", props("post", [0, 2, 0], "", "brick,structure,hall"), hall_pier),
@@ -423,11 +556,22 @@ MODULES = [
     ("M_lantern_dome_cluster", props("free", [0, 1, 0], "", "brass,light,hall"), lantern_dome_cluster),
     ("M_dome_cell_4m_fallen", props("cell", [1, 1, 1], "", "tile,dome,ruin,hall"), dome_fallen),
     ("M_rubble_heap_4m", props("free", [1, 0, 1], "", "stone,debris,hall", family="dressing"), rubble_heap),
+    # Step 3: the Cistern Archive.
+    ("M_basin_cell_4m", props("cell", [1, 0, 1], "", "stone,water,cistern"), basin),
+    ("M_basin_cell_4m_deep", props("cell", [1, 0, 1], "", "brick,water,deep,cistern"), basin_deep),
+    ("M_causeway_cell_4m", props("cell", [1, 0, 1], "", "stone,causeway,cistern"), causeway),
+    ("M_causeway_cell_4m_quay", props("cell", [1, 0, 1], "", "stone,causeway,cistern"), quay),
+    ("M_basin_edge_4m", props("edge", [1, 0, 0], "solid", "brick,water,cistern"), basin_edge),
+    ("M_post_pier_brick", props("post", [0, 1, 0], "", "brick,structure,cistern"), pier_brick),
+    ("M_dome_cell_4m_brick", props("cell", [1, 1, 1], "", "brick,dome,cistern"), dome_brick),
+    ("M_platform_cell_4m", props("free", [1, 0, 1], "", "wood,storage,cistern", family="dressing"), platform),
+    ("M_wall_vault_door_4m", props("edge", [1, 1, 0], "solid", "brass,door,light,cistern"), vault_door),
 ]
 
 # Script-made modules remade in place at a new revision (kit_blender.rebuild):
 # hand edits to them are lost, so only list ones nobody has changed in Blender.
-REBUILD = [("M_post_column_twisted", 3), ("M_dome_cell_4m_b", 2)]
+REBUILD = [("M_post_column_twisted", 3), ("M_dome_cell_4m_b", 2),
+           ("M_basin_cell_4m", 2), ("M_basin_cell_4m_deep", 2), ("M_causeway_cell_4m", 3)]   # rev 2: the cistern's own water; causeway rev 3: gentler sides
 
 
 def main():

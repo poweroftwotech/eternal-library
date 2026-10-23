@@ -271,8 +271,14 @@ func _run_stage(job: Dictionary, deadline: int) -> void:
 			job["room"] = area.make_room(r)
 			job["stage"] = "modules" if r.kind == "generated" else "resolve_begin"
 		"modules":
-			(job["room"] as GeneratedRoom).build_planned_modules()
-			job["stage"] = "resolve_begin"
+			# Placed a frame's budget at a time (phase 5 step 3: a cistern's
+			# 220 modules took 5-7 ms in one step).
+			var room := job["room"] as GeneratedRoom
+			if not job.has("planned"):
+				room.begin_planned_modules()
+				job["planned"] = true
+			if room.build_planned_step(deadline):
+				job["stage"] = "resolve_begin"
 		"resolve_begin":
 			var room: RoomTemplate = job["room"]
 			room.begin_resolve(r.seed_value)

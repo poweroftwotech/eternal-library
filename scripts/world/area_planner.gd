@@ -114,10 +114,10 @@ static func _fault(r: AreaPlan.Room, grammar: RoomGrammar) -> String:
 
 
 static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
-	var n: int = 0
 	for g: AreaGrow in recipe.grow:
 		if g == null or g.grammar == null:
 			continue
+		var n: int = 0     # per grow entry: its rooms are <slot_prefix>_1, _2 …
 		var rng := RandomNumberGenerator.new()
 		rng.seed = hash([p.area_seed, "grow_count", g.slot_prefix])
 		var want: int = rng.randi_range(mini(g.count.x, g.count.y), maxi(g.count.x, g.count.y))
@@ -146,6 +146,7 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 			if why != "":
 				p.stats["too_short" if why.begins_with("only") else "boxed_in"] += 1
 				continue
+			r.pinned = g.pinned
 			p.add_room(r)
 			p.join(r, parent_room, conn)
 			if not p.compute_sight(r.slot_id)["violations"].is_empty():

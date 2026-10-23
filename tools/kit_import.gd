@@ -22,6 +22,8 @@ const LIGHT_PROFILES: Dictionary = {
 	"cluster": {"color": Color(1.0, 0.72, 0.38), "energy": 2.0, "range": 8.5, "attenuation": 1.1, "shadow": false},
 }
 const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_"]
+## Physics layer 8: walls only the player collides with (project layer names).
+const PLAYER_BLOCKERS: int = 1 << 7
 
 var _warnings: PackedStringArray = []
 
@@ -57,6 +59,12 @@ func _post_import(scene: Node) -> Object:
 			body.collision_layer = 1
 			body.collision_mask = 0
 			has_collision = true
+			# Phase 5 step 3 (Q10): a "*wade_stop-colonly" mesh is a wall only the
+			# player meets (deep water); a water module's floor slows the player.
+			if String(body.name).contains("wade_stop") or String(body.get_parent().name).contains("wade_stop"):
+				body.collision_layer = PLAYER_BLOCKERS
+			elif (kit["tags"] as PackedStringArray).has("water"):
+				body.set_meta("wade", true)
 		if node is Node3D and not (node as Node3D).scale.is_equal_approx(Vector3.ONE):
 			_warnings.append("%s has scale %s (modules must not be scaled)" % [node.name, (node as Node3D).scale])
 	for node: Node in nodes:
@@ -114,7 +122,8 @@ func _fix_materials(inst: MeshInstance3D) -> void:
 	if inst.get_surface_override_material_count() > 0:
 		for i: int in inst.get_surface_override_material_count():
 			inst.set_surface_override_material(i, null)
-	if mesh.get_surface_count() > 0 and _clean_name(str(mesh.surface_get_material(0).resource_name)).begins_with("emit_"):
+	var first: String = _clean_name(str(mesh.surface_get_material(0).resource_name)) if mesh.get_surface_count() > 0 else ""
+	if first.begins_with("emit_") or first.ends_with("water"):     # glass and the water's surface cast no shadow
 		inst.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 

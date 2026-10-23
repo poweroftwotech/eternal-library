@@ -117,13 +117,15 @@ func audit(id: String, s: int) -> void:
 		var leaks: PackedStringArray = []
 		for cell: Vector3i in g.grid.cells:
 			var c: Vector3 = g.to_global(CellGrid.cell_centre(cell))
-			# Down to the floor, through whatever stands on it (a hall's cases, heaps, landmark).
-			var ray := PhysicsRayQueryParameters3D.create(c + Vector3(0, 0.5, 0), c - Vector3(0, 1, 0), 1)
+			# Down to the floor at its height (a cistern's water bays are lower), through
+			# whatever stands on it (a hall's cases, heaps, landmark).
+			var floor_y: float = float(g.grid.cells[cell].get("floor_y", 0.0))
+			var ray := PhysicsRayQueryParameters3D.create(c + Vector3(0, 0.5, 0), c - Vector3(0, 2.5, 0), 1)
 			for _try: int in 4:
 				var hit: Dictionary = space.intersect_ray(ray)
 				if hit.is_empty():
 					break
-				if absf((hit["position"] as Vector3).y) < 0.05:
+				if absf((g.to_local(hit["position"]) as Vector3).y - floor_y) < 0.05:
 					floors += 1
 					break
 				ray.exclude = ray.exclude + [hit["rid"]]
@@ -164,6 +166,12 @@ func audit(id: String, s: int) -> void:
 		body.global_position = start
 		await physics_frame
 		var reached: int = await follow(body, route)
+		for _i: int in 30:     # let it land (a walk may end down in a cistern's shallows)
+			body.velocity = Vector3(0, -3.0, 0)
+			body.move_and_slide()
+			if body.is_on_floor():
+				break
+			await physics_frame
 		var feet_out: float = body.global_position.y - 0.9
 		var back: Array[Vector3] = route.duplicate()
 		back.reverse()
@@ -174,8 +182,10 @@ func audit(id: String, s: int) -> void:
 		for c: AreaPlan.Room in chain:
 			names.append(c.slot_id)
 			walked[c.slot_id] = true
-		check(reached == route.size() and returned == back.size() and absf(feet_out) < 0.1 and absf(feet) < 0.1,
-			"%s: walk from the root through %s to the far end and back (%d of %d stops out, %d of %d back, feet %.2f / %.2f)" % [tag, " > ".join(names), reached, route.size(), returned, back.size(), feet_out, feet])
+		# The far end may be in a cistern's shallows (its floor 0.9 m down).
+		var end_floor: float = float(r.grid.cells.get(AreaPlan.cell_of(r.xf.affine_inverse() * (route[-1] + Vector3(0, 0.1, 0))) * Vector3i(1, 0, 1), {}).get("floor_y", 0.0)) if r.grid != null else 0.0
+		check(reached == route.size() and returned == back.size() and absf(feet_out - end_floor) < 0.1 and absf(feet) < 0.1,
+			"%s: walk from the root through %s to the far end and back (%d of %d stops out, %d of %d back, feet %.2f / %.2f, the end's floor %.2f)" % [tag, " > ".join(names), reached, route.size(), returned, back.size(), feet_out, feet, end_floor])
 	check(walked.size() == p.rooms.size() - 1, "%s: the walks pass through every room but the root (%d of %d)" % [tag, walked.size(), p.rooms.size() - 1])
 	body.queue_free()
 	area.queue_free()
@@ -188,7 +198,9 @@ func audit(id: String, s: int) -> void:
 ## (0.25 m past the wall line; the 3 m arch as two boxes: full width up to the
 ## spring at 1.9 m, the middle 1.2 m up to 3.3 m) another room's meshes reach
 ## into: what the gallery vaults did through R01's upper recesses over its
-## doors. Mesh bounds, so it can over-report.
+## doors. Mesh bounds pick the candidates; a mesh counts only if one of its
+## vertices is inside the cavity (bounds alone over-reported a gallery fern
+## behind a cistern wall, phase 5 step 3).
 const RECESS_CAVITY: Array[AABB] = [AABB(Vector3(0.6, 0.2, 0.02), Vector3(2.8, 1.7, 0.23)), AABB(Vector3(1.4, 0.2, 0.02), Vector3(1.2, 3.1, 0.23))]
 func recess_intruders(area: Area) -> PackedStringArray:
 	var out: PackedStringArray = []
@@ -206,7 +218,7 @@ func recess_intruders(area: Area) -> PackedStringArray:
 					if mi.mesh == null or not mi.is_visible_in_tree():
 						continue
 					var bounds: AABB = mi.global_transform * mi.get_aabb()
-					if RECESS_CAVITY.any(func(c: AABB) -> bool: return (m.global_transform * c).intersects(bounds)):
+					if RECESS_CAVITY.any(func(c: AABB) -> bool: return (m.global_transform * c).intersects(bounds)) and _reaches_into(mi, m):
 						out.append("%s/%s ← %s/%s" % [slot, room.get_path_to(m), other_slot, (area.rooms[other_slot] as Node).get_path_to(mi)])
 	return out
 
@@ -269,3 +281,15 @@ func blocked(body: CharacterBody3D, at: Vector3, motion: Vector3) -> bool:
 	params.from = body.global_transform
 	params.motion = motion
 	return PhysicsServer3D.body_test_motion(body.get_rid(), params)
+
+
+## True if a vertex of `mi` lies inside one of `m`'s recess cavity boxes.
+func _reaches_into(mi: MeshInstance3D, m: Node3D) -> bool:
+	var to_m: Transform3D = m.global_transform.affine_inverse() * mi.global_transform
+	for s: int in mi.mesh.get_surface_count():
+		var verts: PackedVector3Array = mi.mesh.surface_get_arrays(s)[Mesh.ARRAY_VERTEX]
+		for v: Vector3 in verts:
+			var p: Vector3 = to_m * v
+			if RECESS_CAVITY.any(func(c: AABB) -> bool: return c.has_point(p)):
+				return true
+	return false

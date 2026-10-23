@@ -61,7 +61,9 @@ func check_module(entry: Dictionary) -> void:
 					"%s/%s surface %d uses a kit library material" % [name, n.name, i])
 		if n is StaticBody3D:
 			bodies += 1
-			check((n as StaticBody3D).collision_layer == 1, "%s collision is on layer 1" % name)
+			# Layer 1, or 8 for a "*wade_stop" wall only the player meets (deep water, phase 5 step 3).
+			var want_layer: int = 1 << 7 if String(n.name).contains("wade_stop") else 1
+			check((n as StaticBody3D).collision_layer == want_layer, "%s collision %s is on layer %d" % [name, n.name, 8 if want_layer != 1 else 1])
 		if n is Node3D and n != module:
 			check((n as Node3D).scale.is_equal_approx(Vector3.ONE), "%s/%s is unscaled" % [name, n.name])
 	if module.shape in STRUCTURAL:

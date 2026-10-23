@@ -123,7 +123,7 @@ func check_rest() -> void:
 	var player := CharacterBody3D.new()
 	player.set_script(load("res://scripts/player.gd"))
 	stage.add_child(player)
-	check(player.collision_layer == 1 << 3 and player.collision_mask == (1 | 1 << 2), "the player is on layer 4 and collides with props")
+	check(player.collision_layer == 1 << 3 and player.collision_mask == (1 | 1 << 2 | 1 << 7), "the player is on layer 4 and collides with the world, props and the player-only walls (8)")
 	check(player.ray.collision_mask == 7, "the interaction ray sees world, interaction targets and props")
 
 
