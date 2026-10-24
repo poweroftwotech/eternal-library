@@ -8,7 +8,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 5 step 5, the Caravanserai:** you walked it and liked it as a first pass. Lights in rooms you can't see into are now off (your choice for the light limit). Not committed. The 3 × 3 and 7 × 5 sizes follow from the same pieces when you want them (Q11) | [Step 5 in the progress log](docs/environment/progress/phase-5-kit-breadth.md) | Say whether to commit, and when to do the other sizes |
+| **Phase 5 step 5, the Caravanserai:** you walked it and liked it as a first pass; committed (b82d6cc) with the visible-lights change. Phase 5's four room types are all in. The 3 × 3 and 7 × 5 sizes follow from the same pieces when you want them (Q11) | [Step 5 in the progress log](docs/environment/progress/phase-5-kit-breadth.md) | Say when to do the other sizes |
 | **The frame gate still fails** (seed 90): lights in reach **61 of 48** (down from 73 now unseen rooms' lights are off; the court and the hall really see each other through the gate), and the parked first-sight frames (9.2 ms of 8; galleries and the light-well). GPU 2.1 ms of 4, draw calls 642 | [Step 5 caveats](docs/environment/progress/phase-5-kit-breadth.md) | Choose later: thin the hall's lamps, fewer in the court, or raise the limit after a 3060 measurement |
 | **Found, not fixed: generated rooms meeting each other** (Lower Stacks seed 3): a gallery's two corner recesses run into each other, and a gallery fern (earlier the cistern's bronze door) reaches into the other room's shelf recess. Older gaps the new layouts exposed | [Step 5 caveats](docs/environment/progress/phase-5-kit-breadth.md) | Nothing yet |
 
@@ -57,7 +57,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 2. Generated Stack Gallery (R02) | A seeded corridor off any R01 door; bakeable to a scene | ✅ Done 2026-10-20 |
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
-| **5. Kit breadth** | More room types, mostly from data | Approved 2026-10-22 (Q1–Q12 as recommended); steps 1–4 committed; step 5 (the caravanserai) built, walked by you (a good first pass), not committed |
+| **5. Kit breadth** | More room types, mostly from data | Approved 2026-10-22 (Q1–Q12 as recommended); steps 1–4 committed; step 5 (the caravanserai) committed b82d6cc 2026-10-24 |
 
 ## 10. Roadmap (each phase is a playable slice)
 
