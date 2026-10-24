@@ -15,6 +15,50 @@ light-well whose stair climbs to galleries on the floors above (step 4).
 
 ---
 
+## The frame gate after step 5 (2026-10-24; passes; not committed)
+
+You asked to get lights in reach under 48 and the CPU worst frames under 8 ms.
+
+**The CPU worst frames weren't first-sight frames.** The gate now logs, per
+frame, the scripts' process time, shader pipelines compiled and floor-wear
+uploads. Pipelines compiled almost never. Nearly every slow frame (7.6 to
+9.1 ms) and the 6 ms frame after it was a floor-wear upload: each time a
+room's wear region finished, the whole 4480 × 3072 wear map (13.7 MB) went to
+the GPU again (22 times in the walk). The GPU copy is now cut into 8 m tiles
+(256 texels, one layer each of a texture array), and a finished region
+uploads only the tiles it touches. The shader looks up the same texel as
+before. Upload 2.9 → **0.2 ms**; the image in memory and the tests that read
+it are unchanged (`scripts/world/floor_wear.gd`, `shaders/kit_px_world.gdshader`,
+a `kit_wear_cols` shader global in `project.godot`).
+
+**Lights.** The gate now prints which lights were in reach at the peak. On
+seed 90 it's the walk's start, in the gate passage: hall 27, court 25, the
+two galleries off the court's side doors 11. Your cuts:
+
+- the hall's single lanterns every 3rd bay instead of every 2nd
+  (`lamp_every_bays = 3` in `gen/grammars/r03_hypostyle.tres`): 17 → 10 in reach;
+- the court's lantern strings 3 → 2 and cell lanterns every 3rd cell
+  (`gen/grammars/r05_court_5x5.tres`, rebaked: 7 → 5 cell lanterns; nothing
+  else in the bake changed). The court reads a little darker overhead
+  (`previews/p5_gate/`, against `previews/p5_step5/`).
+
+**The gate** (seed 90, Medium, 1080p, one run): CPU worst **6.79 ms** (was
+9.1 to 10.75), none over 8.3 ms; mean 1.45 ms; GPU worst 2.2 ms; draw calls 638;
+shadowed lights 3. **Lights in reach 50 of 48: still failed by 2.** At the peak:
+hall 20, court 23, galleries 11.
+
+**You set the limit to 50** (the gate script and architecture.md §8.2). A
+second run: **the gate passes**: CPU worst 6.76 ms, mean 1.37, GPU worst
+2.1 ms, draw calls 638, lights in reach 50 of 50.
+
+Tests: `reading_room_test` 87, `r02_bake_test` 105 (the wear map unchanged),
+`r03_layout_test` 11,001, `r05_layout_test` 4,086 (it now reads the lantern
+counts from the grammar), `r05_route_test` 90, `stream_test` 80; 240-frame
+run clean. GPU captures of the wing match the old wear map, the same pictures
+apart from lamp flicker.
+
+---
+
 ## Step 5: the Caravanserai (built 2026-10-23; you walked it: a good first pass)
 
 **Try it:** Esc → **Walk the Lower Stacks** (or `-- --area=lower_stacks`).

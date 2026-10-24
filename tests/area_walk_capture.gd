@@ -16,12 +16,12 @@ extends SceneTree
 ##   CPU time per frame (the frame's wall time; the GPU is never the wait at
 ##   this speed): mean <= 4 ms, no frame over 8 ms;
 ##   per frame: draw calls <= 1500, triangles <= 3 M, shadowed lights <= 4,
-##   lights within 35 m <= 48, video memory <= 6 GB.
+##   lights within 35 m <= 50 (48 until 2026-10-24), video memory <= 6 GB.
 ## The 4x (GPU) and 2x (CPU) dev-to-RTX-3060 factors behind these are an
 ## estimate (architecture.md 8.2). Exits 1 if the gate fails.
 
 const TARGET: Dictionary = {"gpu_mean": 3.0, "gpu_max": 4.0, "cpu_mean": 4.0, "cpu_max": 8.0,
-	"draws": 1500, "tris": 3000000, "shadowed": 4, "lights": 48, "vram_mb": 6144.0}
+	"draws": 1500, "tris": 3000000, "shadowed": 4, "lights": 50, "vram_mb": 6144.0}
 ## Lights this close to the camera count as "in reach" (the distance fade
 ## begins at 30 m and ends at 35 m).
 const REACH_M: float = 35.0
@@ -66,7 +66,7 @@ func capture() -> void:
 	game.look_toward(path[1] + Vector3(0, 1.6, 0))
 	for i: int in 60:     # settle the start
 		await process_frame
-	var lines: PackedStringArray = ["frame,ms,gpu_ms,stream_ms,live,loads,unloads,draw_calls,triangles,shadowed,lights,vram_mb,room,event"]
+	var lines: PackedStringArray = ["frame,ms,gpu_ms,stream_ms,proc_ms,pipelines,live,loads,unloads,draw_calls,triangles,shadowed,lights,vram_mb,room,event"]
 	var times: Array[float] = []
 	var gpus: Array[float] = []
 	var worst: Array = []      # [ms, line]
@@ -78,11 +78,18 @@ func capture() -> void:
 	var unloads: int = st.stats["unloads"]
 	var frame: int = 0
 	var in_reach: int = 0
+	# At the lights-in-reach peak: which lights they were (room, piece, light).
+	var in_reach_peak: int = 0
+	var peak_lights: Dictionary = {}
+	var peak_where: String = ""
 	# The light count below is the test's own work (a walk of every node in the
 	# area): timed, and taken off the frame it lands in, so a big hall isn't
 	# charged for it.
 	var probe_us: int = 0
 	var probe_max_ms: float = 0.0
+	# Shader pipelines compiled each frame (a first sight of new materials).
+	var compiled_before: int = _pipelines()
+	var wear_upload: float = FloorWear.last_upload_ms
 	while seg < path.size() - 1:
 		await process_frame
 		var now: int = Time.get_ticks_usec()
@@ -109,13 +116,21 @@ func capture() -> void:
 			event += "load "
 		if st.stats["unloads"] != unloads:
 			event += "unload"
+		if FloorWear.last_upload_ms != wear_upload:
+			wear_upload = FloorWear.last_upload_ms
+			event += " wear %.1f" % wear_upload
 		loads = st.stats["loads"]
 		unloads = st.stats["unloads"]
 		if frame % 15 == 0 or event != "":
 			var probe_t0: int = Time.get_ticks_usec()
 			var cam: Vector3 = game.player.camera.global_position
-			in_reach = area.find_children("*", "Light3D", true, false).filter(func(l: Node) -> bool:
-				return (l as Light3D).is_visible_in_tree() and (l as Light3D).global_position.distance_to(cam) < REACH_M).size()
+			var reached: Array = area.find_children("*", "Light3D", true, false).filter(func(l: Node) -> bool:
+				return (l as Light3D).is_visible_in_tree() and (l as Light3D).global_position.distance_to(cam) < REACH_M)
+			if reached.size() > in_reach_peak:
+				in_reach_peak = reached.size()
+				peak_lights = _breakdown(area, reached)
+				peak_where = "frame %d, in %s at %s" % [frame, st.player_room, cam.snapped(Vector3.ONE * 0.1)]
+			in_reach = reached.size()
 			probe_us = Time.get_ticks_usec() - probe_t0
 			probe_max_ms = maxf(probe_max_ms, probe_us / 1000.0)
 		var gpu: float = RenderingServer.viewport_get_measured_render_time_gpu(vp_rid)
@@ -123,10 +138,13 @@ func capture() -> void:
 		var tris: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
 		var shadowed: int = area.light_budget.casting()
 		var vram: float = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
+		var compiled: int = _pipelines()
+		var pipes: int = compiled - compiled_before
+		compiled_before = compiled
 		var now_vals: Dictionary = {"draws": draws, "tris": tris, "shadowed": shadowed, "lights": in_reach, "vram_mb": vram}
 		for k: String in peak:
 			peak[k] = maxf(float(peak[k]), float(now_vals[k]))
-		var line: String = "%d,%.3f,%.3f,%.3f,%d,%d,%d,%d,%d,%d,%d,%.0f,%s,%s" % [frame, ms, gpu, st.stats["last_frame_ms"], st.live_count(), loads, unloads,
+		var line: String = "%d,%.3f,%.3f,%.3f,%.3f,%d,%d,%d,%d,%d,%d,%d,%d,%.0f,%s,%s" % [frame, ms, gpu, st.stats["last_frame_ms"], Performance.get_monitor(Performance.TIME_PROCESS) * 1000.0, pipes, st.live_count(), loads, unloads,
 			draws, tris, shadowed, in_reach, vram, st.player_room, event.strip_edges()]
 		lines.append(line)
 		times.append(ms)
@@ -151,6 +169,11 @@ func capture() -> void:
 	print("  worst frames (%s):" % lines[0])
 	for w: Array in worst.slice(0, 8):
 		print("    " + str(w[1]))
+	print("  lights in reach at their peak (%d, %s):" % [in_reach_peak, peak_where])
+	var keys: Array = peak_lights.keys()
+	keys.sort_custom(func(a: String, b: String) -> bool: return peak_lights[a] > peak_lights[b] or (peak_lights[a] == peak_lights[b] and a < b))
+	for k: String in keys:
+		print("    %3d  %s" % [peak_lights[k], k])
 	var fails: PackedStringArray = []
 	if gate:
 		var checks: Array = [["gpu mean", gpu_mean, TARGET["gpu_mean"]], ["gpu worst", gpu_max, TARGET["gpu_max"]],
@@ -166,5 +189,34 @@ func capture() -> void:
 	quit(1 if not fails.is_empty() else 0)
 
 
+## Lights counted by "room: piece (light profile)", the piece being the
+## nearest kit scene above the light.
+func _breakdown(area: Area, reached: Array) -> Dictionary:
+	var slot_of: Dictionary = {}
+	for slot: String in area.light_budget.room_lights:
+		for l: Variant in area.light_budget.room_lights[slot]:
+			slot_of[l] = slot
+	var out: Dictionary = {}
+	for l: Variant in reached:
+		var light := l as Light3D
+		var piece: String = "?"
+		var n: Node = light.get_parent()
+		while n != null and n != area:
+			if n.scene_file_path != "":
+				piece = n.scene_file_path.get_file().get_basename()
+				break
+			n = n.get_parent()
+		var key: String = "%s: %s (%s)" % [slot_of.get(light, "?"), piece, light.get_meta("light_profile", light.get_class())]
+		out[key] = int(out.get(key, 0)) + 1
+	return out
+
+
 func _mean(values: Array[float]) -> float:
 	return values.reduce(func(a: float, b: float) -> float: return a + b, 0.0) / maxf(values.size(), 1)
+
+
+## Shader pipelines compiled since start, every kind.
+func _pipelines() -> int:
+	return int(Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_CANVAS) + Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_MESH)
+		+ Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_SURFACE) + Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_DRAW)
+		+ Performance.get_monitor(Performance.PIPELINE_COMPILATIONS_SPECIALIZATION))

@@ -554,7 +554,7 @@ carry over, so every frame gate also logs budgets that do, per view:
 | Budget (base spec, Medium) | Value |
 |---|---|
 | Draw calls | ≤ 1,500 (merged statics keep this down, §8) |
-| Visible lights / shadowed lights | ≤ 48 / ≤ 4 |
+| Visible lights / shadowed lights | ≤ 50 / ≤ 4 (lights 48 until 2026-10-24: the Lower Stacks gate passage sees the court and the hall at once) |
 | Triangles drawn | ≤ 3 million |
 | Per-frame room build work | ≤ 4 ms on the dev CPU, treated as ≤ 8–10 ms on the base CPU, so the base spec stays under its 16.7 ms frame |
 | VRAM (textures, meshes, shadow atlas) | ≤ 6 GB, leaving headroom on 8 GB cards below base spec |

@@ -100,7 +100,7 @@ func layout_checks(grammar: CourtyardGrammar, s: int, root_room: bool) -> void:
 	var want: Dictionary = {"cell:court_floor": 25, "cell:court_bay": 13, "cell:court_bay_upper": 15, "cell:court_passage": 2,
 		"cell:court_gate": 1, "cell:court_stair": 1, "cell:court_stair_r": 1, "cell:court_corner": 4, "cell:court_corner_upper": 2,
 		"cell:court_corner_upper_stair": 1, "cell:court_corner_upper_stair_r": 1, "cell:cavern_5x5": 1, "court:hearth": 1,
-		"court:well": 1, "court:lantern_string": 3, "court:loggia_lantern": 5, "court:cell_lantern": 7, "stub:exit": 3 if root_room else 2}
+		"court:well": 1, "court:lantern_string": grammar.lantern_strings, "court:loggia_lantern": 5, "court:cell_lantern": ceili(13.0 / grammar.cell_lamp_every), "stub:exit": 3 if root_room else 2}
 	check(slots == want, "%s: pieces %s" % [tag, slots])
 	var centre: Vector3i = m["centre"]
 	check(centre == Vector3i(0, 0, 3) and (grid.props["hearth"]["xf"] as Transform3D).origin.is_equal_approx(CellGrid.cell_centre(centre)) and grid.cells[centre].get("blocked", false),

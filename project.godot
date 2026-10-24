@@ -72,8 +72,12 @@ lights_and_shadows/positional_shadow/atlas_size=8192
 [shader_globals]
 
 kit_wear_map={
-"type": "sampler2D",
+"type": "sampler2DArray",
 "value": ""
+}
+kit_wear_cols={
+"type": "int",
+"value": 0
 }
 kit_wear_rect={
 "type": "vec4",

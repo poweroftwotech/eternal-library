@@ -24,6 +24,8 @@ const LATTICE: int = 8
 const LATTICE_SEED: int = 9
 ## The shared map's largest side, texels (256 m).
 const MAX_TEXELS: int = 8192
+## Side of a GPU tile of the map, texels (8 m).
+const TILE: int = 256
 
 ## Area this wear covers (x, z, size x, size z), local metres. Keep it on whole
 ## metres so map texels line up with the floor's texel grid.
@@ -44,8 +46,11 @@ const MAX_TEXELS: int = 8192
 @export var ring_weight: float = 0.6
 
 ## The shared map (R = wear 0..1; row 0 is the map's min world z), its world
-## rect (x, z, size) and y band. Null when no FloorWear is live.
-static var map: ImageTexture
+## rect (x, z, size) and y band. Null when no FloorWear is live. On the GPU the
+## map is cut into TILE-texel tiles, one layer each (row by row, `map_cols` to
+## a row), so a redrawn region uploads only the tiles it touches, not the map.
+static var map: Texture2DArray
+static var map_cols: int = 0
 static var map_image: Image
 static var map_rect: Rect2 = Rect2()
 static var map_y: Vector2 = Vector2.ZERO
@@ -108,7 +113,7 @@ static func rebuild_now() -> void:
 			var region: Rect2 = _whole(w.world_rect()).intersection(bounds)
 			if region.has_area():
 				_blit(compose(live.filter(func(o: FloorWear) -> bool: return o.world_rect().intersects(region)), region), region)
-		map = ImageTexture.create_from_image(map_image)
+		_make_texture()
 		map_y = band
 		last_build_ms = (Time.get_ticks_usec() - t0) / 1000.0
 		_publish()
@@ -118,7 +123,7 @@ static func rebuild_now() -> void:
 		push_warning("FloorWear: the live rooms span %s m; wear is cut to %d m" % [bounds.size, MAX_TEXELS / TEXEL])
 		bounds.size = bounds.size.min(Vector2.ONE * (MAX_TEXELS / TEXEL))
 	map_image = compose(live, bounds)
-	map = ImageTexture.create_from_image(map_image)
+	_make_texture()
 	map_rect = bounds
 	map_y = band
 	last_build_ms = (Time.get_ticks_usec() - t0) / 1000.0
@@ -127,8 +132,36 @@ static func rebuild_now() -> void:
 
 static func _publish() -> void:
 	RenderingServer.global_shader_parameter_set("kit_wear_map", map)
+	RenderingServer.global_shader_parameter_set("kit_wear_cols", map_cols)
 	RenderingServer.global_shader_parameter_set("kit_wear_rect", Vector4(map_rect.position.x, map_rect.position.y, map_rect.size.x, map_rect.size.y))
 	RenderingServer.global_shader_parameter_set("kit_wear_y", map_y)
+
+
+## The GPU copy of map_image, tile by tile (an edge tile padded with no wear).
+static func _make_texture() -> void:
+	var size: Vector2i = map_image.get_size()
+	map_cols = ceili(size.x / float(TILE))
+	var tiles: Array[Image] = []
+	for ty: int in ceili(size.y / float(TILE)):
+		for tx: int in map_cols:
+			tiles.append(_tile(tx, ty))
+	map = Texture2DArray.new()
+	map.create_from_images(tiles)
+
+
+## Uploads the tiles under the world x/z rect `region` of the map.
+static func _upload_tiles(region: Rect2) -> void:
+	var t0: Vector2i = Vector2i(((region.position - map_rect.position) * TEXEL).round()) / TILE
+	var t1: Vector2i = (Vector2i(((region.end - map_rect.position) * TEXEL).round()) - Vector2i.ONE) / TILE
+	for ty: int in range(t0.y, t1.y + 1):
+		for tx: int in range(t0.x, t1.x + 1):
+			map.update_layer(_tile(tx, ty), ty * map_cols + tx)
+
+
+static func _tile(tx: int, ty: int) -> Image:
+	var tile: Image = Image.create_empty(TILE, TILE, false, Image.FORMAT_R8)
+	tile.blit_rect(map_image, Rect2i(tx * TILE, ty * TILE, TILE, TILE), Vector2i.ZERO)
+	return tile
 
 
 static func _live_wears() -> Array[FloorWear]:
@@ -196,7 +229,7 @@ static func poll() -> void:
 		if map_image != null and _task_image != null:
 			var t0: int = Time.get_ticks_usec()
 			_blit(_task_image, _task_region)
-			map.update(map_image)
+			_upload_tiles(_task_region)
 			map_y = _band(_live_wears())
 			_publish()
 			last_upload_ms = (Time.get_ticks_usec() - t0) / 1000.0

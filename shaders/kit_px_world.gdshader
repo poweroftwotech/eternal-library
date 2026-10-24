@@ -29,11 +29,13 @@ uniform float wear_strength = 0.0;     // 0 off; floor_stone polishes walked pat
 uniform float wear_roughness = 0.3;    // roughness at full wear
 group_uniforms;
 
-global uniform sampler2D kit_wear_map : filter_nearest;
+global uniform sampler2DArray kit_wear_map : filter_nearest;   // TILE-texel tiles, row by row
+global uniform int kit_wear_cols;      // tiles to a row
 global uniform vec4 kit_wear_rect;     // world x, z of the map's corner; size x, z (m)
 global uniform vec2 kit_wear_y;        // world y range that gets wear (ground floor only)
 
 const float TEXEL = 32.0;
+const int WEAR_TILE = 256;            // FloorWear.TILE
 
 varying vec3 uv1_triplanar_pos;
 varying vec3 uv1_power_normal;
@@ -109,7 +111,9 @@ void fragment() {
 	if (wear_strength > 0.0 && kit_wear_rect.z > 0.0 && n.y > 0.7 && centre.y > kit_wear_y.x && centre.y < kit_wear_y.y) {
 		vec2 wuv = (centre.xz - kit_wear_rect.xy) / kit_wear_rect.zw;
 		if (all(greaterThanEqual(wuv, vec2(0.0))) && all(lessThan(wuv, vec2(1.0)))) {
-			float wear = texture(kit_wear_map, wuv).r * wear_strength;
+			ivec2 t = ivec2(floor((centre.xz - kit_wear_rect.xy) * TEXEL));
+			ivec2 tile = t / WEAR_TILE;
+			float wear = texelFetch(kit_wear_map, ivec3(t - tile * WEAR_TILE, tile.y * kit_wear_cols + tile.x), 0).r * wear_strength;
 			rough = mix(rough, wear_roughness, wear);
 			tint *= 1.0 - wear * 0.05;   // polish deepens the colour a touch
 		}
