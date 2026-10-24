@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_kd0id"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/court_pishtaq_gate.glb" id="2_2nvfo"]
+
+[node name="court_pishtaq_gate" type="Node3D" unique_id=291924887]
+script = ExtResource("1_kd0id")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 3, 1)
+tags = PackedStringArray("brick", "tile", "court", "door", "light", "walled")
+source_glb = "res://assets/kit/walls/court_pishtaq_gate.glb"
+
+[node name="Mesh" parent="." unique_id=1003239175 instance=ExtResource("2_2nvfo")]

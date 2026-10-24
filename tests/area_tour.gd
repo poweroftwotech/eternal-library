@@ -35,13 +35,23 @@ static func tour(p: AreaPlan) -> Array[Vector3]:
 	return out
 
 
-## Where a walk starts in the root room: R01's west door spot, or a generated
+## Where a walk starts in the root room: R01's west door spot, a baked root's
+## PlayerSpawn (phase 5 step 5: the caravanserai's gate), or a generated
 ## root's first bay (the game's spawn).
 static func start(p: AreaPlan) -> Vector3:
 	var root_room: AreaPlan.Room = p.rooms[0]
 	if root_room.kind != "generated":
-		return STARTS[&"SNAP_door_west"]
+		if not baked_walk(root_room):
+			return STARTS[&"SNAP_door_west"]
+		var spawn: Transform3D = AreaPlanner._scene_info(root_room.scene, root_room.seed_value)["spawn"]
+		return _centre(AreaPlan.cell_of(root_room.xf * spawn.origin))
 	return _centre(AreaPlan.cell_of(root_room.xf * CellGrid.cell_centre(Vector3i.ZERO)))
+
+
+## A scene room baked with its walkable edges (RoomBaker): walks go cell to
+## cell through it, as through a generated room.
+static func baked_walk(r: AreaPlan.Room) -> bool:
+	return r.kind == "scene" and not (AreaPlanner._scene_info(r.scene, r.seed_value)["walk"] as Array).is_empty()
 
 
 ## Floor points from the root's start to room `r`'s far end (the root room:
@@ -55,7 +65,7 @@ static func leg(p: AreaPlan, r: AreaPlan.Room) -> Array[Vector3]:
 	if chain.is_empty():
 		return [start(p)]
 	var out: Array[Vector3] = []
-	if at.kind == "generated":
+	if at.kind == "generated" or baked_walk(at):
 		var first_xf: Transform3D = chain[0].connectors[chain[0].entry]["xf"]
 		var door: Vector3i = AreaPlan.cell_of(first_xf.origin - first_xf.basis.z * 2.0)
 		for c: Vector3i in cell_path(at, AreaPlan.cell_of(start(p)), door):

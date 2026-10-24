@@ -59,6 +59,12 @@ static var seed_override: int = -1
 		_request()
 ## Style groups whose pick comes from the host, so a joined room matches it.
 @export var inherit_style_groups: PackedStringArray = ["gallery_build"]
+## Lay the room out as an area's root (no host: its entry door is an exit),
+## for a template baked to be one (phase 5 step 5: the caravanserai).
+@export var root_room: bool = false:
+	set(value):
+		root_room = value
+		_request()
 @export_tool_button("Generate") var generate_action: Callable = generate
 @export_tool_button("Reseed") var reseed_action: Callable = _reseed
 ## Writes this build to rooms/baked/<room_id>_<seed>.tscn as a plain RoomTemplate
@@ -140,6 +146,7 @@ func generate() -> void:
 			blockers.append_array(_room_blockers(r))
 	grid = CellGrid.new()
 	grid.blockers = blockers
+	grid.root = root_room
 	if Engine.is_editor_hint():
 		for r: GeneratedRoom in later:
 			if r.grid != null:

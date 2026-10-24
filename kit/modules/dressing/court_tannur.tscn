@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_vfob8"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/court_tannur.glb" id="2_jd5vl"]
+
+[node name="court_tannur" type="Node3D" unique_id=1445965162]
+script = ExtResource("1_vfob8")
+family = "dressing"
+tags = PackedStringArray("clay", "fire", "light")
+source_glb = "res://assets/kit/dressing/court_tannur.glb"
+
+[node name="Mesh" parent="." unique_id=1174977588 instance=ExtResource("2_jd5vl")]

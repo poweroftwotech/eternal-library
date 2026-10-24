@@ -50,11 +50,27 @@ static func build(room: GeneratedRoom) -> RoomTemplate:
 	for group: String in room.style_pins:
 		styles[group] = room.style_pins[group]
 	out.style_pins = styles
+	# Where you can walk (phase 5 step 5): the open edges between cells and the
+	# blocked cells, so an area plan walks the baked room as it would the
+	# generated one (AreaPlanner._scene_info), and the grammar's layout notes.
+	var walk: Array = []
+	for k: String in room.grid.edges:
+		var e: Dictionary = room.grid.edges[k]
+		var n: Vector3i = CellGrid.neighbour(e["cell"], e["side"])
+		if room.grid.cells.has(n) and (e["mark"] == CellGrid.Mark.OPEN or e["mark"] == CellGrid.Mark.OPENING):
+			walk.append([e["cell"], n, AreaPlan.OPEN_HALF if e["mark"] == CellGrid.Mark.OPEN else AreaPlan.ARCH_HALF])
+	var blocked: Array = []
+	for c: Vector3i in room.grid.cells:
+		if room.grid.cells[c].get("blocked", false):
+			blocked.append(c)
 	out.set_meta("baked_from", {
 		"grammar": room.grammar.resource_path if room.grammar != null else "",
 		"rules": room.rules.resource_path if room.rules != null else "",
 		"seed": room.effective_seed(),
 		"modules": room.modules.size(),
+		"walk": walk,
+		"blocked": blocked,
+		"layout": room.grid.meta.duplicate(true),
 	})
 	for child: Node in room.get_children():
 		_copy(child, out, out)

@@ -10,9 +10,10 @@ extends SceneTree
 ## three pass; two rooms stacked one storey apart don't overlap, on one storey
 ## they do. Option map=<dir> writes each seed's plan map as a PNG.
 ## The Lower Stacks (phase-5-design.md 5.6.9), seeds 1-20: the plan checks
-## clean with its room_count, planning twice gives the same plan, and the
-## generated hall is the root at the origin, sees every room joined to it,
-## and has a bay a walk goes round for each case, heap and the landmark.
+## clean with its room_count, planning twice gives the same plan, the baked
+## caravanserai is the root at the origin (step 5) and the generated hall
+## joins it, sees every room joined to it, and has a bay a walk goes round
+## for each case, heap and the landmark.
 
 const RECIPE: String = "res://gen/recipes/library_wing.tres"
 const LOWER_STACKS: String = "res://gen/recipes/lower_stacks.tres"
@@ -96,9 +97,14 @@ func lower_stacks(seeds: int) -> void:
 		var problems: PackedStringArray = p.check()
 		check(problems.is_empty(), "%s: the plan checks clean (%s)" % [tag, problems])
 		check(AreaPlanner.plan(recipe, s).signature() == p.signature(), "%s: planning twice gives the same plan" % tag)
-		var hall: AreaPlan.Room = p.rooms[0]
-		check(hall.slot_id == "hall" and hall.kind == "generated" and hall.parent == "" and hall.xf == Transform3D(),
-			"%s: the generated hall is the root at the origin" % tag)
+		var court: AreaPlan.Room = p.rooms[0]
+		check(court.slot_id == "caravanserai" and court.kind == "scene" and court.parent == "" and court.xf == Transform3D(),
+			"%s: the baked caravanserai is the root at the origin" % tag)
+		var hall: AreaPlan.Room = p.room("hall")
+		check(hall != null and hall.kind == "generated" and hall.parent == "caravanserai",
+			"%s: the generated hall joins the caravanserai" % tag)
+		if hall == null:
+			continue
 		var joined: Array = p.rooms.filter(func(r: AreaPlan.Room) -> bool: return r.parent == "hall").map(func(r: AreaPlan.Room) -> String: return r.slot_id)
 		var sees: PackedStringArray = p.visible.get("hall", PackedStringArray())
 		check(not joined.is_empty() and joined.all(func(id: String) -> bool: return sees.has(id)), "%s: the hall sees every room joined to it (%s; sees %s)" % [tag, joined, sees])

@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_fx7q2"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/court_cell_lantern.glb" id="2_mwaqf"]
+
+[node name="court_cell_lantern" type="Node3D" unique_id=1267836379]
+script = ExtResource("1_fx7q2")
+family = "walls"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("brass", "light", "court")
+source_glb = "res://assets/kit/walls/court_cell_lantern.glb"
+
+[node name="Mesh" parent="." unique_id=1648884722 instance=ExtResource("2_mwaqf")]

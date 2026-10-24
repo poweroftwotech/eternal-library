@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_fpvxn"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/court_corner_stair_r.glb" id="2_n31c5"]
+
+[node name="court_corner_stair_r" type="Node3D" unique_id=204414580]
+script = ExtResource("1_fpvxn")
+shape = 1
+family = "walls"
+size_cells = Vector3i(2, 2, 1)
+tags = PackedStringArray("brick", "court", "vertical", "light", "walled")
+source_glb = "res://assets/kit/walls/court_corner_stair_r.glb"
+
+[node name="Mesh" parent="." unique_id=1296291961 instance=ExtResource("2_n31c5")]

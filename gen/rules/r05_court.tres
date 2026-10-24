@@ -1,0 +1,207 @@
+[gd_resource type="Resource" script_class="ModuleRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/gen/module_rule.gd" id="1_fe8bf"]
+[ext_resource type="Script" path="res://scripts/gen/module_choice.gd" id="2_ybg3q"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_cell_bay.tscn" id="3_5x0vr"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_cell_bay_upper.tscn" id="4_et804"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_block.tscn" id="5_2h2jn"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_upper.tscn" id="6_hrquo"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_upper_stair.tscn" id="7_44phj"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_upper_stair_r.tscn" id="8_udc6e"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_stair.tscn" id="9_l0lau"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_stair_r.tscn" id="10_iiu6e"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_pishtaq_gate.tscn" id="11_jxwcw"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_passage.tscn" id="12_1nhwo"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_floor_4m.tscn" id="13_afhuv"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cavern_ceiling_5x5.tscn" id="14_txit2"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/court_hearth_platform.tscn" id="15_dbnev"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/court_well.tscn" id="16_ha45c"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_lantern_string.tscn" id="17_lyc1y"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_loggia_lantern.tscn" id="18_vk10o"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_cell_lantern.tscn" id="19_j3c7n"]
+[ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="20_58rj8"]
+[ext_resource type="Script" path="res://scripts/gen/module_rules.gd" id="21_8vh35"]
+
+[sub_resource type="Resource" id="Resource_iupyl"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("3_5x0vr")
+
+[sub_resource type="Resource" id="Resource_ub5g6"]
+script = ExtResource("1_fe8bf")
+slot = "cell:court_bay"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_iupyl")])
+
+[sub_resource type="Resource" id="Resource_rcjwq"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("4_et804")
+
+[sub_resource type="Resource" id="Resource_yj668"]
+script = ExtResource("1_fe8bf")
+slot = "cell:court_bay_upper"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_rcjwq")])
+
+[sub_resource type="Resource" id="Resource_hbj0n"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("5_2h2jn")
+
+[sub_resource type="Resource" id="Resource_g5bdb"]
+script = ExtResource("1_fe8bf")
+slot = "cell:court_corner"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_hbj0n")])
+
+[sub_resource type="Resource" id="Resource_1jx7e"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("6_hrquo")
+
+[sub_resource type="Resource" id="Resource_ovvma"]
+script = ExtResource("1_fe8bf")
+slot = "cell:court_corner_upper"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_1jx7e")])
+
+[sub_resource type="Resource" id="Resource_t5rbq"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("7_44phj")
+
+[sub_resource type="Resource" id="Resource_4nfho"]
+script = ExtResource("1_fe8bf")
+slot = "cell:court_corner_upper_stair"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_t5rbq")])
+
+[sub_resource type="Resource" id="Resource_jly2q"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("8_udc6e")
+
+[sub_resource type="Resource" id="Resource_0q283"]
+script = ExtResource("1_fe8bf")
+slot = "cell:court_corner_upper_stair_r"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_jly2q")])
+
+[sub_resource type="Resource" id="Resource_46u7g"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("9_l0lau")
+
+[sub_resource type="Resource" id="Resource_pvnjq"]
+script = ExtResource("1_fe8bf")
+slot = "cell:court_stair"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_46u7g")])
+
+[sub_resource type="Resource" id="Resource_f3hrm"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("10_iiu6e")
+
+[sub_resource type="Resource" id="Resource_1aoh2"]
+script = ExtResource("1_fe8bf")
+slot = "cell:court_stair_r"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_f3hrm")])
+
+[sub_resource type="Resource" id="Resource_usi47"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("11_jxwcw")
+
+[sub_resource type="Resource" id="Resource_s50ch"]
+script = ExtResource("1_fe8bf")
+slot = "cell:court_gate"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_usi47")])
+
+[sub_resource type="Resource" id="Resource_vla07"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("12_1nhwo")
+
+[sub_resource type="Resource" id="Resource_1fclu"]
+script = ExtResource("1_fe8bf")
+slot = "cell:court_passage"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_vla07")])
+
+[sub_resource type="Resource" id="Resource_g6uv0"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("13_afhuv")
+
+[sub_resource type="Resource" id="Resource_4qp6v"]
+script = ExtResource("1_fe8bf")
+slot = "cell:court_floor"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_g6uv0")])
+
+[sub_resource type="Resource" id="Resource_ntvvy"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("14_txit2")
+
+[sub_resource type="Resource" id="Resource_ffney"]
+script = ExtResource("1_fe8bf")
+slot = "cell:cavern_5x5"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_ntvvy")])
+
+[sub_resource type="Resource" id="Resource_xh72y"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("15_dbnev")
+
+[sub_resource type="Resource" id="Resource_j0bpa"]
+script = ExtResource("1_fe8bf")
+slot = "court:hearth"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_xh72y")])
+
+[sub_resource type="Resource" id="Resource_2mst1"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("16_ha45c")
+
+[sub_resource type="Resource" id="Resource_6sbyr"]
+script = ExtResource("1_fe8bf")
+slot = "court:well"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_2mst1")])
+
+[sub_resource type="Resource" id="Resource_monc4"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("17_lyc1y")
+
+[sub_resource type="Resource" id="Resource_2ofan"]
+script = ExtResource("1_fe8bf")
+slot = "court:lantern_string"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_monc4")])
+
+[sub_resource type="Resource" id="Resource_4h4kj"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("18_vk10o")
+
+[sub_resource type="Resource" id="Resource_cwjdu"]
+script = ExtResource("1_fe8bf")
+slot = "court:loggia_lantern"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_4h4kj")])
+
+[sub_resource type="Resource" id="Resource_iep3s"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("19_j3c7n")
+
+[sub_resource type="Resource" id="Resource_4ahd2"]
+script = ExtResource("1_fe8bf")
+slot = "court:cell_lantern"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_iep3s")])
+
+[sub_resource type="Resource" id="Resource_h4e3v"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("20_58rj8")
+
+[sub_resource type="Resource" id="Resource_gvq5l"]
+script = ExtResource("1_fe8bf")
+slot = "stub:exit"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_h4e3v")])
+
+[resource]
+script = ExtResource("21_8vh35")
+rules = Array[ExtResource("1_fe8bf")]([SubResource("Resource_ub5g6"), SubResource("Resource_yj668"), SubResource("Resource_g5bdb"), SubResource("Resource_ovvma"), SubResource("Resource_4nfho"), SubResource("Resource_0q283"), SubResource("Resource_pvnjq"), SubResource("Resource_1aoh2"), SubResource("Resource_s50ch"), SubResource("Resource_1fclu"), SubResource("Resource_4qp6v"), SubResource("Resource_ffney"), SubResource("Resource_j0bpa"), SubResource("Resource_6sbyr"), SubResource("Resource_2ofan"), SubResource("Resource_cwjdu"), SubResource("Resource_4ahd2"), SubResource("Resource_gvq5l")])

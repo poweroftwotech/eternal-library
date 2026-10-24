@@ -1,0 +1,54 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_entry"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="2_set"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/court_contents_bedroll.tscn" id="3_s"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/court_contents_store.tscn" id="4_s"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/court_contents_stable.tscn" id="5_s"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/court_contents_stall.tscn" id="6_s"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/court_contents_ruin.tscn" id="7_s"]
+
+[sub_resource type="Resource" id="Resource_3"]
+script = ExtResource("1_entry")
+label = "bedroll"
+scene = ExtResource("3_s")
+weight = 3.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_4"]
+script = ExtResource("1_entry")
+label = "storeroom"
+scene = ExtResource("4_s")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_5"]
+script = ExtResource("1_entry")
+label = "stable"
+scene = ExtResource("5_s")
+weight = 1.5
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_6"]
+script = ExtResource("1_entry")
+label = "spice stall"
+scene = ExtResource("6_s")
+weight = 1.5
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_7"]
+script = ExtResource("1_entry")
+label = "ruin"
+scene = ExtResource("7_s")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_8"]
+script = ExtResource("1_entry")
+label = "empty"
+weight = 1.0
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("2_set")
+entries = Array[ExtResource("1_entry")]([SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_7"), SubResource("Resource_8")])

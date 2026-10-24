@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ew6l4"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/court_contents_bedroll.glb" id="2_823kb"]
+
+[node name="court_contents_bedroll" type="Node3D" unique_id=1787813629]
+script = ExtResource("1_ew6l4")
+family = "dressing"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("cloth", "court")
+source_glb = "res://assets/kit/dressing/court_contents_bedroll.glb"
+
+[node name="Mesh" parent="." unique_id=885501897 instance=ExtResource("2_823kb")]

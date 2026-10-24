@@ -7,7 +7,8 @@ extends RefCounted
 ## - Edge gaps: every perimeter edge of the cells a room's CELL modules occupy
 ##   (per storey, in 2 m segments) is closed by a closing EDGE module (wall,
 ##   recess, arch, door, iwan ...) or by a room connector marker. Galleries,
-##   stairs and gables don't close an edge. Vault ends also need a gable.
+##   stairs and gables don't close an edge. Vault ends also need a gable. A
+##   CELL module tagged "walled" brings its own walls and closes its cells.
 ## - Connectors: room connector markers sit on a cell-boundary line.
 ## - Socket fit: every candidate of a SocketSet with slot_bounds fits inside
 ##   it (error), and each socket's slot doesn't run into another module's
@@ -58,6 +59,12 @@ static func _edge_gaps(root: Node, modules: Array[KitModule], errors: PackedStri
 		if m.shape == KitModule.Shape.CELL:
 			for c: Vector3i in _cells_of(m, xf, storey):
 				cells[c] = true
+				if m.tags.has("walled"):
+					# A piece with its own walls (phase 5 step 5: the caravanserai's
+					# ring) closes every side of its cells.
+					for side: Array in _sides(c):
+						for seg: Array in _split(side[0], side[1]):
+							closing[_seg_key(c.x, seg[0], seg[1])] = str(root.get_path_to(m))
 				if m.tags.has("ceiling"):
 					# A groin vault ("cross") ends on every side; a barrel along its local Z.
 					vault_cells[c] = Vector3.ZERO if m.tags.has("cross") else xf.basis.z.normalized()

@@ -1,0 +1,9 @@
+[gd_resource type="Resource" script_class="CourtyardGrammar" format=3]
+
+[ext_resource type="Resource" path="res://gen/rules/r05_court.tres" id="1_6bxi5"]
+[ext_resource type="Script" path="res://scripts/gen/courtyard_grammar.gd" id="2_8bb81"]
+
+[resource]
+script = ExtResource("2_8bb81")
+styles = PackedStringArray("brick", "court")
+rules = ExtResource("1_6bxi5")

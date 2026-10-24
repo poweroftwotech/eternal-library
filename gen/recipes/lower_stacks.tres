@@ -9,12 +9,22 @@
 [ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="7_atmos"]
 [ext_resource type="Resource" path="res://gen/grammars/r11_cistern.tres" id="8_r11"]
 [ext_resource type="Resource" path="res://gen/grammars/r09_lightwell.tres" id="9_r09"]
+[ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_5x5.tscn" id="10_r05"]
+
+[sub_resource type="Resource" id="Resource_court"]
+script = ExtResource("2_slot")
+slot_id = "caravanserai"
+display_name = "The Caravanserai"
+scene = ExtResource("10_r05")
+pinned = true
 
 [sub_resource type="Resource" id="Resource_hall"]
 script = ExtResource("2_slot")
 slot_id = "hall"
 display_name = "The Hypostyle Stacks"
 grammar = ExtResource("5_r03")
+parent = "caravanserai"
+connector = &"SNAP_exit_0_0_0_S"
 pinned = true
 
 [sub_resource type="Resource" id="Resource_grow"]
@@ -50,15 +60,15 @@ from = PackedStringArray("lightwell_1")
 
 [sub_resource type="Resource" id="Resource_place"]
 script = ExtResource("4_place")
-envelope = AABB(-122, -8, -144, 256, 48, 256)
+envelope = AABB(-122, -8, -60, 256, 48, 256)
 
 [resource]
 script = ExtResource("1_recipe")
 id = "lower_stacks"
 display_name = "The Lower Stacks"
-slots = Array[ExtResource("2_slot")]([SubResource("Resource_hall")])
+slots = Array[ExtResource("2_slot")]([SubResource("Resource_court"), SubResource("Resource_hall")])
 grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow"), SubResource("Resource_lightwell"), SubResource("Resource_cistern"), SubResource("Resource_upper")])
-room_count = Vector2i(5, 10)
-version = 4
+room_count = Vector2i(6, 11)
+version = 5
 placement = SubResource("Resource_place")
 atmosphere = ExtResource("7_atmos")

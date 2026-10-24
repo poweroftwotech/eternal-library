@@ -32,7 +32,8 @@ var checks: int = 0
 var game: Node
 var room: RoomTemplate
 var ws: Node
-## The area in the area modes (room is then its root: R01, or the Lower Stacks' hall).
+## The area in the area modes (room is then its root, R01, or the first room
+## with shelves: the Lower Stacks' hall at the caravanserai's gate).
 var area: Area
 
 
@@ -66,6 +67,15 @@ func run() -> void:
 	if game.world is Area:
 		area = game.world as Area
 		room = area.rooms.get(area.plan.rooms[0].slot_id)
+		# The Lower Stacks' root is the caravanserai (phase 5 step 5), with no
+		# shelves: the root's change goes in the first live room that has some
+		# (the hall at its gate).
+		if room != null and room.get_node_or_null("Props/VaseIwanWest") == null and room.find_children("*", "ShelfFill", true, false).is_empty():
+			for r: AreaPlan.Room in area.plan.rooms:
+				var live: RoomTemplate = area.rooms.get(r.slot_id)
+				if live != null and not live.find_children("*", "ShelfFill", true, false).is_empty():
+					room = live
+					break
 	match mode:
 		"save":
 			await save_mode()

@@ -244,7 +244,12 @@ static func _scene_room(p: AreaPlan, slot_id: String, display_name: String, scen
 		for s: int in range(info["storeys"].x, info["storeys"].y + 1):
 			r.cells[Vector3i(at.x, at.y + s, at.z)] = true
 		r.floor_cells[at] = true
-	_sight_all_open(r)
+	if (info["walk"] as Array).is_empty():
+		_sight_all_open(r)
+	for w: Array in info["walk"]:     # a baked room keeps its grid's open edges (RoomBaker)
+		r.sight[AreaPlan.key_between(AreaPlan.cell_of(r.xf * _centre(w[0])), AreaPlan.cell_of(r.xf * _centre(w[1])))] = w[2]
+	for c: Vector3i in info["blocked"]:
+		r.blocked_cells[AreaPlan.cell_of(r.xf * _centre(c))] = true
 	return r
 
 
@@ -366,14 +371,20 @@ const RECESS_CAVITY: AABB = AABB(Vector3(0.5, 0.0, 0.0), Vector3(3.0, 3.45, 0.25
 ## module boxes, as GeneratedRoom._module_boxes), cells (room-frame grid cells
 ## its CELL modules stand on, storey 0), storeys (Vector2i: lowest and highest
 ## storey above the floor its modules reach), styles {group: index},
-## recess_cavities (room-frame boxes, RECESS_CAVITY of each recess module)}.
+## recess_cavities (room-frame boxes, RECESS_CAVITY of each recess module),
+## and from a bake (phase 5 step 5): walk ([cell, cell, sight half] open
+## edges), blocked cells, layout (the grammar's meta) and spawn (PlayerSpawn)}.
 static func _scene_info(scene: PackedScene, seed_value: int) -> Dictionary:
 	var key: String = "%s@%d" % [scene.resource_path, seed_value]
 	if _scene_cache.has(key):
 		return _scene_cache[key]
 	var room := scene.instantiate() as RoomTemplate
+	var baked: Dictionary = room.get_meta("baked_from", {})
+	var spawn: Node3D = room.get_node_or_null("PlayerSpawn") as Node3D
 	var info: Dictionary = {"seed": room.preview_seed if seed_value < 0 else seed_value, "display_name": room.display_name,
-		"connectors": {}, "boxes": [], "cells": {}, "storeys": Vector2i.ZERO, "styles": {}, "recess_cavities": []}
+		"connectors": {}, "boxes": [], "cells": {}, "storeys": Vector2i.ZERO, "styles": {}, "recess_cavities": [],
+		"walk": baked.get("walk", []), "blocked": baked.get("blocked", []), "layout": baked.get("layout", {}),
+		"spawn": KitValidateRoom._relative(room, spawn) if spawn != null else Transform3D()}
 	var holder: Node = room.get_node_or_null("Connectors")
 	for c: Node in holder.get_children() if holder != null else []:
 		if c is Node3D:

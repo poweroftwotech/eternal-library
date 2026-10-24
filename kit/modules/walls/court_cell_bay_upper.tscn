@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_0ej5h"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/court_cell_bay_upper.glb" id="2_2qy6w"]
+
+[node name="court_cell_bay_upper" type="Node3D" unique_id=1470468386]
+script = ExtResource("1_0ej5h")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 1, 1)
+tags = PackedStringArray("brick", "court", "upper", "walled")
+source_glb = "res://assets/kit/walls/court_cell_bay_upper.glb"
+
+[node name="Mesh" parent="." unique_id=327800145 instance=ExtResource("2_2qy6w")]

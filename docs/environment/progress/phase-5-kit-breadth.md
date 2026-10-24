@@ -2,16 +2,188 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · Design: [approval brief](../phase-5-approval.md), [technical](../phase-5-design.md)
 
-**In short:** steps 1 to 3 are done and committed (the cistern's water
-brightened after your walk). A new area, the Lower Stacks, starts in a
-generated Hypostyle hall: a grid of bays under small tiled domes on twisted
-columns, freestanding bookcases between them, and clear aisles from every
-door to a landmark under an oculus. Generated galleries lead off its doors.
-In step 2 the hall grows to 10 × 10 bays, with brass lamp clusters and the
-odd collapsed bay, and it still runs at the base-spec frame target. In step
-3 one gallery leads to a flooded cistern: a causeway to a sealed bronze door,
-shallows you wade at half speed, deep water that stops you, and platforms of
-book crates, under the Reading Garden's water.
+**In short:** steps 1 to 4 are done and committed; step 5 (the
+caravanserai) is built and you walked it (a good first pass); lights in rooms you can't see into are now off. The Lower Stacks now
+start in a caravanserai: a court open to the cavern's rock, two storeys of
+arched cells round it, a tiled pishtaq gate, a carpeted hearth. Through its
+gate is the generated Hypostyle hall (step 1): a grid of bays under small
+tiled domes on twisted columns, bookcases between them, aisles to a landmark
+under an oculus; in step 2 it grows to 10 × 10 bays with lamp clusters and
+the odd collapsed bay. Galleries lead off the hall and the court's side
+doors; one leads to a flooded cistern (step 3), one to a cone-shaped
+light-well whose stair climbs to galleries on the floors above (step 4).
+
+---
+
+## Step 5: the Caravanserai (built 2026-10-23; you walked it: a good first pass)
+
+**Try it:** Esc → **Walk the Lower Stacks** (or `-- --area=lower_stacks`).
+You start in the gate's passage, facing the court.
+
+- A court of 5 × 5 bays (20 m), open to the cavern: dark rock 12–15 m up,
+  coming down to the roofs at the edges, faintly lit by the hearth.
+- Round it, two storeys of pointed-arch cells. A lantern hangs in every
+  second ground cell's mouth (a few fail or are dark, by the lamp socket), and
+  each cell rolls what it holds: a bedroll with an oil lamp (it glows; no light of its own), a storeroom
+  (sacks, crates, jars), a stable (manger, hay, a tether rail and saddle), a
+  spice stall (a counter of baskets under an awning, a lamp), a ruin, or
+  nothing. Upstairs the same without the stable and the stall.
+- The gate's pishtaq faces the court: 10.4 m tall, mosaic bands, a tile
+  panel, a lit grille over the passage and a lantern either side.
+- A stair hall either side of the gate: through an arch near the corner,
+  up a flight to a landing and back up a second flight to the upper storey
+  in the corner (0.2 m steps, 27°, a ramp over the nosings for walking).
+- Upstairs a loggia (a walkway under timber joists) runs behind the arches
+  through every upper cell of the side and far walls and round the
+  corners, from one stair to the other. The arches have a 0.9 m sill.
+- In the middle a raised hearth: three low steps round it (you walk up
+  them), a carpet, cushions, packs, and one of a fire pit, a brazier or a
+  tannur oven (a socket); eight places to sit for travellers later (Q12:
+  not the camp's cooking pot). A well in one of the far corners.
+- Three strings of lanterns across the court, a lantern under the loggia
+  beams in every third upper cell.
+- Side doors in the middle of the west and east walls lead to galleries
+  (grown there in most seeds); the gate leads to the hall.
+
+Pictures (seed 1, Medium, 1920 × 1080): `previews/p5_step5/r05_1_*.png`
+(atlas: from the court's far end toward the gate, the atlas mock's view;
+entry, arcade, cell, hearth, stair, loggia, across, up).
+
+**Built:**
+
+| Piece | File |
+|---|---|
+| 25 kit pieces made by script into a new `kit_court.blend` (yours to edit from now on): the ground cell and the lantern in its mouth, the upper cell with its loggia, the corner block and three upper corners (plain, and where each stair comes up, mirrored), the stair hall and its mirror, the pishtaq gate, the side passage, the court's paving, the hearth platform and its three looks, the well, the lantern string, the loggia lantern, five cell contents, and the cavern's rock for the 5 × 5 size | `tools/kit_add_r05.py`, `art_src/kit/kit_court.blend` |
+| New kit materials: plaster for the cells, paving, hearth stone, cavern rock, hay, char, cloth (the pixel maps already in `assets/textures/px`), and a glowing ember | `kit/materials/` |
+| Socket sets: a ground cell's contents, an upper cell's, the hearth's | `kit/sockets/court_cell.tres`, `court_cell_upper.tres`, `court_hearth.tres` |
+| `CourtyardGrammar`: the ring round a `court_w` × `court_d` court, the gate on the entry wall's middle, the stair halls at its corners, side doors, every piece on its cell's court side, the hearth, the well (seeded), lantern strings, loggia lamps, worn lanes from the doors to the hearth | `scripts/gen/courtyard_grammar.gd`, `gen/grammars/r05_court_5x5.tres`, `gen/rules/r05_court.tres` |
+| The bake: the template laid out as an area's root, baked to a scene with a PlayerSpawn in the gate | `tools/bake_court.gd`, `rooms/baked/caravanserai_5x5.tscn` |
+| A generated room can be laid out as a root on its own (`root_room`), for a template baked to be one | `scripts/gen/generated_room.gd` |
+| A bake keeps its grid's walkable edges, blocked cells and layout notes; the planner walks a baked room by them (and finds its spawn), so the tests' tours go through the court, not through walls | `scripts/gen/room_baker.gd`, `scripts/world/area_planner.gd`, `tests/area_tour.gd` |
+| Validate Room: a cell piece tagged "walled" brings its own walls | `scripts/world/kit_validate_room.gd` |
+| The Lower Stacks start in the caravanserai (the root, pinned); the hall joins its gate; galleries also grow from its side doors; the envelope moved south to give the hall room (recipe version 5) | `gen/recipes/lower_stacks.tres` |
+
+**"Little new code":** the courtyard grammar is 282 lines (220 without
+comments and blank lines), inside the ~500 target. The shared changes are
+about 45 lines (the root flag, the bake's walk data and the planner reading
+it, the validator's "walled").
+
+**What changed from the design, and why:**
+
+- **The stairs are beside the gate, not in two corners.** A corner cell
+  only touches the court at a point, so a stair there can't be reached from
+  the court. Each stair hall takes the two entry-wall cells next to a
+  corner and comes up *into* the corner, where the loggia turns; the two
+  stairs flank the gate, as in many real caravanserais.
+- **A loggia upstairs.** The upper cells' arches open onto a walkway that
+  runs through every upper cell, with the cell's own space behind it; the
+  arches have a sill so you can't fall into the court. (The design named
+  the upper cell only.)
+- **The pishtaq faces the court** (as the atlas mock), not outward: through
+  the gate is the hall, whose wall stands right against it.
+- **No separate parapet or cavern-patch pieces:** each ring piece carries
+  its own parapet, and the rock is one piece per size (`cavern_ceiling_5x5`).
+- **The court's pieces are cell modules with their own walls**, so a baked
+  scene keeps its cells for planning; Validate Room learns "walled".
+- **The hearth platform is low (0.45 m) with three steps you walk up** (the
+  player climbs slopes, not steps: a ramp over the nosings).
+- **The stall's counter and the stable's rail stand 1.2 m inside the cell**,
+  so every cell's arch can be stepped into.
+
+**Gates:**
+
+- `r05_layout_test` (new): the template, seeds 1–20, as a root and as a
+  joined room, and the Lower Stacks seeds 1–20. **4,206 checks pass.** The
+  grid checks clean; 45 cells mirror across the gate's axis; the gate, side
+  doors and stair halls where they belong (each hall opens to the court at
+  its corner end only); every piece once per cell, the hearth at the
+  centre, the well in a far corner; the loggia runs round without a gap;
+  the same seed, the same court; a dead end keeps only its gate. **The
+  baked scene is the template, module for module**, with a contents socket
+  in every cell and one on the hearth. In the Lower Stacks the court is the
+  pinned root, the hall joins its gate, and no two rooms share a cell.
+- `r05_route_test` (new): seeds 1–3, every room built. The court
+  validates clean; the real player's capsule walks every open court cell
+  from the gate, steps into all 15 ground cells and passages, climbs onto
+  the hearth, **climbs the west stair to the upper storey, walks the loggia
+  through every upper cell and round the corners and comes down the east
+  stair**, nothing catching it, and walks out of each door into the room
+  beyond and back; the sills, the stairs' dividers hold. **90 checks pass.**
+- Updated for the new root: `area_plan_test` 266 (the court is the root, the
+  hall joins it), `persist_gate.sh` **all nine processes pass** (the Lower
+  Stacks' book is pulled in the hall, the first room with shelves).
+- Every touched gate passes: `kit_test` 2,471, `validate_room_test` 26,
+  `gen_signature_test` 103 (every gallery unchanged), `r02_bake_test` 105,
+  `r03_layout_test` 11,001, `r03_route_test` 46, `r11_layout_test` 6,013,
+  `r11_route_test` 46, `r09_layout_test` 1,038, `r09_route_test` 69,
+  `stream_test` 80; 240-frame runs clean for the camp, `--area=library` and
+  `--area=lower_stacks`.
+- **`area_route_test`: 438 of 439 pass.** One fails on Lower Stacks seed 3:
+  the cistern's sealed bronze door reaches into the shelf recess of the
+  gallery behind it (below).
+- **The frame gate** (seed 90: the court, the 10 × 10 hall, a cistern, a
+  light-well, 11 rooms, 1,604 m), two runs: **both fail.** Mean 1.47 ms, GPU
+  worst 2.4–2.5 ms (limit 4), draw calls at most 896 (1,500), shadowed
+  lights 4 (4). Worst frames 9.0–9.1 ms (limit 8), all in galleries 3 and 4,
+  the parked first-sight frames, none in the court. **Lights in reach peak
+  at 73 (limit 48)**, by the gate (below). After your walk (lights off in
+  rooms you can't see into, below), two more runs: mean 1.35 ms, GPU worst
+  2.1 ms, draw calls at most 642; worst frames 9.2 ms, in the galleries and
+  the light-well, as before; **lights in reach 61**.
+
+**Caveats, for your review:**
+
+- **Lights in reach.** The gate counts every light within 35 m. By the
+  court's gate you're within 35 m of both the court and the 10 × 10 hall,
+  and the hall alone already peaked at the limit (48) in step 2, so any lit
+  room beside it goes over. I cut the court from 89 at first to 73: a
+  lantern in every second ground cell instead of every one, and the cells'
+  oil lamps and stall lamps glow without a light of their own. GPU time is
+  2.5 ms of 4, so this is the target, not a measured cost. Options: count
+  only the lights of rooms you can see into, thin the hall's lamps
+  (`lamp_every_bays`), or raise the limit after a measurement on a real
+  RTX 3060. Your call.
+
+### After your walk: lights only where you can see (2026-10-24)
+
+You liked it as a first pass, and chose for the light limit: don't count
+lights that aren't visible. Rather than only change the count, the game now
+switches them off: the light budget keeps on the lights of the room you're
+in and of the rooms you can see into from it (the plan's sightlines), and
+turns off the rest; a lamp dark by its own state stays dark when its room
+comes back into view (`scripts/world/light_budget.gd`, `area.gd`; about 30
+lines). The frame gate counts lights that are on, so it now counts only
+those.
+
+- Tests rerun: `stream_test` 80, `persist_gate.sh` all nine processes pass.
+  `area_route_test` 463 of 465: seed 3's layout shifted a little with the
+  rebake, and its two failures are generated rooms meeting each other again:
+  a gallery's two corner recesses run into each other, and a gallery fern
+  reaches into the cistern's recess (found, not fixed; older than this step).
+- The peak dropped from 73 to **61**, and draw calls from 896 to 642 (shadow
+  passes of lights you couldn't see). What's left is really visible: by the
+  gate the court and the hall see into each other, with 61 lights between
+  them. To get under 48 there: thin the hall's lamps (`lamp_every_bays`),
+  fewer in the court, or raise the limit after a 3060 measurement.
+- A room's lights come on when you step into a room that sees it, so a lamp
+  beyond the next doorway can switch on as you cross; I haven't seen it in
+  the pictures, but watch for it as you walk.
+- **The CPU worst frames** (9 ms) are the parked first-sight frames in the
+  galleries, as before step 5.
+- **Found, not fixed: generated rooms back to back.** A baked room's shelf
+  recesses are kept clear of its neighbours (phase 4), but two *generated*
+  rooms back to back aren't: on Lower Stacks seed 3 the cistern's far wall
+  stands behind a gallery's recess, and its bronze door's leaves show
+  inside the recess. The new layout exposed it; it predates this step.
+- **The court is darker and moodier than the atlas mock** (whose walls and
+  floor are bright sand). The strings were brightened once; more light
+  means more lights in reach (above).
+- The stairs are steep-ish (27°, as R01's) and the lanes 1.3 m wide.
+- The 3 × 3 and 7 × 5 sizes wait for your approval of the look (Q11). The
+  grammar takes any odd width from 5; a 3 × 3 court needs its stairs
+  elsewhere (its entry wall has only three cells).
+- People aren't in it yet: the hearth has eight places to sit, the stall a
+  merchant's spot, the bedrolls a sleeper's.
 
 ---
 

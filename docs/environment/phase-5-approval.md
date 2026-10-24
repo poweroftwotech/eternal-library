@@ -1,6 +1,6 @@
 # Phase 5 approval brief: kit breadth (new room types)
 
-[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **approved 2026-10-22 with the recommended answers to Q1–Q12; step 1 in progress** ·
+[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **approved 2026-10-22 with the recommended answers to Q1–Q12; steps 1–4 committed, step 5 built and walked (a good first pass)** ·
 Technical detail: [phase-5-design.md](phase-5-design.md)
 
 This page is what you're approving. It says which new rooms phase 5 adds,

@@ -8,13 +8,16 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| Nothing for step 4: committed. Next is **phase 5 step 5**; the cone may get more look tweaks later (your note) | [Phase 5 approval brief](docs/environment/phase-5-approval.md) | Say when to start step 5 |
-| **Parked: the frame gate.** Not rerun since the cone's lights were added (your call: later). Before that, seed 90 passed one run in three, with the first build and with the cone; the slow frames are the hall's and galleries' first sights, not the light-well (worst 7.0 ms there). To pick up after the light-well settles | [Step 4 caveats](docs/environment/progress/phase-5-kit-breadth.md) | Nothing yet |
+| **Phase 5 step 5, the Caravanserai:** you walked it and liked it as a first pass. Lights in rooms you can't see into are now off (your choice for the light limit). Not committed. The 3 × 3 and 7 × 5 sizes follow from the same pieces when you want them (Q11) | [Step 5 in the progress log](docs/environment/progress/phase-5-kit-breadth.md) | Say whether to commit, and when to do the other sizes |
+| **The frame gate still fails** (seed 90): lights in reach **61 of 48** (down from 73 now unseen rooms' lights are off; the court and the hall really see each other through the gate), and the parked first-sight frames (9.2 ms of 8; galleries and the light-well). GPU 2.1 ms of 4, draw calls 642 | [Step 5 caveats](docs/environment/progress/phase-5-kit-breadth.md) | Choose later: thin the hall's lamps, fewer in the court, or raise the limit after a 3060 measurement |
+| **Found, not fixed: generated rooms meeting each other** (Lower Stacks seed 3): a gallery's two corner recesses run into each other, and a gallery fern (earlier the cistern's bronze door) reaches into the other room's shelf recess. Older gaps the new layouts exposed | [Step 5 caveats](docs/environment/progress/phase-5-kit-breadth.md) | Nothing yet |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-24 | **The caravanserai after your walk** (a good first pass): the lights of rooms you can't see into from the room you're in are switched off, so the frame gate counts only visible ones. Lights in reach 73 → 61, draw calls 896 → 642 ([progress](docs/environment/progress/phase-5-kit-breadth.md)). |
+| 2026-10-23 | **Phase 5 step 5 built: the Caravanserai.** The Lower Stacks now start in a court open to the cavern's rock, ringed by two storeys of arched cells (each rolls a bedroll, storeroom, stable, spice stall, ruin or nothing), a tiled pishtaq gate to the hall, stair halls up to a loggia that runs round the upper storey, a carpeted hearth (fire pit, brazier or tannur) and a well. Generated from rules, baked to a scene for hand finishing. 25 kit pieces, 282 lines of grammar. New layout and route tests pass; **the frame gate fails on lights in reach** (73 of 48: the court and the big hall are within 35 m of each other by the gate) and on the parked gallery frames; one area route check fails on a cistern/gallery recess clash the new layout exposed ([progress](docs/environment/progress/phase-5-kit-breadth.md)). Waiting for your walk. |
 | 2026-10-23 | **The cone after your third walk:** the first turns of the stair are lit (the floor's fill reaches the wall, and a lantern every second bay on the two bookshelf floors) ([progress](docs/environment/progress/phase-5-kit-breadth.md)). You approved it for now; **step 4 committed**. |
 | 2026-10-23 | **The cone after your second walk:** the stair's edges run smooth (no 7.5 cm jog at every step), so nothing catches you, checked by a test that climbs the middle and both edges; the light is softer, the stair lit mostly by its lanterns again, the floor's pool of light fading faster ([progress](docs/environment/progress/phase-5-kit-breadth.md)). You walked it again (below). |
 | 2026-10-23 | **The cone after your walk:** the stair's collision is smooth (no catching on the steps' edges, the parapet or the columns), and a shaft of sunlight falls from the oculus through a column of haze onto the pool, with soft fills for its bounce, so the cone is no longer dark ([progress](docs/environment/progress/phase-5-kit-breadth.md)). You walked it again (below). |
@@ -54,7 +57,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 2. Generated Stack Gallery (R02) | A seeded corridor off any R01 door; bakeable to a scene | ✅ Done 2026-10-20 |
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
-| **5. Kit breadth** | More room types, mostly from data | Approved 2026-10-22 (Q1–Q12 as recommended); steps 1–3 done; step 4 (the light-well, a cone) committed; step 5 next |
+| **5. Kit breadth** | More room types, mostly from data | Approved 2026-10-22 (Q1–Q12 as recommended); steps 1–4 committed; step 5 (the caravanserai) built, walked by you (a good first pass), not committed |
 
 ## 10. Roadmap (each phase is a playable slice)
 

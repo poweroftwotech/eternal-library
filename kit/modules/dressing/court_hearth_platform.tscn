@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_segyx"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/court_hearth_platform.glb" id="2_ngctg"]
+
+[node name="court_hearth_platform" type="Node3D" unique_id=1628658512]
+script = ExtResource("1_segyx")
+family = "dressing"
+size_cells = Vector3i(2, 0, 2)
+tags = PackedStringArray("stone", "court", "landmark", "light")
+source_glb = "res://assets/kit/dressing/court_hearth_platform.glb"
+
+[node name="Mesh" parent="." unique_id=802684595 instance=ExtResource("2_ngctg")]

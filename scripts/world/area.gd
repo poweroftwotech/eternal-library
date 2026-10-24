@@ -74,6 +74,7 @@ func _ready() -> void:
 	light_budget.name = "LightBudget"
 	light_budget.shadow_budget = settings.shadow_budget
 	light_budget.light_fade_m = settings.light_fade_m
+	light_budget.seen_rooms = seen_rooms
 	add_child(light_budget)
 	var b: AABB = plan.bounds()
 	FloorWear.fixed_rect = Rect2(b.position.x - 2.0, b.position.z - 2.0, b.size.x + 4.0, b.size.z + 4.0)
@@ -159,7 +160,18 @@ func enter_room(r: AreaPlan.Room, room: RoomTemplate) -> void:
 func finish_entering(r: AreaPlan.Room, room: RoomTemplate) -> void:
 	_clear_recesses(r, room)
 	rooms[r.slot_id] = room
-	light_budget.add_room(room)
+	light_budget.add_room(room, r.slot_id)
+
+
+## The rooms whose lights are on: the one you're in and those you can see into
+## from it (the plan's sightlines); empty (all) before the streamer knows.
+func seen_rooms() -> Dictionary:
+	if streamer == null or streamer.player_room == "":
+		return {}
+	var out: Dictionary = {streamer.player_room: true}
+	for s: String in plan.visible.get(streamer.player_room, PackedStringArray()):
+		out[s] = true
+	return out
 
 
 ## How far past the back of a neighbour's recess a shortened module starts.
