@@ -9,7 +9,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | What | Read this | What to do |
 |---|---|---|
 | **Phase 5 step 5, the Caravanserai:** you walked it and liked it as a first pass; committed (b82d6cc) with the visible-lights change. Phase 5's four room types are all in. The 3 × 3 and 7 × 5 sizes follow from the same pieces when you want them (Q11) | [Step 5 in the progress log](docs/environment/progress/phase-5-kit-breadth.md) | Say when to do the other sizes |
-| **The frame gate passes** (seed 90, two runs): CPU worst 6.8 ms of 8 (the wear map now uploads tile by tile), lights in reach 50 of your new limit of 50 (was 48), after your light cuts. Not committed | [The frame gate after step 5](docs/environment/progress/phase-5-kit-breadth.md) | Say when to commit |
+| **The frame gate passes** (seed 90, two runs): CPU worst 6.8 ms of 8 (the wear map now uploads tile by tile), lights in reach 50 of your new limit of 50 (was 48), after your light cuts. Committed (4cb9599) | [The frame gate after step 5](docs/environment/progress/phase-5-kit-breadth.md) | Nothing |
 | **Found, not fixed: generated rooms meeting each other** (Lower Stacks seed 3): a gallery's two corner recesses run into each other, and a gallery fern (earlier the cistern's bronze door) reaches into the other room's shelf recess. Older gaps the new layouts exposed | [Step 5 caveats](docs/environment/progress/phase-5-kit-breadth.md) | Nothing yet |
 
 ## What's new

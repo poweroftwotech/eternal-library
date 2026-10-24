@@ -15,7 +15,7 @@ light-well whose stair climbs to galleries on the floors above (step 4).
 
 ---
 
-## The frame gate after step 5 (2026-10-24; passes; not committed)
+## The frame gate after step 5 (2026-10-24; passes; committed 4cb9599)
 
 You asked to get lights in reach under 48 and the CPU worst frames under 8 ms.
 
