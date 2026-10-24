@@ -1,8 +1,8 @@
-[gd_resource type="Resource" script_class="AgeRules" format=3]
+[gd_resource type="Resource" script_class="AgeRules" format=3 uid="uid://cemdf1yv8raf4"]
 
-[ext_resource type="Script" path="res://scripts/world/age_rule.gd" id="1_kic8g"]
-[ext_resource type="Resource" path="res://kit/sockets/lamp_state.tres" id="2_ffm4y"]
-[ext_resource type="Script" path="res://scripts/world/age_rules.gd" id="3_7qckj"]
+[ext_resource type="Script" uid="uid://dwyds73x8t35f" path="res://scripts/world/age_rule.gd" id="1_kic8g"]
+[ext_resource type="Resource" uid="uid://nl27c7i64833" path="res://kit/sockets/lamp_state.tres" id="2_ffm4y"]
+[ext_resource type="Script" uid="uid://c7r87cpsxeijs" path="res://scripts/world/age_rules.gd" id="3_7qckj"]
 
 [sub_resource type="Curve" id="Curve_kenq2"]
 _limits = [0.0, 1.0, 0.0, 60.0]

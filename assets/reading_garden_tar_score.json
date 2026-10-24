@@ -4,749 +4,749 @@
   "sample_rate": 44100,
   "description": "Original synthesized tar-inspired composition; no recording samples",
   "notes": [
-    {
-      "time": 0.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 3.1,
-      "degree": 3,
-      "register": 0,
-      "velocity": 0.1
-    },
-    {
-      "time": 0.7,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.485
-    },
-    {
-      "time": 1.65,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.446
-    },
-    {
-      "time": 2.185,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.249
-    },
-    {
-      "time": 2.3,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.542
-    },
-    {
-      "time": 3.55,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.307
-    },
-    {
-      "time": 3.645,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.347
-    },
-    {
-      "time": 3.74,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.307
-    },
-    {
-      "time": 3.835,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.347
-    },
-    {
-      "time": 4.45,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.452
-    },
-    {
-      "time": 4.985,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.256
-    },
-    {
-      "time": 5.1,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.558
-    },
-    {
-      "time": 6.25,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.608
-    },
-    {
-      "time": 8.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 11.1,
-      "degree": 3,
-      "register": 0,
-      "velocity": 0.1
-    },
-    {
-      "time": 8.6,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.5
-    },
-    {
-      "time": 9.45,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.581
-    },
-    {
-      "time": 10.5,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.446
-    },
-    {
-      "time": 11.35,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.471
-    },
-    {
-      "time": 12.3,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.556
-    },
-    {
-      "time": 13.25,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.434
-    },
-    {
-      "time": 14.1,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.585
-    },
-    {
-      "time": 16.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 16.75,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.575
-    },
-    {
-      "time": 17.7,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.603
-    },
-    {
-      "time": 18.435,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.21
-    },
-    {
-      "time": 18.55,
-      "degree": 5,
-      "register": 1,
-      "velocity": 0.456
-    },
-    {
-      "time": 19.55,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.488
-    },
-    {
-      "time": 20.3,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.435
-    },
-    {
-      "time": 20.985,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.241
-    },
-    {
-      "time": 21.1,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.524
-    },
-    {
-      "time": 22.4,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.439
-    },
-    {
-      "time": 24.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 27.1,
-      "degree": 3,
-      "register": 0,
-      "velocity": 0.1
-    },
-    {
-      "time": 24.55,
-      "degree": 5,
-      "register": 1,
-      "velocity": 0.581
-    },
-    {
-      "time": 25.6,
-      "degree": 6,
-      "register": 1,
-      "velocity": 0.585
-    },
-    {
-      "time": 26.65,
-      "degree": 5,
-      "register": 1,
-      "velocity": 0.46
-    },
-    {
-      "time": 27.45,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.289
-    },
-    {
-      "time": 27.545,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.327
-    },
-    {
-      "time": 27.64,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.289
-    },
-    {
-      "time": 27.735,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.327
-    },
-    {
-      "time": 28.5,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.568
-    },
-    {
-      "time": 29.45,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.556
-    },
-    {
-      "time": 30.35,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.536
-    },
-    {
-      "time": 32.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 35.1,
-      "degree": 3,
-      "register": 0,
-      "velocity": 0.1
-    },
-    {
-      "time": 32.8,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.468
-    },
-    {
-      "time": 33.55,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.588
-    },
-    {
-      "time": 34.185,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.222
-    },
-    {
-      "time": 34.3,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.482
-    },
-    {
-      "time": 35.4,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.533
-    },
-    {
-      "time": 36.35,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.578
-    },
-    {
-      "time": 37.435,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.244
-    },
-    {
-      "time": 37.55,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.529
-    },
-    {
-      "time": 38.35,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.521
-    },
-    {
-      "time": 40.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 40.65,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.559
-    },
-    {
-      "time": 41.6,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.529
-    },
-    {
-      "time": 42.6,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.599
-    },
-    {
-      "time": 43.65,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.592
-    },
-    {
-      "time": 45.2,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.509
-    },
-    {
-      "time": 48.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 51.1,
-      "degree": 3,
-      "register": 0,
-      "velocity": 0.1
-    },
-    {
-      "time": 48.7,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.444
-    },
-    {
-      "time": 49.65,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.518
-    },
-    {
-      "time": 50.185,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.213
-    },
-    {
-      "time": 50.3,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.463
-    },
-    {
-      "time": 51.55,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.248
-    },
-    {
-      "time": 51.645,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.281
-    },
-    {
-      "time": 51.74,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.248
-    },
-    {
-      "time": 51.835,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.281
-    },
-    {
-      "time": 52.45,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.441
-    },
-    {
-      "time": 52.985,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.197
-    },
-    {
-      "time": 53.1,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.429
-    },
-    {
-      "time": 54.25,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.438
-    },
-    {
-      "time": 56.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 59.1,
-      "degree": 3,
-      "register": 0,
-      "velocity": 0.1
-    },
-    {
-      "time": 56.6,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.509
-    },
-    {
-      "time": 57.45,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.47
-    },
-    {
-      "time": 58.5,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.409
-    },
-    {
-      "time": 59.35,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.519
-    },
-    {
-      "time": 60.3,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.405
-    },
-    {
-      "time": 61.25,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.446
-    },
-    {
-      "time": 62.1,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.456
-    },
-    {
-      "time": 64.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 64.75,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.43
-    },
-    {
-      "time": 65.7,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.475
-    },
-    {
-      "time": 66.435,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.23
-    },
-    {
-      "time": 66.55,
-      "degree": 5,
-      "register": 1,
-      "velocity": 0.499
-    },
-    {
-      "time": 67.55,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.5
-    },
-    {
-      "time": 68.3,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.425
-    },
-    {
-      "time": 68.985,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.192
-    },
-    {
-      "time": 69.1,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.417
-    },
-    {
-      "time": 70.4,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.519
-    },
-    {
-      "time": 72.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 75.1,
-      "degree": 3,
-      "register": 0,
-      "velocity": 0.1
-    },
-    {
-      "time": 72.55,
-      "degree": 5,
-      "register": 1,
-      "velocity": 0.464
-    },
-    {
-      "time": 73.6,
-      "degree": 6,
-      "register": 1,
-      "velocity": 0.52
-    },
-    {
-      "time": 74.65,
-      "degree": 5,
-      "register": 1,
-      "velocity": 0.498
-    },
-    {
-      "time": 75.45,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.216
-    },
-    {
-      "time": 75.545,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.244
-    },
-    {
-      "time": 75.64,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.216
-    },
-    {
-      "time": 75.735,
-      "degree": 4,
-      "register": 1,
-      "velocity": 0.244
-    },
-    {
-      "time": 76.5,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.47
-    },
-    {
-      "time": 77.45,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.537
-    },
-    {
-      "time": 78.35,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.401
-    },
-    {
-      "time": 80.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 83.1,
-      "degree": 3,
-      "register": 0,
-      "velocity": 0.1
-    },
-    {
-      "time": 80.8,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.413
-    },
-    {
-      "time": 81.55,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.481
-    },
-    {
-      "time": 82.185,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.213
-    },
-    {
-      "time": 82.3,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.464
-    },
-    {
-      "time": 83.4,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.537
-    },
-    {
-      "time": 84.35,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.514
-    },
-    {
-      "time": 85.435,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.244
-    },
-    {
-      "time": 85.55,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.529
-    },
-    {
-      "time": 86.35,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.408
-    },
-    {
-      "time": 88.1,
-      "degree": 0,
-      "register": 0,
-      "velocity": 0.19
-    },
-    {
-      "time": 88.65,
-      "degree": 3,
-      "register": 1,
-      "velocity": 0.473
-    },
-    {
-      "time": 89.6,
-      "degree": 2,
-      "register": 1,
-      "velocity": 0.41
-    },
-    {
-      "time": 90.6,
-      "degree": 1,
-      "register": 1,
-      "velocity": 0.445
-    },
-    {
-      "time": 91.65,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.511
-    },
-    {
-      "time": 93.2,
-      "degree": 0,
-      "register": 1,
-      "velocity": 0.385
-    }
+	{
+	  "time": 0.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 3.1,
+	  "degree": 3,
+	  "register": 0,
+	  "velocity": 0.1
+	},
+	{
+	  "time": 0.7,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.485
+	},
+	{
+	  "time": 1.65,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.446
+	},
+	{
+	  "time": 2.185,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.249
+	},
+	{
+	  "time": 2.3,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.542
+	},
+	{
+	  "time": 3.55,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.307
+	},
+	{
+	  "time": 3.645,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.347
+	},
+	{
+	  "time": 3.74,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.307
+	},
+	{
+	  "time": 3.835,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.347
+	},
+	{
+	  "time": 4.45,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.452
+	},
+	{
+	  "time": 4.985,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.256
+	},
+	{
+	  "time": 5.1,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.558
+	},
+	{
+	  "time": 6.25,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.608
+	},
+	{
+	  "time": 8.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 11.1,
+	  "degree": 3,
+	  "register": 0,
+	  "velocity": 0.1
+	},
+	{
+	  "time": 8.6,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.5
+	},
+	{
+	  "time": 9.45,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.581
+	},
+	{
+	  "time": 10.5,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.446
+	},
+	{
+	  "time": 11.35,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.471
+	},
+	{
+	  "time": 12.3,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.556
+	},
+	{
+	  "time": 13.25,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.434
+	},
+	{
+	  "time": 14.1,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.585
+	},
+	{
+	  "time": 16.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 16.75,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.575
+	},
+	{
+	  "time": 17.7,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.603
+	},
+	{
+	  "time": 18.435,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.21
+	},
+	{
+	  "time": 18.55,
+	  "degree": 5,
+	  "register": 1,
+	  "velocity": 0.456
+	},
+	{
+	  "time": 19.55,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.488
+	},
+	{
+	  "time": 20.3,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.435
+	},
+	{
+	  "time": 20.985,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.241
+	},
+	{
+	  "time": 21.1,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.524
+	},
+	{
+	  "time": 22.4,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.439
+	},
+	{
+	  "time": 24.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 27.1,
+	  "degree": 3,
+	  "register": 0,
+	  "velocity": 0.1
+	},
+	{
+	  "time": 24.55,
+	  "degree": 5,
+	  "register": 1,
+	  "velocity": 0.581
+	},
+	{
+	  "time": 25.6,
+	  "degree": 6,
+	  "register": 1,
+	  "velocity": 0.585
+	},
+	{
+	  "time": 26.65,
+	  "degree": 5,
+	  "register": 1,
+	  "velocity": 0.46
+	},
+	{
+	  "time": 27.45,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.289
+	},
+	{
+	  "time": 27.545,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.327
+	},
+	{
+	  "time": 27.64,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.289
+	},
+	{
+	  "time": 27.735,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.327
+	},
+	{
+	  "time": 28.5,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.568
+	},
+	{
+	  "time": 29.45,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.556
+	},
+	{
+	  "time": 30.35,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.536
+	},
+	{
+	  "time": 32.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 35.1,
+	  "degree": 3,
+	  "register": 0,
+	  "velocity": 0.1
+	},
+	{
+	  "time": 32.8,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.468
+	},
+	{
+	  "time": 33.55,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.588
+	},
+	{
+	  "time": 34.185,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.222
+	},
+	{
+	  "time": 34.3,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.482
+	},
+	{
+	  "time": 35.4,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.533
+	},
+	{
+	  "time": 36.35,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.578
+	},
+	{
+	  "time": 37.435,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.244
+	},
+	{
+	  "time": 37.55,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.529
+	},
+	{
+	  "time": 38.35,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.521
+	},
+	{
+	  "time": 40.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 40.65,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.559
+	},
+	{
+	  "time": 41.6,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.529
+	},
+	{
+	  "time": 42.6,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.599
+	},
+	{
+	  "time": 43.65,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.592
+	},
+	{
+	  "time": 45.2,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.509
+	},
+	{
+	  "time": 48.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 51.1,
+	  "degree": 3,
+	  "register": 0,
+	  "velocity": 0.1
+	},
+	{
+	  "time": 48.7,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.444
+	},
+	{
+	  "time": 49.65,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.518
+	},
+	{
+	  "time": 50.185,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.213
+	},
+	{
+	  "time": 50.3,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.463
+	},
+	{
+	  "time": 51.55,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.248
+	},
+	{
+	  "time": 51.645,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.281
+	},
+	{
+	  "time": 51.74,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.248
+	},
+	{
+	  "time": 51.835,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.281
+	},
+	{
+	  "time": 52.45,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.441
+	},
+	{
+	  "time": 52.985,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.197
+	},
+	{
+	  "time": 53.1,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.429
+	},
+	{
+	  "time": 54.25,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.438
+	},
+	{
+	  "time": 56.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 59.1,
+	  "degree": 3,
+	  "register": 0,
+	  "velocity": 0.1
+	},
+	{
+	  "time": 56.6,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.509
+	},
+	{
+	  "time": 57.45,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.47
+	},
+	{
+	  "time": 58.5,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.409
+	},
+	{
+	  "time": 59.35,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.519
+	},
+	{
+	  "time": 60.3,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.405
+	},
+	{
+	  "time": 61.25,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.446
+	},
+	{
+	  "time": 62.1,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.456
+	},
+	{
+	  "time": 64.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 64.75,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.43
+	},
+	{
+	  "time": 65.7,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.475
+	},
+	{
+	  "time": 66.435,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.23
+	},
+	{
+	  "time": 66.55,
+	  "degree": 5,
+	  "register": 1,
+	  "velocity": 0.499
+	},
+	{
+	  "time": 67.55,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.5
+	},
+	{
+	  "time": 68.3,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.425
+	},
+	{
+	  "time": 68.985,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.192
+	},
+	{
+	  "time": 69.1,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.417
+	},
+	{
+	  "time": 70.4,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.519
+	},
+	{
+	  "time": 72.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 75.1,
+	  "degree": 3,
+	  "register": 0,
+	  "velocity": 0.1
+	},
+	{
+	  "time": 72.55,
+	  "degree": 5,
+	  "register": 1,
+	  "velocity": 0.464
+	},
+	{
+	  "time": 73.6,
+	  "degree": 6,
+	  "register": 1,
+	  "velocity": 0.52
+	},
+	{
+	  "time": 74.65,
+	  "degree": 5,
+	  "register": 1,
+	  "velocity": 0.498
+	},
+	{
+	  "time": 75.45,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.216
+	},
+	{
+	  "time": 75.545,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.244
+	},
+	{
+	  "time": 75.64,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.216
+	},
+	{
+	  "time": 75.735,
+	  "degree": 4,
+	  "register": 1,
+	  "velocity": 0.244
+	},
+	{
+	  "time": 76.5,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.47
+	},
+	{
+	  "time": 77.45,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.537
+	},
+	{
+	  "time": 78.35,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.401
+	},
+	{
+	  "time": 80.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 83.1,
+	  "degree": 3,
+	  "register": 0,
+	  "velocity": 0.1
+	},
+	{
+	  "time": 80.8,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.413
+	},
+	{
+	  "time": 81.55,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.481
+	},
+	{
+	  "time": 82.185,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.213
+	},
+	{
+	  "time": 82.3,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.464
+	},
+	{
+	  "time": 83.4,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.537
+	},
+	{
+	  "time": 84.35,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.514
+	},
+	{
+	  "time": 85.435,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.244
+	},
+	{
+	  "time": 85.55,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.529
+	},
+	{
+	  "time": 86.35,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.408
+	},
+	{
+	  "time": 88.1,
+	  "degree": 0,
+	  "register": 0,
+	  "velocity": 0.19
+	},
+	{
+	  "time": 88.65,
+	  "degree": 3,
+	  "register": 1,
+	  "velocity": 0.473
+	},
+	{
+	  "time": 89.6,
+	  "degree": 2,
+	  "register": 1,
+	  "velocity": 0.41
+	},
+	{
+	  "time": 90.6,
+	  "degree": 1,
+	  "register": 1,
+	  "velocity": 0.445
+	},
+	{
+	  "time": 91.65,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.511
+	},
+	{
+	  "time": 93.2,
+	  "degree": 0,
+	  "register": 1,
+	  "velocity": 0.385
+	}
   ]
 }
