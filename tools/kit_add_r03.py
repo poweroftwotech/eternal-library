@@ -538,6 +538,453 @@ def vault_door(r):
     marker("LIGHT_lantern__door_r", r, (3.8, T + 0.25, 2.5))
 
 
+# --- step 4: the Light-Well Stair (R09), rev 2: a cone ----------------------------
+# The shaft is a cone (your design, 2026-10-23; concept: previews/p5_cone_idea/v5):
+# its wall leans in CONE_S m per metre up, from a floor radius of 10 or 12 m to
+# an oculus CONE_RT across. A stair cut CONE_DEPTH into the wall climbs a storey
+# (4 m) every three-quarters of a turn, so each floor's doorway faces another
+# side (W, N, E, S, ...). Each storey's stair starts with a flat landing (the
+# doorway's, or a niche's) and climbs CONE_RISERS steps of 0.2 m, with a ramp
+# for collision over the step nosings (the player climbs slopes, not steps).
+# Along the stair's open edge a stone ledge carries a low parapet and columns
+# under the wall that leans over the stair; in the back wall, between the
+# columns, niches hold a cone_niche socket (books, a tile panel, a sealed door,
+# or plain brick on the upper floors).
+#
+# Pieces (FREE, origin on the shaft's axis at the piece's floor; angle 0, the
+# landing, on the room's +Z, Blender -Y; angles run toward +X like RingGrammar's
+# SIDE_TURN):
+#   cone_c<r>_exit / _closed   one storey's stair and the wall over it: the
+#                       wall from this storey's treads up to the treads one turn
+#                       above, from the landing to the next storey's landing;
+#                       <r> is the wall's radius at its floor (x10). _exit has the
+#                       doorway and passage at the landing, _closed a niche.
+#   cone_cap<R0>_<L>    the top storey's landing (always a doorway), the stair's
+#                       end, and the cone over it to the oculus, for floor radius
+#                       R0 and L levels.
+#   cone_base<R0>       the floor, the pool and the wall below the first turn.
+#   cone_lantern        a lantern hung from the stair's ceiling.
+#   cone_passage_2m     2 m of passage from the cone's outer face to the room's edge.
+# GDScript twin (the same formulas): scripts/gen/ring_grammar.gd.
+STOREY = 4.0
+CONE_S = 0.375        # the wall leans in this much per metre up (1.5 m a storey)
+CONE_W = 3.6          # wall thickness, measured level
+CONE_DEPTH = 1.0      # the stair's cut into the wall
+CONE_HEAD = 2.6       # its headroom over each tread
+CONE_RISERS = 20      # steps per storey (0.2 m each)
+CONE_RT = 2.5         # the oculus's radius
+CONE_LEDGE = 0.8      # the stone ledge's reach into the shaft
+CONE_PARAPET = 0.85
+CONE_COL_R = 0.17
+CONE_BAY = 4.8        # stair length between columns
+NICHE_D = 0.55        # niche depth (the socket sits 0.25 in front of its back)
+TURN = 1.5 * math.pi  # angle per storey
+CONE_SIZES = ((12.0, (3, 4, 5)), (10.0, (3, 4)))   # floor radius, level counts
+EPS = 0.0015          # half the width of a riser in a sweep (radians)
+
+
+def polar(r, t):
+    """Blender (x, y) of radius r at angle t (radians; 0 = Blender -Y)."""
+    return (r * math.sin(t), -r * math.cos(t))
+
+
+def c_face(r, z):
+    """The cone's inner face at height z over a storey whose face is r at 0."""
+    return r - CONE_S * z
+
+
+def c_hb(r):
+    """Half the landing's angle (3.6 m of stair at the walk)."""
+    return 1.8 / max(r + 0.5, 2.0)     # (clamped for the virtual storeys over the top)
+
+
+def c_span(r):
+    """(start, end) angles of the climb from a storey with radius r."""
+    return c_hb(r), TURN - c_hb(r - 1.5)
+
+
+def c_risers(r):
+    a, b = c_span(r)
+    return [a + (i + 0.5) * (b - a) / CONE_RISERS for i in range(CONE_RISERS)]
+
+
+def c_bays(r):
+    a, b = c_span(r)
+    return max(3, int(round((b - a) * (r + 0.3) / CONE_BAY)))
+
+
+def c_storey(r0, phi):
+    """(storey j, angle within it) of unwrapped angle phi over a piece whose
+    storey 0 has radius r0 (storey j: r0 - 1.5 j)."""
+    j = 0
+    while phi >= TURN * (j + 1) - c_hb(r0 - 1.5 * (j + 1)):
+        j += 1
+    while phi < TURN * j - c_hb(r0 - 1.5 * j):
+        j -= 1
+    return j, phi - TURN * j
+
+
+def c_tread(r0, phi):
+    """The tread's height at unwrapped angle phi (risers counted)."""
+    j, p = c_storey(r0, phi)
+    n = sum(1 for a in c_risers(r0 - 1.5 * j) if a <= p)
+    return STOREY * j + 0.2 * n
+
+
+def c_line(r0, phi):
+    """A smooth height through the climb (landing to landing, straight): the
+    walk's edges (the cut's back wall, the guide, the ramp's sides) follow the
+    cone's face at this height, so they don't jog 7.5 cm at every riser."""
+    j, p = c_storey(r0, phi)
+    a, b = c_span(r0 - 1.5 * j)
+    return STOREY * j + STOREY * min(max((p - a) / (b - a), 0.0), 1.0)
+
+
+def c_edge(r0, phi):
+    """The cone's face at the walk, smooth (see c_line)."""
+    return c_face(r0, c_line(r0, phi))
+
+
+def c_ramp(r0, phi):
+    """The collision ramp's height: 2 cm over the step nosings (storey 0's
+    climb), from half a step out on the landing (0.02 up) to the last nosing
+    (4.02), so the capsule never meets a step's edge."""
+    a, b = c_span(r0)
+    return 0.2 * ((phi - a) / ((b - a) / CONE_RISERS) + 0.5) + 0.02
+
+
+def c_breaks(r0, a, b):
+    """Riser angles of every storey between a and b (unwrapped)."""
+    out = []
+    for j in range(-2, 9):
+        for x in c_risers(r0 - 1.5 * j):
+            x += TURN * j
+            if a < x < b:
+                out.append(x)
+    return out
+
+
+def c_samples(r0, a, b, shift=(0.0,)):
+    """Sweep angles from a to b: every 0.02 rad, and both sides of each riser
+    (of the treads, and of the treads one turn above when shift has 2 pi)."""
+    pts = [a + (b - a) * i / max(1, int((b - a) / 0.02)) for i in range(max(1, int((b - a) / 0.02)) + 1)]
+    for s in shift:
+        for x in c_breaks(r0, a + s, b + s):
+            pts += [x - s - EPS, x - s + EPS]
+    pts = sorted(p for p in pts if a <= p <= b)
+    out = []
+    for p in pts:
+        if not out or p - out[-1] > 1e-5:
+            out.append(p)
+    return out
+
+
+def c_even(a, b, step=0.04):
+    """Even sweep angles from a to b: for the smooth collision (ramp, guide),
+    whose hairline slivers at each riser caught the capsule (your walk)."""
+    n = max(1, int(math.ceil((b - a) / step)))
+    return [a + (b - a) * i / n for i in range(n + 1)]
+
+
+def sweep(bm, phis, section, mat=0):
+    """A closed solid swept round the axis: section(phi) -> [(r, z), ...]
+    (the same number of points at every angle, counter-clockwise in r-z)."""
+    rings = []
+    for p in phis:
+        rings.append([bm.verts.new((*polar(r, p), z)) for (r, z) in section(p)])
+    n = len(rings[0])
+    for i in range(len(rings) - 1):
+        a, b = rings[i], rings[i + 1]
+        for k in range(n):
+            kk = (k + 1) % n
+            bm.faces.new((a[k], a[kk], b[kk], b[k])).material_index = mat
+    bm.faces.new(rings[0]).material_index = mat
+    bm.faces.new(list(reversed(rings[-1]))).material_index = mat
+
+
+def groove_section(r0, zt_fn):
+    """The wall over a tread: from the stair's cut (its floor is the wall below)
+    out to the outer face, up to zt, and back down the inner face to the
+    stair's ceiling."""
+    def section(p):
+        zb = c_tread(r0, p)
+        zt = zt_fn(p)
+        rb = c_face(r0, zb)
+        back = c_edge(r0, p) + CONE_DEPTH     # the cut's back wall: smooth
+        return [(back, zb), (rb + CONE_W, zb), (c_face(r0, zt) + CONE_W, zt), (c_face(r0, zt), zt),
+                (c_face(r0, zb + CONE_HEAD), zb + CONE_HEAD), (back, zb + CONE_HEAD)]
+    return section
+
+
+def solid_section(r0, zb_fn, zt_fn):
+    def section(p):
+        zb, zt = zb_fn(p), zt_fn(p)
+        return [(c_face(r0, zb), zb), (c_face(r0, zb) + CONE_W, zb), (c_face(r0, zt) + CONE_W, zt), (c_face(r0, zt), zt)]
+    return section
+
+
+def tangent_prism(bm, outline, t, r_back, v0, v1, z0):
+    """An XZ outline (x 0..w) centred on the tangent at angle t, extruded from
+    v0 to v1 outward of radius r_back, its foot at z0 (niche and door cutters)."""
+    w = max(u for (u, _v) in outline)
+    o = (math.sin(t), -math.cos(t))
+    tg = (math.cos(t), math.sin(t))
+    rings = []
+    for v in (v0, v1):
+        ring = []
+        for (u, zz) in outline:
+            uu = u - w / 2
+            ring.append(bm.verts.new((o[0] * (r_back + v) + tg[0] * uu, o[1] * (r_back + v) + tg[1] * uu, z0 + zz)))
+        rings.append(ring)
+    a, b = rings
+    bm.faces.new(a)
+    bm.faces.new(list(reversed(b)))
+    n = len(outline)
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((a[i], a[j], b[j], b[i]))
+
+
+def stair_edge(r, root, a, b, tag, parapet_from=0.0):
+    """The ledge, the parapet (where the tread is at least parapet_from up),
+    the columns (at the bays' ends between a and b) and the collision ramp of
+    a storey with radius r, between angles a and b."""
+    phis = c_samples(r, a, b)
+    bm = bmesh.new()
+    sweep(bm, phis, lambda p: [(c_face(r, c_tread(r, p)) - CONE_LEDGE, c_tread(r, p) - 0.25),
+                               (c_face(r, c_tread(r, p)) + 0.12, c_tread(r, p) - 0.25),
+                               (c_face(r, c_tread(r, p)) + 0.12, c_tread(r, p)),
+                               (c_face(r, c_tread(r, p)) - CONE_LEDGE, c_tread(r, p))])
+    mesh_object("cone_%s__ledge-col" % tag, bm, ["arch_stone"], root)
+    pa = [p for p in phis if c_tread(r, p) >= parapet_from]
+    if len(pa) > 1:
+        bm = bmesh.new()
+        sweep(bm, pa, lambda p: [(c_face(r, c_tread(r, p)) - CONE_LEDGE, c_tread(r, p)),
+                                 (c_face(r, c_tread(r, p)) - CONE_LEDGE + 0.2, c_tread(r, p)),
+                                 (c_face(r, c_tread(r, p)) - CONE_LEDGE + 0.2, c_tread(r, p) + CONE_PARAPET),
+                                 (c_face(r, c_tread(r, p)) - CONE_LEDGE, c_tread(r, p) + CONE_PARAPET)])
+        mesh_object("cone_%s__parapet" % tag, bm, ["arch_stone"], root)
+        # The walk's inner edge, smooth, 0.22 inside the wall's face: you slide
+        # along it instead of catching on the parapet and the columns' bases.
+        bm = bmesh.new()
+        sweep(bm, c_even(pa[0], pa[-1]), lambda p: [(c_edge(r, p) - 0.32, c_line(r, p) - 0.3),
+                                                    (c_edge(r, p) - 0.22, c_line(r, p) - 0.3),
+                                                    (c_edge(r, p) - 0.22, c_line(r, p) + 2.3),
+                                                    (c_edge(r, p) - 0.32, c_line(r, p) + 2.3)])
+        mesh_object("cone_%s__guide-colonly" % tag, bm, ["arch_stone"], root)
+    # Columns at the bays' ends, each on the middle of its step.
+    s0, s1 = c_span(r)
+    nb = c_bays(r)
+    bm = bmesh.new()
+    for i in range(nb + 1):
+        t = s0 + (s1 - s0) * i / nb
+        if not (a - 1e-6 <= t <= b + 1e-6):
+            continue
+        rs = [s0] + c_risers(r) + [s1]
+        for k in range(len(rs) - 1):
+            if rs[k] <= t <= rs[k + 1]:
+                t = min(max((rs[k] + rs[k + 1]) / 2, a + 0.01), b - 0.01)
+                break
+        z = c_tread(r, t)
+        x, y = polar(c_face(r, z) - 0.55, t)
+        add_lathe(bm, [(CONE_COL_R + 0.08, z - 0.05), (CONE_COL_R + 0.08, z + 0.22), (CONE_COL_R, z + 0.3),
+                       (CONE_COL_R, z + CONE_HEAD - 0.34), (CONE_COL_R + 0.12, z + CONE_HEAD - 0.24),
+                       (CONE_COL_R + 0.12, z + CONE_HEAD + 0.05)], x, y, segs=12)
+    if bm.verts:
+        mesh_object("cone_%s__columns" % tag, bm, ["arch_stone"], root)
+    else:
+        bm.free()
+    # The ramp the player walks on, over the nosings (climb only).
+    half = (s1 - s0) / CONE_RISERS / 2
+    ra, rb_ = s0 - half, min(b, s1 - half)     # from half a step out on the landing (the floor's too)
+    if rb_ > ra:
+        bm = bmesh.new()
+        sweep(bm, c_even(ra, rb_), lambda p: [(c_edge(r, p) - 0.3, c_ramp(r, p) - 0.1),
+                                                    (c_edge(r, p) + CONE_DEPTH - 0.02, c_ramp(r, p) - 0.1),
+                                                    (c_edge(r, p) + CONE_DEPTH - 0.02, c_ramp(r, p)),
+                                                    (c_edge(r, p) - 0.3, c_ramp(r, p))])
+        mesh_object("cone_%s__ramp-colonly" % tag, bm, ["arch_stone"], root)
+
+
+def door_cutter(bm, r):
+    tangent_prism(bm, arch_outline(2.2, 1.9), 0.0, c_face(r, 0.0) + CONE_DEPTH, -0.3, CONE_W - CONE_DEPTH + 0.8, -0.05)
+
+
+def cone_chunk(r, exit_door):
+    """One storey: the wall from its treads to the treads one turn above, from
+    its landing to the next storey's, with the cut, niches and stair edge."""
+    a, b = -c_hb(r), TURN - c_hb(r - 1.5)
+    tag = "c%d_%s" % (round(r * 10), "exit" if exit_door else "closed")
+
+    def build(root):
+        bm = bmesh.new()
+        sweep(bm, c_samples(r, a, b, (0.0, 2 * math.pi)), groove_section(r, lambda p: c_tread(r, p + 2 * math.pi)))
+        body = mesh_object("cone_%s__wall-col" % tag, bm, ["brick"], root)
+        cutters = bmesh.new()
+        # Niches between the columns: the climb's bays, and the landing's if no door.
+        s0, s1 = c_span(r)
+        nb = c_bays(r)
+        mids = [s0 + (s1 - s0) * (i + 0.5) / nb for i in range(nb)]
+        if not exit_door:
+            mids = [0.0] + mids
+        for i, t in enumerate(mids):
+            rb = c_edge(r, t) + CONE_DEPTH
+            reach = 1.6 / rb
+            sill = max(c_tread(r, t + d * reach / 4) for d in range(-4, 5)) + 0.15
+            tangent_prism(cutters, arch_outline(3.0, 1.9), t, rb, -0.3, NICHE_D, sill)
+            o = marker("SOCKET_cone_niche__%s_%d" % (tag, i), root, (*polar(rb + NICHE_D - 0.25, t), sill),
+                       {"socket_set": "cone_niche"})
+            o.rotation_euler = (0.0, 0.0, t)
+        if exit_door:
+            door_cutter(cutters, r)
+        cutter = mesh_object("cutter", cutters, ["brick"], root)
+        cut(body, cutter)
+        # Storey 0 starts on the floor: no ledge or parapet on its landing.
+        floor = any(abs(r - s) < 1e-6 for (s, _l) in CONE_SIZES)
+        stair_edge(r, root, c_hb(r) if floor else a, b, tag, 0.6 if floor else 0.0)
+    return build
+
+
+def cone_cap(R0, L):
+    r = R0 - 1.5 * (L - 1)
+    z_oc = (r - CONE_RT) / CONE_S
+    hb = c_hb(r)
+
+    def build(root):
+        tag = "cap%d_%d" % (round(R0 * 10), L)
+        bm = bmesh.new()
+        sweep(bm, c_samples(r, -hb, hb), groove_section(r, lambda p: z_oc))
+        body = mesh_object("cone_%s__landing-col" % tag, bm, ["brick"], root)
+        cutters = bmesh.new()
+        door_cutter(cutters, r)
+        cut(body, mesh_object("cutter", cutters, ["brick"], root))
+        bm = bmesh.new()
+        sweep(bm, c_samples(r, hb, 2 * math.pi - hb), solid_section(r, lambda p: c_tread(r, p), lambda p: z_oc))
+        mesh_object("cone_%s__wall-col" % tag, bm, ["brick"], root)
+        stair_edge(r, root, -hb, hb, tag)
+        sky = bmesh.new()
+        vs = [sky.verts.new((*polar(CONE_RT + 0.1, 2 * math.pi * i / 32), z_oc + 0.02)) for i in range(32)]
+        sky.faces.new(list(reversed(vs)))
+        mesh_object("cone_%s__sky" % tag, sky, ["emit_glass_cool"], root, recalc=False)
+        marker("LIGHT_cold__oculus", root, (0.0, 0.0, z_oc - 0.6))
+        # Sunlight down the shaft (your review): a spot far over the oculus, its
+        # beam the oculus's width at the top and ~4 m across on the floor, seen in
+        # a column of haze; a fill halfway down for the light it bounces.
+        total = STOREY * (L - 1) + z_oc
+        lift = (CONE_RT - 0.2) * total / (4.0 - CONE_RT + 0.2)
+        marker("LIGHT_shaft__oculus", root, (0.0, 0.0, z_oc + lift),
+               {"range": total + lift + 2.0, "spot_angle": math.degrees(math.atan((4.0 - CONE_RT + 0.2) / total))})
+        marker("FOG_haze__shaft", root, (0.0, 0.0, z_oc - total / 2.0), {"fog_size": [6.5, 6.5, total], "density": 0.05})
+        marker("LIGHT_bounce__mid", root, (0.0, 0.0, z_oc - total / 2.0), {"range": 12.0})
+    return build
+
+
+def cone_base(R0):
+    hb = c_hb(R0)
+
+    def build(root):
+        tag = "base%d" % round(R0 * 10)
+        bm = bmesh.new()
+        sweep(bm, c_samples(R0, -hb, 2 * math.pi - hb), solid_section(R0, lambda p: -0.3, lambda p: max(c_tread(R0, p), 0.0)))
+        mesh_object("cone_%s__wall-col" % tag, bm, ["brick"], root)
+        bm = bmesh.new()
+        add_ngon_prism(bm, 64, R0 + 0.15, -0.3, 0.0)
+        mesh_object("cone_%s__floor-col" % tag, bm, ["floor_stone"], root)
+        bm = bmesh.new()
+        for k in range(16):
+            a0 = 2 * math.pi * k / 16
+            polar_block(bm, 1.6, 2.0, a0, a0 + 2 * math.pi / 16, 0.0, 0.45, steps=1)
+        mesh_object("cone_%s__curb-col" % tag, bm, ["arch_stone"], root)
+        bm = bmesh.new()
+        vs = [bm.verts.new((*polar(1.62, 2 * math.pi * i / 24), 0.3)) for i in range(24)]
+        bm.faces.new(list(reversed(vs)))
+        mesh_object("cone_%s__water" % tag, bm, ["cistern_water"], root, recalc=False)
+        marker("LIGHT_bounce__floor", root, (0.0, 0.0, 2.5), {"range": R0 + 4.0})     # the sunlit floor's bounce
+    return build
+
+
+def polar_block(bm, r0, r1, a0, a1, z0, z1, steps=3, rise=0.0, mat=0):
+    """A closed block between radii r0 < r1 and angles a0 < a1, from z0 to z1."""
+    ring = []
+    for i in range(steps + 1):
+        t = a0 + (a1 - a0) * i / steps
+        dz = rise * i / steps
+        ring.append([bm.verts.new((*polar(r, t), z + dz)) for (r, z) in ((r0, z0), (r1, z0), (r1, z1), (r0, z1))])
+    for i in range(steps):
+        a, b = ring[i], ring[i + 1]
+        for j in range(4):
+            jj = (j + 1) % 4
+            bm.faces.new((a[j], a[jj], b[jj], b[j])).material_index = mat
+    bm.faces.new(ring[0]).material_index = mat
+    bm.faces.new(list(reversed(ring[-1]))).material_index = mat
+
+
+def cone_lantern(root):
+    bm = bmesh.new()
+    glass = bmesh.new()
+    lantern_at(bm, glass, 0.0, 0.0, 2.05, 0.15, 0.45)     # over the head (the capsule is 1.8 m)
+    add_box(bm, -0.02, 0.02, -0.02, 0.02, 2.5, CONE_HEAD + 0.05)
+    mesh_object("cone_lantern__body", bm, ["brass"], root)
+    mesh_object("cone_lantern__glass", glass, ["emit_lantern"], root)
+    marker("LIGHT_lantern__cone", root, (0.0, 0.0, 2.25))
+    marker("SOCKET_lamp_state__cone", root, (0.0, 0.0, 2.25), LAMP_SOCKET)
+
+
+def cone_passage(length):
+    """`length` m of passage running out along -Y (the room's +Z) from the origin."""
+    tag = "cone_passage_%s" % ("2m" if length == 2.0 else "05m")
+
+    def build(root):
+        bm = bmesh.new()
+        add_box(bm, -1.6, 1.6, -length, 0.0, -0.3, 0.0)
+        mesh_object(tag + "__floor-col", bm, ["floor_stone"], root)
+        bm = bmesh.new()
+        for (x0, x1) in ((-1.6, -1.2), (1.2, 1.6)):
+            add_box(bm, x0, x1, -length, 0.0, 0.0, 3.3)
+        add_box(bm, -1.6, 1.6, -length, 0.0, 3.3, 3.7)
+        mesh_object(tag + "__walls-col", bm, ["brick"], root)
+    return build
+
+
+def recess_plain_cone(root):
+    """Plain brick filling a niche flush with the stair's back wall (the upper
+    floors' niches)."""
+    bm = bmesh.new()
+    add_prism(bm, arch_outline(3.0, 1.9), -1.5, 0.0, -0.27, 0.3)
+    mesh_object("recess_plain_cone__infill-col", bm, ["brick"], root)
+
+
+def cone_modules():
+    out = []
+    tag = "brick,cone,lightwell"
+    seen = set()
+    for (R0, levels) in CONE_SIZES:
+        L = max(levels)
+        for j in range(L - 1):
+            r = R0 - 1.5 * j
+            for exit_door in ((True,) if j == 0 else (True, False)):
+                name = "M_cone_c%d_%s" % (round(r * 10), "exit" if exit_door else "closed")
+                if name not in seen:
+                    seen.add(name)
+                    out.append((name, props("free", [0, 1, 0], "", tag), cone_chunk(r, exit_door)))
+        for n in levels:
+            out.append(("M_cone_cap%d_%d" % (round(R0 * 10), n), props("free", [0, 1, 0], "", tag + ",light"), cone_cap(R0, n)))
+        out.append(("M_cone_base%d" % round(R0 * 10), props("free", [0, 0, 0], "", tag), cone_base(R0)))
+    out += [
+        ("M_cone_lantern", props("free", [0, 1, 0], "", "brass,light,lightwell"), cone_lantern),
+        ("M_cone_passage_2m", props("free", [0, 1, 0], "", tag), cone_passage(2.0)),
+        ("M_cone_passage_05m", props("free", [0, 1, 0], "", tag), cone_passage(0.5)),
+        ("M_recess_plain_cone", props("free", [1, 1, 0], "", "brick,lightwell", family="dressing"), recess_plain_cone),
+    ]
+    return out
+
+
+# Step 4's first light-well (wooden galleries and ramps), replaced by the cone
+# after your review: removed from the .blend when found.
+RETIRED = ["M_ring%d_%s" % (R, p) for R in (8, 12) for p in
+           ("wall", "wall_exit", "gallery", "gallery_landing", "stair", "stair_landing", "stair_end", "lantern", "floor", "cap")]
+
+
 MODULES = [
     ("M_post_column_twisted", props("post", [0, 1, 0], "", "stone,column,hall"), column_twisted),
     ("M_post_hall_pier", props("post", [0, 2, 0], "", "brick,structure,hall"), hall_pier),
@@ -566,12 +1013,15 @@ MODULES = [
     ("M_dome_cell_4m_brick", props("cell", [1, 1, 1], "", "brick,dome,cistern"), dome_brick),
     ("M_platform_cell_4m", props("free", [1, 0, 1], "", "wood,storage,cistern", family="dressing"), platform),
     ("M_wall_vault_door_4m", props("edge", [1, 1, 0], "solid", "brass,door,light,cistern"), vault_door),
+] + cone_modules() + [
 ]
 
 # Script-made modules remade in place at a new revision (kit_blender.rebuild):
 # hand edits to them are lost, so only list ones nobody has changed in Blender.
 REBUILD = [("M_post_column_twisted", 3), ("M_dome_cell_4m_b", 2),
-           ("M_basin_cell_4m", 2), ("M_basin_cell_4m_deep", 2), ("M_causeway_cell_4m", 3)]   # rev 2: the cistern's own water; causeway rev 3: gentler sides
+           ("M_basin_cell_4m", 2), ("M_basin_cell_4m_deep", 2), ("M_causeway_cell_4m", 3),   # rev 2: the cistern's own water; causeway rev 3: gentler sides
+           ("M_cone_lantern", 2)] + [   # rev 2: the lantern over the head
+    (n, 7 if n.startswith("M_cone_base") else 6 if n.startswith("M_cone_cap") else 5) for (n, _p, _b) in cone_modules() if n.startswith(("M_cone_c", "M_cone_cap", "M_cone_base"))]   # rev 2: smooth collision, the light shaft; rev 3: the floor's ramp; rev 4: smooth walk edges, softer bounce; rev 5: even collision sweeps; rev 6: the fills between; rev 7: the floor fill reaches the first turn
 
 
 def main():
@@ -579,19 +1029,24 @@ def main():
         bpy.ops.wm.open_mainfile(filepath=BLEND)
     else:
         bpy.ops.wm.read_factory_settings(use_empty=True)
+    retired = [n for n in RETIRED if bpy.data.objects.get(n) is not None]
+    for n in retired:
+        root = bpy.data.objects[n]
+        for ob in reversed([root] + list(root.children_recursive)):
+            bpy.data.objects.remove(ob, do_unlink=True)
     added = []
     x = 0.0
     for (name, p, build) in MODULES:
         if bpy.data.objects.get(name) is None:
             build(module(name, (x, ROW_Y, 0.0), p))
             added.append(name)
-        x += 8.0
+        x += 40.0 if name.startswith("M_cone") else 8.0
     rebuilt = ["%s (rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
-    if not added and not rebuilt:
+    if not added and not rebuilt and not retired:
         print("kit_add_r03: everything already present; nothing to do.")
         return
     bpy.ops.wm.save_as_mainfile(filepath=BLEND)
-    print("kit_add_r03: added %s; rebuilt %s" % (", ".join(added) or "nothing", ", ".join(rebuilt) or "nothing"))
+    print("kit_add_r03: added %s; rebuilt %s; removed %s" % (", ".join(added) or "nothing", ", ".join(rebuilt) or "nothing", ", ".join(retired) or "nothing"))
 
 
 main()

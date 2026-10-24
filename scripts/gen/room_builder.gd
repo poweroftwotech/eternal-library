@@ -55,6 +55,8 @@ static func plan(shell: Node3D, grid: CellGrid, rules: ModuleRules, styles: Pack
 			if e.get("slot", "") != "":      # an arcade between two cells of a hall
 				_place(out, shell, rules, styles, seed_value, e["slot"], k, "edge_" + k, CellGrid.edge_transform(e["cell"], e["side"]))
 			continue
+		if e.get("slot", "") == "none":
+			continue          # the grammar builds this side itself (a light-well's ring wall)
 		var slot: String = "edge:solid" if mark == CellGrid.Mark.SOLID else ("edge:opening" if mark == CellGrid.Mark.OPENING else "edge:door")
 		if e.get("slot", "") != "" and rules.rule_for(e["slot"], styles) != null:
 			slot = e["slot"]

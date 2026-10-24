@@ -222,7 +222,7 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 			if _claimed.any(func(c: Array) -> bool: return c[0] != s and (c[1] as AABB).encloses(slot)):
 				continue     # another pick claims this space (a masonry stair over a wall base)
 			for item: Array in bodies:
-				if item[0] != host and slot.intersects(item[1]) and not seen.has([s, item[0]]):
+				if item[0] != host and slot.intersects(item[1]) and not seen.has([s, item[0]]) and _shape_meets_slot(item, socket_xf, local_slot.grow(-SLOT_MARGIN)):
 					seen[[s, item[0]]] = true
 					warnings.append("socket %s: its %s slot runs into %s" % [label, path.get_file().get_basename(), str(root.get_path_to(item[0]))])
 		if s.socket_set.spill_bounds.has_volume():
@@ -245,8 +245,10 @@ static func _spill_probe(root: Node, s: VariantSocket, socket_xf: Transform3D, b
 	var nothing: int = 0
 	for ix: int in SPILL_PROBES.x:
 		for iz: int in SPILL_PROBES.y:
-			var local := Vector3(lerpf(zone.position.x, zone.end.x, (ix + 0.5) / SPILL_PROBES.x), zone.end.y,
-				lerpf(zone.position.z, zone.end.z, (iz + 0.5) / SPILL_PROBES.y))
+			# A hair off the even grid, so a probe never runs up an edge between two
+			# faces (an arch's vertex straight over it counts twice).
+			var local := Vector3(lerpf(zone.position.x, zone.end.x, (ix + 0.5) / SPILL_PROBES.x) + 0.0037, zone.end.y,
+				lerpf(zone.position.z, zone.end.z, (iz + 0.5) / SPILL_PROBES.y) + 0.0029)
 			var from: Vector3 = socket_xf * local
 			if _claimed.any(func(c: Array) -> bool: return c[0] != s and (c[1] as AABB).grow(0.001).has_point(from - up * zone.size.y)):
 				continue     # claimed by another pick: nothing of this socket is kept there
@@ -559,3 +561,40 @@ static func _lore_pins(root: Node, errors: PackedStringArray) -> void:
 		var label: String = socket.socket_set.entries[idx].label if idx >= 0 and idx < socket.socket_set.entries.size() else ""
 		if not label.ends_with("shelves"):
 			errors.append("%s: pin %s to full or sparse shelves in the room's socket pins (now '%s')" % [what, pin.socket, label if label != "" else "not pinned"])
+
+
+## A body's shape reaches into a socket's slot: its AABB is enough for boxes
+## and hulls; a trimesh (a light-well's storey, its AABB the whole shaft) needs
+## a triangle in the slot, tested in the socket's own frame (a slot turned to
+## follow a round wall has a much bigger room-space AABB).
+static func _shape_meets_slot(item: Array, socket_xf: Transform3D, box: AABB) -> bool:
+	if not item[3] is ConcavePolygonShape3D:
+		return true
+	var inv: Transform3D = socket_xf.affine_inverse()
+	for room_tri: PackedVector3Array in _triangles(item):
+		var tri := PackedVector3Array([inv * room_tri[0], inv * room_tri[1], inv * room_tri[2]])
+		if _tri_in_box(tri, box):
+			return true
+	return false
+
+
+## A triangle reaches into a box: clipped by the box's six planes, something is left.
+static func _tri_in_box(tri: PackedVector3Array, box: AABB) -> bool:
+	var poly: Array[Vector3] = [tri[0], tri[1], tri[2]]
+	for axis: int in 3:
+		for upper: bool in [false, true]:
+			var limit: float = box.end[axis] if upper else box.position[axis]
+			var out: Array[Vector3] = []
+			for i: int in poly.size():
+				var a: Vector3 = poly[i]
+				var b: Vector3 = poly[(i + 1) % poly.size()]
+				var da: float = (limit - a[axis]) if upper else (a[axis] - limit)
+				var db: float = (limit - b[axis]) if upper else (b[axis] - limit)
+				if da >= 0.0:
+					out.append(a)
+				if (da >= 0.0) != (db >= 0.0):
+					out.append(a.lerp(b, da / (da - db)))
+			poly = out
+			if poly.is_empty():
+				return false
+	return true

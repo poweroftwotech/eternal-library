@@ -376,6 +376,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "recess_plain_cone",
+"scene": "res://kit/modules/dressing/recess_plain_cone.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("brick", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "recess_sealed_door",
 "scene": "res://kit/modules/dressing/recess_sealed_door.tscn",
 "shape": "free",
@@ -507,6 +516,204 @@ modules = Array[Dictionary]([{
 "shape": "cell",
 "size_cells": Vector3i(1, 0, 1),
 "tags": PackedStringArray("stone", "causeway", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_base100",
+"scene": "res://kit/modules/walls/cone_base100.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_base120",
+"scene": "res://kit/modules/walls/cone_base120.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c100_exit",
+"scene": "res://kit/modules/walls/cone_c100_exit.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c105_closed",
+"scene": "res://kit/modules/walls/cone_c105_closed.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c105_exit",
+"scene": "res://kit/modules/walls/cone_c105_exit.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c120_exit",
+"scene": "res://kit/modules/walls/cone_c120_exit.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c70_closed",
+"scene": "res://kit/modules/walls/cone_c70_closed.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c70_exit",
+"scene": "res://kit/modules/walls/cone_c70_exit.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c75_closed",
+"scene": "res://kit/modules/walls/cone_c75_closed.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c75_exit",
+"scene": "res://kit/modules/walls/cone_c75_exit.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c85_closed",
+"scene": "res://kit/modules/walls/cone_c85_closed.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c85_exit",
+"scene": "res://kit/modules/walls/cone_c85_exit.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c90_closed",
+"scene": "res://kit/modules/walls/cone_c90_closed.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_c90_exit",
+"scene": "res://kit/modules/walls/cone_c90_exit.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_cap100_3",
+"scene": "res://kit/modules/walls/cone_cap100_3.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell", "light"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_cap100_4",
+"scene": "res://kit/modules/walls/cone_cap100_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell", "light"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_cap120_3",
+"scene": "res://kit/modules/walls/cone_cap120_3.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell", "light"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_cap120_4",
+"scene": "res://kit/modules/walls/cone_cap120_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell", "light"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_cap120_5",
+"scene": "res://kit/modules/walls/cone_cap120_5.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell", "light"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_lantern",
+"scene": "res://kit/modules/walls/cone_lantern.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brass", "light", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_passage_05m",
+"scene": "res://kit/modules/walls/cone_passage_05m.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_passage_2m",
+"scene": "res://kit/modules/walls/cone_passage_2m.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brick", "cone", "lightwell"),
 "weight": 1.0
 }, {
 "edge": "",

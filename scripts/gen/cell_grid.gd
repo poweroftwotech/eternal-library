@@ -27,7 +27,8 @@ const CELL_HEIGHT: float = 7.0
 ## the entry)}. kind: floor, corner, collapsed, or alcove (a one-cell dead end
 ## off a bay of the run; its `bay` is that bay's). Optional (phase 5):
 ## floor_slot and ceiling_slot (ModuleRules slots, "" = none) and gables
-## (false: no gable at the ceiling's ends); RoomBuilder's defaults are R02's.
+## (false: no gable at the ceiling's ends); RoomBuilder's defaults are R02's. Phase 5
+## step 4: "links" (other cells, any storey, reachable from this one: a stair).
 var cells: Dictionary = {}
 ## edge key -> {cell: Vector3i, side: int, mark: int, host: bool}. `cell` and
 ## `side` are the room cell the edge faces into (its module's interior side).
@@ -60,6 +61,9 @@ var quiet: bool = false
 ## An area's root room has no host: its entry door is an exit like the
 ## others (phase-5-design.md 5.6.8). Grammars that support it read this.
 var root: bool = false
+## Free data a grammar keeps about its layout for the tests and tours (phase 5
+## step 4: a light-well's radius, levels, stair and exits).
+var meta: Dictionary = {}
 
 
 func add_cell(c: Vector3i, kind: String, run: Vector3i, bay: int) -> void:
@@ -234,6 +238,11 @@ func check() -> PackedStringArray:
 	var todo: Array[Vector3i] = [entry]
 	while not todo.is_empty():
 		var c: Vector3i = todo.pop_back()
+		# A cell's "links" join it to cells on other storeys (a stair, phase 5 step 4).
+		for up: Vector3i in cells[c].get("links", []):
+			if cells.has(up) and not seen.has(up):
+				seen[up] = true
+				todo.append(up)
 		for side: int in ALL_SIDES:
 			var n: Vector3i = neighbour(c, side)
 			var e: Dictionary = edge(c, side)

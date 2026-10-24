@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_340pw"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/cone_c105_closed.glb" id="2_q0xmj"]
+
+[node name="cone_c105_closed" type="Node3D" unique_id=1207651468]
+script = ExtResource("1_340pw")
+family = "walls"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("brick", "cone", "lightwell")
+source_glb = "res://assets/kit/walls/cone_c105_closed.glb"
+
+[node name="Mesh" parent="." unique_id=830166830 instance=ExtResource("2_q0xmj")]

@@ -1,7 +1,8 @@
 extends SceneTree
 ## R11 route gate (phase-5-design.md 5.6.4, Q10), headless:
 ##   godot --headless --path . --script res://tests/r11_route_test.gd [-- seeds=N]
-## The Lower Stacks' cistern, seeds 1-5 (those with one), every room built at
+## The Lower Stacks' cistern in the first five seeds that have one (of 1-10;
+## the light-well takes its space in about a quarter), every room built at
 ## once. The validator is clean; every bay has its floor at its height (the
 ## causeway at 0, shallows 0.9 m down, deep bays 2 m). A capsule like the
 ## player's (radius 0.35, height 1.8, colliding with the world and the
@@ -36,10 +37,12 @@ func run() -> void:
 		if a.begins_with("seeds="):
 			seeds = a.trim_prefix("seeds=").to_int()
 	var walked: int = 0
-	for s: int in range(1, seeds + 1):
+	for s: int in range(1, seeds * 2 + 1):
+		if walked == seeds:
+			break
 		walked += 1 if await walk_seed(s) else 0
 	Area.seed_override = -1
-	check(walked >= seeds - 1, "most seeds have a cistern to walk (%d of %d)" % [walked, seeds])
+	check(walked == seeds, "%d seeds of the first %d have a cistern to walk (%d)" % [seeds, seeds * 2, walked])
 	print("r11_route_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures.slice(0, 30):
 		print("  FAIL ", f)

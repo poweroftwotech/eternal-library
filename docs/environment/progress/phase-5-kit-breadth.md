@@ -15,6 +15,206 @@ book crates, under the Reading Garden's water.
 
 ---
 
+## Step 4: the Light-Well Stair (done 2026-10-23: rebuilt as your cone, walked by you and committed; frame gate still to run)
+
+**Your review of the first build (2026-10-23):** the wooden galleries and
+ramps everywhere didn't read as efficient construction. Your idea instead: a
+**cone**, wide at the floor and narrow at the oculus, its masonry stair cut
+into the wall, doorways off the stair. We worked it out in Blender mocks
+(`previews/p5_cone_idea/`, v1 to v5: a thinner band between the turns, the
+stair cut 1.0 m deep, half the columns, then bookcases along the lower
+stair), and you approved v5 with one note: in the game some bookcases should
+be other things (windows, doors and so on) by socket, for variety and
+different doorway layouts. The first build is replaced; its pieces are gone
+from the kit.
+
+**Try it:** Esc → **Walk the Lower Stacks** (or `-- --area=lower_stacks
+--area-seed=6`: a 10 m cone, 4 floors, doorways on every floor). One of the
+galleries (or the hall) leads to the light-well: 18 seeds in 20 have one.
+
+- A cone 3–5 storeys tall, 20 m or 24 m across at the floor; its wall leans
+  in 1.5 m a storey up to an oculus 5 m across (pale cold sky, a cold light).
+- The stair is cut 1 m into the wall with 2.6 m of headroom and climbs a
+  storey every three-quarters of a turn, so **each floor's doorway faces
+  another side** (west, north, east, south, then west again). Each storey
+  starts with a flat landing; the steps are 0.2 m high and long (1.5–2.7 m):
+  a stepped ramp. You walk up a ramp laid over the step nosings.
+- Along the stair's open edge a stone ledge carries a low parapet (0.85 m)
+  and columns every 4.8 m under the wall that leans over the stair. On the
+  floor the parapet starts a few steps up, so you step onto the stair from
+  the floor anywhere near its foot.
+- **Niches between the columns** on the lower two floors roll the recess
+  socket: full or sparse shelves (books you can pull), a collapsed shelf, a
+  tile panel or a sealed door. On the floors above they are plain brick.
+  This is where windows and other variants go next (below).
+- Doorways lead through a passage in the thick wall to "The Upper Stacks",
+  galleries that grow **on that floor**. Lanterns hang from the stair's
+  ceiling over every third bay and each doorway's landing.
+- At the bottom a pool lies under the oculus.
+
+Pictures (seed 6, Medium, 1920 × 1080): `previews/p5_step4_cone/r09_6_*.png`
+(up, across, stair, niche, down, exit). The first build's pictures stay in
+`previews/p5_step4/`.
+
+**Built:**
+
+| Piece | File |
+|---|---|
+| The cone, in 22 kit pieces made by script: one piece per storey (the wall from that storey's treads up to the treads one turn above, with its stair, niches, ledge, parapet, columns and the collision ramp; with a doorway at its landing, or a niche), a cap for each size and height (the top landing, the stair's end, the cone up to the oculus), a base for each size (the floor, the pool, the wall under the first turn), the lantern, 2 m and 0.5 m of passage, and a plain brick niche fill. The pieces follow the stair, so they fit together exactly | `tools/kit_add_r03.py`, `art_src/kit/kit_hall.blend` |
+| `cone_niche` socket set: the recess set's shelves, tile panel and sealed door, and "plain" (weight 0, only by pin) | `kit/sockets/cone_niche.tres` |
+| `RingGrammar` rewritten for the cone: the size and levels (fitted to the space, the top doorway free), the doorways (each on its storey's side), the pieces turned 0.75 turns a storey, passages out to the square's edge, lanterns, and the upper floors' niches pinned plain; `route()` walks the stair a step at a time. The same formulas as the Blender script | `scripts/gen/ring_grammar.gd`, `gen/rules/r09_lightwell.tres` |
+| Validate Room: a niche's slot is tested against the other pieces' collision triangles in the slot's own frame (a cone piece's bounding box is the whole shaft); spill probes sit a hair off the even grid (one ran straight up an arch's edge) | `scripts/world/kit_validate_room.gd` |
+| From the first build, kept: a cell's `links` join storeys, `meta` keeps a grammar's layout, a side marked "none" builds no wall; a generated room knows its storey; **a big room enters the scene over several frames** (the cistern streams again); the Lower Stacks grows the light-well and "The Upper Stacks" (recipe version 4) | `cell_grid.gd`, `room_builder.gd`, `generated_room.gd`, `area.gd`, `area_streamer.gd`, `room_template.gd`, `lower_stacks.tres` |
+
+**"Little new code":** the light-well's grammar is 336 lines (244 without
+comments and blank lines), inside the ~500 target; the validator's change is
+about 40 lines.
+
+**What changed from the mock, and why:**
+
+- **Three-quarters of a turn a storey**, not a free spiral: the game's floors
+  are 4 m apart and doorways sit on the square's sides, so the stair must
+  pass a side at each floor's height. This rate does it with a 2.7 m band of
+  wall between the turns (v3's band was 1.1–3.8 m).
+- **A parapet** along the ledge: without it you could walk off the stair.
+- **The wall leans 1.5 m a storey** (the mock: 1.9 m over 5 m), so a 4- or
+  5-floor cone still has room for its top floor (at least 5.5 m out).
+- **Flat landings** at each floor, for the doorway (or a niche).
+- **Niches on the lower two floors** are sockets, not baked books; above,
+  plain brick (`shelf_levels` in the grammar).
+
+**Gates:**
+
+- `r09_layout_test` (rewritten): the light-wells of Lower Stacks seeds 1–20
+  (18 have one) and 20 standalone. **999 checks pass.** Both sizes, 3–5
+  levels; the doorways each a door edge on its storey's side, the top one
+  always; the base, a storey piece per level but the top (a doorway where a
+  door is), the cap for its size and height, each turned and raised; every
+  doorway's passage runs from the wall to the square's edge and not past it;
+  the upper niches pinned plain; the rooms off an exit stand on its floor;
+  the same seed, the same light-well; every slot has its kit piece, and the
+  niches are `cone_niche` sockets.
+- `r09_route_test` (rewritten): seeds 1–6, every room built. The light-well
+  validates clean; the player's capsule climbs the whole stair to the top
+  landing and back down, and walks out of every doorway into the room beyond
+  (or to its stub) and back; from every step the parapet stops a walk into
+  the shaft and the wall a walk out; the stair's end and the pool's curb
+  hold. **51 checks pass.**
+- `area_route_test` **430 checks** (both areas; the light-well's floor and
+  wall probed along its stair, an unjoined doorway's passage to its stub),
+  `validate_room_test` 26 (the validator's change), `kit_test` 1,895 (the
+  cone pieces), `stream_test` 80, `area_plan_test` 246, `r03_layout_test`
+  11,001, `r03_route_test` 46, `r11_layout_test` 5,653, `r11_route_test` 46;
+  `persist_gate.sh` **all nine processes pass**.
+- Every earlier gate passes: `gen_signature_test` 103, `r02_route_test`
+  2,321, `r02_bake_test` 105, `book_test` 27, `prop_test` 51,
+  `room_playtest` 31, `reading_room_test` 87, `socket_modes_test` 246,
+  `age_test` 20, camp `playtest` 43, `atmosphere_test` 9,
+  `room_atmosphere_test` 32; 240-frame runs clean for the camp,
+  `--area=library` and `--area=lower_stacks`.
+- **The frame gate** on the Lower Stacks seed 90 (the 10 × 10 hall, a cone,
+  the cistern, two upper galleries: 10 rooms, 1,284 m): **one run of three
+  passes**, as with the first build. In the cone the worst frame is
+  6.9–7.0 ms; the slowest streaming frame anywhere 4.1–4.4 ms. The failures
+  are in the hall, 8.16 and 8.35 ms, the first-sight frames parked before
+  the redesign (the first build failed the same way, 8.14 ms in gallery 3).
+  Mean 1.3 ms; GPU worst 2.0–2.1 ms (limit 4); 522 draw calls; shadowed
+  lights 3; lights in reach 48 (limit 48).
+
+**Caveats, for your review:**
+
+- **Windows and other niche variants aren't made yet.** The socket is
+  there, with the recess set's shelves, tile panel and sealed door; a window
+  (or a lit grille, a statue) is a new entry in `cone_niche.tres` and a small
+  kit piece each. Say which you want.
+- ~~**The shaft's floor is dark.**~~ Fixed after your walk (below): a shaft
+  of sunlight from the oculus and its bounce.
+- **The parapet reads heavy** in places (a solid stone band). A balustrade
+  or openings in it are a look change.
+- **The frame gate's margin is still parked** (above): the cone is cheap,
+  but the area's first-sight frames sit on the 8 ms line at the RTX 3060
+  estimate. Measure on a real 3060, or spread that cost, before step 5.
+- **The cistern appears less often** (about three seeds in four): the
+  light-well, grown first, takes its space.
+
+### After your walk: the stair and the light (2026-10-23; you walked it again, below)
+
+You got stuck on parts of the stair, and much of the cone was too dark to
+see; you asked for a shaft of light down from the oculus (as in the Blender
+render), brighter ambient light from its bounce, and a brighter pool.
+
+- **The stair's collision is smooth now.** The walking ramp sat exactly on
+  the steps' front edges, so the capsule could catch on each one; and the
+  parapet and the columns' bases stood at the walk's edge. The ramp is now
+  2 cm over the edges and runs from half a step out on each landing to the
+  last step (no lip), and a smooth invisible wall 0.22 m inside the wall's
+  face keeps you off the parapet and columns (they no longer collide; the
+  columns moved 13 cm toward the parapet). The walk is 1.2 m wide.
+- **A shaft of sunlight down the cone.** A spot far over the oculus shines
+  down the shaft, the oculus's width at the top and about 4 m across on the
+  floor, and shows as a beam in a column of haze (a FogVolume, density 0.05,
+  over the area's own fog). It lights the pool and the floor round it.
+- **Its bounce:** two soft fills (over the pool, and halfway up) light the
+  cone's walls a cool grey, the light the floor and walls would throw back.
+  The area's ambient light is unchanged, so the other rooms are too.
+- New in the kit import: a "shaft" spot and a "bounce" fill light profile,
+  and FOG_ markers (a FogVolume from Blender); the shaft and fills skip the
+  light budget's 30 m distance fade (`light_far`), as the oculus is 20 m and
+  more over the floor.
+
+Pictures: `previews/p5_step4_cone/light/r09_6_*.png` (the same views).
+
+Tests run (only the ones this change touches): `r09_route_test` (two seeds)
+15 checks, `r09_layout_test` 999, `kit_test` 1,876, `area_route_test` (two
+Lower Stacks seeds) 84; all pass. The frame gate wasn't rerun: the cone now has a
+spot and two more lights (it was 6.9–7.0 ms at worst); worth one run before
+the commit.
+
+### After your second walk: no catching, softer light (2026-10-23; you walked it again, below)
+
+You no longer got stuck but still caught and slowed here and there, and
+found the cone a bit too bright: the light on the floor should fall off
+faster, and the lit stair made the lanterns pointless.
+
+- **The walk's edges are smooth now.** The cut's back wall, the guide and the
+  ramp's sides followed the cone's face at each step's own height, so they
+  jogged 7.5 cm at every riser (the wall leans in 1.5 m a storey); you
+  bumped them as you slid along. They now follow a straight line from
+  landing to landing. And the ramp and guide are swept at even 0.04 rad
+  steps (2–5 dozen faces a turn): the stone's sweep has a hairline sliver at
+  each riser, which the collision had copied.
+- **Softer light.** The fills are dimmer (0.55, about two-thirds) and reach
+  less far (12 m), so the stair is lit mostly by its lanterns again; the
+  shaft is a little weaker (8) and its pool of light fades to its edge
+  faster (`spot_angle_attenuation` 2). A first try at half the fills was
+  too dark again; this is between.
+- `r09_route_test` now also checks for catching: the capsule climbs the
+  stair three times (the middle of the walk, hugging the guide, hugging the
+  back wall), four points a step, and no frame may hold it back to under
+  half its speed. All pass with the smooth edges.
+
+Pictures: `previews/p5_step4_cone/light2/r09_6_*.png`.
+
+Tests run: `r09_route_test` (two seeds) 21 checks, `area_route_test` (two
+Lower Stacks seeds) 84; all pass. The frame gate wasn't rerun (offered before the commit).
+
+### After your third walk: the lower stair lit (2026-10-23; you approved it for now, more tweaks later; committed)
+
+It looked a lot better, but the first turns of the stair, under the wall's
+overhang, were completely dark (your screenshot from the floor).
+
+- The floor's fill now reaches the wall (`R0 + 4` m, was `R0 + 1`): it had
+  ended just short of the first turn.
+- **A lantern every second bay on the reading floors** (the two with
+  bookshelves; `shelf_lamp_every_bays` in the grammar), every third above.
+- A new picture from the floor across to the first flight
+  (`r09_6_lower.png`). Pictures: `previews/p5_step4_cone/light3/`.
+
+Tests run: `r09_layout_test` 999 checks pass (the lanterns are grammar props;
+nothing else moved).
+
+---
+
 ## Step 3: the Cistern Archive (done 2026-10-23, walked in the game by you and committed; the water brightened after your walk)
 
 **Try it:** Esc → **Walk the Lower Stacks** (or `-- --area=lower_stacks

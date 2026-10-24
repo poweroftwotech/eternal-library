@@ -125,6 +125,7 @@ func make_room(r: AreaPlan.Room) -> RoomTemplate:
 		g.planned_grid = r.grid
 		g.planned_seed = r.seed_value
 		g.planned_styles = r.style_overrides
+		g.planned_storey = r.storey
 		g.inherit_style_groups = []
 		room = g
 	else:
@@ -150,6 +151,12 @@ func make_room(r: AreaPlan.Room) -> RoomTemplate:
 ## Puts a room from make_room into the area.
 func enter_room(r: AreaPlan.Room, room: RoomTemplate) -> void:
 	add_child(room)
+	finish_entering(r, room)
+
+
+## The rest of entering, once all of the room's parts are in the tree (the
+## streamer adds a big room's parts over several frames, phase 5 step 4).
+func finish_entering(r: AreaPlan.Room, room: RoomTemplate) -> void:
 	_clear_recesses(r, room)
 	rooms[r.slot_id] = room
 	light_budget.add_room(room)

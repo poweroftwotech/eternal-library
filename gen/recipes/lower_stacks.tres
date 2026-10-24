@@ -8,6 +8,7 @@
 [ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="6_r02"]
 [ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="7_atmos"]
 [ext_resource type="Resource" path="res://gen/grammars/r11_cistern.tres" id="8_r11"]
+[ext_resource type="Resource" path="res://gen/grammars/r09_lightwell.tres" id="9_r09"]
 
 [sub_resource type="Resource" id="Resource_hall"]
 script = ExtResource("2_slot")
@@ -29,19 +30,35 @@ grammar = ExtResource("8_r11")
 display_name = "The Cistern Archive"
 count = Vector2i(1, 1)
 slot_prefix = "cistern"
-pinned = true
-from = PackedStringArray("gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+
+[sub_resource type="Resource" id="Resource_lightwell"]
+script = ExtResource("3_grow")
+grammar = ExtResource("9_r09")
+display_name = "The Light-Well Stair"
+count = Vector2i(1, 1)
+slot_prefix = "lightwell"
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+
+[sub_resource type="Resource" id="Resource_upper"]
+script = ExtResource("3_grow")
+grammar = ExtResource("6_r02")
+display_name = "The Upper Stacks"
+count = Vector2i(1, 3)
+slot_prefix = "upper"
+from = PackedStringArray("lightwell_1")
 
 [sub_resource type="Resource" id="Resource_place"]
 script = ExtResource("4_place")
+envelope = AABB(-122, -8, -144, 256, 48, 256)
 
 [resource]
 script = ExtResource("1_recipe")
 id = "lower_stacks"
 display_name = "The Lower Stacks"
 slots = Array[ExtResource("2_slot")]([SubResource("Resource_hall")])
-grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow"), SubResource("Resource_cistern")])
-room_count = Vector2i(5, 7)
-version = 3
+grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow"), SubResource("Resource_lightwell"), SubResource("Resource_cistern"), SubResource("Resource_upper")])
+room_count = Vector2i(5, 10)
+version = 4
 placement = SubResource("Resource_place")
 atmosphere = ExtResource("7_atmos")

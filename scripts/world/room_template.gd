@@ -51,13 +51,18 @@ var generated_pins: Dictionary = {}
 ## resolved off the tree, in slices, before it entered; _ready only restores
 ## the save's changes.
 var prepared: bool = false
+## Set by AreaStreamer (phase 5 step 4): a big room enters the tree first and
+## its parts after, a frame's budget at a time; the streamer restores the save's
+## changes once they are all in.
+var hold_restore: bool = false
 var _last_seed: int = 1
 
 
 func _ready() -> void:
 	if not prepared:
 		resolve_sockets(preview_seed if Engine.is_editor_hint() or area_seed < 0 else area_seed)
-	restore_world()
+	if not hold_restore:
+		restore_world()
 
 
 func sockets() -> Array[VariantSocket]:

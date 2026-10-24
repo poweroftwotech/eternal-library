@@ -1,0 +1,56 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_mgb78"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_books_full.tscn" id="2_wfxde"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_books_sparse.tscn" id="3_anl2g"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_books_fallen.tscn" id="4_ywqle"]
+[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="5_alfd5"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/recess_tile_panel.tscn" id="5_anl2g"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/recess_sealed_door.tscn" id="6_ywqle"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/recess_plain_cone.tscn" id="7_plain"]
+
+[sub_resource type="Resource" id="Resource_lnars"]
+script = ExtResource("1_mgb78")
+label = "full shelves"
+scene = ExtResource("2_wfxde")
+weight = 6.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_rp607"]
+script = ExtResource("1_mgb78")
+label = "sparse shelves"
+scene = ExtResource("3_anl2g")
+weight = 3.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_ctym8"]
+script = ExtResource("1_mgb78")
+label = "collapsed"
+scene = ExtResource("4_ywqle")
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_alfd5"]
+script = ExtResource("1_mgb78")
+label = "tile panel"
+scene = ExtResource("5_anl2g")
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_lvwha"]
+script = ExtResource("1_mgb78")
+label = "sealed door"
+scene = ExtResource("6_ywqle")
+weight = 0.7
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_plain"]
+script = ExtResource("1_mgb78")
+label = "plain"
+scene = ExtResource("7_plain")
+weight = 0.0
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("5_alfd5")
+entries = Array[ExtResource("1_mgb78")]([SubResource("Resource_lnars"), SubResource("Resource_rp607"), SubResource("Resource_ctym8"), SubResource("Resource_alfd5"), SubResource("Resource_lvwha"), SubResource("Resource_plain")])
+slot_bounds = AABB(-1.5, 0, -0.3, 3, 3.7, 0.6)
+spill_bounds = AABB(-1.5, 0, -1.35, 3, 0.6, 1.05)

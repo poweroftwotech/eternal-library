@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_sbsro"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/cone_lantern.glb" id="2_kpywf"]
+
+[node name="cone_lantern" type="Node3D" unique_id=556050600]
+script = ExtResource("1_sbsro")
+family = "walls"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("brass", "light", "lightwell")
+source_glb = "res://assets/kit/walls/cone_lantern.glb"
+
+[node name="Mesh" parent="." unique_id=943304097 instance=ExtResource("2_kpywf")]

@@ -113,6 +113,9 @@ func audit(id: String, s: int) -> void:
 		if r.kind != "generated":
 			continue
 		var g: GeneratedRoom = area.rooms[r.slot_id]
+		if g.grid.meta.get("ring", false):
+			await audit_ring(tag, r, g, space, body)
+			continue
 		var floors: int = 0
 		var leaks: PackedStringArray = []
 		for cell: Vector3i in g.grid.cells:
@@ -183,7 +186,8 @@ func audit(id: String, s: int) -> void:
 			names.append(c.slot_id)
 			walked[c.slot_id] = true
 		# The far end may be in a cistern's shallows (its floor 0.9 m down).
-		var end_floor: float = float(r.grid.cells.get(AreaPlan.cell_of(r.xf.affine_inverse() * (route[-1] + Vector3(0, 0.1, 0))) * Vector3i(1, 0, 1), {}).get("floor_y", 0.0)) if r.grid != null else 0.0
+		# Its storey: a room off a light-well's upper exit stands 4 m up or more.
+		var end_floor: float = route[-1].y + (float(r.grid.cells.get(AreaPlan.cell_of(r.xf.affine_inverse() * (route[-1] + Vector3(0, 0.1, 0))) * Vector3i(1, 0, 1), {}).get("floor_y", 0.0)) if r.grid != null else 0.0)
 		check(reached == route.size() and returned == back.size() and absf(feet_out - end_floor) < 0.1 and absf(feet) < 0.1,
 			"%s: walk from the root through %s to the far end and back (%d of %d stops out, %d of %d back, feet %.2f / %.2f, the end's floor %.2f)" % [tag, " > ".join(names), reached, route.size(), returned, back.size(), feet_out, feet, end_floor])
 	check(walked.size() == p.rooms.size() - 1, "%s: the walks pass through every room but the root (%d of %d)" % [tag, walked.size(), p.rooms.size() - 1])
@@ -191,6 +195,61 @@ func audit(id: String, s: int) -> void:
 	area.queue_free()
 	await process_frame
 	await process_frame
+
+
+## A light-well (phase 5 step 4, the cone) is round in its square of cells, so
+## its floor and walls are probed along its stair rather than at cell centres:
+## floor (the tread, or the ramp over it) under every step and landing, and
+## from there a walk out through the wall blocked but at a doorway's landing
+## (an unjoined one's stub blocks). r09_route_test probes the parapet.
+func audit_ring(tag: String, r: AreaPlan.Room, g: GeneratedRoom, space: PhysicsDirectSpaceState3D, body: CharacterBody3D) -> void:
+	var m: Dictionary = g.grid.meta
+	var centre: Vector3 = m["centre"]
+	var r0: float = float(m["radius"])
+	var levels: int = m["levels"]
+	var across: int = m["across"]
+	var open: Dictionary = {}     # levels of joined doors
+	var stubs: Dictionary = {}    # levels of unjoined ones
+	for d: Array in m["doors"]:
+		var cell: Vector3i = RingGrammar.door_cell(d[1], d[0], across / 2, across)
+		if str(r.connectors.get(StringName("SNAP_exit_" + CellGrid.key(cell, d[1])), {}).get("joined", "")) != "" or g.grid.edge(cell, d[1]).get("host", false):
+			open[int(d[0])] = true
+		elif int(d[0]) > 0:
+			stubs[int(d[0])] = true
+	var spots: int = 0
+	var floors: int = 0
+	var bare: PackedStringArray = []
+	var leaks: PackedStringArray = []
+	for j: int in levels:
+		var rj: float = r0 - 1.5 * j
+		var ts: Array[float] = [0.0]
+		if j + 1 < levels:
+			var c: Vector2 = RingGrammar.climb(rj)
+			var edges: PackedFloat32Array = [c.x]
+			edges.append_array(RingGrammar.risers(rj))
+			edges.append(c.y)
+			for k: int in edges.size() - 1:
+				ts.append((edges[k] + edges[k + 1]) * 0.5)
+		for t: float in ts:
+			spots += 1
+			var z: float = RingGrammar.tread(rj, t)
+			var a: float = RingGrammar.TURN * j + t
+			var dir := Vector3(sin(a), 0, cos(a))
+			var at: Vector3 = g.to_global(centre + dir * (RingGrammar.face(rj, z) + RingGrammar.WALK) + Vector3(0, j * RingGrammar.STOREY + z, 0))
+			var hit: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(at + Vector3(0, 0.6, 0), at - Vector3(0, 1.0, 0), 1))
+			var dy: float = (hit["position"] as Vector3).y - at.y if not hit.is_empty() else -9.0
+			if dy > -0.05 and dy < 0.25:
+				floors += 1
+			else:
+				bare.append("%d/%.2f%s" % [j, t, "" if hit.is_empty() else " at %+.2f" % dy])
+			# Out through the wall, or along an unjoined doorway's passage to its stub.
+			var reach: float = 2.2
+			if t == 0.0 and stubs.has(j):
+				reach = across / 2 * CellGrid.BAY + CellGrid.BAY * 0.5 - RingGrammar.face(rj, 0.0) - RingGrammar.WALK + 0.6
+			if not (t == 0.0 and open.has(j)) and not await blocked(body, at + Vector3(0, 1.05, 0), g.global_basis * dir * reach):
+				leaks.append("%d/%.2f" % [j, t])
+	check(floors == spots, "%s: %s has floor under every step and landing (%d of %d; bare %s)" % [tag, r.slot_id, floors, spots, bare.slice(0, 12)])
+	check(leaks.is_empty(), "%s: %s: its wall and every unjoined exit block (%s)" % [tag, r.slot_id, leaks.slice(0, 12)])
 
 
 ## What building cost, per room and in all (sizes step 2's budget).

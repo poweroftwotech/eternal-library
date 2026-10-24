@@ -77,6 +77,10 @@ var grid: CellGrid
 var planned_grid: CellGrid
 var planned_seed: int = -1
 var planned_styles: Dictionary = {}
+## The storey the plan puts it on (phase 5 step 4: a gallery off a light-well's
+## upper level). Above storey 0 it gets no floor wear (the wear map is one 2D
+## map) and no safety floor (it would sit in the room below).
+var planned_storey: int = 0
 var modules: Array[Node3D] = []
 var _pending: bool = false
 var _overlay_node: Node3D
@@ -85,7 +89,8 @@ var _overlay_node: Node3D
 func _ready() -> void:
 	if grid == null:        # a later sibling may have built this one already
 		generate()
-	restore_world()         # the save's changes, over the build (ENVIRONMENT_PLAN.md 6.5.3)
+	if not hold_restore:
+		restore_world()     # the save's changes, over the build (ENVIRONMENT_PLAN.md 6.5.3)
 
 
 func effective_seed() -> int:
@@ -450,7 +455,7 @@ func _pin_from_grid() -> void:
 ## as R01 has. Its top is 2.5 m down, below the deepest water bay's bed (a
 ## cistern), because it reaches under the rooms beside this one.
 func _add_safety_floor() -> void:
-	if grid.cells.is_empty():
+	if grid.cells.is_empty() or planned_storey > 0:
 		return
 	var box := AABB()
 	var first: bool = true
@@ -475,7 +480,7 @@ func _add_safety_floor() -> void:
 ## The grammar's walked lanes (grid.wear) as a FloorWear over the cells, 1 m
 ## to spare, on whole metres; the ground storey only.
 func _add_floor_wear() -> void:
-	if grid.wear.is_empty():
+	if grid.wear.is_empty() or planned_storey > 0:
 		return
 	var lo := Vector2(INF, INF)
 	var hi := Vector2(-INF, -INF)

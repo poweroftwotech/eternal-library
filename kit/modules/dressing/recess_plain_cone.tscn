@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_gm61n"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/recess_plain_cone.glb" id="2_d58w4"]
+
+[node name="recess_plain_cone" type="Node3D" unique_id=683263161]
+script = ExtResource("1_gm61n")
+family = "dressing"
+size_cells = Vector3i(1, 1, 0)
+tags = PackedStringArray("brick", "lightwell")
+source_glb = "res://assets/kit/dressing/recess_plain_cone.glb"
+
+[node name="Mesh" parent="." unique_id=635326696 instance=ExtResource("2_d58w4")]

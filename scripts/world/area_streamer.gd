@@ -18,6 +18,9 @@ enum RoomState { UNLOADED, STAND_IN, LIVE }
 ## A make, modules or enter step takes up to about this long once warm
 ## (step 2 measurements): one isn't started with less budget left.
 const STEP_ESTIMATE_MS: float = 2.5
+## Rooms with more modules enter the tree in parts (_hold_parts): a gallery
+## has about 130, the cistern 220 (its 2,000 nodes cost 5-6 ms in one frame).
+const ENTER_WHOLE_MODULES: int = 160
 
 signal room_loaded(slot: String)
 signal room_unloaded(slot: String)
@@ -289,7 +292,33 @@ func _run_stage(job: Dictionary, deadline: int) -> void:
 				room.prepared = true
 				job["stage"] = "enter"
 		"enter":
-			area.enter_room(r, job["room"])
+			# A big room (phase 5 step 4: the cistern, the light-well) enters
+			# bare, then its modules and dressing a frame's budget at a time;
+			# the save's changes are restored once they are all in.
+			var room: RoomTemplate = job["room"]
+			if not job.has("held"):
+				job["held"] = _hold_parts(room)
+				if not (job["held"] as Array).is_empty():
+					room.hold_restore = true
+					area.add_child(room)
+					return
+			var held: Array = job["held"]
+			while not held.is_empty():
+				var part: Array = held.pop_back()
+				(part[0] as Node).add_child(part[1])
+				if deadline >= 0 and Time.get_ticks_usec() >= deadline:
+					break
+			if not held.is_empty():
+				return
+			if room.hold_restore and not job.has("parts_in"):
+				job["parts_in"] = true     # restoring the save gets a frame of its own (2-3 ms in the cistern)
+				return
+			if room.hold_restore:
+				room.hold_restore = false
+				room.restore_world()
+				area.finish_entering(r, room)
+			else:
+				area.enter_room(r, room)
 			states[r.slot_id] = RoomState.LIVE
 			away.erase(r.slot_id)
 			stats["loads"] += 1
@@ -319,3 +348,23 @@ func _update_seals() -> void:
 			seal.name = "Seal_" + k.replace("/", "_")
 			area.add_child(seal)
 			seals[k] = seal
+
+
+## A room with more than ENTER_WHOLE_MODULES modules enters in parts: its
+## modules and dressing are taken off their holders (Shell, Dressing), to be
+## put back by the "enter" stage. Returns [[holder, part], ...] in reverse
+## order (popped from the back); [] for a room small enough to enter whole.
+func _hold_parts(room: RoomTemplate) -> Array:
+	var g := room as GeneratedRoom
+	if g == null or g.modules.size() <= ENTER_WHOLE_MODULES:
+		return []
+	var held: Array = []
+	for holder_name: String in ["Shell", "Dressing"]:
+		var holder: Node = room.get_node_or_null(holder_name)
+		if holder == null:
+			continue
+		for part: Node in holder.get_children():
+			holder.remove_child(part)
+			held.append([holder, part])
+	held.reverse()
+	return held

@@ -64,6 +64,13 @@ static func leg(p: AreaPlan, r: AreaPlan.Room) -> Array[Vector3]:
 		out.append(STARTS[chain[0].parent_connector])
 	for i: int in chain.size():
 		var room: AreaPlan.Room = chain[i]
+		if room.grid != null and room.grid.meta.get("ring", false):
+			# A light-well: round the gallery and up (or down) the stair to the
+			# next room's door, or to the top of the stair (phase 5 step 4).
+			var to: Array = ring_door(room, chain[i + 1].parent_connector) if i + 1 < chain.size() else []
+			for q: Vector3 in RingGrammar.route(room.grid.meta, [0, CellGrid.Side.S], to):
+				out.append(room.xf * q)
+			continue
 		var in_xf: Transform3D = room.connectors[room.entry]["xf"]
 		var from: Vector3i = AreaPlan.cell_of(in_xf.origin + in_xf.basis.z * 2.0)
 		var goal: Vector3i = Vector3i.MAX
@@ -110,5 +117,18 @@ static func cell_path(r: AreaPlan.Room, from: Vector3i, to: Vector3i) -> Array[V
 	return out
 
 
+## The [level, side] of a light-well's door that connector `conn` is.
+static func ring_door(r: AreaPlan.Room, conn: StringName) -> Array:
+	var meta: Dictionary = r.grid.meta
+	var across: int = meta["across"]
+	for d: Array in meta["doors"]:
+		var c: Vector3i = RingGrammar.door_cell(d[1], d[0], across / 2, across)
+		if StringName("SNAP_exit_" + CellGrid.key(c, d[1])) == conn:
+			return d
+	return []
+
+
+## A cell's centre on its storey's floor (y: the storey's height).
 static func _centre(c: Vector3i) -> Vector3:
-	return AreaPlan.cell_box(c).get_center() * Vector3(1, 0, 1)
+	var at: Vector3 = AreaPlan.cell_box(c).get_center()
+	return Vector3(at.x, c.y * AreaPlan.BAY, at.z)

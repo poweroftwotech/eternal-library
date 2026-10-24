@@ -20,8 +20,15 @@ const LIGHT_PROFILES: Dictionary = {
 	"chandelier": {"color": Color(1.0, 0.74, 0.42), "energy": 2.2, "range": 10.0, "attenuation": 1.0, "shadow": true, "size": 0.35},
 	"cold": {"color": Color(0.66, 0.86, 1.0), "energy": 1.0, "range": 6.0, "attenuation": 1.2, "shadow": false},
 	"cluster": {"color": Color(1.0, 0.72, 0.38), "energy": 2.0, "range": 8.5, "attenuation": 1.1, "shadow": false},
+	# The light-well (phase 5 step 4): sunlight down the shaft from the oculus, a
+	# spot pointing down whose beam shows in the volumetric fog, and soft fills
+	# for the light it bounces round the cone. "far": they skip LightBudget's
+	# distance fade (the oculus is 20 m and more over the floor). A marker's
+	# Blender properties "range", "spot_angle" and "energy" override these.
+	"shaft": {"color": Color(1.0, 0.95, 0.86), "energy": 8.0, "range": 30.0, "attenuation": 0.35, "shadow": false, "spot": 15.0, "spot_falloff": 2.0, "fog": 4.0, "far": true},
+	"bounce": {"color": Color(0.84, 0.87, 0.92), "energy": 0.55, "range": 12.0, "attenuation": 0.8, "shadow": false, "fog": 0.0, "far": true},
 }
-const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_"]
+const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_", "FOG_"]
 ## Physics layer 8: walls only the player collides with (project layer names).
 const PLAYER_BLOCKERS: int = 1 << 7
 
@@ -149,11 +156,26 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 			var profile: Dictionary = LIGHT_PROFILES.get(kind, LIGHT_PROFILES["lantern"])
 			if not LIGHT_PROFILES.has(kind):
 				_warnings.append("unknown light profile '%s', using lantern" % kind)
-			var light := OmniLight3D.new()
+			var light: Light3D
+			var reach: float = float(extras.get("range", profile["range"]))
+			if profile.has("spot"):
+				var spot := SpotLight3D.new()
+				spot.spot_range = reach
+				spot.spot_attenuation = profile["attenuation"]
+				spot.spot_angle = float(extras.get("spot_angle", profile["spot"]))
+				spot.spot_angle_attenuation = profile.get("spot_falloff", 1.0)     # >1: the pool of light fades faster to its edge
+				light = spot
+			else:
+				var omni := OmniLight3D.new()
+				omni.omni_range = reach
+				omni.omni_attenuation = profile["attenuation"]
+				light = omni
 			light.light_color = profile["color"]
-			light.light_energy = profile["energy"]
-			light.omni_range = profile["range"]
-			light.omni_attenuation = profile["attenuation"]
+			light.light_energy = float(extras.get("energy", profile["energy"]))
+			if profile.has("fog"):
+				light.light_volumetric_fog_energy = profile["fog"]
+			if profile.get("far", false):
+				light.set_meta("light_far", true)
 			light.shadow_enabled = profile["shadow"]
 			# Soft source: frame posts close to the light would otherwise throw hard
 			# metre-wide bands across a vault.
@@ -194,17 +216,31 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 			if extras.has("needs_look"):
 				socket.needs_look = str(extras["needs_look"])
 			replacement = socket
+		"FOG_":
+			# A FogVolume (a cylinder): Blender properties fog_size [x, y, z] and
+			# density (the light-well's haze, so its shaft of light shows).
+			var fog := FogVolume.new()
+			fog.shape = RenderingServer.FOG_VOLUME_SHAPE_CYLINDER
+			var fs: Array = extras.get("fog_size", [4.0, 4.0, 4.0])
+			fog.size = Vector3(float(fs[0]), float(fs[2]), float(fs[1]))     # Blender y/z -> Godot z/y
+			var fm := FogMaterial.new()
+			fm.density = float(extras.get("density", 0.04))
+			fm.albedo = Color(0.9, 0.92, 0.95)
+			fog.material = fm
+			replacement = fog
 		_:
 			replacement = Marker3D.new()
 	replacement.name = prefix + kind
 	replacement.transform = (node as Node3D).transform
+	if replacement is SpotLight3D:
+		replacement.transform.basis = replacement.transform.basis * Basis(Vector3.RIGHT, -PI / 2.0)     # the marker's down: -Z to -Y
 	for key: Variant in extras:
 		replacement.set_meta(StringName(str(key)), extras[key])
 	replacement.set_meta("kit_kind", kind)
 	if prefix == "CLAIM_" and extras.get("claim_size") is Array:
 		var sz: Array = extras["claim_size"]
 		replacement.set_meta("claim_box", Vector3(float(sz[0]), float(sz[2]), float(sz[1])))   # Blender y/z -> Godot z/y
-	var group: String = {"SNAP_": "kit_snap", "SOCKET_": "kit_socket", "LIGHT_": "kit_light", "ANCHOR_": "npc_anchor", "CLAIM_": "kit_claim"}[prefix]
+	var group: String = {"SNAP_": "kit_snap", "SOCKET_": "kit_socket", "LIGHT_": "kit_light", "ANCHOR_": "npc_anchor", "CLAIM_": "kit_claim", "FOG_": "kit_fog"}[prefix]
 	parent.add_child(replacement, true)
 	parent.move_child(replacement, node.get_index())
 	replacement.owner = scene

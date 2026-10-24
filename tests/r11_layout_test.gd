@@ -59,7 +59,9 @@ func run() -> void:
 		grammar.layout(g, s)
 		audit("standalone %d" % s, g, totals)
 	print("r11_layout_test: a cistern in %d of 20 Lower Stacks; bays %s" % [found, totals])
-	check(found >= 18, "nearly every Lower Stacks seed has a cistern (%d of 20)" % found)
+	# The light-well (grown first, phase 5 step 4) takes the space a cistern
+	# would have had in about a quarter of the seeds.
+	check(found >= 14, "most Lower Stacks seeds have a cistern (%d of 20)" % found)
 	check(int(totals.get("cell:basin", 0)) > 0 and int(totals.get("cell:basin_deep", 0)) > 0 and int(totals.get("platform", 0)) > 0, "the cisterns have shallow bays, deep bays and platforms (%s)" % [totals])
 	print("r11_layout_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures.slice(0, 30):
