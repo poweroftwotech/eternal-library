@@ -11,7 +11,7 @@ box-art comparison and loads in a quarter of a second.
 
 ---
 
-## Step 1: the gorge from kit pieces (built 2026-10-25; waiting for your look)
+## Step 1: the gorge from kit pieces (built 2026-10-25; you approved its look; committed 4bce7c1)
 
 **Try it:** Esc → **Walk the Gorge** (or `-- --area=gorge`). You stand on the
 balcony and look out over the whole gorge, now built from kit pieces and

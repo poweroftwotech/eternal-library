@@ -8,7 +8,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 6 step 1 built: the gorge from kit pieces.** Esc → **Walk the Gorge**: the whole gorge rebuilt from 45 kit pieces (61,274 placed), baked to scenes you can edit (`rooms/baked/gorge/`), seen from the balcony. Box-art comparison passes; loads in 0.25 s; 427 draw calls. Not committed | [Phase 6 progress](docs/environment/progress/phase-6-overlook.md) | Look at it in the game (and maybe open a bank's scene in Godot) |
+| **Phase 6 step 1 built: the gorge from kit pieces.** Esc → **Walk the Gorge**: the whole gorge rebuilt from 45 kit pieces (61,274 placed), baked to scenes you can edit (`rooms/baked/gorge/`), seen from the balcony. Box-art comparison passes; loads in 0.25 s; 427 draw calls. You approved its look; committed (4bce7c1) | [Phase 6 progress](docs/environment/progress/phase-6-overlook.md) | Say when to start step 2 (the Overlook, walkable) |
 
 ## What's new
 
@@ -64,7 +64,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
 | **5. Kit breadth** | More room types, mostly from data | ✅ Done 2026-10-25 |
-| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); step 1 built 2026-10-25 |
+| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); step 1 committed 4bce7c1 |
 
 ## 10. Roadmap (each phase is a playable slice)
 
