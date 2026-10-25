@@ -1,22 +1,31 @@
 extends SceneTree
 ## R05 layout gate (phase-5-design.md 5.6.7 and 5.6.9), headless:
 ##   godot --headless --path . --script res://tests/r05_layout_test.gd
-## The 5 x 5 caravanserai template, seeds 1-20, laid out as an area's root
-## and as a joined room: the grid checks clean; 45 cells (the corners solid)
+## The caravanserai template in each size (5 x 5, 7 x 5, 3 x 3), seeds 1-20, laid out as an area's root
+## and as a joined room: the grid checks clean; its cells (the corners solid)
 ## mirror each other across the gate's axis; the gate is cell (0, 0, 0) with
 ## the entry door, side doors in the side walls' middle; the stair halls take
-## the entry wall's corner cells and open to the court at the corner end
-## only; every piece is there once per cell (bays, upper cells, passages,
+## the entry wall's corner cells (a 3 x 3: the side walls' far cells) and
+## open to the court at the corner end only; every piece is there once per cell (bays, upper cells, passages,
 ## corners, the two stairs mirrored, the gate, the paving, the rock, the
 ## hearth at the centre, the well in a far corner, lantern strings, cell and loggia
 ## lamps); the loggia's cells run round the ring without a gap; every slot
 ## has its kit module; the same seed gives the same court; a dead end keeps
 ## only its entry. The baked scene is the template, module for module, with
 ## its sockets. The Lower Stacks, seeds 1-20: the baked court is the root,
-## pinned, the hall joins its gate, and no two rooms share a cell.
+## pinned, in every size, the hall joins its gate, and no two rooms share a cell.
 
-const GRAMMAR: String = "res://gen/grammars/r05_court_5x5.tres"
-const BAKED: String = "res://rooms/baked/caravanserai_5x5.tscn"
+## Per size: its grammar, bake and what it holds (the 3 x 3's stair halls run
+## up its side walls into the far corners, its side doors are the side walls'
+## first cells, and it has no well).
+const SIZES: Dictionary = {
+	"5x5": {"grammar": "res://gen/grammars/r05_court_5x5.tres", "baked": "res://rooms/baked/caravanserai_5x5.tscn", "h": 3, "top": 6,
+		"kinds": {"court": 25, "bay": 13, "passage": 2, "gate": 1, "stair": 4}, "upper": 15, "loggia": 15, "cell_bays": 13, "doors": 3, "blocked": 6},
+	"7x5": {"grammar": "res://gen/grammars/r05_court_7x5.tres", "baked": "res://rooms/baked/caravanserai_7x5.tscn", "h": 4, "top": 6,
+		"kinds": {"court": 35, "bay": 17, "passage": 2, "gate": 1, "stair": 4}, "upper": 19, "loggia": 17, "cell_bays": 17, "doors": 3, "blocked": 6},
+	"3x3": {"grammar": "res://gen/grammars/r05_court_3x3.tres", "baked": "res://rooms/baked/caravanserai_3x3.tscn", "h": 2, "top": 4,
+		"kinds": {"court": 9, "bay": 5, "passage": 2, "gate": 1, "stair": 4}, "upper": 7, "loggia": 3, "cell_bays": 5, "doors": 3, "blocked": 5},
+}
 const RECIPE: String = "res://gen/recipes/lower_stacks.tres"
 
 var failures: PackedStringArray = []
@@ -34,20 +43,22 @@ func check(ok: bool, what: String) -> void:
 
 
 func run() -> void:
-	var grammar: CourtyardGrammar = load(GRAMMAR)
-	check(grammar.rules.check().is_empty(), "the court's rules check clean (%s)" % [grammar.rules.check()])
-	for s: int in range(1, 21):
-		for root_room: bool in [true, false]:
-			layout_checks(grammar, s, root_room)
-	var dead := CellGrid.new()
-	dead.root = true
-	dead.end_kind = "dead_end"
-	grammar.layout(dead, 1)
-	var dead_doors: int = 0
-	for k: String in dead.edges:
-		dead_doors += 1 if dead.edges[k]["mark"] == CellGrid.Mark.DOOR else 0
-	check(dead_doors == 1, "a dead-end court keeps only its gate (%d doors)" % dead_doors)
-	await bake_checks(grammar)
+	for size: String in SIZES:
+		var want: Dictionary = SIZES[size]
+		var grammar: CourtyardGrammar = load(want["grammar"])
+		check(grammar.rules.check().is_empty(), "the court's rules check clean (%s)" % [grammar.rules.check()])
+		for s: int in range(1, 21):
+			for root_room: bool in [true, false]:
+				layout_checks(grammar, want, "%s seed %d %s" % [size, s, "root" if root_room else "joined"], s, root_room)
+		var dead := CellGrid.new()
+		dead.root = true
+		dead.end_kind = "dead_end"
+		grammar.layout(dead, 1)
+		var dead_doors: int = 0
+		for k: String in dead.edges:
+			dead_doors += 1 if dead.edges[k]["mark"] == CellGrid.Mark.DOOR else 0
+		check(dead_doors == 1, "%s: a dead-end court keeps only its gate (%d doors)" % [size, dead_doors])
+		await bake_checks(grammar, want, size)
 	plan_checks()
 	print("r05_layout_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures.slice(0, 40):
@@ -55,8 +66,7 @@ func run() -> void:
 	quit(1 if not failures.is_empty() else 0)
 
 
-func layout_checks(grammar: CourtyardGrammar, s: int, root_room: bool) -> void:
-	var tag: String = "seed %d %s" % [s, "root" if root_room else "joined"]
+func layout_checks(grammar: CourtyardGrammar, want: Dictionary, tag: String, s: int, root_room: bool) -> void:
 	var grid := CellGrid.new()
 	grid.root = root_room
 	grammar.layout(grid, s)
@@ -64,7 +74,8 @@ func layout_checks(grammar: CourtyardGrammar, s: int, root_room: bool) -> void:
 	var m: Dictionary = grid.meta
 	var h: int = m["h"]
 	var top: int = m["top"]
-	check(h == 3 and top == 6 and grid.cells.size() == 45, "%s: a 7 x 7 ring round a 5 x 5 court, corners solid (%d cells)" % [tag, grid.cells.size()])
+	var cells: int = (2 * h + 1) * (top + 1) - 4
+	check(h == want["h"] and top == want["top"] and grid.cells.size() == cells, "%s: a ring round the court, corners solid (%d cells)" % [tag, grid.cells.size()])
 	var kinds: Dictionary = {}
 	var mirrored: bool = true
 	for c: Vector3i in grid.cells:
@@ -73,23 +84,33 @@ func layout_checks(grammar: CourtyardGrammar, s: int, root_room: bool) -> void:
 		var twin := Vector3i(-c.x, 0, c.z)
 		if not grid.cells.has(twin) or grid.cells[twin]["kind"] != kind:
 			mirrored = false
-	check(kinds == {"court": 25, "bay": 13, "passage": 2, "gate": 1, "stair": 4}, "%s: cells by kind %s" % [tag, kinds])
+	check(kinds == want["kinds"], "%s: cells by kind %s" % [tag, kinds])
 	check(mirrored, "%s: the court mirrors across the gate's axis" % tag)
 	var entry: Dictionary = grid.edge(Vector3i.ZERO, CellGrid.Side.S)
 	check(grid.cells[Vector3i.ZERO]["kind"] == "gate" and entry.get("mark", -1) == CellGrid.Mark.DOOR and entry.get("host", true) == not root_room,
 		"%s: the gate is cell (0, 0, 0), its S side the entry (%s)" % [tag, entry])
 	var doors: Array = m["doors"]
-	check(doors.size() == 3 and doors[1] == [Vector3i(-h, 0, 3), CellGrid.Side.W] and doors[2] == [Vector3i(h, 0, 3), CellGrid.Side.E],
+	var mid: int = 1 if grammar.side_stairs() else top / 2
+	check(doors.size() == want["doors"] and (doors.size() == 1 or (doors[1] == [Vector3i(-h, 0, mid), CellGrid.Side.W] and doors[2] == [Vector3i(h, 0, mid), CellGrid.Side.E])),
 		"%s: side doors in the side walls' middle (%s)" % [tag, doors])
 	for d: Array in doors.slice(1):
 		var e: Dictionary = grid.edge(d[0], d[1])
 		check(e.get("mark", -1) == CellGrid.Mark.DOOR and not e["host"] and grid.cells[d[0]]["kind"] == "passage", "%s: the door at %s is an exit through a passage" % [tag, d[0]])
 	var stairs: Array = m["stairs"]
-	check(stairs == [[Vector3i(-2, 0, 0), Vector3i(-1, 0, 0)], [Vector3i(2, 0, 0), Vector3i(1, 0, 0)]], "%s: the stair halls flank the gate (%s)" % [tag, stairs])
+	var side_stairs: bool = grammar.side_stairs()
+	var want_stairs: Array = [[Vector3i(-h + 1, 0, 0), Vector3i(-h + 2, 0, 0)], [Vector3i(h - 1, 0, 0), Vector3i(h - 2, 0, 0)]]
+	if side_stairs:
+		want_stairs = [[Vector3i(-h, 0, top - 1), Vector3i(-h, 0, top - 2)], [Vector3i(h, 0, top - 1), Vector3i(h, 0, top - 2)]]
+	check(stairs == want_stairs, "%s: the stair halls %s (%s)" % [tag, "up the side walls" if side_stairs else "flank the gate", stairs])
 	for st: Array in stairs:
-		var corner_end: Dictionary = grid.edge(st[0], CellGrid.Side.N)
-		var gate_end: Dictionary = grid.edge(st[1], CellGrid.Side.N)
-		check(corner_end["mark"] == CellGrid.Mark.OPENING and gate_end["mark"] == CellGrid.Mark.SOLID and grid.edge(st[0], CellGrid.Side.E if st[0].x < 0 else CellGrid.Side.W)["mark"] == CellGrid.Mark.OPEN,
+		var face: int = CourtyardGrammar.court_side(st[0], h, top)
+		var corner_end: Dictionary = grid.edge(st[0], face)
+		var other_end: Dictionary = grid.edge(st[1], face)
+		var between: int = -1
+		for side: int in CellGrid.ALL_SIDES:
+			if CellGrid.neighbour(st[0], side) == st[1]:
+				between = side
+		check(corner_end["mark"] == CellGrid.Mark.OPENING and other_end["mark"] == CellGrid.Mark.SOLID and grid.edge(st[0], between)["mark"] == CellGrid.Mark.OPEN,
 			"%s: the stair hall %s opens to the court at its corner end only" % [tag, st])
 	# Pieces.
 	var slots: Dictionary = {}
@@ -97,20 +118,31 @@ func layout_checks(grammar: CourtyardGrammar, s: int, root_room: bool) -> void:
 		var slot: String = grid.props[k]["slot"]
 		slots[slot] = slots.get(slot, 0) + 1
 		check(grammar.rules.rule_for(slot, grammar.styles) != null, "%s: slot %s has its kit module" % [tag, slot])
-	var want: Dictionary = {"cell:court_floor": 25, "cell:court_bay": 13, "cell:court_bay_upper": 15, "cell:court_passage": 2,
+	var kinds_want: Dictionary = want["kinds"]
+	var pieces: Dictionary = {"cell:court_floor": kinds_want["court"], "cell:court_bay": kinds_want["bay"], "cell:court_bay_upper": want["upper"],
 		"cell:court_gate": 1, "cell:court_stair": 1, "cell:court_stair_r": 1, "cell:court_corner": 4, "cell:court_corner_upper": 2,
-		"cell:court_corner_upper_stair": 1, "cell:court_corner_upper_stair_r": 1, "cell:cavern_5x5": 1, "court:hearth": 1,
-		"court:well": 1, "court:lantern_string": grammar.lantern_strings, "court:loggia_lantern": 5, "court:cell_lantern": ceili(13.0 / grammar.cell_lamp_every), "stub:exit": 3 if root_room else 2}
-	check(slots == want, "%s: pieces %s" % [tag, slots])
+		"cell:court_corner_upper_stair": 1, "cell:court_corner_upper_stair_r": 1, grammar.ceiling_slot: 1, "court:hearth": 1,
+		grammar.lantern_string_slot: grammar.lantern_strings, "court:loggia_lantern": ceili((want["loggia"] - grammar.loggia_lamp_every / 2) / float(grammar.loggia_lamp_every)),
+		"court:cell_lantern": ceili(want["cell_bays"] / float(grammar.cell_lamp_every))}
+	if want["doors"] - (0 if root_room else 1) > 0:
+		pieces["stub:exit"] = want["doors"] - (0 if root_room else 1)
+	if kinds_want.has("passage"):
+		pieces["cell:court_passage"] = kinds_want["passage"]
+	if grammar.well:
+		pieces["court:well"] = 1
+	check(slots == pieces, "%s: pieces %s" % [tag, slots])
 	var centre: Vector3i = m["centre"]
-	check(centre == Vector3i(0, 0, 3) and (grid.props["hearth"]["xf"] as Transform3D).origin.is_equal_approx(CellGrid.cell_centre(centre)) and grid.cells[centre].get("blocked", false),
+	check(centre == Vector3i(0, 0, top / 2) and (grid.props["hearth"]["xf"] as Transform3D).origin.is_equal_approx(CellGrid.cell_centre(centre)) and grid.cells[centre].get("blocked", false),
 		"%s: the hearth stands at the court's centre, its cell blocked" % tag)
-	var well: Vector3i = m["well"]
-	check(absi(well.x) == h - 1 and well.z == top - 1 and grid.cells[well].get("blocked", false), "%s: the well in a far corner of the court, blocked (%s)" % [tag, well])
-	# The loggia: every upper cell of the side and far walls, each next to the last
-	# (or round a corner: two apart diagonally), from the west stair to the east.
+	if grammar.well:
+		var well: Vector3i = m["well"]
+		check(absi(well.x) == h - 1 and well.z == top - 1 and grid.cells[well].get("blocked", false), "%s: the well in a far corner of the court, blocked (%s)" % [tag, well])
+	# The loggia: every upper cell of the side and far walls (a 3 x 3: the far
+	# wall's), each next to the last (or round a corner: two apart diagonally),
+	# from the west stair to the east.
 	var upper: Array = m["upper"]
-	var joined: bool = upper.size() == 15 and upper[0] == Vector3i(-h, 1, 1) and upper[-1] == Vector3i(h, 1, 1)
+	var first := Vector3i(-h + 1, 1, top) if side_stairs else Vector3i(-h, 1, 1)
+	var joined: bool = upper.size() == want["loggia"] and upper[0] == first and upper[-1] == Vector3i(-first.x, 1, first.z)
 	for i: int in upper.size() - 1:
 		var d: Vector3i = (upper[i + 1] as Vector3i) - (upper[i] as Vector3i)
 		if d.length_squared() != 1 and d.abs() != Vector3i(1, 0, 1):
@@ -122,11 +154,11 @@ func layout_checks(grammar: CourtyardGrammar, s: int, root_room: bool) -> void:
 	check(again.signature() == grid.signature() and again.props.keys() == grid.props.keys(), "%s: the same seed, the same court" % tag)
 
 
-func bake_checks(grammar: CourtyardGrammar) -> void:
-	var baked := (load(BAKED) as PackedScene).instantiate() as RoomTemplate
+func bake_checks(grammar: CourtyardGrammar, want: Dictionary, size: String) -> void:
+	var baked := (load(want["baked"]) as PackedScene).instantiate() as RoomTemplate
 	var meta: Dictionary = baked.get_meta("baked_from", {})
 	var seed_value: int = int(meta.get("seed", -1))
-	check(meta.get("grammar", "") == GRAMMAR and seed_value >= 0, "the bake records its grammar and seed (%s)" % [meta.get("grammar", "")])
+	check(meta.get("grammar", "") == want["grammar"] and seed_value >= 0, "%s: the bake records its grammar and seed (%s)" % [size, meta.get("grammar", "")])
 	var g := GeneratedRoom.new()
 	g.root_room = true
 	g.gen_seed = seed_value
@@ -144,15 +176,15 @@ func bake_checks(grammar: CourtyardGrammar) -> void:
 			same += 1
 		else:
 			differ.append(path)
-	check(differ.is_empty() and same == g.modules.size(), "the baked scene is the template, module for module (%d of %d; differ %s)" % [same, g.modules.size(), differ.slice(0, 5)])
-	check(baked.get_node_or_null("PlayerSpawn") != null and baked.get_node("Connectors").get_child_count() == 3, "the bake has its spawn and three doors")
+	check(differ.is_empty() and same == g.modules.size(), size + ": the baked scene is the template, module for module (%d of %d; differ %s)" % [same, g.modules.size(), differ.slice(0, 5)])
+	check(baked.get_node_or_null("PlayerSpawn") != null and baked.get_node("Connectors").get_child_count() == want["doors"], "%s: the bake has its spawn and its %d doors" % [size, want["doors"]])
 	var sets: Dictionary = {}
 	for s: Node in baked.find_children("*", "VariantSocket", true, false):
 		var vs := s as VariantSocket
 		var name: String = vs.socket_set.resource_path.get_file().get_basename() if vs.socket_set != null else "none"
 		sets[name] = sets.get(name, 0) + 1
-	check(sets.get("court_cell", 0) == 13 and sets.get("court_cell_upper", 0) == 15 and sets.get("court_hearth", 0) == 1,
-		"every cell and the hearth roll what they hold (%s)" % [sets])
+	check(sets.get("court_cell", 0) == want["kinds"]["bay"] and sets.get("court_cell_upper", 0) == want["upper"] and sets.get("court_hearth", 0) == 1,
+		size + ": every cell and the hearth roll what they hold (%s)" % [sets])
 	g.queue_free()
 	baked.free()
 	await process_frame
@@ -160,6 +192,7 @@ func bake_checks(grammar: CourtyardGrammar) -> void:
 
 func plan_checks() -> void:
 	var recipe: AreaRecipe = load(RECIPE)
+	var seen: Dictionary = {}
 	for s: int in range(1, 21):
 		var p: AreaPlan = AreaPlanner.plan(recipe, s)
 		var court: AreaPlan.Room = p.rooms[0]
@@ -167,7 +200,13 @@ func plan_checks() -> void:
 		check(p.errors.is_empty(), "lower stacks %d: plans clean (%s)" % [s, p.errors])
 		check(court.slot_id == "caravanserai" and court.kind == "scene" and court.pinned, "lower stacks %d: the baked court is the pinned root" % s)
 		check(hall != null and hall.parent == "caravanserai" and hall.parent_connector == &"SNAP_exit_0_0_0_S", "lower stacks %d: the hall joins the gate" % s)
-		check(court.sight.size() == 60 and court.blocked_cells.size() == 6, "lower stacks %d: the court walks as baked (%d open edges, %d blocked)" % [s, court.sight.size(), court.blocked_cells.size()])
+		var size: String = court.scene.resource_path.get_file().get_basename().trim_prefix("caravanserai_")
+		seen[size] = true
+		var baked: Node = court.scene.instantiate()
+		var walk: Array = (baked.get_meta("baked_from", {}) as Dictionary).get("walk", [])
+		baked.free()
+		check(SIZES.has(size) and court.sight.size() == walk.size() and court.blocked_cells.size() == SIZES[size]["blocked"],
+			"lower stacks %d: the %s court walks as baked (%d open edges, %d blocked)" % [s, size, court.sight.size(), court.blocked_cells.size()])
 		var owner: Dictionary = {}
 		var clash: PackedStringArray = []
 		for r: AreaPlan.Room in p.rooms:
@@ -176,3 +215,4 @@ func plan_checks() -> void:
 					clash.append("%s/%s at %s" % [owner[c], r.slot_id, c])
 				owner[c] = r.slot_id
 		check(clash.is_empty(), "lower stacks %d: no two rooms share a cell (%s)" % [s, clash.slice(0, 4)])
+	check(seen.size() == SIZES.size(), "lower stacks 1-20: the court comes in every size (%s)" % [seen.keys()])

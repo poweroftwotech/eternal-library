@@ -242,6 +242,11 @@ A template, in the atlas's words: three sizes of the same plan.
   `rooms/baked/caravanserai_5x5.tscn` with the phase 2 bake tool, then
   finished by hand, as the west gallery was. It's a scene room in the
   plan, so it keeps its seed and its saved changes.
+- **Sizes (built 2026-10-24):** 5 × 5, 7 × 5 and 3 × 3, each baked
+  (`caravanserai_<w>x<d>.tscn`); the Lower Stacks' root picks one by area
+  seed (`AreaSlot.scene_choices`). A 3 × 3's stair halls run up its side
+  walls into the far corners (its entry wall is too short), the loggia
+  along the far wall, its side doors in the side walls' first cells; no well.
 - **Q12:** the hearth is a place, not the cooking pot. An `ANCHOR_sit`
   ring around it is ready for travellers.
 - **The Lower Stacks** start here from step 5: the caravanserai is the

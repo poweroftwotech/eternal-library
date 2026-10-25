@@ -203,6 +203,16 @@ script = ExtResource("1_rule")
 slot = "dressing:rubble_heap"
 choices = Array[ExtResource("2_choice")]([SubResource("Choice_19")])
 
+[sub_resource type="Resource" id="Choice_plain"]
+script = ExtResource("2_choice")
+scene = ExtResource("4_m")
+weight = 1.0
+
+[sub_resource type="Resource" id="Rule_plain"]
+script = ExtResource("1_rule")
+slot = "edge:plain"
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_plain")])
+
 [resource]
 script = ExtResource("0_rules")
-rules = Array[ExtResource("1_rule")]([SubResource("Rule_1"), SubResource("Rule_2"), SubResource("Rule_3"), SubResource("Rule_4"), SubResource("Rule_5"), SubResource("Rule_6"), SubResource("Rule_7"), SubResource("Rule_8"), SubResource("Rule_9"), SubResource("Rule_10"), SubResource("Rule_11"), SubResource("Rule_12"), SubResource("Rule_13"), SubResource("Rule_14"), SubResource("Rule_15"), SubResource("Rule_16"), SubResource("Rule_17")])
+rules = Array[ExtResource("1_rule")]([SubResource("Rule_1"), SubResource("Rule_2"), SubResource("Rule_3"), SubResource("Rule_4"), SubResource("Rule_5"), SubResource("Rule_6"), SubResource("Rule_7"), SubResource("Rule_8"), SubResource("Rule_9"), SubResource("Rule_10"), SubResource("Rule_11"), SubResource("Rule_12"), SubResource("Rule_13"), SubResource("Rule_14"), SubResource("Rule_15"), SubResource("Rule_16"), SubResource("Rule_17"), SubResource("Rule_plain")])

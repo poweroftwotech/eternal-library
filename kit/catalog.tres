@@ -610,10 +610,28 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "cavern_ceiling_3x3",
+"scene": "res://kit/modules/walls/cavern_ceiling_3x3.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 4, 5),
+"tags": PackedStringArray("rock", "cavern", "court"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "cavern_ceiling_5x5",
 "scene": "res://kit/modules/walls/cavern_ceiling_5x5.tscn",
 "shape": "cell",
 "size_cells": Vector3i(7, 4, 7),
+"tags": PackedStringArray("rock", "cavern", "court"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cavern_ceiling_7x5",
+"scene": "res://kit/modules/walls/cavern_ceiling_7x5.tscn",
+"shape": "cell",
+"size_cells": Vector3i(9, 4, 7),
 "tags": PackedStringArray("rock", "cavern", "court"),
 "weight": 1.0
 }, {
@@ -911,6 +929,15 @@ modules = Array[Dictionary]([{
 "scene": "res://kit/modules/walls/court_lantern_string.tscn",
 "shape": "free",
 "size_cells": Vector3i(5, 2, 0),
+"tags": PackedStringArray("brass", "light", "court"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "court_lantern_string_12m",
+"scene": "res://kit/modules/walls/court_lantern_string_12m.tscn",
+"shape": "free",
+"size_cells": Vector3i(3, 2, 0),
 "tags": PackedStringArray("brass", "light", "court"),
 "weight": 1.0
 }, {

@@ -47,6 +47,7 @@ static func plan(recipe: AreaRecipe, area_seed: int) -> AreaPlan:
 		if r == null:
 			continue
 	_grow(p, recipe)
+	_plain_backed_walls(p)
 	var sight: Dictionary = p.compute_sight()
 	for v: String in sight["violations"]:
 		p.errors.append(v)
@@ -76,12 +77,15 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot) -> AreaPla
 		p.errors.append("%s: only the first slot may be the root" % s.slot_id)
 		return null
 	var r: AreaPlan.Room
-	if s.scene != null:
-		var info: Dictionary = _scene_info(s.scene, -1)     # FIXED: the scene's own preview_seed (a bake keeps its seed there)
+	var scene: PackedScene = s.scene
+	if not s.scene_choices.is_empty():
+		scene = s.scene_choices[(hash([p.area_seed, s.slot_id, "scene"]) & 0x7fffffff) % s.scene_choices.size()]
+	if scene != null:
+		var info: Dictionary = _scene_info(scene, -1)     # FIXED: the scene's own preview_seed (a bake keeps its seed there)
 		var seed_value: int = int(info["seed"]) if s.seed_mode == AreaSlot.SeedMode.FIXED else _seed_for(p, s.slot_id)
 		if s.seed_mode == AreaSlot.SeedMode.AREA:
-			info = _scene_info(s.scene, seed_value)
-		r = _scene_room(p, s.slot_id, s.display_name, s.scene, info, seed_value, parent_room, s.connector)
+			info = _scene_info(scene, seed_value)
+		r = _scene_room(p, s.slot_id, s.display_name, scene, info, seed_value, parent_room, s.connector)
 		if r == null:
 			return null
 	else:
@@ -308,6 +312,28 @@ static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, di
 		if half > 0.0:
 			r.sight[AreaPlan.key_between(to_area[e["cell"]], to_area[n])] = half
 	return r
+
+
+## A generated room's solid wall backing onto a cell another room stands in
+## is a plain wall (slot edge:plain): a shelf recess there would dig 0.25 m into
+## the room behind it (its door, a fern, the other room's own recess). A
+## grammar's own wall slots (a corner) are kept; a collapsed bay's recess
+## becomes a plain wall too (its rubble stays).
+static func _plain_backed_walls(p: AreaPlan) -> void:
+	for r: AreaPlan.Room in p.rooms:
+		if r.grid == null:
+			continue
+		for k: String in r.grid.edges:
+			var e: Dictionary = r.grid.edges[k]
+			if e["mark"] != CellGrid.Mark.SOLID or e.get("slot", "") not in ["", "edge:solid", "edge:recess"]:
+				continue
+			var n: Vector3i = CellGrid.neighbour(e["cell"], e["side"])
+			if r.grid.cells.has(n):
+				continue
+			var behind: Vector3i = AreaPlan.cell_of(r.xf * _centre(n))
+			if p.rooms.any(func(o: AreaPlan.Room) -> bool: return o != r and o.cells.has(behind)):
+				e["slot"] = "edge:plain"
+				r.grid.pins.erase("edge_" + k)
 
 
 ## Every edge between two of a scene room's floor cells is open to sight (its

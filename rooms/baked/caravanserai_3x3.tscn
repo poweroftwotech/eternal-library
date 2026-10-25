@@ -1,0 +1,220 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/room_template.gd" id="1_a714v"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_cell_bay.tscn" id="2_uyho7"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_cell_bay_upper.tscn" id="3_ctuqc"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_pishtaq_gate.tscn" id="4_30834"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_passage.tscn" id="5_w1ist"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_floor_4m.tscn" id="6_e8i2b"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_stair.tscn" id="7_ri7jp"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_stair_r.tscn" id="8_t3ad3"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_block.tscn" id="9_uupst"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_upper.tscn" id="10_ioevd"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_upper_stair.tscn" id="11_oug3u"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_upper_stair_r.tscn" id="12_m2j4k"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cavern_ceiling_3x3.tscn" id="13_vy1ki"]
+[ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="14_dd1ho"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/court_hearth_platform.tscn" id="15_0pm0r"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_lantern_string_12m.tscn" id="16_dt3wf"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_cell_lantern.tscn" id="17_p88rn"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_loggia_lantern.tscn" id="18_tx54t"]
+[ext_resource type="Script" path="res://scripts/world/floor_wear.gd" id="19_gfkrj"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6d16a"]
+size = Vector3(28, 0.5, 28)
+
+[node name="Caravanserai" type="Node3D" unique_id=811874236]
+script = ExtResource("1_a714v")
+room_id = "caravanserai"
+display_name = "The Caravanserai"
+metadata/baked_from = {
+"blocked": [Vector3i(-2, 0, 2), Vector3i(0, 0, 2), Vector3i(2, 0, 2), Vector3i(-2, 0, 3), Vector3i(2, 0, 3)],
+"grammar": "res://gen/grammars/r05_court_3x3.tres",
+"layout": {
+"centre": Vector3i(0, 0, 2),
+"court": true,
+"doors": [[Vector3i(0, 0, 0), 0], [Vector3i(-2, 0, 1), 2], [Vector3i(2, 0, 1), 3]],
+"h": 2,
+"stair_arrive": [0, 0],
+"stair_corners": [Vector3i(-2, 0, 4), Vector3i(2, 0, 4)],
+"stair_frames": [Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4, 0, -8), Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 8, 0, -16)],
+"stairs": [Array[Vector3i]([Vector3i(-2, 0, 3), Vector3i(-2, 0, 2)]), Array[Vector3i]([Vector3i(2, 0, 3), Vector3i(2, 0, 2)])],
+"top": 4,
+"upper": Array[Vector3i]([Vector3i(-1, 1, 4), Vector3i(0, 1, 4), Vector3i(1, 1, 4)])
+},
+"modules": 44,
+"rules": "",
+"seed": 1,
+"walk": [[Vector3i(-1, 0, 1), Vector3i(-1, 0, 0), 1.5], [Vector3i(0, 0, 1), Vector3i(0, 0, 0), 1.5], [Vector3i(1, 0, 1), Vector3i(1, 0, 0), 1.5], [Vector3i(-1, 0, 1), Vector3i(-2, 0, 1), 1.5], [Vector3i(-1, 0, 2), Vector3i(-1, 0, 1), 2.0], [Vector3i(0, 0, 1), Vector3i(-1, 0, 1), 2.0], [Vector3i(0, 0, 2), Vector3i(0, 0, 1), 2.0], [Vector3i(1, 0, 1), Vector3i(0, 0, 1), 2.0], [Vector3i(1, 0, 2), Vector3i(1, 0, 1), 2.0], [Vector3i(2, 0, 1), Vector3i(1, 0, 1), 1.5], [Vector3i(-2, 0, 3), Vector3i(-2, 0, 2), 2.0], [Vector3i(-1, 0, 3), Vector3i(-1, 0, 2), 2.0], [Vector3i(0, 0, 2), Vector3i(-1, 0, 2), 2.0], [Vector3i(0, 0, 3), Vector3i(0, 0, 2), 2.0], [Vector3i(1, 0, 2), Vector3i(0, 0, 2), 2.0], [Vector3i(1, 0, 3), Vector3i(1, 0, 2), 2.0], [Vector3i(2, 0, 3), Vector3i(2, 0, 2), 2.0], [Vector3i(-1, 0, 3), Vector3i(-2, 0, 3), 1.5], [Vector3i(-1, 0, 4), Vector3i(-1, 0, 3), 1.5], [Vector3i(0, 0, 3), Vector3i(-1, 0, 3), 2.0], [Vector3i(0, 0, 4), Vector3i(0, 0, 3), 1.5], [Vector3i(1, 0, 3), Vector3i(0, 0, 3), 2.0], [Vector3i(1, 0, 4), Vector3i(1, 0, 3), 1.5], [Vector3i(2, 0, 3), Vector3i(1, 0, 3), 1.5]]
+}
+
+[node name="Shell" type="Node3D" parent="." unique_id=1088544735]
+
+[node name="prop_court_bay_-1_0_0" parent="Shell" unique_id=2062368891 instance=ExtResource("2_uyho7")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, -4)
+
+[node name="prop_court_upper_-1_0_0" parent="Shell" unique_id=1470468386 instance=ExtResource("3_ctuqc")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 4, -4)
+
+[node name="prop_court_gate" parent="Shell" unique_id=291924887 instance=ExtResource("4_30834")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4, 0, -4)
+
+[node name="prop_court_bay_1_0_0" parent="Shell" unique_id=110655419 instance=ExtResource("2_uyho7")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 8, 0, -4)
+
+[node name="prop_court_upper_1_0_0" parent="Shell" unique_id=1296376854 instance=ExtResource("3_ctuqc")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 8, 4, -4)
+
+[node name="prop_court_passage_-2_0_1" parent="Shell" unique_id=1915663233 instance=ExtResource("5_w1ist")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4, 0, -4)
+
+[node name="prop_court_upper_-2_0_1" parent="Shell" unique_id=1828177649 instance=ExtResource("3_ctuqc")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4, 4, -4)
+
+[node name="prop_court_floor_-1_0_1" parent="Shell" unique_id=1658580062 instance=ExtResource("6_e8i2b")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -4)
+
+[node name="prop_court_floor_0_0_1" parent="Shell" unique_id=1800496883 instance=ExtResource("6_e8i2b")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -4)
+
+[node name="prop_court_floor_1_0_1" parent="Shell" unique_id=966839721 instance=ExtResource("6_e8i2b")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -4)
+
+[node name="prop_court_passage_2_0_1" parent="Shell" unique_id=1346887636 instance=ExtResource("5_w1ist")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 8, 0, -8)
+
+[node name="prop_court_upper_2_0_1" parent="Shell" unique_id=454491700 instance=ExtResource("3_ctuqc")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 8, 4, -8)
+
+[node name="prop_court_floor_-1_0_2" parent="Shell" unique_id=1054382136 instance=ExtResource("6_e8i2b")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -8)
+
+[node name="prop_court_floor_0_0_2" parent="Shell" unique_id=1761892616 instance=ExtResource("6_e8i2b")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -8)
+
+[node name="prop_court_floor_1_0_2" parent="Shell" unique_id=1146402603 instance=ExtResource("6_e8i2b")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -8)
+
+[node name="prop_court_floor_-1_0_3" parent="Shell" unique_id=2090957270 instance=ExtResource("6_e8i2b")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -12)
+
+[node name="prop_court_floor_0_0_3" parent="Shell" unique_id=143750964 instance=ExtResource("6_e8i2b")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -12)
+
+[node name="prop_court_floor_1_0_3" parent="Shell" unique_id=724786572 instance=ExtResource("6_e8i2b")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -12)
+
+[node name="prop_court_bay_-1_0_4" parent="Shell" unique_id=616388122 instance=ExtResource("2_uyho7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 0, -16)
+
+[node name="prop_court_upper_-1_0_4" parent="Shell" unique_id=183615535 instance=ExtResource("3_ctuqc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 4, -16)
+
+[node name="prop_court_bay_0_0_4" parent="Shell" unique_id=610111719 instance=ExtResource("2_uyho7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16)
+
+[node name="prop_court_upper_0_0_4" parent="Shell" unique_id=1090188004 instance=ExtResource("3_ctuqc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, -16)
+
+[node name="prop_court_bay_1_0_4" parent="Shell" unique_id=171777020 instance=ExtResource("2_uyho7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, -16)
+
+[node name="prop_court_upper_1_0_4" parent="Shell" unique_id=788730387 instance=ExtResource("3_ctuqc")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, -16)
+
+[node name="prop_court_stair_w" parent="Shell" unique_id=1301494423 instance=ExtResource("7_ri7jp")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4, 0, -8)
+
+[node name="prop_court_stair_e" parent="Shell" unique_id=204414580 instance=ExtResource("8_t3ad3")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 8, 0, -16)
+
+[node name="prop_court_corner_-2_0_0" parent="Shell" unique_id=1625663134 instance=ExtResource("9_uupst")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4, 0, -4)
+
+[node name="prop_court_corner_upper_-2_0_0" parent="Shell" unique_id=471395593 instance=ExtResource("10_ioevd")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4, 4, -4)
+
+[node name="prop_court_corner_2_0_0" parent="Shell" unique_id=1731690939 instance=ExtResource("9_uupst")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 8, 0, -4)
+
+[node name="prop_court_corner_upper_2_0_0" parent="Shell" unique_id=619913917 instance=ExtResource("10_ioevd")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 8, 4, -4)
+
+[node name="prop_court_corner_-2_0_4" parent="Shell" unique_id=1405784402 instance=ExtResource("9_uupst")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4, 0, -16)
+
+[node name="prop_court_corner_upper_-2_0_4" parent="Shell" unique_id=1855209373 instance=ExtResource("11_oug3u")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -4, 4, -16)
+
+[node name="prop_court_corner_2_0_4" parent="Shell" unique_id=1395812647 instance=ExtResource("9_uupst")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, -16)
+
+[node name="prop_court_corner_upper_2_0_4" parent="Shell" unique_id=2064234779 instance=ExtResource("12_m2j4k")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4, -16)
+
+[node name="prop_ceiling" parent="Shell" unique_id=1701010261 instance=ExtResource("13_vy1ki")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8, 0, 0)
+
+[node name="Sockets" type="Node3D" parent="." unique_id=2076234939]
+
+[node name="Connectors" type="Node3D" parent="." unique_id=1496801002]
+
+[node name="SNAP_exit_0_0_0_S" type="Marker3D" parent="Connectors" unique_id=949762408 groups=["room_connector"]]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2, 0, 0)
+metadata/snap_kind = "door"
+
+[node name="SNAP_exit_-2_0_1_W" type="Marker3D" parent="Connectors" unique_id=1175576433 groups=["room_connector"]]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8, 0, -6)
+metadata/snap_kind = "door"
+
+[node name="SNAP_exit_3_0_1_W" type="Marker3D" parent="Connectors" unique_id=621384289 groups=["room_connector"]]
+transform = Transform3D(1.3113416e-07, 0, -1, 0, 1, 0, 1, 0, 1.3113416e-07, 12, 0, -6)
+metadata/snap_kind = "door"
+
+[node name="Dressing" type="Node3D" parent="." unique_id=127354334]
+
+[node name="prop_exit_0_0_0_S" parent="Dressing" unique_id=1081547357 instance=ExtResource("14_dd1ho")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2, 0, 0)
+
+[node name="prop_exit_-2_0_1_W" parent="Dressing" unique_id=1863648264 instance=ExtResource("14_dd1ho")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -8, 0, -6)
+
+[node name="prop_exit_3_0_1_W" parent="Dressing" unique_id=760395440 instance=ExtResource("14_dd1ho")]
+transform = Transform3D(1.3113416e-07, 0, -1, 0, 1, 0, 1, 0, 1.3113416e-07, 12, 0, -6)
+
+[node name="prop_hearth" parent="Dressing" unique_id=1628658512 instance=ExtResource("15_0pm0r")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -10)
+
+[node name="prop_string_0" parent="Dressing" unique_id=1919136064 instance=ExtResource("16_dt3wf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0, -10)
+
+[node name="prop_cell_lamp_-1_0_4" parent="Dressing" unique_id=1267836379 instance=ExtResource("17_p88rn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, -17.1)
+
+[node name="prop_cell_lamp_1_0_4" parent="Dressing" unique_id=948195609 instance=ExtResource("17_p88rn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -17.1)
+
+[node name="prop_cell_lamp_1_0_0" parent="Dressing" unique_id=1636019647 instance=ExtResource("17_p88rn")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, -2.8999999)
+
+[node name="prop_loggia_lamp_0_1_4" parent="Dressing" unique_id=554077443 instance=ExtResource("18_tx54t")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 4.05, -17.15)
+
+[node name="Lights" type="Node3D" parent="." unique_id=1422763082]
+
+[node name="TempSafetyFloor" type="StaticBody3D" parent="." unique_id=1159000490]
+collision_mask = 0
+
+[node name="Shape" type="CollisionShape3D" parent="TempSafetyFloor" unique_id=740268270]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, -2.75, -10)
+shape = SubResource("BoxShape3D_6d16a")
+
+[node name="FloorWear" type="Node3D" parent="." unique_id=1185605933]
+script = ExtResource("19_gfkrj")
+rect = Rect2(-9, -21, 22, 22)
+paths = Array[PackedVector2Array]([PackedVector2Array(2, 0.4, 2, -2), PackedVector2Array(2, -2, 2, -5.6), PackedVector2Array(-8.4, -6, -6, -6), PackedVector2Array(-6, -6, -2.106721, -8.420492), PackedVector2Array(12.4, -6, 10, -6), PackedVector2Array(10, -6, 6.106721, -8.420492)])
+path_weights = PackedFloat32Array(0.9770833, 0.90833336, 0.9770833, 0.90833336, 0.9770833, 0.90833336)
+half_width = 0.32
+
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=953858367]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 0.1, -1.4)

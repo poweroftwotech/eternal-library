@@ -17,9 +17,11 @@ extends RoomGrammar
 ## side; the grid's edges only say what opens onto what (the bake keeps them
 ## for walking, AreaPlanner._scene_info).
 
-## Court bays across (odd, at least 5: the gate and a stair hall each side)
-## and deep.
-@export_range(5, 9, 2) var court_w: int = 5:
+## Court bays across (odd) and deep. From 5 across, a stair hall flanks the
+## gate on the entry wall; a 3-wide court's entry wall is too short, so its
+## stair halls run up the side walls into the far corners (its side doors in
+## the side walls' first cells).
+@export_range(3, 9, 2) var court_w: int = 5:
 	set(value):
 		court_w = value
 		emit_changed()
@@ -49,6 +51,17 @@ extends RoomGrammar
 	set(value):
 		cell_lamp_every = value
 		emit_changed()
+## The strings' piece (20 m: across a 5-bay side; the 3 x 3 court's is 12 m).
+## They span the court's narrower side.
+@export var lantern_string_slot: String = "court:lantern_string":
+	set(value):
+		lantern_string_slot = value
+		emit_changed()
+## A well in a far corner of the court (none in the 3 x 3: the hearth fills it).
+@export var well: bool = true:
+	set(value):
+		well = value
+		emit_changed()
 ## The cavern's rock over the court (a piece per size): its slot.
 @export var ceiling_slot: String = "cell:cavern_5x5":
 	set(value):
@@ -61,19 +74,21 @@ const STOREY := Vector3(0, 4, 0)
 func layout(grid: CellGrid, seed_value: int) -> void:
 	var h: int = court_w / 2 + 1          # ring cells run x -h..h
 	var top: int = court_d + 1            # and z 0..top
-	if court_w < 5 or not _free(grid, h, top):
+	if court_w < 3 or court_d < 3 or not _free(grid, h, top):
 		if not grid.quiet:
 			push_warning("CourtyardGrammar: no room for a %d x %d court" % [court_w, court_d])
 		return
 	var centre := Vector3i(0, 0, top / 2)
 	var mid: int = (court_d + 1) / 2
-	var stair_w: Array[Vector3i] = [Vector3i(-h + 1, 0, 0), Vector3i(-h + 2, 0, 0)]
-	var stair_e: Array[Vector3i] = [Vector3i(h - 1, 0, 0), Vector3i(h - 2, 0, 0)]
+	var stairs: Dictionary = _stairs(h, top)
+	var stair_w: Array[Vector3i] = stairs["w"]
+	var stair_e: Array[Vector3i] = stairs["e"]
 	var doors: Array = [[Vector3i.ZERO, CellGrid.Side.S]]
+	var door_z: int = 1 if side_stairs() else mid     # side stairs take the side walls' far cells
 	if side_doors >= 1:
-		doors.append([Vector3i(-h, 0, mid), CellGrid.Side.W])
+		doors.append([Vector3i(-h, 0, door_z), CellGrid.Side.W])
 	if side_doors >= 2:
-		doors.append([Vector3i(h, 0, mid), CellGrid.Side.E])
+		doors.append([Vector3i(h, 0, door_z), CellGrid.Side.E])
 	if (grid.end_kind if grid.end_kind != "" else "exit") != "exit":
 		doors.resize(1)
 	var door_cells: Dictionary = {}
@@ -102,13 +117,37 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 			if kind == "stair" or c == centre:
 				cell["blocked"] = true        # a stair hall's a dead end; the hearth's fire stands mid-court
 	_mark_edges(grid, doors, stair_w, stair_e)
-	var upper: Array[Vector3i] = _place_ring(grid, h, top, stair_w, stair_e)
+	var upper: Array[Vector3i] = _place_ring(grid, h, top, stairs)
 	grid.meta = {"court": true, "h": h, "top": top, "centre": centre, "doors": doors,
-		"stairs": [stair_w, stair_e], "upper": upper}
+		"stairs": [stair_w, stair_e], "stair_frames": stairs["frames"], "stair_corners": stairs["corners"],
+		"stair_arrive": stairs["arrive"], "upper": upper}
 	_place_court(grid, h, top, centre, seed_value)
 	_place_lamps(grid, upper, h, top)
 	grid.props["ceiling"] = {"slot": ceiling_slot, "xf": Transform3D(Basis(), Vector3(-h * CellGrid.BAY, 0, 0)), "shell": true}
 	_lanes(grid, doors, centre)
+
+
+## True for a court too narrow for stair halls beside the gate.
+func side_stairs() -> bool:
+	return court_w < 5
+
+
+## The two stair halls, west then east: each one's cells (the corner end, with
+## the arch to the court, first), its piece's frame (court_corner_stair's on
+## the west, court_corner_stair_r's on the east: X = 8 and X = 0 at the
+## corner), the corner it comes up into and the side of that corner it arrives
+## through. Beside the gate on the entry wall, or (side_stairs) up the side
+## walls into the far corners.
+func _stairs(h: int, top: int) -> Dictionary:
+	if not side_stairs():
+		var w: Array[Vector3i] = [Vector3i(-h + 1, 0, 0), Vector3i(-h + 2, 0, 0)]
+		var e: Array[Vector3i] = [Vector3i(h - 1, 0, 0), Vector3i(h - 2, 0, 0)]
+		return {"w": w, "e": e, "frames": [CellGrid.edge_transform(w[1], CellGrid.Side.N), CellGrid.edge_transform(e[0], CellGrid.Side.N)],
+			"corners": [Vector3i(-h, 0, 0), Vector3i(h, 0, 0)], "arrive": [CellGrid.Side.E, CellGrid.Side.W]}
+	var w: Array[Vector3i] = [Vector3i(-h, 0, top - 1), Vector3i(-h, 0, top - 2)]
+	var e: Array[Vector3i] = [Vector3i(h, 0, top - 1), Vector3i(h, 0, top - 2)]
+	return {"w": w, "e": e, "frames": [CellGrid.edge_transform(w[1], CellGrid.Side.E), CellGrid.edge_transform(e[0], CellGrid.Side.W)],
+		"corners": [Vector3i(-h, 0, top), Vector3i(h, 0, top)], "arrive": [CellGrid.Side.S, CellGrid.Side.S]}
 
 
 func _free(grid: CellGrid, h: int, top: int) -> bool:
@@ -172,7 +211,7 @@ func _mark_edges(grid: CellGrid, doors: Array, stair_w: Array[Vector3i], stair_e
 ## The ring's pieces: bays, the gate, the stair halls, passages and corners
 ## on both storeys. Returns the upper cells the loggia runs through, in ring
 ## order from the west stair round to the east one.
-func _place_ring(grid: CellGrid, h: int, top: int, stair_w: Array[Vector3i], stair_e: Array[Vector3i]) -> Array[Vector3i]:
+func _place_ring(grid: CellGrid, h: int, top: int, stairs: Dictionary) -> Array[Vector3i]:
 	var up := Transform3D(Basis(), STOREY)
 	for c: Vector3i in grid.cells:
 		var kind: String = grid.cells[c]["kind"]
@@ -191,8 +230,8 @@ func _place_ring(grid: CellGrid, h: int, top: int, stair_w: Array[Vector3i], sta
 		if kind == "bay" or kind == "passage":
 			_piece(grid, "upper_" + n, "cell:court_bay_upper", up * xf)
 	# Stair halls: each piece's X = 8 end is the corner (the mirrored one's X = 0).
-	_piece(grid, "stair_w", "cell:court_stair", CellGrid.edge_transform(stair_w[1], CellGrid.Side.N))
-	_piece(grid, "stair_e", "cell:court_stair_r", CellGrid.edge_transform(stair_e[0], CellGrid.Side.N))
+	_piece(grid, "stair_w", "cell:court_stair", stairs["frames"][0])
+	_piece(grid, "stair_e", "cell:court_stair_r", stairs["frames"][1])
 	for corner: Vector3i in [Vector3i(-h, 0, 0), Vector3i(h, 0, 0), Vector3i(-h, 0, top), Vector3i(h, 0, top)]:
 		var inner := Vector3(corner.x * CellGrid.BAY + (CellGrid.BAY if corner.x < 0 else 0.0), 0.0,
 			-corner.z * CellGrid.BAY - (CellGrid.BAY if corner.z == 0 else 0.0))
@@ -204,18 +243,21 @@ func _place_ring(grid: CellGrid, h: int, top: int, stair_w: Array[Vector3i], sta
 		var n: String = CellGrid.cell_name(corner)
 		_piece(grid, "corner_" + n, "cell:court_corner", xf)
 		var slot: String = "cell:court_corner_upper"
-		if corner.z == 0:
-			# The stair comes up through the side facing the entry wall's cells.
-			var stair_side: int = CellGrid.Side.E if corner.x < 0 else CellGrid.Side.W
-			slot = "cell:court_corner_upper_stair" + ("_r" if stair_side == frame else "")
+		var at: int = (stairs["corners"] as Array).find(corner)
+		if at >= 0:
+			# The stair comes up through the side facing its hall's cells.
+			slot = "cell:court_corner_upper_stair" + ("_r" if stairs["arrive"][at] == frame else "")
 		_piece(grid, "corner_upper_" + n, slot, up * xf)
+	# Side stairs come up into the far corners: the loggia is the far wall's.
 	var upper: Array[Vector3i] = []
-	for z: int in range(1, top):
-		upper.append(Vector3i(-h, 1, z))
+	if not side_stairs():
+		for z: int in range(1, top):
+			upper.append(Vector3i(-h, 1, z))
 	for x: int in range(-h + 1, h):
 		upper.append(Vector3i(x, 1, top))
-	for z: int in range(top - 1, 0, -1):
-		upper.append(Vector3i(h, 1, z))
+	if not side_stairs():
+		for z: int in range(top - 1, 0, -1):
+			upper.append(Vector3i(h, 1, z))
 	return upper
 
 
@@ -223,16 +265,21 @@ func _place_ring(grid: CellGrid, h: int, top: int, stair_w: Array[Vector3i], sta
 ## in a far corner (seeded), strings of lanterns across.
 func _place_court(grid: CellGrid, h: int, top: int, centre: Vector3i, seed_value: int) -> void:
 	grid.props["hearth"] = {"slot": "court:hearth", "xf": Transform3D(Basis(), CellGrid.cell_centre(centre))}
-	var rng := RandomNumberGenerator.new()
-	rng.seed = hash([seed_value, "court_well"])
-	var well := Vector3i(-(h - 1) if rng.randi_range(0, 1) == 0 else h - 1, 0, top - 1)
-	grid.props["well"] = {"slot": "court:well", "xf": Transform3D(Basis(Vector3.UP, rng.randf_range(0.0, TAU)), CellGrid.cell_centre(well))}
-	grid.cells[well]["blocked"] = true
-	grid.meta["well"] = well
-	var x: float = CellGrid.cell_centre(centre).x
+	if well:
+		var rng := RandomNumberGenerator.new()
+		rng.seed = hash([seed_value, "court_well"])
+		var at := Vector3i(-(h - 1) if rng.randi_range(0, 1) == 0 else h - 1, 0, top - 1)
+		grid.props["well"] = {"slot": "court:well", "xf": Transform3D(Basis(Vector3.UP, rng.randf_range(0.0, TAU)), CellGrid.cell_centre(at))}
+		grid.cells[at]["blocked"] = true
+		grid.meta["well"] = at
+	var mid: Vector3 = CellGrid.cell_centre(centre)
 	for i: int in lantern_strings:
-		var z: float = -CellGrid.BAY - CellGrid.BAY * court_d * (i + 1.0) / (lantern_strings + 1.0)
-		grid.props["string_%d" % i] = {"slot": "court:lantern_string", "xf": Transform3D(Basis(), Vector3(x, 0, z))}
+		var xf := Transform3D()
+		if court_w <= court_d:     # across x, spaced down the court
+			xf.origin = Vector3(mid.x, 0, -CellGrid.BAY - CellGrid.BAY * court_d * (i + 1.0) / (lantern_strings + 1.0))
+		else:                      # across z, spaced along it
+			xf = Transform3D(Basis(Vector3.UP, PI * 0.5), Vector3((-h + 1) * CellGrid.BAY + CellGrid.BAY * court_w * (i + 1.0) / (lantern_strings + 1.0), 0, mid.z))
+		grid.props["string_%d" % i] = {"slot": lantern_string_slot, "xf": xf}
 
 
 ## Lanterns in the mouth of every cell_lamp_every-th ground cell round the
@@ -245,6 +292,10 @@ func _place_lamps(grid: CellGrid, upper: Array[Vector3i], h: int, top: int) -> v
 	for x: int in range(-h + 1, h):
 		if grid.cells.get(Vector3i(x, 0, 0), {}).get("kind", "") == "bay":
 			bays.append(Vector3i(x, 0, 0))
+	for z: int in range(1, top):     # side stairs: the side walls' bays under no loggia
+		for x: int in [-h, h]:
+			if grid.cells.get(Vector3i(x, 0, z), {}).get("kind", "") == "bay" and not bays.has(Vector3i(x, 0, z)):
+				bays.append(Vector3i(x, 0, z))
 	for i: int in bays.size():
 		if cell_lamp_every > 0 and i % cell_lamp_every == 0:
 			var xf: Transform3D = CellGrid.edge_transform(bays[i], court_side(bays[i], h, top))

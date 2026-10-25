@@ -11,6 +11,8 @@ enum SeedMode { FIXED, AREA }
 @export var display_name: String = ""
 ## An authored or baked room. Leave empty for a generated one.
 @export var scene: PackedScene
+## Or one of several, rolled by the area seed (the caravanserai's three sizes).
+@export var scene_choices: Array[PackedScene] = []
 ## A generated room: its grammar and (optionally) rules overriding the grammar's.
 @export var grammar: RoomGrammar
 @export var rules: ModuleRules

@@ -230,8 +230,12 @@ static func poll() -> void:
 			var t0: int = Time.get_ticks_usec()
 			_blit(_task_image, _task_region)
 			_upload_tiles(_task_region)
-			map_y = _band(_live_wears())
-			_publish()
+			# The same texture, updated in place: setting the map global again would
+			# make every kit material rebind (a 9 ms frame); only the band can change.
+			var band: Vector2 = _band(_live_wears())
+			if band != map_y:
+				map_y = band
+				RenderingServer.global_shader_parameter_set("kit_wear_y", map_y)
 			last_upload_ms = (Time.get_ticks_usec() - t0) / 1000.0
 			max_upload_ms = maxf(max_upload_ms, last_upload_ms)
 		_task_image = null

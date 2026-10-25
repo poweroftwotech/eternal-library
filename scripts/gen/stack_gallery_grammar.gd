@@ -250,8 +250,9 @@ func mark(grid: CellGrid, path: Array, seed_value: int) -> void:
 		# blocks the way (slot stub:exit, in the door connector's frame).
 		grid.props["exit_" + CellGrid.key(path[-1][0], exit_side)] = {"slot": "stub:exit",
 			"xf": CellGrid.door_transform(path[-1][0], exit_side)}
+	var behind: Dictionary = {}     # cells an alcove's back wall faces
 	for i: int in range(1, path.size()):
-		add_alcoves(grid, path[i][0], taken, seed_value)
+		add_alcoves(grid, path[i][0], taken, behind, seed_value)
 	for i: int in range(1, path.size()):
 		maybe_collapse(grid, path[i][0], seed_value)
 	place_lamps(grid, seed_value)
@@ -289,7 +290,9 @@ static func side_walls(grid: CellGrid, c: Vector3i) -> Array[int]:
 ## beside that cell. The alcove's barrel runs out from the bay, so its vault
 ## ends (and takes a gable) at the arch and at its back wall. Its two side
 ## walls meet the corridor's wall line, so they ask for edge:solid_corner.
-func add_alcoves(grid: CellGrid, c: Vector3i, taken: Dictionary, seed_value: int) -> void:
+## Two alcoves never back onto the same cell (`behind`): their back walls'
+## shelf recesses would meet in its corner (Lower Stacks seed 3).
+func add_alcoves(grid: CellGrid, c: Vector3i, taken: Dictionary, behind: Dictionary, seed_value: int) -> void:
 	if grid.cells[c]["kind"] != "floor":
 		return
 	for side: int in side_walls(grid, c):
@@ -304,6 +307,9 @@ func add_alcoves(grid: CellGrid, c: Vector3i, taken: Dictionary, seed_value: int
 		if not fits(grid, taken, a, c):
 			continue
 		var out: Vector3i = a - c
+		if behind.has(a + out):
+			continue
+		behind[a + out] = true
 		taken[a] = true
 		grid.add_cell(a, "alcove", out.abs(), grid.cells[c]["bay"])
 		grid.set_edge(c, side, CellGrid.Mark.OPENING)

@@ -163,15 +163,76 @@ func finish_entering(r: AreaPlan.Room, room: RoomTemplate) -> void:
 	light_budget.add_room(room, r.slot_id)
 
 
-## The rooms whose lights are on: the one you're in and those you can see into
-## from it (the plan's sightlines); empty (all) before the streamer knows.
+## The rooms whose lights are on: the one you're in, and of those you can see
+## into from it (the plan's sightlines) the ones whose first doorway out of
+## your room is in front of you (the camera's view, widened by
+## FACING_MARGIN_DEG either side so a turn lights a room before it shows). A
+## room next door you face away from keeps
+## only its lights that reach the doorway (value: the doorway's position), as
+## they light your side of it. Empty (all) before the streamer knows.
+const FACING_MARGIN_DEG: float = 15.0
+## A point this far through the doorway counts too: standing in it, you see
+## the room you face, not the one behind you.
+const BEYOND_DOOR_M: float = 2.0
+## Half a doorway's width (the kit's 3 m arch), for its jambs.
+const DOOR_HALF: float = 1.5
+## player room -> {slot: [first doorway (global), its jambs' axis, rooms away,
+## the way through it (out of the player's room)]}.
+var _first_doors: Dictionary = {}
+
+
 func seen_rooms() -> Dictionary:
 	if streamer == null or streamer.player_room == "":
 		return {}
-	var out: Dictionary = {streamer.player_room: true}
-	for s: String in plan.visible.get(streamer.player_room, PackedStringArray()):
-		out[s] = true
+	var here: String = streamer.player_room
+	var out: Dictionary = {here: true}
+	var cam: Camera3D = get_viewport().get_camera_3d() if is_inside_tree() else null
+	if not _first_doors.has(here):
+		_first_doors[here] = _doors_from(here)
+	var doors: Dictionary = _first_doors[here]
+	for s: String in plan.visible.get(here, PackedStringArray()):
+		if cam == null or not doors.has(s) or _facing(cam, doors[s]):
+			out[s] = true
+		elif doors[s][2] == 1:
+			out[s] = doors[s][0]
 	return out
+
+
+## Every room reachable from `here` by the plan's joints, with the doorway out
+## of `here` its way starts through.
+func _doors_from(here: String) -> Dictionary:
+	var out: Dictionary = {}
+	var todo: Array[String] = [here]
+	while not todo.is_empty():
+		var at: String = todo.pop_front()
+		for e: Dictionary in plan.edges:
+			var next: String = e["b"] if e["a"] == at else (e["a"] if e["b"] == at else "")
+			if next == "" or next == here or out.has(next):
+				continue
+			if at == here:
+				var xf: Transform3D = global_transform * (plan.room(here).connectors[e["a_conn"] if e["a"] == here else e["b_conn"]]["xf"] as Transform3D)
+				out[next] = [xf.origin, xf.basis.x.normalized(), 1, -xf.basis.z.normalized()]
+			else:
+				out[next] = [out[at][0], out[at][1], int(out[at][2]) + 1, out[at][3]]
+			todo.append(next)
+	return out
+
+
+## True if the doorway (its middle, a jamb, or a point BEYOND_DOOR_M through
+## it, at mid-height) is within the camera's view: the angle out to the
+## view's corners, widened (a light-well's doorways are above you, so not in
+## plan alone).
+static func _facing(cam: Camera3D, door: Array) -> bool:
+	var at: Vector3 = cam.global_position
+	var fwd: Vector3 = -cam.global_basis.z
+	var aspect: float = cam.get_viewport().get_visible_rect().size.aspect() if cam.get_viewport() != null else 16.0 / 9.0
+	var t: float = tan(deg_to_rad(cam.fov) * 0.5)
+	var half: float = atan(t * sqrt(1.0 + aspect * aspect)) + deg_to_rad(FACING_MARGIN_DEG)
+	var mid: Vector3 = (door[0] as Vector3) + Vector3(0, 1.5, 0)
+	for p: Vector3 in [mid, mid - (door[1] as Vector3) * DOOR_HALF, mid + (door[1] as Vector3) * DOOR_HALF, mid + (door[3] as Vector3) * BEYOND_DOOR_M]:
+		if fwd.angle_to(p - at) < half:
+			return true
+	return false
 
 
 ## How far past the back of a neighbour's recess a shortened module starts.

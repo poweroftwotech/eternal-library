@@ -150,6 +150,12 @@ slot = "stub:exit"
 styles = PackedStringArray("brick")
 choices = Array[ExtResource("2_orsei")]([SubResource("Resource_4gphm")])
 
+[sub_resource type="Resource" id="Resource_plain"]
+script = ExtResource("1_7scms")
+slot = "edge:plain"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_orsei")])
+
 [resource]
 script = ExtResource("11_47oyu")
-rules = Array[ExtResource("1_7scms")]([SubResource("Resource_kjaeu"), SubResource("Resource_uidj1"), SubResource("Resource_a6cyo"), SubResource("Resource_nomh4"), SubResource("Resource_iu605"), SubResource("Resource_l0etk"), SubResource("Resource_bpxti"), SubResource("Resource_4yvrr"), SubResource("Resource_nesut"), SubResource("Resource_jj3bs"), SubResource("Resource_45fml"), SubResource("Resource_af66h"), SubResource("Resource_47oyu")])
+rules = Array[ExtResource("1_7scms")]([SubResource("Resource_kjaeu"), SubResource("Resource_uidj1"), SubResource("Resource_a6cyo"), SubResource("Resource_nomh4"), SubResource("Resource_iu605"), SubResource("Resource_l0etk"), SubResource("Resource_bpxti"), SubResource("Resource_4yvrr"), SubResource("Resource_nesut"), SubResource("Resource_jj3bs"), SubResource("Resource_45fml"), SubResource("Resource_af66h"), SubResource("Resource_47oyu"), SubResource("Resource_plain")])

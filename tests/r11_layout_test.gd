@@ -48,7 +48,7 @@ func run() -> void:
 		if c == null:
 			continue
 		found += 1
-		check(c.slot_id == "cistern_1" and c.parent.begins_with("gallery_"), "lower stacks %d: cistern_1 grows off a gallery (%s off %s)" % [s, c.slot_id, c.parent])
+		check(c.slot_id == "cistern_1" and (c.parent == "hall" or c.parent.begins_with("gallery_")), "lower stacks %d: cistern_1 grows off a gallery or the hall (%s off %s)" % [s, c.slot_id, c.parent])
 		check(c.children_count() == 0, "lower stacks %d: the cistern is a dead end" % s)
 		audit("lower stacks %d" % s, c.grid, totals)
 		var again: AreaPlan = AreaPlanner.plan(recipe, s)

@@ -21,6 +21,9 @@
 [ext_resource type="PackedScene" path="res://kit/modules/walls/court_cell_lantern.tscn" id="19_j3c7n"]
 [ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="20_58rj8"]
 [ext_resource type="Script" path="res://scripts/gen/module_rules.gd" id="21_8vh35"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cavern_ceiling_7x5.tscn" id="22_c75"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cavern_ceiling_3x3.tscn" id="23_c33"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_lantern_string_12m.tscn" id="24_s12"]
 
 [sub_resource type="Resource" id="Resource_iupyl"]
 script = ExtResource("2_ybg3q")
@@ -202,6 +205,36 @@ slot = "stub:exit"
 styles = PackedStringArray()
 choices = Array[ExtResource("2_ybg3q")]([SubResource("Resource_h4e3v")])
 
+[sub_resource type="Resource" id="Choice_c75"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("22_c75")
+
+[sub_resource type="Resource" id="Rule_c75"]
+script = ExtResource("1_fe8bf")
+slot = "cell:cavern_7x5"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Choice_c75")])
+
+[sub_resource type="Resource" id="Choice_c33"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("23_c33")
+
+[sub_resource type="Resource" id="Rule_c33"]
+script = ExtResource("1_fe8bf")
+slot = "cell:cavern_3x3"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Choice_c33")])
+
+[sub_resource type="Resource" id="Choice_s12"]
+script = ExtResource("2_ybg3q")
+scene = ExtResource("24_s12")
+
+[sub_resource type="Resource" id="Rule_s12"]
+script = ExtResource("1_fe8bf")
+slot = "court:lantern_string_12m"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_ybg3q")]([SubResource("Choice_s12")])
+
 [resource]
 script = ExtResource("21_8vh35")
-rules = Array[ExtResource("1_fe8bf")]([SubResource("Resource_ub5g6"), SubResource("Resource_yj668"), SubResource("Resource_g5bdb"), SubResource("Resource_ovvma"), SubResource("Resource_4nfho"), SubResource("Resource_0q283"), SubResource("Resource_pvnjq"), SubResource("Resource_1aoh2"), SubResource("Resource_s50ch"), SubResource("Resource_1fclu"), SubResource("Resource_4qp6v"), SubResource("Resource_ffney"), SubResource("Resource_j0bpa"), SubResource("Resource_6sbyr"), SubResource("Resource_2ofan"), SubResource("Resource_cwjdu"), SubResource("Resource_4ahd2"), SubResource("Resource_gvq5l")])
+rules = Array[ExtResource("1_fe8bf")]([SubResource("Resource_ub5g6"), SubResource("Resource_yj668"), SubResource("Resource_g5bdb"), SubResource("Resource_ovvma"), SubResource("Resource_4nfho"), SubResource("Resource_0q283"), SubResource("Resource_pvnjq"), SubResource("Resource_1aoh2"), SubResource("Resource_s50ch"), SubResource("Resource_1fclu"), SubResource("Resource_4qp6v"), SubResource("Resource_ffney"), SubResource("Resource_j0bpa"), SubResource("Resource_6sbyr"), SubResource("Resource_2ofan"), SubResource("Resource_cwjdu"), SubResource("Resource_4ahd2"), SubResource("Resource_gvq5l"), SubResource("Rule_c75"), SubResource("Rule_c33"), SubResource("Rule_s12")])

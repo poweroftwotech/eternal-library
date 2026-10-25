@@ -15,6 +15,128 @@ light-well whose stair climbs to galleries on the floors above (step 4).
 
 ---
 
+## Rooms meeting each other, and the caravanserai's other sizes (2026-10-24; not committed)
+
+**Try it:** Esc → **Walk the Lower Stacks**, then Esc → **Reseed the Lower
+Stacks**: the court now comes in three sizes, about a third of seeds each
+(seeds 1–2 a 5 × 5, 3–4 a 3 × 3, 5–6 a 7 × 5).
+
+**Generated rooms meeting each other (found on seed 3).** Two causes:
+
+- *Inside a gallery:* two side alcoves (bays 5 and 9 of gallery 4) backed
+  onto the same empty cell from two sides, and both back walls rolled shelf
+  recesses, which met in that cell's corner. An alcove is now skipped if
+  its back wall would face a cell another alcove already backs onto
+  (`scripts/gen/stack_gallery_grammar.gd`). Every gallery on its own comes out
+  exactly as before (`gen_signature_test`).
+- *Between rooms:* a shelf recess digs 0.25 m past its wall. Only baked
+  rooms told their neighbours where theirs were (phase 4), so a generated
+  room's recess could open into whatever stood behind it: a fern, the
+  cistern's bronze door, another room's sealed recess door, R01's stair.
+  After an area is planned, a generated room's wall that backs onto a cell
+  another room stands in is now a plain wall (a new `edge:plain` slot in the
+  gallery, hall and cistern rules; `AreaPlanner._plain_backed_walls`). A
+  collapsed bay's recess there becomes a plain wall too; its rubble stays.
+
+  A probe building seeds 1–30 of both areas found it on 3 seeds of 60 before
+  (library 29, Lower Stacks 10 and 17); after: **none**.
+
+**The 7 × 5 and 3 × 3 caravanserais** (Q11; you chose the seed to pick the size):
+
+- *7 × 5:* the same plan, wider: 17 ground cells, the loggia through 17
+  upper cells, side doors, the well. Its lantern strings run front to back
+  (the 20 m string spans its 5-bay depth).
+- *3 × 3:* the entry wall has only the gate and a cell either side, too
+  short for the two-bay stair halls. You chose the side walls; coming up
+  into the **entry** corners would have stranded you upstairs (from there the
+  loggia can't run back over the stair hall, and the pishtaq blocks the entry
+  wall), so the halls run up the side walls into the **far** corners, the
+  same pieces turned 90°, and the loggia runs along the far wall between
+  them: up one, across, down the other, as in the 5 × 5. Its side doors are
+  the side walls' first cells (with the gate alone, the area came out too
+  small: seed 4 planned only 4 rooms). No well (the hearth fills the court,
+  about 1.9 m to walk round it). One 12 m string of lanterns.
+- New kit pieces, added by `tools/kit_add_r05.py` (your hand-edited pieces
+  untouched): the cavern's rock for each size (`cavern_ceiling_7x5`,
+  `_3x3`) and the 12 m lantern string. Grammars
+  `gen/grammars/r05_court_7x5.tres` and `_3x3.tres`, baked to
+  `rooms/baked/caravanserai_7x5.tscn` and `_3x3.tscn`. The 5 × 5's bake is
+  unchanged module for module.
+- The grammar takes a 3-wide court (`side_stairs()`), records each stair's
+  frame, corner and arrival side, and lights the side-wall cells that aren't
+  under the loggia. About 60 lines.
+- The Lower Stacks' root is a list of the three bakes (`AreaSlot.scene_choices`),
+  picked by area seed; recipe version 6 (saved changes in the old court go stale).
+
+Pictures (Medium, 1920 × 1080): `previews/p5_sizes/` (`r05_5_*` the 7 × 5,
+`r05_3_*` the 3 × 3). The court captures now find their views from any
+court's layout.
+
+**Gates:** `r05_layout_test` **11,219** (every size: cells, stairs, doors,
+pieces, loggia, bake module for module; the Lower Stacks seeds 1–20 show all
+three), `r05_route_test` **138** (seeds 1–2 the 5 × 5, 3–4 the 3 × 3, 5 the
+7 × 5: every court cell, every ground cell, the hearth, up one stair, round
+the loggia, down the other, every door, the sills), `area_route_test` **465,
+no failures** (seed 3's clashes gone), `area_plan_test` 266, `r03_layout_test`
+11,001, `r03_route_test` 46, `r11_layout_test` 6,055 (it now allows the
+cistern off the hall, as the recipe has since step 4), `r11_route_test` 46,
+`r09_layout_test` 1,040, `r09_route_test` 69, `gen_signature_test` 103,
+`r02_bake_test` 105, `stream_test` 80, `validate_room_test` 26, `kit_test`
+2,502, `persist_gate.sh` all nine processes pass.
+
+**The frame gate** (Medium, 1080p, one run each): CPU passes everywhere
+(worst 6.9 ms on seed 90, 6.0 on seed 5, 5.9 on seed 3). **Lights in reach:
+seed 90 (a 5 × 5) 50 of 50, passes; seed 5 (the 7 × 5) 59 and seed 3 (the
+3 × 3) 58, fail.** The gate had only ever walked seed 90. On both other seeds
+the peak is again the gate passage, which sees the hall and the court and,
+through the court's side doors, the galleries beyond: on seed 3 the court
+gives only 5 of the 58 (hall 15, galleries 16, the light-well 6), so it's
+not the sizes; it's how much one spot is allowed to see.
+
+### Lights by the doorway you face (2026-10-24; you chose it)
+
+Of the rooms you can see into from your room (the plan's sightlines), only
+those whose doorway out of your room is in front of you are lit
+(`Area.seen_rooms`, about 70 lines with `LightBudget`):
+
+- A doorway counts as in front if its middle, either jamb, or a point 2 m
+  through it (at head height) is within the view's corners plus 15° either
+  side. The point through it settles a doorway you're standing in: the room
+  you face is lit, the one behind you isn't.
+- A room next door you face away from keeps its lamps whose light reaches
+  the doorway, as they light your side of it. A room two doorways away you
+  face away from is dark.
+- It's checked every frame (applied only when it changes), so a turn lights
+  a room before its doorway reaches the screen. A probe spun the camera a
+  full turn at 12° a frame (720° a second) at every doorway of seeds 90, 5
+  and 3, 0.1 m to 2.5 m from it: **no room came on with its doorway already
+  in view.** It works in 3D, so a light-well's doorways above you count.
+- Still as before: crossing into a new room can switch on rooms that only it
+  sees.
+
+**Also fixed, found in the first runs:** a floor-wear upload still cost a
+9.3 ms frame once. The texture is updated in place now, but each upload set
+it again as a shader global, which can make every kit material rebind; it
+now sets only the wear's height band, and only when that changes. No frame
+over 6.9 ms since.
+
+**The frame gate passes on all three seeds** (Medium, 1080p, one run each):
+
+| Seed | Court | Lights in reach (≤ 50) | CPU worst (≤ 8 ms) | GPU worst |
+|---|---|---|---|---|
+| 90 | 5 × 5 | 44 (was 50) | 6.81 ms | 2.4 ms |
+| 5 | 7 × 5 | 50 (was 59) | 6.38 ms | 2.4 ms |
+| 3 | 3 × 3 | 43 (was 58) | 6.37 ms | 2.3 ms |
+
+Seed 5 sits on the limit, at the walk's start: in the gate facing the hall,
+with the 7 × 5's court lanterns round you. `stream_test` 80, `age_test` 20,
+`persist_gate.sh` all nine pass. Court pictures from the same spots match
+the earlier ones; a few views (into a cell, the loggia, the stair) are a
+touch brighter, my guess being the four shadowed lamps going to different
+lamps now that the rooms behind are dark (not confirmed).
+
+---
+
 ## The frame gate after step 5 (2026-10-24; passes; committed 4cb9599)
 
 You asked to get lights in reach under 48 and the CPU worst frames under 8 ms.

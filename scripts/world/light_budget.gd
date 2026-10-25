@@ -12,7 +12,9 @@ extends Node
 ## 5 m), so far lamps cost nothing. LampState keeps control of on and off: a
 ## dark lamp (not visible) is simply not ranked. Phase 5 step 5: the lights of
 ## rooms you can't see into from the room you're in are off too (`seen_rooms`),
-## a dark lamp staying dark when its room comes back into view.
+## a dark lamp staying dark when its room comes back into view; and of those
+## you can, the rooms whose doorway is behind you (Area.seen_rooms), checked
+## every frame so a turn lights them before they show.
 
 ## How many lights cast shadows at once (Q8).
 var shadow_budget: int = 4
@@ -31,6 +33,8 @@ var seen_rooms: Callable
 ## slot -> its rooms' lights (every one, not just the shadow-capable).
 var room_lights: Dictionary = {}
 var _check: float = 0.0
+## The seen rooms last applied (re-applied when they change, and every check).
+var _applied: Dictionary = {}
 
 
 ## A room entered: its lights fade with distance, and those built with shadows
@@ -76,9 +80,11 @@ func ranked() -> Array[Light3D]:
 
 func _process(delta: float) -> void:
 	_check -= delta
+	var seen: Dictionary = seen_rooms.call() if seen_rooms.is_valid() else {}
+	if _check <= 0.0 or seen != _applied:
+		_show_seen(seen)
 	if _check <= 0.0:
 		_check = interval_s
-		_show_seen()
 		var lit: Array[Light3D] = ranked()
 		shadowed = lit.slice(0, shadow_budget)
 	var step: float = delta / fade_s if fade_s > 0.0 else 1.0
@@ -110,11 +116,13 @@ func casting() -> int:
 
 
 ## Lights on in the rooms you can see into, off in the rest (a dark lamp stays
-## off: LampState's "lamp_state" meta).
-func _show_seen() -> void:
-	var seen: Dictionary = seen_rooms.call() if seen_rooms.is_valid() else {}
+## off: LampState's "lamp_state" meta). A room seen as a position (a doorway
+## behind you) keeps on only its lights whose reach gets there.
+func _show_seen(seen: Dictionary) -> void:
+	_applied = seen
 	for slot: String in room_lights.keys():
 		var on: bool = seen.is_empty() or seen.has(slot)
+		var door: Variant = seen.get(slot, true)
 		var kept: Array[Light3D] = []
 		for l: Variant in room_lights[slot]:
 			if not is_instance_valid(l):
@@ -122,9 +130,19 @@ func _show_seen() -> void:
 			var light := l as Light3D
 			kept.append(light)
 			var want: bool = on and str(light.get_meta("lamp_state", "lit")) != "dark"
+			if want and door is Vector3:
+				want = light.global_position.distance_to(door) < _reach(light)
 			if light.visible != want:
 				light.visible = want
 		if kept.is_empty():
 			room_lights.erase(slot)
 		else:
 			room_lights[slot] = kept
+
+
+static func _reach(light: Light3D) -> float:
+	if light is OmniLight3D:
+		return (light as OmniLight3D).omni_range
+	if light is SpotLight3D:
+		return (light as SpotLight3D).spot_range
+	return INF

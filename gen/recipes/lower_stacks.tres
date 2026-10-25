@@ -10,12 +10,15 @@
 [ext_resource type="Resource" path="res://gen/grammars/r11_cistern.tres" id="8_r11"]
 [ext_resource type="Resource" path="res://gen/grammars/r09_lightwell.tres" id="9_r09"]
 [ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_5x5.tscn" id="10_r05"]
+[ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_7x5.tscn" id="11_r05"]
+[ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_3x3.tscn" id="12_r05"]
 
 [sub_resource type="Resource" id="Resource_court"]
 script = ExtResource("2_slot")
 slot_id = "caravanserai"
 display_name = "The Caravanserai"
 scene = ExtResource("10_r05")
+scene_choices = Array[PackedScene]([ExtResource("10_r05"), ExtResource("11_r05"), ExtResource("12_r05")])
 pinned = true
 
 [sub_resource type="Resource" id="Resource_hall"]
@@ -69,6 +72,6 @@ display_name = "The Lower Stacks"
 slots = Array[ExtResource("2_slot")]([SubResource("Resource_court"), SubResource("Resource_hall")])
 grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow"), SubResource("Resource_lightwell"), SubResource("Resource_cistern"), SubResource("Resource_upper")])
 room_count = Vector2i(6, 11)
-version = 5
+version = 6
 placement = SubResource("Resource_place")
 atmosphere = ExtResource("7_atmos")

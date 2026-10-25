@@ -1,22 +1,23 @@
 extends SceneTree
 ## R05 route gate (phase-5-design.md 5.6.7), headless:
 ##   godot --headless --path . --script res://tests/r05_route_test.gd [-- seeds=N]
-## The Lower Stacks' caravanserai (the baked 5 x 5 court, the area's root),
-## seeds 1-3, every room built at once. The validator is clean. The real
+## The Lower Stacks' caravanserai (a baked court, the area's root), seeds 1 and 2
+## (5 x 5), 3 and 4 (3 x 3) and 5 (7 x 5), every room built at once. The validator is clean. The real
 ## player's capsule (radius 0.35, height 1.8):
 ##   - walks from the gate to every open court cell and back round the hearth;
 ##   - steps into every ground cell through its arch and out again;
 ##   - climbs onto the hearth's platform;
 ##   - climbs the west stair to the upper storey (feet on the loggia floor),
 ##     walks the loggia through every upper cell and round the corners, and
-##     comes down the east stair into the court, nothing catching it;
+##     comes down the east stair into the court, nothing catching it (a 3 x 3:
+##     up the west wall, along the far wall's loggia, down the east wall);
 ##   - walks out of the gate and each side door into the room beyond (or to
 ##     its stub) and back.
 ## And the upper arches' sills, the stair's divider and the stair halls' end
 ## walls stop a walk off the upper storey.
 
 const RECIPE: String = "res://gen/recipes/lower_stacks.tres"
-const SEEDS: int = 3
+const SEEDS: Array[int] = [1, 2, 3, 4, 5]
 const SPEED: float = 6.0
 
 var failures: PackedStringArray = []
@@ -35,11 +36,11 @@ func check(ok: bool, what: String) -> void:
 
 
 func run() -> void:
-	var seeds: int = SEEDS
+	var seeds: Array = SEEDS
 	for a: String in OS.get_cmdline_user_args():
 		if a.begins_with("seeds="):
-			seeds = a.trim_prefix("seeds=").to_int()
-	for s: int in range(1, seeds + 1):
+			seeds = range(1, a.trim_prefix("seeds=").to_int() + 1)
+	for s: int in seeds:
 		await walk_seed(s)
 	Area.seed_override = -1
 	print("r05_route_test: %d checks, %d failures" % [checks, failures.size()])
@@ -74,7 +75,7 @@ func walk_seed(s: int) -> void:
 	var h: int = m["h"]
 	var top: int = m["top"]
 	var centre: Vector3i = m["centre"]
-	var well: Vector3i = m["well"]
+	var well: Vector3i = m.get("well", Vector3i(0, -9, 0))     # a 3 x 3 has none
 	var g := func(p: Vector3) -> Vector3: return room.to_global(p)
 	var body: CharacterBody3D = make_capsule(area)
 	# The court: from the gate, row by row (serpentine), every open cell, each
@@ -116,7 +117,8 @@ func walk_seed(s: int) -> void:
 			got += await follow(body, back)
 			check(got == 3, "%s: into ground cell %s through its arch and out (%d of 3)" % [tag, c, got])
 			bays += 1
-	check(bays == 15, "%s: 15 ground cells and passages open to the court (%d)" % [tag, bays])
+	var ring: int = (2 * h + 1) * (top + 1) - 4 - (2 * h - 1) * (top - 1)
+	check(bays == ring - 5, "%s: %d ground cells and passages open to the court (%d)" % [tag, ring - 5, bays])
 	# Onto the hearth's platform.
 	var hearth: Vector3 = CellGrid.cell_centre(centre)
 	var onto: Array[Vector3] = [g.call(hearth + Vector3(0, 0, 5.5)), g.call(hearth + Vector3(0, 0, 2.3))]
@@ -191,15 +193,16 @@ static func court_path(from: Vector3i, to: Vector3i, h: int, top: int, avoid: Ar
 
 
 ## Room-frame floor points: in through the west stair's arch, up both
-## flights, through the SW corner, the loggia through every upper cell and
-## round the far corners, the SE corner and down the east stair to the court.
+## flights, through the corner it comes up into, the loggia through every
+## upper cell and round the corners between them, the east stair's corner and
+## down the east stair to the court.
 static func upper_tour(m: Dictionary) -> Array[Vector3]:
 	var h: int = m["h"]
 	var top: int = m["top"]
-	var stairs: Array = m["stairs"]
+	var corners: Array = m["stair_corners"]
 	var up := Vector3(0, 4.05, 0)
-	var west: Transform3D = CellGrid.edge_transform(stairs[0][1], CellGrid.Side.N)
-	var east: Transform3D = CellGrid.edge_transform(stairs[1][0], CellGrid.Side.N)
+	var west: Transform3D = m["stair_frames"][0]
+	var east: Transform3D = m["stair_frames"][1]
 	var climb: Array = [[7.0, -1.0], [7.0, 1.15], [5.5, 1.15], [4.5, 1.15], [3.5, 1.15], [2.5, 1.15], [1.0, 1.15],
 		[1.0, 2.75], [2.5, 2.75], [3.5, 2.75], [4.5, 2.75], [7.0, 2.75]]
 	var out: Array[Vector3] = []
@@ -207,19 +210,21 @@ static func upper_tour(m: Dictionary) -> Array[Vector3]:
 		out.append(at(west, q[0], q[1], 0.0))
 	# The stair's top is 4.05 m up: the climb's last points are on its flights,
 	# so only the first floor points need a height (follow() keeps the feet).
-	out.append(corner_point(m, Vector3i(-h, 0, 0), Vector2(0.6, 2.75)) + up)
-	out.append(corner_point(m, Vector3i(-h, 0, 0), Vector2(1.15, 2.75)) + up)
-	out.append(corner_point(m, Vector3i(-h, 0, 0), Vector2(1.15, 0.6)) + up)
-	for c: Vector3i in m["upper"]:
+	out.append(corner_point(m, corners[0], Vector2(0.6, 2.75)) + up)
+	out.append(corner_point(m, corners[0], Vector2(1.15, 2.75)) + up)
+	out.append(corner_point(m, corners[0], Vector2(1.15, 0.6)) + up)
+	var upper: Array = m["upper"]
+	for i: int in upper.size():
+		var c: Vector3i = upper[i]
 		var g0 := Vector3i(c.x, 0, c.z)
 		out.append(at(CellGrid.edge_transform(g0, CourtyardGrammar.court_side(g0, h, top)), 2.0, 1.15) + up)
-		if c == Vector3i(-h, 1, top - 1):
-			out.append(corner_point(m, Vector3i(-h, 0, top), Vector2(1.15, 1.15)) + up)
-		if c == Vector3i(h - 1, 1, top):
-			out.append(corner_point(m, Vector3i(h, 0, top), Vector2(1.15, 1.15)) + up)
-	out.append(corner_point(m, Vector3i(h, 0, 0), Vector2(1.15, 0.6)) + up)
-	out.append(corner_point(m, Vector3i(h, 0, 0), Vector2(1.15, 2.75)) + up)
-	out.append(corner_point(m, Vector3i(h, 0, 0), Vector2(0.6, 2.75)) + up)
+		if i + 1 < upper.size() and ((upper[i + 1] as Vector3i) - c).abs() == Vector3i(1, 0, 1):
+			var n: Vector3i = upper[i + 1]
+			var corner := Vector3i(c.x if absi(c.x) == h else n.x, 0, c.z if c.z == top else n.z)
+			out.append(corner_point(m, corner, Vector2(1.15, 1.15)) + up)
+	out.append(corner_point(m, corners[1], Vector2(1.15, 0.6)) + up)
+	out.append(corner_point(m, corners[1], Vector2(1.15, 2.75)) + up)
+	out.append(corner_point(m, corners[1], Vector2(0.6, 2.75)) + up)
 	var down: Array = climb.duplicate()
 	down.reverse()
 	for q: Array in down:
@@ -230,15 +235,17 @@ static func upper_tour(m: Dictionary) -> Array[Vector3]:
 ## A point in a corner piece's frame (the grammar's: the edge whose start is
 ## the court's corner), given as in court_corner_upper_stair (the stair's arm
 ## from X = 0 in the back lane, the range's from Y = 0): swapped for the
-## mirrored corner (court_corner_upper_stair_r).
-static func corner_point(_m: Dictionary, corner: Vector3i, p: Vector2) -> Vector3:
+## mirrored corner (court_corner_upper_stair_r, where the stair arrives
+## through the frame's own side).
+static func corner_point(m: Dictionary, corner: Vector3i, p: Vector2) -> Vector3:
 	var inner := Vector3(corner.x * CellGrid.BAY + (CellGrid.BAY if corner.x < 0 else 0.0), 0.0,
 		-corner.z * CellGrid.BAY - (CellGrid.BAY if corner.z == 0 else 0.0))
 	var frame: int = -1
 	for side: int in CellGrid.ALL_SIDES:
 		if CellGrid.edge_ends(corner, side)[0].is_equal_approx(inner):
 			frame = side
-	var mirrored: bool = corner.z == 0 and (CellGrid.Side.E if corner.x < 0 else CellGrid.Side.W) == frame
+	var at_stair: int = (m["stair_corners"] as Array).find(corner)
+	var mirrored: bool = at_stair >= 0 and m["stair_arrive"][at_stair] == frame
 	var q: Vector2 = Vector2(p.y, p.x) if mirrored else p
 	return at(CellGrid.edge_transform(corner, frame), q.x, q.y)
 
@@ -247,7 +254,6 @@ func rails(body: CharacterBody3D, room: Node3D, m: Dictionary) -> PackedStringAr
 	var out: PackedStringArray = []
 	var h: int = m["h"]
 	var top: int = m["top"]
-	var stairs: Array = m["stairs"]
 	var up := Vector3(0, 4.05 + 0.95 + 0.05, 0)
 	# Every upper cell: out through its arch's sill into the court.
 	for c: Vector3i in m["upper"]:
@@ -260,7 +266,7 @@ func rails(body: CharacterBody3D, room: Node3D, m: Dictionary) -> PackedStringAr
 	# along the flight's lane past the hall's end is the corner (open), so
 	# only the divider is tested; and the first flight's landing over the edge.
 	for i: int in 2:
-		var xf: Transform3D = CellGrid.edge_transform(stairs[0][1] if i == 0 else stairs[1][0], CellGrid.Side.N)
+		var xf: Transform3D = m["stair_frames"][i]
 		var x_top: float = 7.0 if i == 0 else 1.0
 		var from: Vector3 = room.to_global(at(xf, x_top, 2.75) + up)
 		if await free_way(body, from, room.global_basis * (at(xf, x_top, 0.2) - at(xf, x_top, 2.75))):

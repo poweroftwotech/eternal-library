@@ -53,6 +53,10 @@ New modules (laid out on a row at Blender Y = -80 for viewing):
                           foot of its back wall, reaching toward -Y (the court).
   cavern_ceiling_5x5      cell, 7 x 7 bays: the cavern's rock over the court,
                           down to the roofs at the edges.
+  cavern_ceiling_7x5 / _3x3
+                          cell, 9 x 7 and 5 x 5 bays: the same for the other sizes.
+  court_lantern_string_12m
+                          free: the 3 x 3 court's rope of lanterns, 12 m.
 """
 import math
 import os
@@ -541,6 +545,22 @@ def lantern_string(r):
         marker("LIGHT_lantern__string_%d" % (x > 0), r, (x, 0.0, sag(x) - 0.7), {"energy": 1.7, "range": 9.5})     # rev 2: brighter (the atlas mock's warm court)
 
 
+def lantern_string_12m(r):
+    """The 3 x 3 court's rope, X -6..6 (12 m), sagging as lantern_string: four
+    lanterns, one light for them."""
+    sag = lambda x: 7.0 - 0.5 * (1.0 - (x / 6.0) ** 2)
+    solid("court_lantern_string_12m__rope", r, ["iron"], lambda bm: add_tube(bm, [(x * 0.5, 0.0, sag(x * 0.5)) for x in range(-12, 13)], 0.015, 4))
+    bm = bmesh.new()
+    glass = bmesh.new()
+    for k in range(4):
+        x = -3.75 + 2.5 * k
+        lantern_at(bm, glass, x, 0.0, sag(x) - 0.75, 0.12, 0.36)
+        add_box(bm, x - 0.01, x + 0.01, -0.01, 0.01, sag(x) - 0.34, sag(x))
+    mesh_object("court_lantern_string_12m__lanterns", bm, ["brass"], r)
+    mesh_object("court_lantern_string_12m__glass", glass, ["emit_lantern"], r)
+    marker("LIGHT_lantern__string_12m", r, (0.0, 0.0, sag(0.0) - 0.7), {"energy": 1.7, "range": 9.5})
+
+
 def cell_lantern(r):
     """A lantern hung from a ground cell's vault in its mouth (origin on the floor
     under it, 1.1 m in from the court face; the vault's crown is 3.65 m up)."""
@@ -704,6 +724,36 @@ def contents_ruin(r):
 
 # --- the cavern ---------------------------------------------------------------------
 
+def cavern_ceiling_sized(name, bays_x, bays_y):
+    """Rock over a court of (bays_x - 2) x (bays_y - 2) bays and its ring (X 0..4
+    bays_x, Y 0..4 bays_y), as cavern_ceiling: 15 m over the court more than 6 m
+    in from the ring, 12.4 m over its faces, down to the roofs at the outer
+    edge, by the distance in from the nearer edge (the 3 x 3 and 7 x 5 sizes)."""
+    sx, sy = 4.0 * bays_x, 4.0 * bays_y
+    nx, ny = bays_x * 4, bays_y * 4
+
+    def build(r):
+        def height(x, y):
+            e = min(x, sx - x, y, sy - y)          # in from the outer edge
+            if e >= 4.0 + 6.0 - 2.0:
+                h = 15.0
+            elif e >= 4.0:
+                h = 15.0 - 2.6 * ((8.0 - e) / 4.0) ** 1.5
+            else:
+                h = 12.4 - 4.35 * ((4.0 - e) / 4.0) ** 0.8
+            rough = noise.noise((x * 0.21, y * 0.21, 3.7)) * 0.9 + noise.noise((x * 0.6, y * 0.6, 9.1)) * 0.3
+            return h + rough * min(1.0, e / 2.5)
+
+        bm = bmesh.new()
+        vs = [[bm.verts.new((sx * i / nx, sy * j / ny, height(sx * i / nx, sy * j / ny))) for j in range(ny + 1)] for i in range(nx + 1)]
+        for i in range(nx):
+            for j in range(ny):
+                bm.faces.new((vs[i][j], vs[i][j + 1], vs[i + 1][j + 1], vs[i + 1][j]))     # wound to face down
+        mesh_object(name + "__rock", bm, ["cave_rock"], r, recalc=False)
+        solid(name + "__lid-colonly", r, ["cave_rock"], lambda bm: add_box(bm, 0.0, sx, 0.0, sy, 15.9, 16.0))
+    return build
+
+
 def cavern_ceiling(r):
     """Rock over the 7 x 7 bay footprint (X 0..28, Y 0..28): 15 m over the
     court's middle, 12 m over its faces, down to the roofs (8.05 m) at the
@@ -757,6 +807,9 @@ MODULES = [
     ("M_court_contents_stall", props("free", [1, 0, 1], "", "wood,court,light", family="dressing"), contents_stall),
     ("M_court_contents_ruin", props("free", [1, 0, 1], "", "brick,debris,court", family="dressing"), contents_ruin),
     ("M_cavern_ceiling_5x5", props("cell", [7, 4, 7], "", "rock,cavern,court"), cavern_ceiling),
+    ("M_cavern_ceiling_7x5", props("cell", [9, 4, 7], "", "rock,cavern,court"), cavern_ceiling_sized("cavern_ceiling_7x5", 9, 7)),
+    ("M_cavern_ceiling_3x3", props("cell", [5, 4, 5], "", "rock,cavern,court"), cavern_ceiling_sized("cavern_ceiling_3x3", 5, 5)),
+    ("M_court_lantern_string_12m", props("free", [3, 2, 0], "", "brass,light,court"), lantern_string_12m),
 ]
 
 
