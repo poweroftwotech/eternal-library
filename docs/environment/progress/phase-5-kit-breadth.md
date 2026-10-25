@@ -15,7 +15,7 @@ light-well whose stair climbs to galleries on the floors above (step 4).
 
 ---
 
-## Rooms meeting each other, and the caravanserai's other sizes (2026-10-24; not committed)
+## Rooms meeting each other, and the caravanserai's other sizes (2026-10-24; committed e45e404)
 
 **Try it:** Esc → **Walk the Lower Stacks**, then Esc → **Reseed the Lower
 Stacks**: the court now comes in three sizes, about a third of seeds each

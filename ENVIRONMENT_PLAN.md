@@ -8,8 +8,8 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **The caravanserai in three sizes, and rooms no longer meet**: the Lower Stacks start in a 5 × 5, 7 × 5 or 3 × 3 court by seed (seeds 1–2, 5–6, 3–4); the 3 × 3's stairs run up its side walls into the far corners. Generated rooms no longer dig recesses into each other (none in 60 seeds). All tests pass. Not committed |  | Walk a 7 × 5 and a 3 × 3 (Esc → Reseed), then say whether to commit |
-| **Lights by the doorway you face; the frame gate passes on seeds 90, 5 and 3** (44, 50, 43 lights of 50; CPU worst 6.4–6.8 ms). Rooms behind you are dark except lamps that light the doorway; a fast-turn probe found no room lighting up already in view. Not committed | [Lights by the doorway you face](docs/environment/progress/phase-5-kit-breadth.md) | Walk it: turn round in the gate and at the side doors, and watch for lamps switching |
+| **The caravanserai in three sizes, and rooms no longer meet**: the Lower Stacks start in a 5 × 5, 7 × 5 or 3 × 3 court by seed (seeds 1–2, 5–6, 3–4); the 3 × 3's stairs run up its side walls into the far corners. Generated rooms no longer dig recesses into each other (none in 60 seeds). All tests pass. Not committed |  | Walk a 7 × 5 and a 3 × 3 (Esc → Reseed) |
+| **Lights by the doorway you face; the frame gate passes on seeds 90, 5 and 3** (44, 50, 43 lights of 50; CPU worst 6.4–6.8 ms). Rooms behind you are dark except lamps that light the doorway; a fast-turn probe found no room lighting up already in view. Committed (e45e404) | [Lights by the doorway you face](docs/environment/progress/phase-5-kit-breadth.md) | Walk it: turn round in the gate and at the side doors, and watch for lamps switching |
 
 ## What's new
 
