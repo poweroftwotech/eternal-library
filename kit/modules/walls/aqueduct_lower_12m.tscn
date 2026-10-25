@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_4ufjg"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/aqueduct_lower_12m.glb" id="2_h0ibl"]
+
+[node name="aqueduct_lower_12m" type="Node3D" unique_id=160971720]
+script = ExtResource("1_4ufjg")
+shape = 1
+family = "walls"
+size_cells = Vector3i(3, 5, 1)
+tags = PackedStringArray("scenery", "gorge", "aqueduct")
+source_glb = "res://assets/kit/walls/aqueduct_lower_12m.glb"
+
+[node name="Mesh" parent="." unique_id=464982777 instance=ExtResource("2_h0ibl")]

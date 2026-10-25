@@ -79,7 +79,8 @@ func _post_import(scene: Node) -> Object:
 			if String(node.name).begins_with(prefix):
 				_convert_empty(node, prefix, scene)
 				break
-	if kit["shape"] in ["edge", "cell", "post"] and not has_collision:
+	# Pieces tagged "scenery" (the gorge's, phase-6-design.md 5.7.2) are only looked at.
+	if kit["shape"] in ["edge", "cell", "post"] and not has_collision and not (kit["tags"] as PackedStringArray).has("scenery"):
 		_warnings.append("structural module has no collision; name a mesh child '*-col' in Blender")
 	for w: String in _warnings:
 		push_warning("kit_import %s: %s" % [kit["name"], w])
@@ -113,6 +114,11 @@ func _vec3i(value: Variant) -> Vector3i:
 	return Vector3i.ZERO
 
 
+## Materials whose meshes cast no shadow (phase 6: the gorge's lit windows, lamps,
+## rain streaks, moss, banners and carpets; vista.gd's windows cast none either).
+const NO_SHADOW: PackedStringArray = ["gorge_window", "gorge_lamp", "gorge_grime", "gorge_moss", "gorge_tapestry_0", "gorge_tapestry_1", "gorge_tapestry_2", "gorge_carpet"]
+
+
 func _fix_materials(inst: MeshInstance3D) -> void:
 	var mesh: Mesh = inst.mesh
 	if mesh == null:
@@ -130,7 +136,8 @@ func _fix_materials(inst: MeshInstance3D) -> void:
 		for i: int in inst.get_surface_override_material_count():
 			inst.set_surface_override_material(i, null)
 	var first: String = _clean_name(str(mesh.surface_get_material(0).resource_name)) if mesh.get_surface_count() > 0 else ""
-	if first.begins_with("emit_") or first.ends_with("water"):     # glass and the water's surface cast no shadow
+	# Glass, the water's surface, and the gorge's glows, decals and cloth cast no shadow.
+	if first.begins_with("emit_") or first.ends_with("water") or first in NO_SHADOW:
 		inst.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 
 

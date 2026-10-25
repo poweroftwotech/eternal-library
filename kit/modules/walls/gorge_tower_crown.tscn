@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_4iyn7"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gorge_tower_crown.glb" id="2_7n5wb"]
+
+[node name="gorge_tower_crown" type="Node3D" unique_id=1023946148]
+script = ExtResource("1_4iyn7")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 0, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "gorge", "tower", "crown")
+source_glb = "res://assets/kit/walls/gorge_tower_crown.glb"
+
+[node name="Mesh" parent="." unique_id=1216415793 instance=ExtResource("2_7n5wb")]

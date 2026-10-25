@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_te3yx"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gorge_deck_corner.glb" id="2_6t3g8"]
+
+[node name="gorge_deck_corner" type="Node3D" unique_id=1837706581]
+script = ExtResource("1_te3yx")
+shape = 2
+family = "walls"
+tags = PackedStringArray("gorge", "deck", "scenery")
+source_glb = "res://assets/kit/walls/gorge_deck_corner.glb"
+
+[node name="Mesh" parent="." unique_id=101393647 instance=ExtResource("2_6t3g8")]

@@ -66,7 +66,7 @@ func check_module(entry: Dictionary) -> void:
 			check((n as StaticBody3D).collision_layer == want_layer, "%s collision %s is on layer %d" % [name, n.name, 8 if want_layer != 1 else 1])
 		if n is Node3D and n != module:
 			check((n as Node3D).scale.is_equal_approx(Vector3.ONE), "%s/%s is unscaled" % [name, n.name])
-	if module.shape in STRUCTURAL:
+	if module.shape in STRUCTURAL and not module.tags.has("scenery"):     # the gorge's pieces are only looked at (phase 6)
 		check(bodies > 0, "%s (structural) has collision" % name)
 	match name:
 		"wall_shelfbay_4m":

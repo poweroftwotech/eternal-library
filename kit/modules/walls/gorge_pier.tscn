@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_kavci"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gorge_pier.glb" id="2_ttka4"]
+
+[node name="gorge_pier" type="Node3D" unique_id=2048668056]
+script = ExtResource("1_kavci")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("gorge", "pier", "scenery")
+source_glb = "res://assets/kit/walls/gorge_pier.glb"
+
+[node name="Mesh" parent="." unique_id=1063539646 instance=ExtResource("2_ttka4")]

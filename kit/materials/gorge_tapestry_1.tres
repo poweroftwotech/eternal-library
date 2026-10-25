@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/tapestry_1.png" id="1_cf4f5"]
+[ext_resource type="Texture2D" path="res://assets/textures/cloth_normal.png" id="2_wadpy"]
+
+[resource]
+resource_name = "gorge_tapestry_1"
+albedo_texture = ExtResource("1_cf4f5")
+metallic_specular = 0.65
+roughness = 0.8
+normal_enabled = true
+normal_scale = 0.85
+normal_texture = ExtResource("2_wadpy")
+texture_filter = 2

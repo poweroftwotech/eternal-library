@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/limestone.png" id="1_o4mw1"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/limestone_normal.png" id="2_onpuk"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/limestone_rough.png" id="3_186kb"]
+
+[resource]
+resource_name = "gorge_repair"
+albedo_color = Color(0.9098039, 0.8745098, 0.8, 1)
+albedo_texture = ExtResource("1_o4mw1")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_186kb")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_onpuk")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

@@ -1,0 +1,20 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/sandstone.png" id="1_lpwrq"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/sandstone_normal.png" id="2_8gb0o"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/sandstone_rough.png" id="3_mpi40"]
+
+[resource]
+resource_name = "gorge_grime"
+albedo_color = Color(0.22745098, 0.20392157, 0.1764706, 1)
+albedo_texture = ExtResource("1_lpwrq")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_mpi40")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_8gb0o")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(0.5, 0.5, 0.5)

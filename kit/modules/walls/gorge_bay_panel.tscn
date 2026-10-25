@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_wf8x6"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gorge_bay_panel.glb" id="2_dav06"]
+
+[node name="gorge_bay_panel" type="Node3D" unique_id=653158766]
+script = ExtResource("1_wf8x6")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("gorge", "facade", "tile", "scenery")
+source_glb = "res://assets/kit/walls/gorge_bay_panel.glb"
+
+[node name="Mesh" parent="." unique_id=896333490 instance=ExtResource("2_dav06")]

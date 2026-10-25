@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "gorge_lamp"
+albedo_color = Color(1, 0.79137254, 0.55254906, 1)
+emission_enabled = true
+emission = Color(1, 0.7019608, 0.36078432, 1)
+emission_energy_multiplier = 3.2

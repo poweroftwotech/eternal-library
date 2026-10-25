@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_0t4os"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gorge_bay_stack_near.glb" id="2_jjxeo"]
+
+[node name="gorge_bay_stack_near" type="Node3D" unique_id=2066976002]
+script = ExtResource("1_0t4os")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "gorge", "facade", "books")
+source_glb = "res://assets/kit/walls/gorge_bay_stack_near.glb"
+
+[node name="Mesh" parent="." unique_id=387980130 instance=ExtResource("2_jjxeo")]

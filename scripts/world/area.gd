@@ -69,6 +69,11 @@ func _ready() -> void:
 		_env.name = "AreaEnvironment"
 		_env.environment = recipe.atmosphere.build_environment()
 		add_child(_env)
+	if recipe.scenery != null:
+		var scenery: Node = recipe.scenery.instantiate()
+		scenery.name = "Scenery"
+		add_child(scenery)
+		timings["scenery_ms"] = (Time.get_ticks_usec() - t0) / 1000.0 - plan.plan_ms
 	var settings: StreamSettings = stream_settings if stream_settings != null else StreamSettings.default()
 	light_budget = LightBudget.new()
 	light_budget.name = "LightBudget"

@@ -27,9 +27,9 @@ const READING_ROOM: String = "res://rooms/authored/reading_room.tscn"
 const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
 ## Areas you can walk (phase-4-design.md 8.1.3): `-- --area=<id>` or the Esc
 ## menu; "area:<id>" wherever a room path goes (room_override, the save's scene).
-const AREAS: Dictionary = {"library": "res://gen/recipes/library_wing.tres", "lower_stacks": "res://gen/recipes/lower_stacks.tres"}
+const AREAS: Dictionary = {"library": "res://gen/recipes/library_wing.tres", "lower_stacks": "res://gen/recipes/lower_stacks.tres", "gorge": "res://gen/recipes/gorge.tres"}
 ## How the Esc menu names each area ("Walk the library wing").
-const AREA_NAMES: Dictionary = {"library": "the library wing", "lower_stacks": "the Lower Stacks"}
+const AREA_NAMES: Dictionary = {"library": "the library wing", "lower_stacks": "the Lower Stacks", "gorge": "the Gorge"}
 const AREA_PREFIX: String = "area:"
 ## Set by the menu before a reload; survives reload_current_scene().
 static var room_override: String = ""

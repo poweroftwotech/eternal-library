@@ -1,0 +1,22 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/brass.png" id="1_kcjgo"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/brass_normal.png" id="2_62v2g"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/brass_rough.png" id="3_66vs8"]
+
+[resource]
+resource_name = "gorge_gold"
+albedo_color = Color(0.7764706, 0.6509804, 0.41960785, 1)
+albedo_texture = ExtResource("1_kcjgo")
+metallic = 0.25
+metallic_specular = 0.65
+roughness = 0.55
+roughness_texture = ExtResource("3_66vs8")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_62v2g")
+uv1_scale = Vector3(2, 2, 2)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(2, 2, 2)

@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_5ox8f"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gorge_pier_streaked.glb" id="2_uellh"]
+
+[node name="gorge_pier_streaked" type="Node3D" unique_id=1430111542]
+script = ExtResource("1_5ox8f")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("gorge", "pier", "scenery")
+source_glb = "res://assets/kit/walls/gorge_pier_streaked.glb"
+
+[node name="Mesh" parent="." unique_id=1400107672 instance=ExtResource("2_uellh")]

@@ -1,0 +1,10 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/room_template.gd" id="1_sbk4w"]
+
+[node name="Overlook" type="Node3D" unique_id=524085811]
+script = ExtResource("1_sbk4w")
+display_name = "The Overlook"
+
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=1203602653]
+transform = Transform3D(0.99920684, 0, -0.039822258, 0, 1.0000001, 0, 0.039822258, 0, 0.99920684, -1, 2.25, -27.45)

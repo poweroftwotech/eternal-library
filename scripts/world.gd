@@ -20,8 +20,13 @@ var interior_pass
 var library_dressing
 const Dressing = preload("res://scripts/set_dressing.gd")
 const Vista = preload("res://scripts/vista.gd")
+## The gorge's bake (tools/bake_gorge.gd) borrows this script's helpers (light,
+## arch, lantern, interaction) to run the gorge's code, and nothing else.
+static var scenery_only: bool = false
 
 func _ready() -> void:
+	if scenery_only:
+		return
 	art = Factory.new(self)
 	organic = preload("res://scripts/organic_pass.gd").new(self,art)
 	build_lighting()

@@ -43,6 +43,18 @@ const VistaForeground = preload("res://scripts/vista_foreground.gd")
 const VistaCliff = preload("res://scripts/vista_cliff.gd")
 var lamp_points := PackedVector3Array()
 var lamp_noise := FastNoiseLite.new()
+## Banks (by seed) left out of the build, as their kit rebuild is previewed in
+## their place (phase-6-design.md 5.7.2, tests/gorge_bank_preview.gd): their
+## terraces are still worked out, so the cavern round them is unchanged.
+static var skip_banks: PackedInt32Array = []
+## Lamps of a previewed kit bank, so its lamp clusters get their lights too.
+static var extra_lamps: PackedVector3Array = []
+## The gorge's bake (phase-6-design.md 5.7.2) builds the aqueducts and the
+## sanctum's tiers from kit pieces; these leave them out of this build. The
+## sanctum's rotunda, portal, columns, hangings and light stay.
+static var skip_bridges: bool = false
+static var skip_sanctum_tiers: bool = false
+var _geometry: bool = true
 
 func _init(owner, factory) -> void:
 	world = owner
@@ -237,6 +249,8 @@ func dome(base: Vector3, radius: float, height: float) -> void:
 	art.cylinder(base+Vector3(0,height+1.4,0),radius*.025,3,art.mat("vista_gold"),null,0)
 
 func pavilion(p: Vector3, size: float) -> void:
+	if not _geometry:
+		return
 	for side in [-1,1]:
 		for depth in [-1,1]:
 			art.cylinder(p+Vector3(side*size*.45,1.8,depth*size*.45),.12,3.6,art.mat("vista_gold"))
@@ -338,14 +352,17 @@ func build() -> void:
 		[-65,-140,32,37,39,3],[67,-163,37,42,35,4],
 		[-76,-204,43,41,29,5],[83,-223,41,41,46,6],
 		[-39,-262,43,36,48,7],[60,-277,48,39,53,8]]:
+		_geometry = not skip_banks.has(data[5])
 		bank(Vector2(data[0],data[1]),data[2],data[3],data[4],data[5])
+		_geometry = true
 	sanctum(Vector3(8,-13,-252))
-	bridge(Vector3(-37,-19,-89),Vector3(41,-26,-116),4.2,[3])
-	bridge(Vector3(-29,-58,-141),Vector3(34,-63,-172),3.8)
-	bridge(Vector3(-37,-105,-91),Vector3(38,-100,-133),4.0)
-	bridge(Vector3(-26,-20,-211),Vector3(30,-12,-231),3.6,[2])
-	bridge(Vector3(-32,-132,-192),Vector3(36,-124,-222),3.5)
-	bridge(Vector3(-47,14,-205),Vector3(-11,8,-249),3.0)
+	if not skip_bridges:
+		bridge(Vector3(-37,-19,-89),Vector3(41,-26,-116),4.2,[3])
+		bridge(Vector3(-29,-58,-141),Vector3(34,-63,-172),3.8)
+		bridge(Vector3(-37,-105,-91),Vector3(38,-100,-133),4.0)
+		bridge(Vector3(-26,-20,-211),Vector3(30,-12,-231),3.6,[2])
+		bridge(Vector3(-32,-132,-192),Vector3(36,-124,-222),3.5)
+		bridge(Vector3(-47,14,-205),Vector3(-11,8,-249),3.0)
 	cascade(Vector3(-35,-18.4,-88),Vector2(4.8,94))
 	cascade(Vector3(40,-25.4,-114),Vector2(6,121))
 	cascade(Vector3(8,-12.4,-228),Vector2(12,148))
@@ -354,6 +371,7 @@ func build() -> void:
 	Cavern.new(self).build()
 	VistaForeground.new(self).build()
 	VistaCliff.new(self).build()
+	lamp_points.append_array(extra_lamps)
 	VistaLight.new(self).build()
 	mist(Vector3(4,-151,-163),Vector3(90,55,218),.018,Color("9bbbc4"))
 	mist(Vector3(8,38,-258),Vector3(33,64,43),.007,Color("bdd8db"))
@@ -420,6 +438,8 @@ func outline(center: Vector2, rx: float, rz: float, phase: float, turn: float) -
 	return polygon
 
 func prism(polygon: PackedVector2Array, bottom: float, height: float, material: Material) -> MeshInstance3D:
+	if not _geometry:
+		return null
 	# Existing audited extrusion supplies outward walls and both horizontal caps.
 	var node = art.extrude(polygon,height,material,Vector3(0,bottom+height*.5,0))
 	node.rotation.x = PI*.5
@@ -472,6 +492,8 @@ func bank(center: Vector2, rx: float, rz: float, top: float, seed_value: int) ->
 			rotunda(Vector3(center.x-4,top,center.y+5),5.4,9.5)
 
 func facades(polygon: PackedVector2Array, bottom: float, height: float, style: int) -> void:
+	if not _geometry:
+		return
 	for i in range(polygon.size()):
 		var a = polygon[i]
 		var b = polygon[(i+1)%polygon.size()]
@@ -598,6 +620,8 @@ func pointed_top(radius: float, rise: float, u: float) -> Vector2:
 	return Vector2(side*(center+cr*cos(angle*t)),2.2+cr*sin(angle*t))
 
 func ledge_edges(polygon: PackedVector2Array, y: float, occupied: bool, style: int, crowned: bool = false) -> void:
+	if not _geometry:
+		return
 	for i in range(polygon.size()):
 		var a = Vector3(polygon[i].x,y,polygon[i].y)
 		var b = Vector3(polygon[(i+1)%polygon.size()].x,y,polygon[(i+1)%polygon.size()].y)
@@ -642,6 +666,8 @@ func beam(a: Vector3, b: Vector3, cross_section: Vector2, material: String) -> N
 	return node
 
 func rotunda(p: Vector3, radius: float, height: float) -> void:
+	if not _geometry:
+		return
 	var polygon = outline(Vector2(p.x,p.z),radius,radius,0,0)
 	prism(polygon,p.y,height,art.mat("gorge_pier"))
 	for i in range(12):
@@ -655,7 +681,7 @@ func rotunda(p: Vector3, radius: float, height: float) -> void:
 
 func sanctum(p: Vector3) -> void:
 	# A wide terraced apse grows out of the rear banks, with a single domed crown.
-	for i in range(9):
+	for i in range(0 if skip_sanctum_tiers else 9):
 		var y: float = p.y-44+i*10.5
 		var rx: float = 38-i*2.8
 		var rz: float = 26-i*1.9
@@ -838,6 +864,10 @@ func bank_towers(center: Vector2, sx: float, sz: float, top: float, seed_value: 
 		persian_tower(c,half,top,top+local.randf_range(10,19),seed_value+k)
 
 func persian_tower(c: Vector2, half: float, bottom: float, top: float, style: int) -> void:
+	if not _geometry:
+		tower_count += 1
+		ledges.append({"center":c,"height":top+.6,"rx":half+1.1,"rz":half+1.1})
+		return
 	tower_count += 1
 	var polygon = tower_outline(c,half,half,0)
 	prism(polygon,bottom,top-bottom,art.mat("gorge_pier"))

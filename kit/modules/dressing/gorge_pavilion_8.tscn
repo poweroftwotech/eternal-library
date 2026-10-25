@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_dfptr"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/gorge_pavilion_8.glb" id="2_cbwc3"]
+
+[node name="gorge_pavilion_8" type="Node3D" unique_id=1623871857]
+script = ExtResource("1_dfptr")
+family = "dressing"
+size_cells = Vector3i(2, 1, 2)
+tags = PackedStringArray("gorge", "pavilion", "light", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_pavilion_8.glb"
+
+[node name="Mesh" parent="." unique_id=1376168098 instance=ExtResource("2_cbwc3")]

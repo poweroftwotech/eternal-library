@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ucgon"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gorge_crown_corner.glb" id="2_8nctd"]
+
+[node name="gorge_crown_corner" type="Node3D" unique_id=1455976144]
+script = ExtResource("1_ucgon")
+shape = 2
+family = "walls"
+tags = PackedStringArray("gorge", "crown", "scenery")
+source_glb = "res://assets/kit/walls/gorge_crown_corner.glb"
+
+[node name="Mesh" parent="." unique_id=748408476 instance=ExtResource("2_8nctd")]

@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_h04nv"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/gorge_cypress_6.glb" id="2_y24p8"]
+
+[node name="gorge_cypress_6" type="Node3D" unique_id=1677194624]
+script = ExtResource("1_h04nv")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="Mesh" parent="." unique_id=293543567 instance=ExtResource("2_y24p8")]

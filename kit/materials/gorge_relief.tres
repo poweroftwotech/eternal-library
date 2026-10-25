@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/wing_relief.png" id="1_agoum"]
+[ext_resource type="Texture2D" path="res://assets/textures/wing_relief_normal.png" id="2_gv12w"]
+[ext_resource type="Texture2D" path="res://assets/textures/wing_relief_rough.png" id="3_lqn8m"]
+
+[resource]
+resource_name = "gorge_relief"
+albedo_texture = ExtResource("1_agoum")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_lqn8m")
+normal_enabled = true
+normal_scale = 0.75
+normal_texture = ExtResource("2_gv12w")
+texture_filter = 2

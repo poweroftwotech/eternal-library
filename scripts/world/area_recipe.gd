@@ -22,6 +22,9 @@ extends Resource
 @export var max_sight_depth: int = 2
 @export var placement: AreaPlacement
 @export var atmosphere: AtmosphereProfile
+## A cavern area's scenery (phase-6-design.md 5.7.2): a scene the area adds
+## once, before its rooms; not planned, never streamed (the baked gorge).
+@export var scenery: PackedScene
 
 
 func slot(slot_id: String) -> AreaSlot:

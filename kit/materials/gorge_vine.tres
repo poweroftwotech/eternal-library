@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/vine.png" id="1_jw5ie"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/vine_normal.png" id="2_esg3p"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/vine_rough.png" id="3_23t4x"]
+
+[resource]
+resource_name = "gorge_vine"
+albedo_texture = ExtResource("1_jw5ie")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_23t4x")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_esg3p")
+uv1_scale = Vector3(2, 2, 2)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(2, 2, 2)

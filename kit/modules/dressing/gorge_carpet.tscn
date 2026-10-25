@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_21bqk"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/gorge_carpet.glb" id="2_thyw1"]
+
+[node name="gorge_carpet" type="Node3D" unique_id=557718522]
+script = ExtResource("1_21bqk")
+family = "dressing"
+size_cells = Vector3i(1, 2, 0)
+tags = PackedStringArray("scenery", "gorge", "cloth")
+source_glb = "res://assets/kit/dressing/gorge_carpet.glb"
+
+[node name="Mesh" parent="." unique_id=652573061 instance=ExtResource("2_thyw1")]

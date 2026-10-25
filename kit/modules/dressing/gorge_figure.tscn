@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_aya1h"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/gorge_figure.glb" id="2_pakf6"]
+
+[node name="gorge_figure" type="Node3D" unique_id=200368527]
+script = ExtResource("1_aya1h")
+family = "dressing"
+tags = PackedStringArray("gorge", "figure", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_figure.glb"
+
+[node name="Mesh" parent="." unique_id=8762426 instance=ExtResource("2_pakf6")]

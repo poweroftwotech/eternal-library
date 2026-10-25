@@ -8,12 +8,16 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 5 is complete:** all four room types, the caravanserai in three sizes, rooms no longer meeting, lights by the doorway you face; the frame gate passes on seeds 90, 5 and 3. You walked it and it looks good (2026-10-25). Committed (e45e404) | [Phase 5 progress](docs/environment/progress/phase-5-kit-breadth.md) | Say when to draft phase 6 (candidates: the Overlook and Chasm Spans, people, descents between strata, the camp's food and warmth in the caravanserai, the graphics settings menu) |
+| **Phase 6 step 1 built: the gorge from kit pieces.** Esc → **Walk the Gorge**: the whole gorge rebuilt from 45 kit pieces (61,274 placed), baked to scenes you can edit (`rooms/baked/gorge/`), seen from the balcony. Box-art comparison passes; loads in 0.25 s; 427 draw calls. Not committed | [Phase 6 progress](docs/environment/progress/phase-6-overlook.md) | Look at it in the game (and maybe open a bank's scene in Godot) |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-25 | **Phase 6 step 1 built: the gorge rebuilt from kit pieces.** All eight banks, 11 Persian towers, six aqueducts and the sanctum's tiers from 45 kit pieces, the cavern, water and lights generated once at the bake; baked to one editable scene per part, drawn in 64 batches. A new area, Walk the Gorge, shows it from the balcony. Box-art comparison passes ([progress](docs/environment/progress/phase-6-overlook.md)). |
+| 2026-10-25 | **Bank 1 rebuilt from kit pieces** (phase 6 step 1): 33 gorge pieces in a new `kit_gorge.blend`, the camp's gorge materials copied into the kit, and `GorgeGrammar` laying a bank out from today's numbers. Set in its place in the camp's view for your review ([progress](docs/environment/progress/phase-6-overlook.md)). |
+| 2026-10-25 | **Phase 6 approved** with the recommended answers except Q2: the gorge is rebuilt from kit pieces (bakeable, editable). The brief now has six steps; step 1 rebuilds the gorge ([brief](docs/environment/phase-6-approval.md)). |
+| 2026-10-25 | **Phase 6 design drafted:** [approval brief](docs/environment/phase-6-approval.md) and [technical design](docs/environment/phase-6-design.md). The gorge becomes walkable (the Overlook, generated spans, doors into the library) while keeping its box-art look; the navigation map is proposed as phase 7. Waiting for your approval. |
 | 2026-10-25 | **Phase 5 complete.** You walked the 7 × 5 and 3 × 3 courts and the doorway lighting: looks good. |
 | 2026-10-24 | **Lights by the doorway you face.** Of the rooms you can see into, only those whose doorway is in front of you are lit (rooms next door keep the lamps that light the doorway), checked every frame. The frame gate now passes on seeds 90, 5 and 3 (44, 50, 43 of 50). Also: a wear upload re-set its texture as a shader global (a 9 ms frame); no longer ([progress](docs/environment/progress/phase-5-kit-breadth.md)). |
 | 2026-10-24 | **The caravanserai's 7 × 5 and 3 × 3; rooms no longer meet.** The Lower Stacks' court is picked by seed from three bakes; the 3 × 3's stair halls run up its side walls into the far corners with the loggia along the far wall. Generated rooms' walls that back onto another room are plain, so no recess digs into a neighbour (3 seeds in 60 before, none after), and two gallery alcoves no longer back onto one cell. Every test passes; lights in reach fail on the two new seeds gated (59 and 58 of 50) (). |
@@ -60,6 +64,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
 | **5. Kit breadth** | More room types, mostly from data | ✅ Done 2026-10-25 |
+| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); step 1 built 2026-10-25 |
 
 ## 10. Roadmap (each phase is a playable slice)
 
@@ -74,6 +79,8 @@ relevant, the route audit and the two-process persistence test.
 | 3. Props and persistence | `WorldProp`, wake and sleep, breakables, book promotion, `ItemDef` pickup, `AreaState`, aging rules | Knock over a vase, pull a lore book and take it, quit; in a new process both stay changed. Advancing the world clock darkens untouched lamps only. |
 | **4. Areas and streaming** | `AreaRecipe`, graph and routing, threaded room streaming, light budget | An area of 6–10 rooms (R01, several R02, one baked room) streams without hitches at the frame target. |
 | **5. Kit breadth** | R03 grid generator, R11 (R03 plus water), R09 ring generator, R05 courtyard template, in a new area (the Lower Stacks). Porting the Overlook and R10 from `vista.gd` moved to a later phase (phase 5 Q1) | Each new type is added mostly through modules and `.tres` rules, with little new code. That is the test of the architecture. |
+| **6. The Overlook and the Chasm Spans** | The gorge rebuilt from kit pieces (`GorgeGrammar`, baked to an editable scene, batched at load), the Overlook walkable, R10 `ChasmGrammar` spans and `CliffLedgeGrammar` ledges on frontage slots, thresholds into the library areas, the camp balcony's stair | You walk from the balcony across a generated span and through a cliff door into the library and back, the box-art comparison still passes on the rebuilt gorge, and the frame gate passes in the gorge. |
+| 7. The navigation map (proposed) | The map drawn from the areas' plans, floor by floor, revealed as you visit (architecture §2.1) | You can find your way back to any room you've been to. |
 
 ## The documents
 
@@ -87,7 +94,9 @@ relevant, the route audit and the two-process persistence test.
 | [Phase 4 design](docs/environment/phase-4-design.md) | Technical detail behind the brief (§8.1) | Optional |
 | [Phase 5 approval brief](docs/environment/phase-5-approval.md) | Plain-language: the four new rooms, the steps, the decisions | Approved; reference |
 | [Phase 5 design](docs/environment/phase-5-design.md) | Technical detail behind the brief (§5.6) | Optional |
-| Progress logs in `docs/environment/progress/` | What was built, how it was verified, caveats: [phase 0](docs/environment/progress/phase-0-kit.md), [phase 1](docs/environment/progress/phase-1-reading-room.md), [R01 weathering](docs/environment/progress/r01-weathering.md), [R01 polish](docs/environment/progress/r01-polish.md), [phase 2](docs/environment/progress/phase-2-stack-gallery.md), [phase 3](docs/environment/progress/phase-3-props.md), [phase 4](docs/environment/progress/phase-4-areas.md), [phase 5](docs/environment/progress/phase-5-kit-breadth.md) | When you want the detail of a finished step |
+| [Phase 6 approval brief](docs/environment/phase-6-approval.md) | Plain-language: the Overlook, the spans, doors into the library, the decisions | Approved; reference |
+| [Phase 6 design](docs/environment/phase-6-design.md) | Technical detail behind the brief (§5.7) | Optional |
+| Progress logs in `docs/environment/progress/` | What was built, how it was verified, caveats: [phase 0](docs/environment/progress/phase-0-kit.md), [phase 1](docs/environment/progress/phase-1-reading-room.md), [R01 weathering](docs/environment/progress/r01-weathering.md), [R01 polish](docs/environment/progress/r01-polish.md), [phase 2](docs/environment/progress/phase-2-stack-gallery.md), [phase 3](docs/environment/progress/phase-3-props.md), [phase 4](docs/environment/progress/phase-4-areas.md), [phase 5](docs/environment/progress/phase-5-kit-breadth.md), [phase 6](docs/environment/progress/phase-6-overlook.md) | When you want the detail of a finished step |
 
 Room types and their mocks are in `design/room-atlas.html`. The look is in
 `ART_DIRECTION.md`.
@@ -103,6 +112,7 @@ are kept in the new pages:
 | §5.5 (5.5.1–5.5.10) | [phase-2-design.md](docs/environment/phase-2-design.md) |
 | §6.5 (6.5.1–6.5.8) | [phase-3-design.md](docs/environment/phase-3-design.md) |
 | §8.1 (8.1.1–8.1.8) | [phase-4-design.md](docs/environment/phase-4-design.md) |
+| §5.7 (5.7.1–5.7.12) | [phase-6-design.md](docs/environment/phase-6-design.md) |
 | §10 | This page |
 | §12 (progress), "phase N step M", "polish C item 7", "weathering slice" | `docs/environment/progress/` (the file named after that phase or slice) |
 
