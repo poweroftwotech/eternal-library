@@ -2,8 +2,7 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · Design: [approval brief](../phase-5-approval.md), [technical](../phase-5-design.md)
 
-**In short:** steps 1 to 4 are done and committed; step 5 (the
-caravanserai) is built and you walked it (a good first pass); lights in rooms you can't see into are now off. The Lower Stacks now
+**In short:** phase 5 is complete (2026-10-25): steps 1 to 5 are done and committed, the caravanserai comes in three sizes, and you walked it all; lights in rooms you can't see into are now off. The Lower Stacks now
 start in a caravanserai: a court open to the cavern's rock, two storeys of
 arched cells round it, a tiled pishtaq gate, a carpeted hearth. Through its
 gate is the generated Hypostyle hall (step 1): a grid of bays under small
@@ -15,7 +14,7 @@ light-well whose stair climbs to galleries on the floors above (step 4).
 
 ---
 
-## Rooms meeting each other, and the caravanserai's other sizes (2026-10-24; committed e45e404)
+## Rooms meeting each other, and the caravanserai's other sizes (2026-10-24; committed e45e404; you walked it 2026-10-25: looks good)
 
 **Try it:** Esc → **Walk the Lower Stacks**, then Esc → **Reseed the Lower
 Stacks**: the court now comes in three sizes, about a third of seeds each
@@ -93,7 +92,7 @@ through the court's side doors, the galleries beyond: on seed 3 the court
 gives only 5 of the 58 (hall 15, galleries 16, the light-well 6), so it's
 not the sizes; it's how much one spot is allowed to see.
 
-### Lights by the doorway you face (2026-10-24; you chose it)
+### Lights by the doorway you face (2026-10-24; you chose it; walked 2026-10-25: looks good)
 
 Of the rooms you can see into from your room (the plan's sightlines), only
 those whose doorway out of your room is in front of you are lit

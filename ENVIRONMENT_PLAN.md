@@ -8,13 +8,13 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **The caravanserai in three sizes, and rooms no longer meet**: the Lower Stacks start in a 5 × 5, 7 × 5 or 3 × 3 court by seed (seeds 1–2, 5–6, 3–4); the 3 × 3's stairs run up its side walls into the far corners. Generated rooms no longer dig recesses into each other (none in 60 seeds). All tests pass. Not committed |  | Walk a 7 × 5 and a 3 × 3 (Esc → Reseed) |
-| **Lights by the doorway you face; the frame gate passes on seeds 90, 5 and 3** (44, 50, 43 lights of 50; CPU worst 6.4–6.8 ms). Rooms behind you are dark except lamps that light the doorway; a fast-turn probe found no room lighting up already in view. Committed (e45e404) | [Lights by the doorway you face](docs/environment/progress/phase-5-kit-breadth.md) | Walk it: turn round in the gate and at the side doors, and watch for lamps switching |
+| **Phase 5 is complete:** all four room types, the caravanserai in three sizes, rooms no longer meeting, lights by the doorway you face; the frame gate passes on seeds 90, 5 and 3. You walked it and it looks good (2026-10-25). Committed (e45e404) | [Phase 5 progress](docs/environment/progress/phase-5-kit-breadth.md) | Say when to draft phase 6 (candidates: the Overlook and Chasm Spans, people, descents between strata, the camp's food and warmth in the caravanserai, the graphics settings menu) |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-25 | **Phase 5 complete.** You walked the 7 × 5 and 3 × 3 courts and the doorway lighting: looks good. |
 | 2026-10-24 | **Lights by the doorway you face.** Of the rooms you can see into, only those whose doorway is in front of you are lit (rooms next door keep the lamps that light the doorway), checked every frame. The frame gate now passes on seeds 90, 5 and 3 (44, 50, 43 of 50). Also: a wear upload re-set its texture as a shader global (a 9 ms frame); no longer ([progress](docs/environment/progress/phase-5-kit-breadth.md)). |
 | 2026-10-24 | **The caravanserai's 7 × 5 and 3 × 3; rooms no longer meet.** The Lower Stacks' court is picked by seed from three bakes; the 3 × 3's stair halls run up its side walls into the far corners with the loggia along the far wall. Generated rooms' walls that back onto another room are plain, so no recess digs into a neighbour (3 seeds in 60 before, none after), and two gallery alcoves no longer back onto one cell. Every test passes; lights in reach fail on the two new seeds gated (59 and 58 of 50) (). |
 | 2026-10-24 | **The frame gate's slow frames fixed; lights thinned.** The 8–9 ms frames were the floor-wear map re-uploading whole (13.7 MB) each time a room's wear was drawn; it now uploads only the 8 m tiles that changed (2.9 → 0.2 ms). CPU worst 9.1 → 6.8 ms. Your cuts (hall lanterns every 3rd bay, two court strings, cell lanterns every 3rd) bring lights in reach 61 → 50; you set the limit to 50 (was 48), so **the gate passes** ([progress](docs/environment/progress/phase-5-kit-breadth.md)). |
@@ -59,7 +59,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 2. Generated Stack Gallery (R02) | A seeded corridor off any R01 door; bakeable to a scene | ✅ Done 2026-10-20 |
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
-| **5. Kit breadth** | More room types, mostly from data | Approved 2026-10-22 (Q1–Q12 as recommended); steps 1–4 committed; step 5 (the caravanserai) committed b82d6cc 2026-10-24; its 7 × 5 and 3 × 3 built 2026-10-24 |
+| **5. Kit breadth** | More room types, mostly from data | ✅ Done 2026-10-25 |
 
 ## 10. Roadmap (each phase is a playable slice)
 
