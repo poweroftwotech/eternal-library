@@ -98,7 +98,8 @@ func camp_environment() -> Environment:
 
 
 ## One part's kit pieces as their own scene; collects its generated extras
-## (waterfalls, the rotunda, lights) and lamps for the generated part.
+## (waterfalls and their troughs, the rotunda, lights) and lamps for the
+## generated part.
 func save_part(part: String, placements: Array[Dictionary], extras: Array[Dictionary], lamps: PackedVector3Array) -> int:
 	var holder := Node3D.new()
 	holder.name = part.to_pascal_case()
@@ -152,7 +153,9 @@ func generate(layout: GorgeLayout, extras: Array[Dictionary], lamps: PackedVecto
 	owner.art.render_layer = 2
 	for p: Dictionary in extras:
 		if p.has("waterfall"):
-			vista.waterfall(p["waterfall"], p["size"], false)
+			vista.waterfall(p["waterfall"], p["size"], false, p.get("basis", Basis()))
+		elif p.has("stone"):      # a waterfall's trough (ChasmGrammar.TROUGH), merged with the rest
+			owner.art.box(Vector3.ZERO, p["size"], load("res://kit/materials/gorge_sandstone.tres")).transform = p["stone"]
 		elif p.has("rotunda"):
 			vista.rotunda(p["rotunda"], p["radius"], p["height"])
 		elif p.has("light"):

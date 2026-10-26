@@ -13,7 +13,182 @@ and on down to a lantern-lit ledge, with a parapet everywhere. Step 3 is built:
 from the ledge's corner a generated span crosses the gorge toward bank 2 on
 the old near aqueduct's arcades, as a level bridge or a chain of flights down
 to a lower far ledge, by seed. You walked it four times (18 reports fixed) and
-approved it; committed b65d383.
+approved it; committed b65d383. Step 4 is built: the near gorge is a small
+network of 4–6 cliff galleries on both cliffs, joined by spans across and
+stairs along the cliffs, different by seed. You walked it once (14 reports,
+fixed); waiting for your next walk.
+
+---
+
+## Step 4: the near gorge (built 2026-10-26; walked three times, 19 reports fixed; waiting for your next walk)
+
+### Walk 3 (2026-10-26, seed 433536861): the waterfalls, and a gap
+
+| Report | What you saw | Fix |
+|---|---|---|
+| 14-16, 14-17 | the water comes out of solid tiles and falls partly through solid tiles, with no visible source | every waterfall (the spans' and the baked aqueducts') hung from under the upper arch's crown and bent out only about 1.3 m by the lower arcade, so it fell through that arcade's 1.9 m faience course; the baked aqueducts' falls weren't even turned to their aqueduct. Now each pours from a **stone trough on the upper arcade's side**, just under the deck (the aqueduct's outlet: a floor and two cheeks, jutting 1.4 m), 1.2 m wide, clear of all below. `ChasmGrammar.TROUGH`, used by both; the gorge was re-baked (`tools/bake_gorge.gd`) |
+| 14-18 | lots of empty gaps | **not fixed yet.** Bank 1's and bank 3's baked tiers leave slits where two walls should meet, and behind their facades they're hollow (a camera inside sees an empty corridor). From the balcony none of it showed; links now pass close enough to see in. It's the same family as the clipping and extra geometry you noticed, so it's proposed for a scenery clean-up pass |
+
+**Checks:** `gorge_network_test` 670/0, `r10_span_test` 485/0, box art seeds
+1–8 pass. Pictures: `previews/p6_step4/walk3/` (your three views re-taken, a
+trough close up, and the gap from the side).
+
+### Walk 2 (2026-10-26, seed 433536861): the Overlook's ledge on arches
+
+All three reports were about straight piers under "the span", and walk 1's
+report 1 was too: they were the **Overlook's own ledge** (step 2's bake),
+which had always stood on a corbel and a straight pier per bay, its last bay
+on a stub pier on bank 1's terrace and the one before on a lintel. Walk 1's
+fix went to the links instead.
+
+| Report | What you saw | Fix |
+|---|---|---|
+| 12-41, 12-42 | straight columns in the way; they were meant to become arches like the rest of the span | the Overlook's ledge is now **span decks on arcades**: the run out from the stair on one 12 m arcade (upper and lower tier, piers at its ends in the mist), the run toward bank 1 on **one arch from that arcade's flank to bank 1's facade** (stretched to 20.5 m), its far foot on the terrace against the wall |
+| 12-43 (and walk 1's 10-46) | the support onto the terrace and the block under the span's end: remove them | gone. As you said, the ledge stopped **3–4 m short of bank 1's wall**, so it needed them: it now runs one bay further, **into the facade** (its gallery storey), and the wall carries its end. A guard stands at the facade (it has no collision of its own) |
+| (with 12-42) | the main span's last flight on a straight pier beside the Overlook | a link's **last flight** (two bays, arriving at the far end) no longer gets a pier when its top stands on the arcade pier before it: it spans from that pier to the end's edge |
+
+The Overlook's piers now count as obstacles for the planner (they're plain
+stone, not kit pieces, so before this links could pass among them: walk
+1's link 2 ran right under the ledge). The link table was regenerated:
+6,308 links stand (was 6,224). Your seed lays out a different network again.
+
+**Checks:** `gorge_route_test` 8/0 (the walk reaches the new end; the facade
+guard holds), `gorge_network_test` 670/0 over seeds 1–20 (plan median
+1.2 s, worst 3.1 s), `r10_span_test` 485/0, `area_plan_test` 266/0, box art
+seeds 1–8 all pass. Not re-run: the frame gate, the camp's view. Two test
+rules changed: a gallery bay is checked against the tiers with the frontage
+tool's own samples (the links' wider test nicked one facade corner by under
+0.1 m), and a level run between its start and a pier up to 4.5 m away
+counts as carried (the lintel rule the links already build to).
+
+**Pictures:** `previews/p6_step4/walk2/` (your four views and five more,
+`_before` and `_after`) and `previews/p6_step4/seed433536861/` re-taken.
+
+### Walk 1 (2026-10-26, seed 433536861): what you reported and what changed
+
+Your seed now lays out a different network (the table of possible spans
+changed), so the reported spots aren't all there to re-take. Pictures of the
+new one: `previews/p6_step4/seed433536861/`.
+
+| Reports | What you saw | Cause and fix |
+|---|---|---|
+| 2, 4, 5, 6, 7, 9, 11, 12, 13, 14 | stairs not flush with the walk, "extra geometry" or missing faces at stair heads, z-fighting along wall bases, newels floating over a thin stone plane | one fault: the stonework made to measure (walk slabs and their faience course) was built **inside out**. From above you saw its underside 0.45 m down and its far edges through the top. Turned the right way; re-taken, the stair heads are flush, the wall bases clean, the newels and plinths solid |
+| 10 | a wall blocking most of the path | the **blank mass round the Overlook** (the vista's, baked with the gorge) juts 4–8 m out of the left cliff; the gallery slots and spans knew the tiers but not it, so a stair ran hard against it and a gallery's end into it. Slots and spans now keep clear of it (a stair by 1.5 m more than its width): five bank 1 slots lost their 3 bays nearest it |
+| 1 | why straight pillars instead of continuing the arches? | a span's level part stood on 12 m arcade bays, the odd metres at its start on corbels and straight piers. Now **arcades stretched to fit the whole level part** (6 m and over); 4.5 m or less is a lintel between its ends, no pier; between, one pier |
+| 3, 8 | a support not needed; two pillars could go, one under the thick part instead | a stair's flight without arcades stood on a pier under every 4 m bay. Now **one pier under the middle of each flight's mass**; the landing between two flights is carried by theirs |
+
+Also: with spans needing fewer piers, 6,224 spans stand (was 4,909), and a
+seed whose cheapest main span led to a dead-end gallery (seed 15) planned
+only one; a try that comes up short now rules its main span out for the
+next tries (planning median 1.0 s).
+
+### Try it
+
+Esc → **Walk the Gorge**, down the stair to the Overlook's ledge, and across
+the main span as before. It now ends on a **gallery against bank 2's cliff**,
+and from there the network goes on: 4 to 6 galleries in all, on both cliffs,
+joined by **spans across** the gorge and **stairs along the cliffs**, with
+one way to each gallery (no loops). Esc → **Reseed the Gorge** for another.
+The narrows, the far hall and the sanctum stay scenery.
+
+- **Galleries** (the brief's ledges): on piers where they stand cleanly, else
+  on stone consoles into the cliff; 2–5 bays along a tier's face, one bay
+  deep, stone floor, a balustrade along the front and across both ends
+  (square newels at every joint, lamp posts on some). The face behind is
+  theirs: windows with a wall lamp, tiled panels or plain stone. Some sit
+  under the tier above's deck, as a covered gallery (2.6 m clear).
+- **Spans across**: the step 3 look (aqueduct arcades, stretched to fit a
+  level part; piers into the mist or onto a terrace, one under each flight
+  where arcades don't fit; waterfalls from spouts, lamps), level or with a
+  flight and a landing per storey. **Stairs along the cliffs**: flights beside the
+  face from one gallery to the next storey's.
+- Where a span meets a gallery at a slant, a **landing cut to fit** takes up
+  the angle (up to 30°), with its own balustrades.
+
+**Look at** `previews/p6_step4/`:
+
+- `seed2/`, `seed5/` and `seed433536861/` (the seed you walked, as it now
+  lays out): `gorge_concept` (the box-art view), `gorge_net_air`
+  (the whole network from the air), per span `gorge_net_<span>` (along it)
+  and `_side`, per gallery `gorge_net_<ledge>` (along it), `_out` (across
+  the gorge from it), `_face` (from the air in front: the consoles) and
+  `_under`; and the Overlook's views as before.
+- `box_art/seed1..8_concept.png`: the balcony's view for eight seeds.
+- `camp_concept.png`: the camp's own view, unchanged.
+
+### Things that differ from the brief (your call)
+
+| What | Why | If you'd rather |
+|---|---|---|
+| **Galleries stand on piers where they stand cleanly** (under a corbel, as the Overlook's ledge: in the mist or well on a terrace), and **where none does, on stepped stone consoles** into the cliff (corbel courses, each a step shallower) at that bay's joints. Your choice before walking (2026-10-26): 64% of bays are on piers, 31 of 91 galleries over seeds 1–20 entirely | a pier 2 m out from the face often lands on a terrace's edge below | consoles only, or piers only (fewer slots) |
+| **The main span ends on a gallery** against bank 2 (level, or up to three storeys up or down), not on step 3's free-standing head | the brief let the head become a bank 2 gallery; the head stood so close to bank 2 that nothing could join it | — |
+| **The low mist glows brighter** in the Gorge area (1.8 times; the camp's is as it was) | the network's spans stand in front of the mist in the balcony's view; without it the box art's mist floor fell to 0.58–0.63 (limit 0.75). The box art's mist is brighter than ours even with no spans, so this is toward it | fewer spans across in that view instead |
+| **Facade bays are cleared** where the network stands (behind and under each gallery, where a stair runs along a face, round piers) and terrace dressing where a pier lands | the scenery is baked once; the network changes by seed | — |
+| **No loggias** (the brief's "ledges and loggias") | they'd need new kit pieces; the galleries under a tier's deck read as covered | a loggia bay kit piece in a later pass |
+| The networks are **alike from seed to seed**: the main span to bank 2, a span back to bank 1's long face, a stair, another span | the near cliffs have few faces with room for a gallery (25 slots); bank 4's can't be reached in most seeds | more frontage (lower storeys, the north faces of banks 3–4) |
+
+### Checks
+
+Re-run 2026-10-26 after walk 1's fixes: the network test (660 checks,
+seeds 1–20), the box art (8 seeds), `r10_span_test` and `area_plan_test`
+pass as below; the pictures are re-taken. The frame gate, the camp's box
+art and the in-view numbers below are from before walk 1 (the scenery and
+camp are unchanged).
+
+- **Network test** (new, `tests/gorge_network_test.gd`), seeds 1–20: **660
+  checks, all pass**. Each seed plans clean as a tree from the Overlook
+  with 4–6 galleries (4 in 10 seeds, 5 in 8, 6 in 2) on both cliffs; no two
+  rooms overlap; no walk inside the tiers or near the backdrop's masses;
+  every bay carried (arcade, pier, corbel or consoles; a flight by its pier,
+  a landing by its flights', a short level part by its ends); the scenery
+  cleared where the network stands; the real capsule walks every span and
+  stair from the room before to the room after and every gallery end to end
+  without catching; nowhere to step off.
+- **Box art from the balcony**, seeds 1–8: all pass (mist floor 0.84–0.89,
+  far depth 0.81–1.00, near flanks 1.12). **The camp**: passes as before
+  (1.07, 0.90).
+- **In view** (1600 × 900): 2.6–2.9 M triangles (budget 3 M), draw calls
+  338–1,019, GPU 3.1–4.5 ms.
+- **The frame gate now walks the Gorge** (`area_walk_capture --area=gorge`,
+  seed 2: the balcony, the stair, every span and gallery and back, 723 m,
+  Medium, 1080p): draw calls up to 1,257 (limit 1,500), lights in reach up
+  to 32 (50), no shadowed lights over the limit. It **fails the library's
+  GPU and CPU limits** (GPU mean 3.79 ms, limit 3; worst 9.1, limit 4; CPU
+  worst 9.7, limit 8) and its all-passes triangle count (24.6 M). The
+  costliest stretch is the Overlook itself (GPU mean 4.1 ms), which the
+  network hardly changes; the galleries and spans run 3.6–3.8 ms. The gorge
+  scenery sets the cost: gorge limits and stand-ins are steps 5–6 (design
+  §5.7.8).
+- `r10_span_test` 485 (updated: the main span is now the network's first
+  span), `gorge_route_test` 8, `area_plan_test` 266: pass. 240-frame runs
+  clean for the camp and the Gorge.
+- Planning a seed takes 0.2–2.7 s (median 1.0 s), under the loading panel.
+
+### Built
+
+| Piece | File |
+|---|---|
+| Frontage slots: where galleries may stand (25, banks 1–4) | `tools/gorge_frontage.gd` → `gen/gorge/frontage.tres`; `scripts/gen/frontage_slot.gd`, `scripts/gen/gorge_frontage.gd` |
+| Galleries on consoles | `scripts/gen/cliff_ledge_grammar.gd`, `gen/grammars/cliff_ledge.tres` |
+| Spans between two given ends, made-to-measure stonework (slabs, landings, balustrades) | `scripts/gen/chasm_link.gd`, `scripts/gen/chasm_masonry.gd`; `scripts/gen/chasm_grammar.gd` (shared parts) |
+| Every possible span solved once ahead (6,224) | `tools/gorge_links.gd` → `gen/gorge/links.res`; `scripts/gen/gorge_links.gd` |
+| What the slots and spans keep clear of besides the tiers: the baked backdrop's masses | `scripts/gen/gorge_backdrop.gd` |
+| The network planner (trees grown from the Overlook) | `scripts/world/area_network.gd`, `scripts/world/gorge_network.gd`, `scripts/world/area_planner.gd` |
+| Scenery cleared where the network stands; the mist's glow | `scripts/world/gorge_scenery.gd`, `scripts/world/area.gd` |
+| Every room sees every other in the Gorge | `scripts/world/area_plan.gd`, `scripts/world/area_recipe.gd`; `gen/recipes/gorge.tres` (version 3) |
+| Faster tier lookups | `scripts/gen/gorge_grammar.gd` |
+| The Gorge's walking route; network views | `tests/gorge_tour.gd`, `tests/area_tour.gd`, `tests/gorge_capture.gd` |
+
+### Caveats
+
+- **Your saved game in the Gorge** is from recipe version 1; the rooms moved,
+  so its changes there go stale (a notice when the area loads).
+- After editing `frontage.tres` or the Overlook, re-run
+  `tools/gorge_frontage.gd` and `tools/gorge_links.gd` (about 10 minutes).
+- Made balusters (on spans' level runs, landings, gallery ends) are drawn
+  by code to the kit's profile; up close they may shade a shade paler than
+  the kit's.
+- Not run: the full test gates (an hour), the persistence gate.
 
 ---
 

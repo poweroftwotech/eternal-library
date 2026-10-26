@@ -18,7 +18,7 @@ const EYE: Vector3 = Vector3(-1, 2.25, -27.45)
 const LANDING_HALF: float = 6.0
 const SPEED: float = 6.0
 const ON_BAYS: int = 3
-const WEST_BAYS: int = 4
+const WEST_BAYS: int = 5      # into bank 1's facade (tools/bake_overlook.gd)
 
 var failures: PackedStringArray = []
 var checks: int = 0

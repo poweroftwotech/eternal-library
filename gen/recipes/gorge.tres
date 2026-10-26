@@ -6,6 +6,10 @@
 [ext_resource type="PackedScene" path="res://rooms/baked/gorge.tscn" id="4_gorge"]
 [ext_resource type="Resource" path="res://gen/grammars/r10_chasm.tres" id="5_chasm"]
 [ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="6_place"]
+[ext_resource type="Script" path="res://scripts/world/gorge_network.gd" id="7_network"]
+[ext_resource type="Resource" path="res://gen/gorge/frontage.tres" id="8_frontage"]
+[ext_resource type="Resource" path="res://gen/grammars/cliff_ledge.tres" id="9_ledge"]
+[ext_resource type="Resource" path="res://gen/gorge/links.res" id="10_links"]
 
 [sub_resource type="Resource" id="Resource_overlook"]
 script = ExtResource("2_slot")
@@ -27,13 +31,22 @@ pinned = true
 script = ExtResource("6_place")
 envelope = AABB(-122, -180, -300, 256, 220, 412)
 
+[sub_resource type="Resource" id="Resource_network"]
+script = ExtResource("7_network")
+frontage = ExtResource("8_frontage")
+links = ExtResource("10_links")
+ledge = ExtResource("9_ledge")
+chasm = ExtResource("5_chasm")
+
 [resource]
 script = ExtResource("1_recipe")
 id = "gorge"
 display_name = "The Gorge"
-version = 2
+version = 3
 slots = Array[ExtResource("2_slot")]([SubResource("Resource_overlook"), SubResource("Resource_span")])
-room_count = Vector2i(2, 2)
+room_count = Vector2i(9, 13)
 placement = SubResource("Resource_place")
 scenery = ExtResource("4_gorge")
 fall_limit = -50.0
+network = SubResource("Resource_network")
+open_sight = true

@@ -371,7 +371,9 @@ func mist(p: Vector3, size: Vector3, density: float, color: Color) -> void:
 	fog.material = material
 	world.add_child(fog)
 
-func waterfall(p: Vector3, size: Vector2, lip: bool = true) -> void:
+## `basis` turns it: its width along its X, bending out toward its +Z (the
+## Gorge's aqueducts pour sideways from a trough on the arcade's face).
+func waterfall(p: Vector3, size: Vector2, lip: bool = true, basis: Basis = Basis()) -> void:
 	waterfall_count += 1
 	# A bent ribbon splits into strands; its foot fades into a local spray volume.
 	var material = ShaderMaterial.new()
@@ -389,11 +391,11 @@ func waterfall(p: Vector3, size: Vector2, lip: bool = true) -> void:
 					surface.set_uv(uv)
 					surface.set_normal(Vector3.FORWARD)
 					surface.add_vertex(point)
-		art.mesh_node(surface.commit(),p,material)
+		art.mesh_node(surface.commit(),p,material).basis = basis
 	if lip:
 		prism(outline(Vector2(p.x,p.z-1.5),size.x*.5+2.5,3,0.0,0.0),p.y-.5,.8,art.mat("exterior_faience"))
-	mist(p-Vector3.UP*(size.y*.91)+Vector3(0,0,6),Vector3(size.x*3,size.y*.18,27),.018,Color("b9d5d9"))
-	world.light(p+Vector3(0,-size.y*.22,10),Color("9bc7db"),4,size.y*.55)
+	mist(p-Vector3.UP*(size.y*.91)+basis*Vector3(0,0,6),Vector3(size.x*3,size.y*.18,27),.018,Color("b9d5d9"))
+	world.light(p+Vector3(0,-size.y*.22,0)+basis*Vector3(0,0,10),Color("9bc7db"),4,size.y*.55)
 
 ## A stepped fall: three drops, each wider and a little forward of the last,
 ## with its own basin lip and spray (box art), instead of one long ribbon.

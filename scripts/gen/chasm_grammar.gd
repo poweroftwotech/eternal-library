@@ -77,10 +77,21 @@ const BAY: float = 4.0
 const GROUP: int = 3
 ## The arcades hang from the deck course's underside, 1 m under the walk.
 const COURSE: float = 1.0
-## A waterfall's stone spout under its arch's crown (across, tall, along),
-## and the fall's width there (it spreads by half as it falls).
-const SPOUT: Vector3 = Vector3(3.4, .45, 3.0)
-const FALL_WIDTH: float = 3.2
+## A waterfall pours from a stone trough on the upper arcade's face, just
+## under the deck, mid-bay (walked: from a spout under the arch's crown it
+## fell through the lower arcade's faience course, and seemed to come from
+## nowhere; an aqueduct's outlet on its side shows where it comes from and
+## falls clear of all below). In the trough's frame (X along the run, +Z out
+## from the face, Y up from the arcade's top): how far it juts, its stones
+## [centre, size] (a floor and two cheeks), where the fall hangs from (in the
+## trough, between the cheeks) and its width there (it spreads by half as it
+## falls). Also the baked aqueducts' (GorgeGrammar.aqueduct).
+const TROUGH_OUT: float = 1.4
+const TROUGH: Array = [[Vector3(0, -.85, TROUGH_OUT * .5), Vector3(1.5, .3, TROUGH_OUT)],
+	[Vector3(-.675, -.525, TROUGH_OUT * .5), Vector3(.15, .35, TROUGH_OUT)],
+	[Vector3(.675, -.525, TROUGH_OUT * .5), Vector3(.15, .35, TROUGH_OUT)]]
+const FALL_FROM: Vector3 = Vector3(0, -.62, TROUGH_OUT - .3)
+const FALL_WIDTH: float = 1.2
 const UPPER_H: float = 12.0
 const LOWER_H: float = 20.6        # 0.6 m faience course and the 20 m arcade
 const ARCADE_HALF: float = 1.6     # the upper arcade's half width
@@ -104,6 +115,16 @@ static var _tier_cache: Dictionary = {}
 static var _dressing_cache: Dictionary = {}
 ## The terraces' dressing near the span being solved (GorgeGrammar.dressing).
 var _dressing: Array[Vector4] = []
+## Boxes (area frame) a link's arcades and piers keep out of: the rooms
+## already planned round it (ChasmLink, phase 6 step 4). Empty for a span.
+var avoid: Array[AABB] = []
+## Where across the run a pier without an arcade may stand (a link tries
+## either side too).
+var side_offsets: Array[float] = [0.0]
+## The network's piers may stand among a terrace's dressing: what they meet is
+## cleared off the scenery when the area loads (GorgeScenery). A span's and
+## the Overlook's keep clear of it.
+var clears_dressing: bool = false
 
 
 func layout(_grid: CellGrid, _seed_value: int) -> void:
@@ -254,10 +275,13 @@ func _near_tiers(start: Transform3D) -> Array[Dictionary]:
 	var a: Vector3 = start.origin
 	var b: Vector3 = start * Vector3(0, 0, -reach)
 	var key: Array = [layout, a.snapped(Vector3.ONE), b.snapped(Vector3.ONE)]
-	if not _dressing_cache.has(key):
+	if clears_dressing:
+		_dressing = []       # a link's piers clear what they meet (no need to know it)
+	elif not _dressing_cache.has(key):
 		var mid: Vector3 = (a + b) * .5
 		_dressing_cache[key] = GorgeGrammar.new().dressing(layout, Vector2(mid.x, mid.z), reach * .5 + 20.0)
-	_dressing = _dressing_cache[key]
+	if not clears_dressing:
+		_dressing = _dressing_cache[key]
 	var out: Array[Dictionary] = []
 	for t: Dictionary in _tier_cache[layout]:
 		var c: Vector2 = t["c"]
@@ -307,7 +331,17 @@ func _column_ok(start: Transform3D, tiers: Array[Dictionary], c: Vector3, half: 
 				first = g
 			elif absf(g - first) > .01:
 				return false
-	if first > pier_foot:
+	if not avoid.is_empty():
+		var top: Vector3 = start * c
+		var y: float = top.y
+		while y > first:
+			for dx: float in [-half.x, half.x]:
+				for dz: float in [-half.y, half.y]:
+					var q := Vector3(top.x + dx, y, top.z + dz)
+					if avoid.any(func(b: AABB) -> bool: return b.has_point(q)):
+						return false
+			y -= 2.0
+	if first > pier_foot and not clears_dressing:
 		var at: Vector3 = start * c
 		for d: Vector4 in _dressing:
 			if d.y > first - 4.0 and d.y < first + 10.0 \
@@ -325,7 +359,8 @@ func _box_clear(start: Transform3D, tiers: Array[Dictionary], lo: Vector3, hi: V
 			for k: int in steps.z + 1:
 				var p := Vector3(lerpf(lo.x, hi.x, float(i) / maxi(steps.x, 1)), lerpf(lo.y, hi.y, float(j) / maxi(steps.y, 1)),
 					lerpf(lo.z, hi.z, float(k) / maxi(steps.z, 1)))
-				if GorgeGrammar.solid_at(tiers, start * p):
+				var q: Vector3 = start * p
+				if GorgeGrammar.solid_at(tiers, q) or avoid.any(func(b: AABB) -> bool: return b.has_point(q)):
 					return false
 	return true
 
@@ -334,7 +369,10 @@ func _box_clear(start: Transform3D, tiers: Array[Dictionary], lo: Vector3, hi: V
 ## the tiers), piers at the bays' ends from under the arcades down where they
 ## stand cleanly, and the waterfalls. An arcade bay with neither end on a
 ## pier gives way to a pier under each of its bays (walked: near the far bank
-## a chain's flights stood on nothing). Whether every bay is carried.
+## a chain's flights stood on nothing), or a link's flight to one under it.
+## A group may give its "length" (an arcade stretched to it); a link's "last"
+## flight on an arcade pier needs none of its own (out["spanned"]: its
+## Vector2(z1, z0)). Whether every bay is carried.
 func _arcades(out: Dictionary, start: Transform3D, tiers: Array[Dictionary], groups: Array[Dictionary], rng: RandomNumberGenerator) -> bool:
 	var falls: Array[int] = []
 	for g: int in groups.size():
@@ -346,12 +384,13 @@ func _arcades(out: Dictionary, start: Transform3D, tiers: Array[Dictionary], gro
 	var feet: Array[float] = []
 	var bottoms: Dictionary = {}      # bay end z -> the highest arcade foot over it
 	for g: int in groups.size():
-		var a: int = groups[g]["a"]
+		var a: int = groups[g].get("a", 0)
 		var top: float = groups[g]["top"]
-		var z0: float = -a * BAY
-		var z1: float = z0 - GROUP * BAY
+		var z0: float = snappedf(groups[g].get("z0", -a * BAY), .001)
+		var nb: int = groups[g].get("bays", GROUP)     # a stair's last flight alone: 2 bays, no arcade
+		var z1: float = snappedf(z0 - float(groups[g].get("length", nb * BAY)), .001)
 		var foot: float = top
-		if _box_clear(start, tiers, Vector3(-ARCADE_HALF, top - UPPER_H, z1), Vector3(ARCADE_HALF, top, z0)):
+		if nb == GROUP and _box_clear(start, tiers, Vector3(-ARCADE_HALF, top - UPPER_H, z1), Vector3(ARCADE_HALF, top, z0)):
 			foot = top - UPPER_H
 			if _box_clear(start, tiers, Vector3(-ARCADE_HALF, top - UPPER_H - LOWER_H, z1), Vector3(ARCADE_HALF, top - UPPER_H, z0)):
 				foot -= LOWER_H
@@ -370,35 +409,57 @@ func _arcades(out: Dictionary, start: Transform3D, tiers: Array[Dictionary], gro
 	var carried: bool = true
 	var used: Dictionary = {}
 	for g: int in groups.size():
-		var a: int = groups[g]["a"]
+		var a: int = groups[g].get("a", 0)
 		var top: float = groups[g]["top"]
-		var z0: float = -a * BAY
-		var z1: float = z0 - GROUP * BAY
+		var z0: float = snappedf(groups[g].get("z0", -a * BAY), .001)
+		var nb: int = groups[g].get("bays", GROUP)     # a stair's last flight alone: 2 bays, no arcade
+		var z1: float = snappedf(z0 - float(groups[g].get("length", nb * BAY)), .001)
 		if feet[g] < top and (ends.has(z0) or ends.has(z1)):
-			_piece(out, "walls/aqueduct_upper_12m", Vector3(0, top, z0), ARC_BASIS)
+			# Stretched along the run to a group's length (a link's level run).
+			var arc: Basis = Basis.from_scale(Vector3(1, 1, (z0 - z1) / (nb * BAY))) * ARC_BASIS
+			_piece(out, "walls/aqueduct_upper_12m", Vector3(0, top, z0), arc)
 			if feet[g] < top - UPPER_H:
-				_piece(out, "walls/aqueduct_lower_12m", Vector3(0, top - UPPER_H, z0), ARC_BASIS)
+				_piece(out, "walls/aqueduct_lower_12m", Vector3(0, top - UPPER_H, z0), arc)
 			for z: float in [z0, z1]:
 				if ends.has(z):
 					used[z] = true
 			(out["boxes"] as Array).append(AABB(Vector3(-ARCADE_HALF, feet[g], z1), Vector3(ARCADE_HALF * 2, top - feet[g], z0 - z1)))
 			if falls.has(g):
-				# From a stone spout under the upper arch's crown (walked: from
-				# its spring line the water seemed to come out of the air),
-				# narrow enough for the arch.
-				var crown := Vector3(0, top - 1.4, (z0 + z1) * .5)
-				(out["falls"] as Array).append({"at": crown - Vector3(0, SPOUT.y, 0), "size": Vector2(FALL_WIDTH, (start * crown).y + 90.0), "spout": crown - Vector3(0, SPOUT.y * .5, 0)})
+				# From a trough on the arcade's +X face, mid-bay (TROUGH).
+				var face := Transform3D(ARC_BASIS, Vector3(ARCADE_HALF, top, (z0 + z1) * .5))
+				(out["falls"] as Array).append({"xf": face, "size": Vector2(FALL_WIDTH, (start * face * FALL_FROM).y + 90.0)})
 			continue
-		# No arcade: a pier under each bay, wherever along it one stands.
-		for k: int in GROUP:
+		# No arcade: a pier under each bay, wherever along it one stands (and
+		# for a link, a little to either side). Under a link's flight, one pier
+		# under the middle of its mass (its foot is the group's top), the
+		# landing after it carried between its flight and the next (walked: a
+		# pier a bay stood as thick as a forest).
+		var spots: Array[float] = []      # along the group from z0
+		if groups[g].get("last", false) and used.has(z0):
+			# A link's last flight, its top on the arcade pier before it, its
+			# foot on the end's edge: carried by both (walked: the pier under
+			# it stood by the Overlook's arcade as another bridge's).
+			if not out.has("spanned"):
+				out["spanned"] = []
+			(out["spanned"] as Array).append(Vector2(z1, z0))
+			continue
+		if groups[g].get("flight", false):
+			spots.append(BAY)
+		else:
+			for k: int in nb:
+				spots.append((k + .5) * (z0 - z1) / nb)
+		for spot: float in spots:
 			var found: bool = false
-			for along: float in [2.0, 1.4, 2.6, .9, 3.1]:
-				var c := Vector3(0, top, z0 - k * BAY - along)
-				if _column_ok(start, tiers, c, Vector2.ONE * CORBEL_PIER * .5):
-					var ground: float = _ground(start, tiers, c)
-					(out["piers"] as Array).append({"at": Vector3(0, (top + ground) * .5, c.z), "size": Vector3(CORBEL_PIER, top - ground, CORBEL_PIER)})
-					(out["boxes"] as Array).append(AABB(Vector3(-CORBEL_PIER * .5, ground, c.z - CORBEL_PIER * .5), Vector3(CORBEL_PIER, top - ground, CORBEL_PIER)))
-					found = true
+			for across: float in side_offsets:
+				for along: float in [0.0, -.6, .6, -1.1, 1.1]:
+					var c := Vector3(across, top, z0 - spot - along)
+					if _column_ok(start, tiers, c, Vector2.ONE * CORBEL_PIER * .5):
+						var ground: float = _ground(start, tiers, c)
+						(out["piers"] as Array).append({"at": Vector3(c.x, (top + ground) * .5, c.z), "size": Vector3(CORBEL_PIER, top - ground, CORBEL_PIER)})
+						(out["boxes"] as Array).append(AABB(Vector3(c.x - CORBEL_PIER * .5, ground, c.z - CORBEL_PIER * .5), Vector3(CORBEL_PIER, top - ground, CORBEL_PIER)))
+						found = true
+						break
+				if found:
 					break
 			carried = carried and found
 	# Only the piers an arcade stands on (one an arcade gave way beside would
@@ -472,8 +533,8 @@ static func _cell_edge(side: int) -> Transform3D:
 ## the span meets its start are the start ledge's own.
 static func build_room(span: Dictionary) -> RoomTemplate:
 	var room := RoomTemplate.new()
-	room.name = "Span"
-	room.display_name = "The Span"
+	room.name = span.get("name", "Span")
+	room.display_name = span.get("display_name", "The Span")
 	room.off_grid = true
 	var pieces := KitBatcher.new()
 	pieces.name = "Pieces"
@@ -489,33 +550,37 @@ static func build_room(span: Dictionary) -> RoomTemplate:
 		node.transform = p["xf"]
 		pieces.add_child(node)
 		n += 1
-	var stone: Material = load("res://kit/materials/gorge_sandstone.tres")
-	var piers := SurfaceTool.new()
+	# Balusters and rails cast no shadow: each is drawn again in every shadow
+	# that reaches it, and theirs don't show at the gorge's scale.
+	for m: Node in pieces.find_children("*", "MeshInstance3D", true, false):
+		if "__balusters" in m.name or "__rail" in m.name:
+			(m as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	# The piers and the newels' posts in the room's one mesh of stone (with
+	# the made stonework: ChasmMasonry).
+	var stone: Array = []
 	for p: Dictionary in span["piers"]:
-		var box := BoxMesh.new()
-		box.size = p["size"]
-		piers.append_from(box, 0, Transform3D(Basis(), p["at"]))
-	if not (span["piers"] as Array).is_empty():
-		_mesh(room, "piers", piers.commit(), stone)
-	_newels(room, span, scenes)
+		stone.append({"at": p["at"], "size": p["size"], "turn": 0.0, "mat": "gorge_sandstone"})
+	stone.append_array(_newels(room, span, scenes))
+	ChasmMasonry.build(room, span, stone)
 	var water: Shader = load("res://shaders/waterfall.gdshader")
 	for i: int in (span["falls"] as Array).size():
 		var f: Dictionary = span["falls"][i]
 		var material := ShaderMaterial.new()
 		material.shader = water
 		material.set_shader_parameter("seed", float(i + 1) * 7.13)
-		# The ribbon falls along the run's line, bending out over the gorge
-		# toward the span's +X side.
+		# The ribbon from the trough, its width along the run, bending out
+		# over the gorge away from the arcade.
 		var fall := _mesh(room, "waterfall_%d" % i, waterfall_mesh(f["size"]), material)
-		fall.transform = Transform3D(Basis(Vector3(0, 0, -1), Vector3.UP, Vector3(1, 0, 0)), f["at"])
+		fall.transform = (f["xf"] as Transform3D).translated_local(FALL_FROM)
 		fall.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	var spouts := SurfaceTool.new()
+	var troughs := SurfaceTool.new()
 	for f: Dictionary in span["falls"]:
-		var box := BoxMesh.new()
-		box.size = SPOUT
-		spouts.append_from(box, 0, Transform3D(Basis(), f["spout"]))
+		for s: Array in TROUGH:
+			var box := BoxMesh.new()
+			box.size = s[1]
+			troughs.append_from(box, 0, (f["xf"] as Transform3D).translated_local(s[0]))
 	if not (span["falls"] as Array).is_empty():
-		_mesh(room, "spouts", spouts.commit(), load("res://kit/materials/gorge_faience.tres"))
+		_mesh(room, "troughs", troughs.commit(), load("res://kit/materials/gorge_sandstone.tres"))
 	var holder := Node3D.new()
 	holder.name = "Connectors"
 	room.add_child(holder)
@@ -527,9 +592,10 @@ static func build_room(span: Dictionary) -> RoomTemplate:
 	return room
 
 
-## Square newels on the joints (those within NEWEL_MERGE as one), all the posts
-## as one mesh and the caps as another; a lamp post on the newels with a lamp.
-static func _newels(room: RoomTemplate, span: Dictionary, scenes: Dictionary) -> void:
+## Square newels on the joints (those within NEWEL_MERGE as one): their caps
+## as one mesh, a lamp post on the newels with a lamp; their posts returned
+## as stone blocks ({at, size, turn, mat}) for the room's stone mesh.
+static func _newels(room: RoomTemplate, span: Dictionary, scenes: Dictionary) -> Array:
 	var groups: Array = []
 	for p: Vector3 in span["joints"]:
 		var found: bool = false
@@ -540,22 +606,27 @@ static func _newels(room: RoomTemplate, span: Dictionary, scenes: Dictionary) ->
 				break
 		if not found:
 			groups.append([p])
-	var post_box := BoxMesh.new()
-	post_box.size = Vector3(NEWEL, 1.4, NEWEL)
 	var cap_box := BoxMesh.new()
 	cap_box.size = Vector3(NEWEL + .1, .1, NEWEL + .1)
-	var posts := SurfaceTool.new()
+	var posts: Array = []
 	var caps := SurfaceTool.new()
 	var lamp_path: String = MOD + "dressing/chasm_lamp_post.tscn"
+	# Lamp posts drawn in one batch, casting no shadow (three meshes a post).
+	var lamps := KitBatcher.new()
+	lamps.name = "Lamps"
+	room.add_child(lamps)
 	var n: int = 0
 	for gr: Array in groups:
 		var at := Vector3.ZERO
 		for p: Vector3 in gr:
 			at += p
 		at /= gr.size()
-		if absf(at.y) < .2 and absf(at.z) < NEWEL_MERGE and absf(absf(at.x) - 1.82) < NEWEL_MERGE:
+		if span.has("no_newels"):
+			if (span["no_newels"] as Array).any(func(q: Vector3) -> bool: return q.distance_to(at) < NEWEL_MERGE):
+				continue      # the room it meets has a newel there
+		elif absf(at.y) < .2 and absf(at.z) < NEWEL_MERGE and absf(absf(at.x) - 1.82) < NEWEL_MERGE:
 			continue      # the start ledge's newel
-		posts.append_from(post_box, 0, Transform3D(Basis(), at + Vector3(0, .45, 0)))
+		posts.append({"at": at + Vector3(0, .45, 0), "size": Vector3(NEWEL, 1.4, NEWEL), "turn": 0.0, "mat": "gorge_sandstone"})
 		caps.append_from(cap_box, 0, Transform3D(Basis(), at + Vector3(0, 1.2, 0)))
 		for l: Vector3 in span["lamps"]:
 			if l.distance_to(at) < NEWEL_MERGE:
@@ -564,11 +635,13 @@ static func _newels(room: RoomTemplate, span: Dictionary, scenes: Dictionary) ->
 				var post: Node3D = (scenes[lamp_path] as PackedScene).instantiate()
 				post.name = "chasm_lamp_post_%d" % n
 				post.transform = Transform3D(Basis().scaled(Vector3.ONE * .6), at + Vector3(0, 1.25, 0))
-				room.add_child(post)
+				for m: Node in post.find_children("*", "MeshInstance3D", true, false):
+					(m as MeshInstance3D).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+				lamps.add_child(post)
 				n += 1
 				break
-	_mesh(room, "newel_posts", posts.commit(), load("res://kit/materials/gorge_sandstone.tres"))
-	_mesh(room, "newel_caps", caps.commit(), load("res://kit/materials/gorge_limestone.tres"))
+	_mesh(room, "newel_caps", caps.commit(), load("res://kit/materials/gorge_limestone.tres")).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	return posts
 
 
 static func _mesh(room: Node, name: String, mesh: Mesh, material: Material) -> MeshInstance3D:

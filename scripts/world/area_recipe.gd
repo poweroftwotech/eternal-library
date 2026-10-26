@@ -28,6 +28,12 @@ extends Resource
 ## Below this height a falling player is put back at the spawn (the camp and
 ## the rooms: -8 m). The Gorge walks far below that, to its safety floor.
 @export var fall_limit: float = -8.0
+## A cavern area's walkable network (phase 6 step 4): ledges on the
+## scenery's frontage slots joined by spans, planned after the slots.
+@export var network: GorgeNetwork
+## Every room sees every other (an open cavern: no walls between them),
+## so no sightline limit applies and every room's lights may burn.
+@export var open_sight: bool = false
 
 
 func slot(slot_id: String) -> AreaSlot:

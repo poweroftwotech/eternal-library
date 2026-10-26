@@ -170,6 +170,48 @@ its ends exist).
   when the Gorge area builds (Q9), and its two ends become frontage slots
   with a fixed span between them in the network, so the view keeps an
   aqueduct where it had one. The camp's own view keeps the scenery one.
+- **As built in step 4** (where it differs from the above):
+  - **Frontage** (`tools/gorge_frontage.gd` → `gen/gorge/frontage.tres`,
+    `FrontageSlot`, `GorgeFrontage`): 25 slots on banks 1–4, every straight
+    run of a tier's faces across the gorge at storeys from -40 to 0 with
+    room for a ledge (a tier's top storey too: the ledge runs under its
+    deck's overhang, 2.6 m clear, a covered gallery). No `door` yet.
+  - **Ledges** (`scripts/gen/cliff_ledge_grammar.gd`) stand against the
+    face, each bay on a **pier** under a corbel where one stands cleanly
+    (`ChasmGrammar.pier_under`, offsets along and out), else carried by
+    **stepped stone consoles** into the face at that bay's joints (the
+    user's choice: piers 2 m out often land on a terrace's edge below; 64%
+    of bays stand on piers). No loggias. The face behind is the
+    ledge's own (windows with wall lamps, tiled panels, plain); the
+    gorge's own bays there, in the storey under the consoles, and anything
+    of the scenery where a network room stands are hidden when the area
+    loads (`GorgeScenery.clear`, from each room's `claims`).
+  - **Links** (`scripts/gen/chasm_link.gd`, `ChasmLink.join`) are the spans
+    between two given connectors, at any length: the level run is made to
+    measure (`scripts/gen/chasm_masonry.gd`: slab, course, balustrades with
+    a newel about every 4 m, in the kit's world-mapped materials, so no
+    seam shows), flights and landings are the kit's, arcades or piers
+    carry them (ChasmGrammar's), and a landing cut to fit takes up the
+    angle where an end doesn't face the run square (up to 30°).
+  - **The main span** is the network's first link: from the Overlook's
+    corner to a ledge on bank 2 (it replaces step 3's span with its free
+    head), level or up to three storeys up or down, kept to step 3's line
+    (turned toward its ledge, it filled the box art's mist floor).
+  - **The network** isn't Kruskal over ledges placed first (that left most
+    of them unreachable). Every possible link between the slots'
+    connectors is solved once ahead (`tools/gorge_links.gd` →
+    `gen/gorge/links.res`, `GorgeLinks`, 4,909 links); the planner
+    (`scripts/world/area_network.gd`) grows trees from the Overlook,
+    shortest link first, over that table, checking boxes only, up to 80
+    tries a seed, and solves only the links it keeps. The cliffs take
+    turns once one has two ledges and the other none; a span across that
+    doubles one already there (near it, or splayed less than 12° from it
+    at a shared ledge) costs 80 m more.
+  - **The scenery aqueduct's ends** are not slots and there's no fixed
+    span between them: the main span keeps the aqueduct's place.
+  - **Recipe**: `GorgeNetwork` (`AreaRecipe.network`), `open_sight` (every
+    room sees every other, no sightline limit), version 3, 9–13 rooms. The
+    Gorge's mist floor glows 1.8 times the camp's (`mist_glow`).
 
 ## 5.7.6 Thresholds (step 5)
 

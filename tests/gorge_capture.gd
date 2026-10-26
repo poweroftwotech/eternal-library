@@ -18,6 +18,10 @@ extends SceneTree
 ##   span_head   from the far ledge back toward the Overlook
 ##   span_side   from the ledge's west end back along it onto the span
 ##   span_under  from under its start up along the arcades
+## and the near network (step 4): per link net_<link> (along it) and
+## net_<link>_side; per ledge net_<ledge> (along it), _out (across the gorge)
+## _under (its consoles from below) and _face (from the air in front);
+## net_air (the whole, from the air).
 ## A view's third value is where you stand (default: the balcony).
 ##   (a second argument picks views: concept,stair)
 ##   (or `sweep`: at each stop on the walk, eight headings a little below
@@ -79,7 +83,7 @@ func run() -> void:
 	var only: PackedStringArray = args[1].split(",") if args.size() > 1 else PackedStringArray()
 	var views: Dictionary = VIEWS.duplicate()
 	var span: AreaPlan.Room = area.plan.room("span")
-	if span != null and span.span.get("ok", false):
+	if span != null and span.kind == "span" and span.span.get("ok", false):
 		var s: Transform3D = span.xf
 		var n: int = span.span["bays"]
 		var low: float = -int(span.span["drop"]) * 4.0
@@ -93,6 +97,27 @@ func run() -> void:
 		views["span_under"] = [s * Vector3(0, -14, -n * 4.0), 80.0, s * Vector3(9, -46, -4)]
 		# The last bays by the far bank, from the air beside them: what carries them.
 		views["span_end"] = [s * Vector3(0, low - 10.0, -n * 4.0 + 14.0), 70.0, s * Vector3(26, low - 6.0, -n * 4.0 + 14.0)]
+	# The near gorge's network (step 4): each link from its start along it and
+	# from beside its middle; each ledge along it and out from it; the whole
+	# from the air.
+	for r: AreaPlan.Room in area.plan.rooms:
+		if r.kind == "link":
+			var s: Transform3D = r.xf
+			var length: float = r.span["length"]
+			var low: float = -int(r.span["drop"]) * 4.0
+			var name: String = "net_" + r.slot_id
+			print("gorge_capture: %s %s, %.0f m, %d storeys, from %s" % [r.slot_id, r.display_name, length, r.span["drop"], r.parent])
+			views[name] = [s * Vector3(0, low * .5 + 1.0, -length), 70.0, s * Vector3(0, 0, -1.0)]
+			views[name + "_side"] = [s * Vector3(0, low * .5, -length * .5), 70.0, s * Vector3(length * .45, low * .5 + 6.0, -length * .5)]
+		elif r.kind == "ledge":
+			var n: int = r.span["bays"]
+			var name: String = "net_" + r.slot_id
+			print("gorge_capture: %s on %s, %d bays" % [r.slot_id, r.span["slot"], n])
+			views[name] = [r.xf * Vector3(n * 4.0, 1.0, -2.0), 70.0, r.xf * Vector3(.8, 0, -2.0)]
+			views[name + "_out"] = [r.xf * Vector3(n * 2.0, -2.0, -40.0), 75.0, r.xf * Vector3(n * 2.0, 0, -1.2)]
+			views[name + "_under"] = [r.xf * Vector3(n * 2.0, -1.0, 0.0), 70.0, r.xf * Vector3(n * 2.0 + 6.0, -6.0, -14.0)]
+			views[name + "_face"] = [r.xf * Vector3(n * 2.0, -1.0, 0.0), 60.0, r.xf * Vector3(n * 2.0 - 5.0, -3.0, -16.0)]
+	views["net_air"] = [Vector3(5, -40, -115), 75.0, Vector3(-8, 14, -45)]
 	if only.has("sweep"):
 		views = {}
 		only = PackedStringArray()

@@ -1,7 +1,7 @@
 extends SceneTree
 ## R10 Chasm Spans (phase-6-design.md 5.7.4, phase 6 step 3), headless:
 ##   godot --headless --path . --script res://tests/r10_span_test.gd [-- --seeds=20]
-## The Gorge area plans clean with its span off the Overlook's corner. Then
+## The Gorge area plans clean with its main span off the Overlook's corner. Then
 ## for each of N seeds of each kind (a level bridge, a chain stepping down),
 ## the span solved from the Overlook's connector, built where the area's
 ## stands, and checked:
@@ -50,13 +50,17 @@ func run() -> void:
 		await physics_frame
 	check(area.plan.check().is_empty(), "the Gorge plans clean (%s)" % [area.plan.check()])
 	var planned: AreaPlan.Room = area.plan.room("span")
-	check(planned != null and planned.kind == "span" and planned.parent == "overlook" and planned.parent_connector == &"SNAP_exit_span",
+	# Since step 4 the area's main span is the near network's first link (a
+	# ChasmLink to a ledge on bank 2, tests/gorge_network_test.gd); the
+	# grammar's own spans below still grow from the same corner.
+	check(planned != null and planned.kind == "link" and planned.parent == "overlook" and planned.parent_connector == &"SNAP_exit_span",
 		"the span joins the Overlook's corner (SNAP_exit_span)")
 	check(area.rooms.has("span"), "the area builds its span")
 	var overlook: RoomTemplate = area.rooms["overlook"]
 	var start: Transform3D = overlook.global_transform * (overlook.get_node("Connectors/SNAP_exit_span") as Node3D).transform
-	check(planned != null and planned.xf.origin.distance_to(start.origin) < .01, "the span's frame is the Overlook's connector")
-	var grammar: ChasmGrammar = planned.grammar
+	check(planned != null and (planned.connectors[planned.entry]["xf"] as Transform3D).origin.distance_to(start.origin) < .01,
+		"the span starts on the Overlook's connector")
+	var grammar: ChasmGrammar = load("res://gen/grammars/r10_chasm.tres")
 	var tiers: Array[Dictionary] = GorgeGrammar.new().keep_out(grammar.gorge_layout)
 	var body: CharacterBody3D = make_capsule(area)
 	var current: Node = area.rooms["span"]

@@ -47,6 +47,8 @@ const STONES: Array[String] = ["gorge_wall_4m", "gorge_wall_4m_aged", "gorge_wal
 const CYPRESS: Array[String] = ["gorge_cypress_5", "gorge_cypress_6", "gorge_cypress_8"]
 
 var _noise: FastNoiseLite
+## Each bank's terrace dressing (dressing()), once a session: [layout, seed] -> points.
+static var _bank_dressing: Dictionary = {}
 
 
 func _init() -> void:
@@ -158,13 +160,18 @@ func dressing(layout: GorgeLayout, near: Vector2, reach: float) -> Array[Vector4
 	for b: PackedFloat32Array in layout.banks:
 		if Vector2(b[0], b[1]).distance_to(near) > reach + maxf(b[2], b[3]) * 1.3:
 			continue
-		for p: Dictionary in bank(Vector2(b[0], b[1]), b[2], b[3], b[4], int(b[5])):
-			var file: String = str(p.get("scene", "")).get_file()
-			for k: String in RADII:
-				if file.begins_with(k):
-					var at: Vector3 = (p["xf"] as Transform3D).origin
-					out.append(Vector4(at.x, at.y, at.z, RADII[k]))
-					break
+		var key: Array = [layout, b[5]]
+		if not _bank_dressing.has(key):
+			var found: Array[Vector4] = []
+			for p: Dictionary in bank(Vector2(b[0], b[1]), b[2], b[3], b[4], int(b[5])):
+				var file: String = str(p.get("scene", "")).get_file()
+				for k: String in RADII:
+					if file.begins_with(k):
+						var at: Vector3 = (p["xf"] as Transform3D).origin
+						found.append(Vector4(at.x, at.y, at.z, RADII[k]))
+						break
+			_bank_dressing[key] = found
+		out.append_array(_bank_dressing[key])
 	return out
 
 
@@ -210,7 +217,15 @@ static func ground_tier(tiers: Array[Dictionary], p: Vector3) -> Dictionary:
 
 ## Whether p's x/z is over tier t's cells grown by `grow` metres.
 static func _over(t: Dictionary, p: Vector3, grow: float) -> bool:
-	var l: Vector3 = (t["frame"] as Transform3D).affine_inverse() * p
+	# Far from the tier: not over it (a quick test; the inverse frame is kept
+	# on the tier the first time, as these run millions of times a plan).
+	var c: Vector2 = t["c"]
+	var r: float = Vector2(float(t["hx"]), float(t["hz"])).length() + BAY * 2.0 + grow
+	if Vector2(p.x - c.x, p.z - c.y).length_squared() > r * r:
+		return false
+	if not t.has("inv"):
+		t["inv"] = (t["frame"] as Transform3D).affine_inverse()
+	var l: Vector3 = (t["inv"] as Transform3D) * p
 	var cells: Dictionary = t["cells"]
 	for dx: float in ([0.0] if grow <= 0.0 else [-grow, 0.0, grow]):
 		for dz: float in ([0.0] if grow <= 0.0 else [-grow, 0.0, grow]):
@@ -385,8 +400,13 @@ func aqueduct(a: Vector3, b: Vector3, falls: Array[int]) -> Array[Dictionary]:
 			var p: Vector3 = a.lerp(b, (s + 3.0 + k * 6.0) / run) + Vector3.UP * .45 + across * (.6 if (i * 2 + k) % 2 == 0 else -.6)
 			out.append(_piece("dressing/gorge_figure", Transform3D(level, p)))
 		if falls.has(i):
-			var spring: float = top - 1.4 - (span * .5 - 1.2)
-			out.append({"waterfall": Vector3(mid.x, spring, mid.z), "size": Vector2(span * .5, spring + 90.0)})
+			# From a trough on the arcade's face (ChasmGrammar.TROUGH; walked:
+			# through the arch it fell through the lower arcade's course).
+			var face := Transform3D(level, Vector3(start.x, top, start.z) + flat * span * .5 + across * ChasmGrammar.ARCADE_HALF)
+			var from: Vector3 = face * ChasmGrammar.FALL_FROM
+			out.append({"waterfall": from, "size": Vector2(ChasmGrammar.FALL_WIDTH, from.y + 90.0), "basis": level})
+			for stone: Array in ChasmGrammar.TROUGH:
+				out.append({"stone": face.translated_local(stone[0]), "size": stone[1]})
 	for point: Vector3 in [a, b]:
 		out.append(_piece("dressing/aqueduct_landing", Transform3D(Basis(), point)))
 	return out

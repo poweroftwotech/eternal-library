@@ -1,0 +1,8 @@
+[gd_resource type="Resource" script_class="CliffLedgeGrammar" format=3]
+
+[ext_resource type="Script" path="res://scripts/gen/cliff_ledge_grammar.gd" id="1_ledge"]
+[ext_resource type="Resource" path="res://gen/grammars/r10_chasm.tres" id="2_chasm"]
+
+[resource]
+script = ExtResource("1_ledge")
+chasm = ExtResource("2_chasm")

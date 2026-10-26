@@ -93,6 +93,8 @@ var area_seed: int = 1
 var recipe_version: int = 1
 var room_count: Vector2i = Vector2i(6, 10)
 var max_sight_depth: int = 2
+## An open cavern (AreaRecipe.open_sight): every room sees every other.
+var open_sight: bool = false
 var placement: AreaPlacement
 var rooms: Array[Room] = []
 var by_slot: Dictionary = {}
@@ -250,6 +252,18 @@ func check(check_count: bool = true) -> PackedStringArray:
 ## {violations: PackedStringArray, visible: {slot: PackedStringArray}, lines: int,
 ## deepest: int (most rooms on one line)}.
 func compute_sight(only: String = "") -> Dictionary:
+	if open_sight:
+		var all: Dictionary = {}
+		for r: Room in rooms:
+			var others: PackedStringArray = []
+			for o: Room in rooms:
+				if o != r:
+					others.append(o.slot_id)
+			others.sort()
+			all[r.slot_id] = others
+		if only == "":
+			visible = all
+		return {"violations": PackedStringArray(), "visible": all, "lines": 0, "deepest": rooms.size()}
 	var passes: Dictionary = {}       # area edge key -> half width
 	var floor_owner: Dictionary = {}  # floor cell -> slot
 	for r: Room in rooms:

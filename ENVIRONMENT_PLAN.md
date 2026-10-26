@@ -8,12 +8,16 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 6 step 3 committed (b65d383): a span across the gorge.** A generated bridge or chain of flights from the Overlook's ledge toward bank 2, in place of the near aqueduct; after four walks (18 reports) the gorge's windows, balconies, book windows, undersides and the entrance pishtaq redesigned. Box art passes for the Overlook and the camp | [Phase 6 progress](docs/environment/progress/phase-6-overlook.md) | Say when to start step 4 (the near gorge: 4–6 ledges joined by spans) |
+| **Phase 6 step 4 after your third walk: waterfalls fixed.** Every fall now pours from a stone trough on the aqueduct's side and falls clear of the arcades below. The gaps (hollow, slit bank tiers seen from the links) are proposed for a gorge scenery clean-up pass with the clipping you noticed | [Phase 6 progress](docs/environment/progress/phase-6-overlook.md) (step 4, "Walk 3") | Walk it again, or say when to commit |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-26 | **Your third walk of step 4: the waterfalls.** Each now pours from a stone trough on the aqueduct's side (the spans' and the baked aqueducts'), clear of the arcades below; the gorge was re-baked. The gaps you saw (slit, hollow bank tiers) are left for a scenery clean-up pass ([progress](docs/environment/progress/phase-6-overlook.md)). |
+| 2026-10-26 | **Your second walk of step 4: 3 reports fixed.** The straight piers you saw under "the span" were the Overlook's own ledge (step 2): it now stands on span decks and arcades, one arch carrying its run toward bank 1 from the corner to the facade, and the ledge runs one bay further into that facade, so the stub pier and the block on the terrace are gone. A span's last flight resting on an arcade pier has no pier of its own. Network test 670 checks, route, span and area-plan tests and box art (8 seeds) pass ([progress](docs/environment/progress/phase-6-overlook.md)). Waiting for your next walk. |
+| 2026-10-26 | **Your walk of step 4: 14 reports fixed.** One fault behind ten of them: the made-to-measure stonework was built inside out (stairs looked unflush, wall bases flickered, newels floated). Galleries and stairs now keep clear of the blank mass round the Overlook; a span's level part stands on arches stretched to fit (a short one is a lintel); a flight without arches has one pier, not one per bay. Network test 660 checks and box art (8 seeds) pass ([progress](docs/environment/progress/phase-6-overlook.md)). Waiting for your next walk. |
+| 2026-10-26 | **Phase 6 step 4 built: the near gorge.** 4–6 galleries on both cliffs (frontage slots on banks 1–4), joined as a tree by spans across and stairs along the cliffs, every seed 1–20 walked by a new test (655 checks pass). Box art passes for 8 seeds and the camp. The frame gate now walks the Gorge: within draw calls and lights, over the library's GPU/CPU limits, set mostly by the scenery (the Overlook is the costliest stretch) ([progress](docs/environment/progress/phase-6-overlook.md)). Waiting for your walk. |
 | 2026-10-25 | **Phase 6 step 3 committed** (b65d383) after your fourth walk ([progress](docs/environment/progress/phase-6-overlook.md)). |
 | 2026-10-25 | **Step 3 after your fourth walk:** no z-fighting on the window frames' sides; the ledge's pierless bay on a lintel; the entrance pishtaq in brick, tile only in its roundels and niches ([progress](docs/environment/progress/phase-6-overlook.md)). |
 | 2026-10-25 | **Step 3 after your second and third walks:** windows redesigned (framed windows, patio-door balconies, books behind windows, lit/dim/dark mix), the Overlook on clean piers, the entrance iwan dressed, no z-fighting under the arches; lighter pieces keep triangles in budget ([progress](docs/environment/progress/phase-6-overlook.md)). |
@@ -78,7 +82,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
 | **5. Kit breadth** | More room types, mostly from data | ✅ Done 2026-10-25 |
-| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–3 committed (4bce7c1, 8f789de, b65d383) |
+| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–3 committed (4bce7c1, 8f789de, b65d383); step 4 built, walked three times (19 reports fixed; the gaps go to a scenery clean-up), waiting for your next walk |
 
 ## 10. Roadmap (each phase is a playable slice)
 
@@ -93,7 +97,7 @@ relevant, the route audit and the two-process persistence test.
 | 3. Props and persistence | `WorldProp`, wake and sleep, breakables, book promotion, `ItemDef` pickup, `AreaState`, aging rules | Knock over a vase, pull a lore book and take it, quit; in a new process both stay changed. Advancing the world clock darkens untouched lamps only. |
 | **4. Areas and streaming** | `AreaRecipe`, graph and routing, threaded room streaming, light budget | An area of 6–10 rooms (R01, several R02, one baked room) streams without hitches at the frame target. |
 | **5. Kit breadth** | R03 grid generator, R11 (R03 plus water), R09 ring generator, R05 courtyard template, in a new area (the Lower Stacks). Porting the Overlook and R10 from `vista.gd` moved to a later phase (phase 5 Q1) | Each new type is added mostly through modules and `.tres` rules, with little new code. That is the test of the architecture. |
-| **6. The Overlook and the Chasm Spans** | The gorge rebuilt from kit pieces (`GorgeGrammar`, baked to an editable scene, batched at load), the Overlook walkable, R10 `ChasmGrammar` spans and `CliffLedgeGrammar` ledges on frontage slots, thresholds into the library areas, the camp balcony's stair | You walk from the balcony across a generated span and through a cliff door into the library and back, the box-art comparison still passes on the rebuilt gorge, and the frame gate passes in the gorge. |
+| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–3 committed (4bce7c1, 8f789de, b65d383); step 4 built, walked three times (19 reports fixed; the gaps go to a scenery clean-up), waiting for your next walk |
 | 7. The navigation map (proposed) | The map drawn from the areas' plans, floor by floor, revealed as you visit (architecture §2.1) | You can find your way back to any room you've been to. |
 
 ## The documents

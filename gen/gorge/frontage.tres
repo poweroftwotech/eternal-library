@@ -1,0 +1,188 @@
+[gd_resource type="Resource" script_class="GorgeFrontage" format=3]
+
+[ext_resource type="Script" path="res://scripts/gen/gorge_frontage.gd" id="1_um62l"]
+[ext_resource type="Script" path="res://scripts/gen/frontage_slot.gd" id="2_ax5ff"]
+
+[sub_resource type="Resource" id="Resource_vtcfq"]
+script = ExtResource("2_ax5ff")
+id = "b1_l13_W_s2_0"
+xf = Transform3D(0.067368105, 0, -0.99772817, 0, 1, 0, 0.99772817, 0, 0.067368105, -53.94043, -40, -101.64316)
+width = 10
+
+[sub_resource type="Resource" id="Resource_1xu0f"]
+script = ExtResource("2_ax5ff")
+id = "b1_l14_W_s0_3"
+xf = Transform3D(0.1224409, 0, -0.9924758, 0, 1, 0, 0.9924758, 0, 0.1224409, -48.054176, -36, -103.27962)
+width = 8
+
+[sub_resource type="Resource" id="Resource_37xov"]
+script = ExtResource("2_ax5ff")
+id = "b1_l14_W_s1_3"
+xf = Transform3D(0.1224409, 0, -0.9924758, 0, 1, 0, 0.9924758, 0, 0.1224409, -48.054176, -32, -103.27962)
+width = 8
+
+[sub_resource type="Resource" id="Resource_hh2y5"]
+script = ExtResource("2_ax5ff")
+id = "b1_l15_W_s0_3"
+xf = Transform3D(0.121618286, 0, -0.99257696, 0, 1, 0, 0.99257696, 0, 0.121618286, -41.500114, -28, -109.865906)
+width = 9
+
+[sub_resource type="Resource" id="Resource_kdvd7"]
+script = ExtResource("2_ax5ff")
+id = "b1_l15_W_s1_3"
+xf = Transform3D(0.121618286, 0, -0.99257696, 0, 1, 0, 0.99257696, 0, 0.121618286, -41.500114, -24, -109.865906)
+width = 9
+
+[sub_resource type="Resource" id="Resource_o5ul5"]
+script = ExtResource("2_ax5ff")
+id = "b1_l15_W_s2_3"
+xf = Transform3D(0.121618286, 0, -0.99257696, 0, 1, 0, 0.99257696, 0, 0.121618286, -41.500114, -20, -109.865906)
+width = 9
+
+[sub_resource type="Resource" id="Resource_3v4rn"]
+script = ExtResource("2_ax5ff")
+id = "b1_l17_W_s2_0"
+xf = Transform3D(-0.02117531, 0, -0.99977577, 0, 1, 0, 0.99977577, 0, -0.02117531, -53.842716, 0, -102.95459)
+width = 11
+
+[sub_resource type="Resource" id="Resource_cfp10"]
+script = ExtResource("2_ax5ff")
+id = "b2_l14_E_s0_0"
+bank = 2
+cliff = "right"
+xf = Transform3D(-0.102166705, 0, 0.9947673, 0, 1, 0, -0.9947673, 0, -0.102166705, 55.570366, -40, -65.88779)
+width = 15
+
+[sub_resource type="Resource" id="Resource_w832k"]
+script = ExtResource("2_ax5ff")
+id = "b2_l14_E_s1_0"
+bank = 2
+cliff = "right"
+xf = Transform3D(-0.102166705, 0, 0.9947673, 0, 1, 0, -0.9947673, 0, -0.102166705, 55.570366, -36, -65.88779)
+width = 15
+
+[sub_resource type="Resource" id="Resource_3ot6f"]
+script = ExtResource("2_ax5ff")
+id = "b2_l15_E_s2_0"
+bank = 2
+cliff = "right"
+xf = Transform3D(-0.02790564, 0, 0.99961054, 0, 1, 0, -0.99961054, 0, -0.02790564, 53.314014, -24, -74.44674)
+width = 12
+
+[sub_resource type="Resource" id="Resource_k6506"]
+script = ExtResource("2_ax5ff")
+id = "b2_l16_E_s2_0"
+bank = 2
+cliff = "right"
+xf = Transform3D(0.059260704, 0, 0.99824256, 0, 1, 0, -0.99824256, 0, 0.059260704, 55.72553, -12, -78.73657)
+width = 12
+
+[sub_resource type="Resource" id="Resource_na86u"]
+script = ExtResource("2_ax5ff")
+id = "b2_l17_E_s0_2"
+bank = 2
+cliff = "right"
+xf = Transform3D(0.11908869, 0, 0.9928836, 0, 1, 0, -0.9928836, 0, 0.11908869, 49.0967, -8, -79.37965)
+width = 12
+
+[sub_resource type="Resource" id="Resource_fqh8b"]
+script = ExtResource("2_ax5ff")
+id = "b2_l17_E_s1_2"
+bank = 2
+cliff = "right"
+xf = Transform3D(0.11908869, 0, 0.9928836, 0, 1, 0, -0.9928836, 0, 0.11908869, 49.0967, -4, -79.37965)
+width = 12
+
+[sub_resource type="Resource" id="Resource_w1sms"]
+script = ExtResource("2_ax5ff")
+id = "b2_l17_E_s2_2"
+bank = 2
+cliff = "right"
+xf = Transform3D(0.11908869, 0, 0.9928836, 0, 1, 0, -0.9928836, 0, 0.11908869, 49.0967, 0, -79.37965)
+width = 12
+
+[sub_resource type="Resource" id="Resource_h4fwu"]
+script = ExtResource("2_ax5ff")
+id = "b3_l16_W_s2_1"
+bank = 3
+xf = Transform3D(-0.12902595, 0, -0.9916412, 0, 1, 0, 0.9916412, 0, -0.12902595, -42.825485, -20, -164.18803)
+width = 12
+
+[sub_resource type="Resource" id="Resource_2wais"]
+script = ExtResource("2_ax5ff")
+id = "b3_l17_W_s0_1"
+bank = 3
+xf = Transform3D(-0.10760805, 0, -0.9941934, 0, 1, 0, 0.9941934, 0, -0.10760805, -36.725185, -16, -169.78476)
+width = 14
+
+[sub_resource type="Resource" id="Resource_7mc0t"]
+script = ExtResource("2_ax5ff")
+id = "b3_l17_W_s1_1"
+bank = 3
+xf = Transform3D(-0.10760805, 0, -0.9941934, 0, 1, 0, 0.9941934, 0, -0.10760805, -36.725185, -12, -169.78476)
+width = 14
+
+[sub_resource type="Resource" id="Resource_0duac"]
+script = ExtResource("2_ax5ff")
+id = "b3_l17_W_s2_0"
+bank = 3
+xf = Transform3D(-0.10760805, 0, -0.9941934, 0, 1, 0, 0.9941934, 0, -0.10760805, -36.725185, -8, -169.78476)
+width = 15
+
+[sub_resource type="Resource" id="Resource_klf7u"]
+script = ExtResource("2_ax5ff")
+id = "b3_l18_W_s0_0"
+bank = 3
+xf = Transform3D(-0.036911476, 0, -0.99931854, 0, 1, 0, 0.99931854, 0, -0.036911476, -37.548206, -4, -144.1899)
+width = 7
+
+[sub_resource type="Resource" id="Resource_et0s1"]
+script = ExtResource("2_ax5ff")
+id = "b3_l18_W_s1_0"
+bank = 3
+xf = Transform3D(-0.036911476, 0, -0.99931854, 0, 1, 0, 0.99931854, 0, -0.036911476, -37.548206, 0, -144.1899)
+width = 7
+
+[sub_resource type="Resource" id="Resource_vuku4"]
+script = ExtResource("2_ax5ff")
+id = "b4_l13_E_s2_6"
+bank = 4
+cliff = "right"
+xf = Transform3D(0.051036403, 0, 0.9986968, 0, 1, 0, -0.9986968, 0, 0.051036403, 31.051798, -40, -134.22304)
+width = 8
+
+[sub_resource type="Resource" id="Resource_e771g"]
+script = ExtResource("2_ax5ff")
+id = "b4_l14_E_s2_6"
+bank = 4
+cliff = "right"
+xf = Transform3D(0.11522242, 0, 0.9933397, 0, 1, 0, -0.9933397, 0, 0.11522242, 30.534948, -28, -140.64432)
+width = 7
+
+[sub_resource type="Resource" id="Resource_p5cpt"]
+script = ExtResource("2_ax5ff")
+id = "b4_l16_E_s0_9"
+bank = 4
+cliff = "right"
+xf = Transform3D(0.08043345, 0, 0.99675995, 0, 1, 0, -0.99675995, 0, 0.08043345, 31.397453, -16, -135.23659)
+width = 8
+
+[sub_resource type="Resource" id="Resource_phxda"]
+script = ExtResource("2_ax5ff")
+id = "b4_l16_E_s1_9"
+bank = 4
+cliff = "right"
+xf = Transform3D(0.08043345, 0, 0.99675995, 0, 1, 0, -0.99675995, 0, 0.08043345, 31.397453, -12, -135.23659)
+width = 8
+
+[sub_resource type="Resource" id="Resource_f4rj2"]
+script = ExtResource("2_ax5ff")
+id = "b4_l16_E_s2_9"
+bank = 4
+cliff = "right"
+xf = Transform3D(0.08043345, 0, 0.99675995, 0, 1, 0, -0.99675995, 0, 0.08043345, 31.397453, -8, -135.23659)
+width = 8
+
+[resource]
+script = ExtResource("1_um62l")
+slots = Array[ExtResource("2_ax5ff")]([SubResource("Resource_vtcfq"), SubResource("Resource_1xu0f"), SubResource("Resource_37xov"), SubResource("Resource_hh2y5"), SubResource("Resource_kdvd7"), SubResource("Resource_o5ul5"), SubResource("Resource_3v4rn"), SubResource("Resource_cfp10"), SubResource("Resource_w832k"), SubResource("Resource_3ot6f"), SubResource("Resource_k6506"), SubResource("Resource_na86u"), SubResource("Resource_fqh8b"), SubResource("Resource_w1sms"), SubResource("Resource_h4fwu"), SubResource("Resource_2wais"), SubResource("Resource_7mc0t"), SubResource("Resource_0duac"), SubResource("Resource_klf7u"), SubResource("Resource_et0s1"), SubResource("Resource_vuku4"), SubResource("Resource_e771g"), SubResource("Resource_p5cpt"), SubResource("Resource_phxda"), SubResource("Resource_f4rj2")])

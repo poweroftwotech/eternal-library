@@ -39,6 +39,7 @@ static func plan(recipe: AreaRecipe, area_seed: int) -> AreaPlan:
 	p.room_count = recipe.room_count
 	p.max_sight_depth = recipe.max_sight_depth
 	p.placement = recipe.placement if recipe.placement != null else AreaPlacement.new()
+	p.open_sight = recipe.open_sight
 	p.stats = {"tried": 0, "boxed_in": 0, "too_short": 0, "sightline": 0}
 	for s: AreaSlot in recipe.slots:
 		if s == null:
@@ -47,6 +48,8 @@ static func plan(recipe: AreaRecipe, area_seed: int) -> AreaPlan:
 		if r == null:
 			continue
 	_grow(p, recipe)
+	if recipe.network != null:
+		AreaNetwork.plan(p, recipe.network)
 	_plain_backed_walls(p)
 	var sight: Dictionary = p.compute_sight()
 	for v: String in sight["violations"]:
@@ -480,6 +483,12 @@ static func _scene_info(scene: PackedScene, seed_value: int) -> Dictionary:
 					if centre.x > module_box.position.x and centre.x < module_box.end.x \
 							and centre.z > module_box.position.z and centre.z < module_box.end.z:
 						info["cells"][Vector3i(x, 0, z)] = true
+	# Plain stone a baked room marks as blocking (tools/bake_overlook.gd: its
+	# piers), which no kit module carries.
+	for node: Node in room.find_children("*", "MeshInstance3D", true, false):
+		var mi := node as MeshInstance3D
+		if mi.mesh != null and mi.is_in_group(&"blocker"):
+			(info["boxes"] as Array).append(KitValidateRoom._relative(room, mi) * mi.get_aabb())
 	info["storeys"] = Vector2i(0, maxi(floori((top - 0.01) / CellGrid.BAY), 0))
 	var effective: int = int(info["seed"])
 	for g: String in INHERIT_GROUPS:

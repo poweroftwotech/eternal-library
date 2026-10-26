@@ -74,6 +74,17 @@ func _ready() -> void:
 		scenery.name = "Scenery"
 		add_child(scenery)
 		timings["scenery_ms"] = (Time.get_ticks_usec() - t0) / 1000.0 - plan.plan_ms
+		var claims: Array = []
+		for r: AreaPlan.Room in plan.rooms:
+			for c: Dictionary in r.span.get("claims", []):
+				claims.append({"xf": global_transform * r.xf * Transform3D(Basis(), c["at"]), "size": c["size"]})
+		if recipe.network != null:
+			GorgeScenery.lift_mist(scenery, recipe.network.mist_glow)
+		var kit: Node = scenery.get_node_or_null("Kit")
+		if kit != null:
+			var tc: int = Time.get_ticks_usec()
+			timings["cleared"] = GorgeScenery.clear(kit, claims)
+			timings["clear_ms"] = (Time.get_ticks_usec() - tc) / 1000.0
 	var settings: StreamSettings = stream_settings if stream_settings != null else StreamSettings.default()
 	light_budget = LightBudget.new()
 	light_budget.name = "LightBudget"
@@ -134,7 +145,7 @@ func make_room(r: AreaPlan.Room) -> RoomTemplate:
 		g.planned_storey = r.storey
 		g.inherit_style_groups = []
 		room = g
-	elif r.kind == "span":
+	elif r.kind in ["span", "ledge", "link"]:
 		room = ChasmGrammar.build_room(r.span)
 	else:
 		room = r.scene.instantiate() as RoomTemplate

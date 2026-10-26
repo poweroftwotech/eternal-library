@@ -24,6 +24,8 @@ static func length(path: Array[Vector3]) -> float:
 
 ## Floor points from the root out to every leaf's far end and back.
 static func tour(p: AreaPlan) -> Array[Vector3]:
+	if p.open_sight:
+		return GorgeTour.tour(p)     # the Gorge: its rooms are turned to the grid
 	var out: Array[Vector3] = []
 	for r: AreaPlan.Room in p.rooms:
 		if r.parent == "" or r.children_count() > 0:

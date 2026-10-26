@@ -12,10 +12,12 @@ extends SceneTree
 ##     what you see of them);
 ##   - balustrades round the landing but where the stair arrives and the way on
 ##     leaves; a stair flight down one storey from the landing's far side; a
-##     corbelled ledge on piers round the south end of the left colossus's
-##     pedestal, with balustrades and lamp posts, ending at a connector facing
-##     bank 1 (a door into it later), and one on the corner where it turns,
-##     facing across the gorge, where step 3's span starts;
+##     ledge of span decks on arcades round the south end of the left
+##     colossus's pedestal, with balustrades and lamp posts, running into bank
+##     1's facade at a connector (a door into it later), and one on the corner
+##     where it turns, facing across the gorge, where step 3's span starts;
+##   - its piers in the group "blocker": what the planner keeps the network's
+##     links clear of, as it does the kit pieces (AreaPlanner);
 ##   - a sealed bronze door in the loggia's back wall, closing the passage
 ##     toward the camp (step 6 opens it), and a safety floor far below.
 
@@ -31,12 +33,19 @@ const BALCONY_FLOOR: float = 2.18
 const LANDING_HALF: float = 6.0
 const GUARD_H: float = 3.0
 ## The ledge after the flight: bays on along the stair's line, then toward
-## bank 1 (three on: with two, the west run passed under the colossus's plinth).
+## bank 1 (three on: with two, the west run passed under the colossus's plinth;
+## five toward it, into its facade, which carries its end: walked, with four
+## it stopped short of the wall on a pier on the terrace).
 const ON_BAYS: int = 3
-const WEST_BAYS: int = 4
-## Piers carry the ledge, one under each bay's corbel, down to what they
-## stand on cleanly (ChasmGrammar.pier_under: the mist, or well on a terrace).
-const PIER_SIZE: float = 1.6
+const WEST_BAYS: int = 5
+## The ledge stands on the span's arcades (walked: on piers it looked like
+## another bridge's): the on run on one arcade (ChasmGrammar._arcades, piers
+## where they stand cleanly), the west run on one arch from that arcade's
+## flank to the facade, its far foot on bank 1's terrace by the wall.
+const ARCADE_HALF: float = 1.6
+## How far the west arch's far foot reaches into the facade (past its farthest
+## point across the arch, so no gap shows where the wall is oblique).
+const ARCH_INTO_WALL: float = .3
 
 
 var room: RoomTemplate
@@ -140,36 +149,46 @@ func _initialize() -> void:
 	for i: int in range(1, WEST_BAYS + 1):
 		path[Vector2i(-i, 1 + ON_BAYS)] = true
 	var foot := Vector3(0, -4.0, 0)
-	var ledge_offsets: Array = []
-	for o: Vector2 in [Vector2.ZERO, Vector2(.9, 0), Vector2(-.9, 0), Vector2(0, .9), Vector2(0, -.9), Vector2(1.2, 1.2), Vector2(-1.2, 1.2), Vector2(1.2, -1.2), Vector2(-1.2, -1.2)]:
-		ledge_offsets.append(Vector3(o.x, 0, o.y))
-	var held: Dictionary = {}         # cell -> the top of its pier
 	for c: Vector2i in path:
-		var cell := g * Transform3D(Basis(), Vector3(c.x * 4.0, 0, -c.y * 4.0) + foot)
-		piece(pieces, "walls/cliff_ledge_4m", cell)
-		# Its pier, from under the corbel (2.3 m under the walk) down to what it
-		# stands on cleanly: the mist, or well on one of bank 1's terraces
-		# (walked: down into the mist they cut through the terraces).
-		var under: Vector3 = cell * Vector3(2.0, -2.3, -2.0)
-		if support(pieces, "ledge_pier_%d_%d" % [c.x, c.y], under, Vector2.ONE * PIER_SIZE * .5, cell.basis, ledge_offsets):
-			held[c] = under
-	# A bay with no clean place for a pier (one straddles bank 1's terrace edge)
-	# is carried by a lintel between its neighbours' piers (walked: its corbel
-	# hung on nothing), as deep as the corbels, under the ledge's fascia.
-	for c: Vector2i in path:
-		if held.has(c):
-			continue
-		for pair: Array in [[c + Vector2i(1, 0), c - Vector2i(1, 0)], [c + Vector2i(0, 1), c - Vector2i(0, 1)]]:
-			if held.has(pair[0]) and held.has(pair[1]):
-				var a: Vector3 = held[pair[0]]
-				var b: Vector3 = held[pair[1]]
-				var along: Vector3 = (b - a).normalized()
-				var basis := Basis(Vector3.UP.cross(along).normalized(), Vector3.UP, -along)
-				pillar(pieces, "ledge_lintel_%d_%d" % [c.x, c.y], (a + b) * .5 + Vector3(0, .9, 0), Vector3(1.6, 1.8, a.distance_to(b) + PIER_SIZE), basis)
-				unsupported.erase("ledge_pier_%d_%d" % [c.x, c.y])
-				break
-	# Its open edges get balustrades (but the flight's foot); lamp posts on every
-	# other bay's outer edge.
+		piece(pieces, "walls/chasm_deck_4m", g * Transform3D(Basis(), Vector3(c.x * 4.0, 0, -c.y * 4.0) + foot))
+	# The on run's arcade, from the flight's foot to the corner's far edge (a
+	# span's frame: -Z along the run, its centre line x = 0).
+	var on_start: Transform3D = g * Transform3D(Basis(), foot + Vector3(2.0, 0, -8.0))
+	var arcade: Dictionary = {"pieces": [], "piers": [], "boxes": [], "falls": []}
+	var groups: Array[Dictionary] = [{"a": 0, "top": -ChasmGrammar.COURSE}]
+	var rng := RandomNumberGenerator.new()
+	if not chasm._arcades(arcade, on_start, chasm._near_tiers(on_start), groups, rng):
+		unsupported.append("the on run's arcade")
+	for p: Dictionary in arcade["pieces"]:
+		place(pieces, p["scene"], on_start * (p["xf"] as Transform3D))
+	for k: int in (arcade["piers"] as Array).size():
+		var pr: Dictionary = arcade["piers"][k]
+		pillar(pieces, "arcade_pier_%d" % k, on_start * (pr["at"] as Vector3), pr["size"], on_start.basis)
+	# The west run's arch, from the arcade's flank (its centre line on the
+	# cells' at z -18 in G) to bank 1's facade, stretched to reach it.
+	var west_start := Transform3D(g.basis * ChasmGrammar.ARC_BASIS, g * (foot + Vector3(2.0 - ARCADE_HALF, 0, -(1 + ON_BAYS) * 4.0 - 2.0)))
+	var wall: float = -1.0           # the facade's nearest point across the arch
+	var wall_far: float = -1.0       # and its farthest
+	var tiers: Array[Dictionary] = chasm._near_tiers(west_start)
+	var sides: Array[float] = [-ARCADE_HALF, 0.0, ARCADE_HALF]
+	for k: int in range(80, 500):
+		var d: float = k * .05
+		var hit: Array = sides.filter(func(x: float) -> bool: return GorgeGrammar.solid_at(tiers, west_start * Vector3(x, -1.5, -d)))
+		if wall < 0.0 and not hit.is_empty():
+			wall = d
+		if hit.size() == sides.size():
+			wall_far = d
+			break
+	if wall_far < 0.0:
+		unsupported.append("the west run's arch (no facade within 25 m)")
+	else:
+		var arch_len: float = wall_far + ARCH_INTO_WALL
+		var arc: Basis = Basis.from_scale(Vector3(1, 1, arch_len / 12.0)) * ChasmGrammar.ARC_BASIS
+		place(pieces, MOD + "walls/aqueduct_upper_12m.tscn", west_start * Transform3D(arc, Vector3(0, -ChasmGrammar.COURSE, 0)))
+		print("bake_overlook: the west arch reaches bank 1's facade at %.2f..%.2f m (%.2f stretched)" % [wall, wall_far, arch_len / 12.0])
+	# Its open edges get balustrades (but the flight's foot, and the end in
+	# bank 1's facade: a guard there, the wall's face is nothing to stop on);
+	# lamp posts on every other bay's outer edge.
 	var end: Vector2i = Vector2i(-WEST_BAYS, 1 + ON_BAYS)
 	for c: Vector2i in path:
 		for side: int in 4:
@@ -186,15 +205,22 @@ func _initialize() -> void:
 				span.transform = Transform3D(xf.basis * Basis(Vector3.UP, PI), xf * Vector3(2.0, 0, 0))
 				lamps.append(xf * Vector3(0, 0, -.18))
 				continue
-			piece(pieces, "walls/chasm_parapet_4m", xf)
-			joints(xf)
 			if c == end and side == 3:
-				# Step 3's span starts here: a connector, -Z out of the room.
+				# Into bank 1's facade: a connector, -Z out of the room (a door
+				# later), and a guard at the facade's nearest point.
 				var conn := Marker3D.new()
 				conn.name = "SNAP_exit_ledge"
 				add(connectors, conn)
 				conn.transform = Transform3D(xf.basis * Basis(Vector3.UP, PI), xf * Vector3(2.0, 0, 0))
-			elif (c.x + c.y) % 2 == 0 and side != 3:
+				# (How far the end runs past the facade's nearest point: the guard
+				# stands that far back into the bay.)
+				var into: float = (WEST_BAYS * 4.0 + 2.0 - ARCADE_HALF) - wall if wall > 0.0 else 0.0
+				guard(collision, "facade_guard", xf * Vector3(2.0, GUARD_H * .5, -maxf(into, 0.0) - .2), Vector3(4.0, GUARD_H, .4), xf.basis)
+				print("bake_overlook: the ledge's end runs %.2f m past the facade's nearest point" % into)
+				continue
+			piece(pieces, "walls/chasm_parapet_4m", xf)
+			joints(xf)
+			if (c.x + c.y) % 2 == 0 and side != 3:
 				lamps.append(xf * Vector3(0, 0, -.18))     # on the newel at the bay's start (mid-bay, it stood in the balusters)
 
 	# The passage toward the camp: a sealed door in the loggia's back wall (step
@@ -311,7 +337,12 @@ func _cell_edge(side: int) -> Transform3D:
 
 
 func piece(parent: Node, path: String, xf: Transform3D) -> void:
-	var full: String = MOD + path + ".tscn"
+	place(parent, MOD + path + ".tscn", xf)
+
+
+## A kit piece by its scene's full path.
+func place(parent: Node, full: String, xf: Transform3D) -> void:
+	var path: String = full.get_basename().trim_prefix(MOD)
 	if not scenes.has(full):
 		scenes[full] = load(full)
 	var node: Node3D = (scenes[full] as PackedScene).instantiate()
@@ -343,6 +374,7 @@ func pillar(pieces: Node, name: String, at: Vector3, size: Vector3, basis: Basis
 	mesh.mesh = shape
 	mesh.material_override = load("res://kit/materials/gorge_sandstone.tres")
 	add(pieces, mesh)
+	mesh.add_to_group(&"blocker", true)
 	mesh.transform = Transform3D(basis, at)
 
 
