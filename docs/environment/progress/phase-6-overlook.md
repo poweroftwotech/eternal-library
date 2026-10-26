@@ -22,7 +22,7 @@ each of those areas has a door back.
 
 ---
 
-## Step 5: thresholds, doors between the gorge and the library (built 2026-10-26; you walked through both ways: it works)
+## Step 5: thresholds, doors between the gorge and the library (built 2026-10-26; you walked through both ways: it works; committed 4670712)
 
 ### Try it
 
