@@ -17,6 +17,9 @@ extends SceneTree
 ##   - and nowhere can it step off: the closed fronts, ends and backs of every
 ##     ledge, both sides of every link's bays, flights and end landings
 ##     (phase 6 Q4).
+##   - (step 5) a ledge on every door's slot, its door bay's threshold live,
+##     and the capsule walks from where you arrive there into the doorway
+##     (the trigger) and no further.
 
 const RECIPE: String = "res://gen/recipes/gorge.tres"
 const FRONTAGE = preload("res://tools/gorge_frontage.gd")
@@ -82,6 +85,9 @@ func run() -> void:
 			walk_link(p, r, body, tag)
 		for r: AreaPlan.Room in ledges:
 			walk_ledge(r, body, tag)
+		for fs: FrontageSlot in recipe.network.frontage.slots:
+			if fs.door != "":
+				walk_to_door(area, fs.door, body, tag)
 		area.queue_free()
 		await process_frame
 	plan_ms.sort()
@@ -256,6 +262,28 @@ func walk_ledge(r: AreaPlan.Room, body: CharacterBody3D, tag: String) -> void:
 		if free_way(body, (off[what][0] as Vector3) + Vector3(0, 1.0, 0), off[what][1]):
 			open.append(what)
 	check(open.is_empty(), "%s: nowhere to step off %s (%s)" % [tag, r.slot_id, open])
+
+
+## From where you arrive through the door to `to` (Area.ARRIVE_IN inside it)
+## straight at it: into its trigger, and stopped there.
+func walk_to_door(area: Area, to: String, body: CharacterBody3D, tag: String) -> void:
+	var door: Array = area.plan.threshold(to)
+	check(not door.is_empty() and (door[0] as AreaPlan.Room).kind == "ledge", "%s: a ledge has the door to %s" % [tag, to])
+	if door.is_empty():
+		return
+	var r: AreaPlan.Room = door[0]
+	var at: Transform3D = r.connectors[door[1]]["xf"]
+	var live: Node = area.rooms.get(r.slot_id)
+	check(live != null and live.get_node_or_null("Threshold_" + to) is Threshold, "%s: %s has its threshold to %s" % [tag, r.slot_id, to])
+	body.velocity = Vector3.ZERO
+	body.global_position = at * Vector3(0, .1, Area.ARRIVE_IN) + Vector3(0, .95, 0)
+	var fwd: Vector3 = -at.basis.z
+	for _i: int in 180:
+		body.velocity = Vector3(fwd.x, 0, fwd.z) * SPEED * .5 + Vector3(0, 0.0 if body.is_on_floor() else body.velocity.y - 9.8 / 60.0, 0)
+		body.move_and_slide()
+	var local: Vector3 = at.affine_inverse() * body.global_position
+	check(local.z - .35 < Threshold.TRIGGER.end.z and local.z > 0.0 and absf(local.y - .95) < .3,
+		"%s: walked from the arrival into the door to %s and no further (stopped %.2f m out, %.2f up)" % [tag, to, local.z, local.y - .95])
 
 
 func follow(b: CharacterBody3D, points: Array[Vector3]) -> int:

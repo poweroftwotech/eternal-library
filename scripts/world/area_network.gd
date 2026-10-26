@@ -20,6 +20,10 @@ extends RefCounted
 ## seed's 4-6 ledges is kept (or after a dozen, one with at least 4; else
 ## the fullest); only its links are solved. A try that comes up short rules
 ## its main span out of the tries after it (its ledge may be a dead end).
+## Every slot with a door (step 5) is to have its ledge: links to one cost
+## DOOR_PULL less, a tree may grow past the seed's count (to the most
+## allowed) until it has them, and a tree that reaches every door beats one
+## that doesn't, whatever its size.
 ##
 ## Rooms are "ledge" and "link" (their plans in Room.span), built by
 ## ChasmGrammar.build_room; each link's parent is the room nearer the
@@ -46,6 +50,9 @@ const DOUBLED_COST: float = 80.0
 const CROSS_GAP: float = 24.0
 ## ... or, leaving the same ledge, splayed less than this many degrees.
 const CROSS_SPLAY: float = 12.0
+## A link to a ledge on a slot with a door (step 5) costs this many metres
+## less: every tree is to reach every door.
+const DOOR_PULL: float = 40.0
 
 
 static func plan(p: AreaPlan, net: GorgeNetwork) -> void:
@@ -86,13 +93,16 @@ static func plan(p: AreaPlan, net: GorgeNetwork) -> void:
 	var dead: Dictionary = {}      # main spans whose trees came up short
 	for t: int in TRIES:
 		var g: Dictionary = _tree(p, net, by_conn, main_id, fixed, fixed_open, want, bridge, t, ledge_cache, dead)
-		if best.is_empty() or (g["ledges"] as Array).size() > (best["ledges"] as Array).size():
+		if best.is_empty() or _score(net, g) > _score(net, best):
 			best = g
 		if (g["ledges"] as Array).size() < net.ledges.x and not (g["links"] as Array).is_empty():
 			dead[g["links"][0]["entry"]] = true      # the next tries leave the Overlook another way
-		if (best["ledges"] as Array).size() >= want or (t >= ENOUGH_TRIES and (best["ledges"] as Array).size() >= net.ledges.x):
+		var held: bool = _doors_missing(net, best["ledges"]) == 0
+		if held and ((best["ledges"] as Array).size() >= want or (t >= ENOUGH_TRIES and (best["ledges"] as Array).size() >= net.ledges.x)):
 			break
 	p.stats["ledges_wanted"] = want
+	if _doors_missing(net, best["ledges"]) > 0:
+		p.errors.append("network: no tree reaches every door (%d missing)" % _doors_missing(net, best["ledges"]))
 	if (best["ledges"] as Array).is_empty():
 		p.errors.append("network: the main span finds no ledge on the %s cliff" % net.main_cliff)
 		return
@@ -108,7 +118,7 @@ static func _tree(p: AreaPlan, net: GorgeNetwork, by_conn: Dictionary, main_id: 
 	var links: Array[Dictionary] = []
 	var free: Dictionary = {main_id: -1}     # free connector id -> its node
 	var cliffs: Dictionary = {"left": 0, "right": 0}
-	while ledges.size() < want:
+	while ledges.size() < want or (_doors_missing(net, ledges) > 0 and ledges.size() < net.ledges.y):
 		var on: Array = ["left", "right"]
 		var main_round: bool = ledges.is_empty()
 		if main_round:
@@ -164,6 +174,8 @@ static func _grow(p: AreaPlan, net: GorgeNetwork, by_conn: Dictionary, fixed: Ar
 				cost += MAIN_TURN_COST * float(e["turn_a"])
 			elif _doubled(net, links, e, int(free[f]), f, to):
 				cost += DOUBLED_COST
+			if slot.door != "":
+				cost = maxf(cost - DOOR_PULL, 1.0)
 			cost *= 1.0 + JITTER * float(hash([p.area_seed, t, ei]) & 0xffff) / 65535.0 * (0.0 if t == 0 else 1.0)
 			cands.append([cost, ei, f, to])
 	cands.sort_custom(func(x: Array, y: Array) -> bool: return x[0] < y[0])
@@ -242,6 +254,23 @@ static func _grow(p: AreaPlan, net: GorgeNetwork, by_conn: Dictionary, fixed: Ar
 		_free(free, "%s:R:%d" % [slot.id, int(placed["first"]) + int(placed["bays"])], to, node)
 		return true
 	return false
+
+
+## A tree's rank: the doors it reaches first, then its ledges.
+static func _score(net: GorgeNetwork, g: Dictionary) -> int:
+	return -_doors_missing(net, g["ledges"]) * 100 + (g["ledges"] as Array).size()
+
+
+## How many of the frontage's doors have no ledge in `ledges`.
+static func _doors_missing(net: GorgeNetwork, ledges: Array) -> int:
+	var on: Dictionary = {}
+	for l: Dictionary in ledges:
+		on[(l["slot"] as FrontageSlot).id] = true
+	var n: int = 0
+	for s: FrontageSlot in net.frontage.slots:
+		if s != null and s.door != "" and not on.has(s.id):
+			n += 1
+	return n
 
 
 ## Whether a span across from connector f (of node `from_node`) to `to`
@@ -375,6 +404,11 @@ static func _commit(p: AreaPlan, net: GorgeNetwork, ledges: Array[Dictionary], l
 		lp["name"] = "Ledge"
 		lp["display_name"] = "A Ledge"
 		rooms[i] = _room(p, "ledge_%d" % (i + 1), "ledge", lp, l["xf"], l["seed"])
+		if lp.has("door"):
+			var door := StringName("THRESHOLD_" + str(lp["door"]))
+			_add_connector(rooms[i], door, (l["xf"] as Transform3D) * (lp["connectors"][door] as Transform3D))
+			rooms[i].connectors[door]["cap"] = "threshold"
+			rooms[i].connectors[door]["to"] = lp["door"]
 	for k: int in links.size():
 		var l: Dictionary = links[k]
 		var e: Dictionary = net.links.entries[l["entry"]]

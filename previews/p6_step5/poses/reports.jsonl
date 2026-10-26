@@ -1,0 +1,11 @@
+{"feet":[-34.6195678710938,0.05,-134.074905395508],"fov":68.0,"id":"gorge_to_library_front","note":"","pitch_deg":4.0,"scene":"area:gorge","seed":1,"yaw_deg":87.8845956622193}
+{"feet":[-34.8160133361816,0.05,-136.884078979492],"fov":68.0,"id":"gorge_to_library_side","note":"","pitch_deg":4.0,"scene":"area:gorge","seed":1,"yaw_deg":130.909776057226}
+{"feet":[-35.9186820983887,0.05,-134.122894287109],"fov":68.0,"id":"gorge_to_library_arrive","note":"","pitch_deg":0.0,"scene":"area:gorge","seed":1,"yaw_deg":-92.1153474375865}
+{"feet":[47.9637794494629,-3.95,-97.6445388793945],"fov":68.0,"id":"gorge_to_lower_stacks_front","note":"","pitch_deg":4.0,"scene":"area:gorge","seed":1,"yaw_deg":-96.8394669816768}
+{"feet":[47.9281959533691,-3.95,-94.828742980957],"fov":68.0,"id":"gorge_to_lower_stacks_side","note":"","pitch_deg":4.0,"scene":"area:gorge","seed":1,"yaw_deg":-53.8144731096681}
+{"feet":[49.2545280456543,-3.95,-97.4897232055664],"fov":68.0,"id":"gorge_to_lower_stacks_arrive","note":"","pitch_deg":0.0,"scene":"area:gorge","seed":1,"yaw_deg":83.1604940504249}
+{"feet":[5.99999952316284,0.05,-3.29999995231628],"fov":68.0,"id":"library_to_gorge_front","note":"","pitch_deg":4.0,"scene":"area:library","seed":1,"yaw_deg":-179.999991720983}
+{"feet":[3.19999980926514,0.05,-2.99999976158142],"fov":68.0,"id":"library_to_gorge_side","note":"","pitch_deg":4.0,"scene":"area:library","seed":1,"yaw_deg":-136.974929792713}
+{"feet":[6.0,0.05,-2.0],"fov":68.0,"id":"library_to_gorge_arrive","note":"","pitch_deg":0.0,"scene":"area:library","seed":1,"yaw_deg":0.00000500895613097532}
+{"feet":[-8.69999980926514,0.05,-14.0],"fov":68.0,"id":"lower_stacks_to_gorge_front","note":"","pitch_deg":4.0,"scene":"area:lower_stacks","seed":1,"yaw_deg":90.0}
+{"feet":[-10.0,0.05,-14.0],"fov":68.0,"id":"lower_stacks_to_gorge_arrive","note":"","pitch_deg":0.0,"scene":"area:lower_stacks","seed":1,"yaw_deg":-89.9999974955219}

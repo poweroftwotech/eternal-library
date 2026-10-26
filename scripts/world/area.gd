@@ -26,6 +26,13 @@ var rooms: Dictionary = {}
 var start_point: Vector3 = Vector3.INF
 ## The saved room's slot, for a start point in a doorway (no room there).
 var start_room: String = ""
+## Arriving through a door from this area (phase-6-design.md 5.7.6): the
+## visit starts just inside this area's door back to it. Set before _ready.
+var arrive_from: String = ""
+## Where that is (area frame), once planned; null: the root's PlayerSpawn.
+var _arrival: Variant = null
+## How far inside the door you arrive.
+const ARRIVE_IN: float = 2.0
 var streamer: AreaStreamer
 var light_budget: LightBudget
 ## What building cost: plan_ms, wear_ms, total_ms, and with streaming off per
@@ -63,6 +70,15 @@ func _ready() -> void:
 	plan = AreaPlanner.plan(recipe, area_seed())
 	for e: String in plan.check():
 		push_warning("Area %s (seed %d): %s" % [recipe.id, plan.area_seed, e])
+	if arrive_from != "":
+		var door: Array = plan.threshold(arrive_from)
+		if door.is_empty():
+			push_warning("Area %s: no door back to %s, starting at the spawn" % [recipe.id, arrive_from])
+		else:
+			var at: Transform3D = (door[0] as AreaPlan.Room).connectors[door[1]]["xf"]
+			_arrival = Transform3D(at.basis * Basis(Vector3.UP, PI), at * Vector3(0, .1, ARRIVE_IN))
+			start_point = (_arrival as Transform3D).origin
+			start_room = (door[0] as AreaPlan.Room).slot_id
 	timings = {"plan_ms": plan.plan_ms, "rooms": {}}
 	if recipe.atmosphere != null:
 		_env = WorldEnvironment.new()
@@ -164,6 +180,15 @@ func make_room(r: AreaPlan.Room) -> RoomTemplate:
 		room.display_name = r.display_name
 	room.transform = r.xf
 	room.set_meta("area_slot", r.slot_id)
+	for name: StringName in r.connectors:
+		var k: Dictionary = r.connectors[name]
+		if str(k["cap"]) == "threshold":
+			var door := Threshold.new()
+			door.name = "Threshold_" + str(k["to"])
+			door.to = str(k["to"])
+			door.look = "card" if r.kind == "ledge" else "glow"     # a ledge: its door bay's lit door
+			door.transform = r.xf.affine_inverse() * (k["xf"] as Transform3D)
+			room.add_child(door)
 	return room
 
 
@@ -312,9 +337,12 @@ static func _mesh_bounds(m: Node3D) -> AABB:
 	return out
 
 
-## Where a new visit starts: the root room's PlayerSpawn, or (a generated
-## root) the middle of its first cell, facing in.
+## Where a new visit starts: just inside the door you came through (arrive_from),
+## else the root room's PlayerSpawn, or (a generated root) the middle of its
+## first cell, facing in.
 func spawn_transform() -> Transform3D:
+	if _arrival != null:
+		return global_transform * (_arrival as Transform3D)
 	var root_room: RoomTemplate = rooms.get(plan.rooms[0].slot_id) if plan != null and not plan.rooms.is_empty() else null
 	var spawn: Node3D = root_room.get_node_or_null("PlayerSpawn") if root_room != null else null
 	if spawn != null:

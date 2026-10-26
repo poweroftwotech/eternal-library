@@ -15,6 +15,9 @@ slot_id = "reading_room"
 pinned = true
 scene = ExtResource("5_r01")
 seed_mode = 0
+thresholds = {
+&"SNAP_entrance": "gorge"
+}
 
 [sub_resource type="Resource" id="Resource_west"]
 script = ExtResource("2_slot")
@@ -32,14 +35,6 @@ grammar = ExtResource("7_r02")
 parent = "reading_room"
 connector = &"SNAP_door_east"
 
-[sub_resource type="Resource" id="Resource_entrance"]
-script = ExtResource("2_slot")
-slot_id = "stack_gallery_entrance"
-display_name = "The Front Stacks"
-grammar = ExtResource("7_r02")
-parent = "reading_room"
-connector = &"SNAP_entrance"
-
 [sub_resource type="Resource" id="Resource_grow"]
 script = ExtResource("3_grow")
 grammar = ExtResource("7_r02")
@@ -54,8 +49,9 @@ script = ExtResource("4_place")
 script = ExtResource("1_recipe")
 id = "library"
 display_name = "The Library Wing"
-slots = Array[ExtResource("2_slot")]([SubResource("Resource_r01"), SubResource("Resource_west"), SubResource("Resource_east"), SubResource("Resource_entrance")])
+version = 2
+slots = Array[ExtResource("2_slot")]([SubResource("Resource_r01"), SubResource("Resource_west"), SubResource("Resource_east")])
 grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow")])
-room_count = Vector2i(6, 9)
+room_count = Vector2i(5, 9)
 placement = SubResource("Resource_place")
 atmosphere = ExtResource("8_atmos")

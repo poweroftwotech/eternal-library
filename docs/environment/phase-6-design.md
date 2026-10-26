@@ -231,6 +231,26 @@ its ends exist).
   gorge is just another area. The persistence gate adds two processes: save
   on a gorge ledge → load there; enter the Lower Stacks from the gorge,
   save → load inside, walk back out to the right ledge.
+- **As built in step 5** (where it differs from the above):
+  - **Doors** on `b2_l17_E_s1_2` (the Lower Stacks) and `b3_l18_W_s1_0`
+    (the library wing); a ledge on one has the door in its middle bay
+    (`gorge_bay_doorway` and a lit card inside its ring; the guard open in
+    front of it), connector `THRESHOLD_<area>` in the face. The network
+    reaches every door on every seed (`AreaNetwork.DOOR_PULL`, `_score`).
+  - **The doors back are always there**: `AreaSlot.thresholds` (connector →
+    area) on the root's slot, R01's `SNAP_entrance` and the caravanserai's
+    west passage (`SNAP_exit_-2_0_1_W`, `-3_0_3_W` or `-4_0_3_W` by size;
+    its pishtaq gate joins the hall). A threshold connector is capped
+    `"threshold"` (`to`: the area), never grown from, its stub dropped.
+    The library wing's Front Stacks slot (on R01's entrance) is gone.
+  - **Arrival** is `WorldState.data["arrive"] = {"from": <area>}`, used once:
+    `Area.arrive_from` → `AreaPlan.threshold(from)`, 2 m inside it, facing
+    in (`Area.ARRIVE_IN`); one door each way, so no slot is remembered.
+  - **`Threshold`** (`scripts/world/threshold.gd`), built by `Area.make_room`
+    on every threshold connector: the trigger (the player's layer), a wall,
+    and the misty glow (inside the library) or the door card (the gorge).
+  - **Persistence:** `persist_test` door_save, door_cross, door_back (three
+    processes).
 
 ## 5.7.7 Streaming and stand-ins
 

@@ -48,7 +48,8 @@ class Room:
 	## Its connector joined to the parent ("" for the root).
 	var entry: StringName = &""
 	## name -> {xf: Transform3D (area frame), storey: int, joined: "slot/connector" or "",
-	## cap: "" (none needed or joined), "glow" (the glowing exit stub) or "open" (leads nowhere)}.
+	## cap: "" (none needed or joined), "glow" (the glowing exit stub) or "open" (leads nowhere)
+	## or "threshold" (a door to another area: `to`, its id)}.
 	var connectors: Dictionary = {}
 	## Area cells it occupies, every storey: Vector3i -> true.
 	var cells: Dictionary = {}
@@ -112,6 +113,17 @@ var plan_ms: float = 0.0
 
 func room(slot_id: String) -> Room:
 	return by_slot.get(slot_id)
+
+
+## The door to area `to` (phase-6-design.md 5.7.6): [room, connector name],
+## or [] if the plan has none.
+func threshold(to: String) -> Array:
+	for r: Room in rooms:
+		for name: StringName in r.connectors:
+			var k: Dictionary = r.connectors[name]
+			if str(k["cap"]) == "threshold" and str(k.get("to", "")) == to:
+				return [r, name]
+	return []
 
 
 func add_room(r: Room) -> void:
@@ -238,7 +250,7 @@ func check(check_count: bool = true) -> PackedStringArray:
 	for r: Room in rooms:
 		for name: StringName in r.connectors:
 			var k: Dictionary = r.connectors[name]
-			if str(k["joined"]) == "" and str(k["cap"]) != "glow":
+			if str(k["joined"]) == "" and not str(k["cap"]) in ["glow", "threshold"]:
 				out.append("%s %s leads nowhere" % [r.slot_id, name])
 	var sight: Dictionary = compute_sight()
 	for v: String in sight["violations"]:

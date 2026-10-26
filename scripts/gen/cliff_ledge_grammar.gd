@@ -18,7 +18,9 @@ extends RoomGrammar
 ## the face; an invisible guard keeps you off the face's sills), with square
 ## newels at its joints and lamp posts on some. Connectors: one on each bay's
 ## front (a span across), one at each end (a stair along the cliff); the
-## planner opens the ones it joins.
+## planner opens the ones it joins. A slot with a door (step 5) has it in
+## the ledge's middle bay: gorge_bay_doorway, the guard open in front of it,
+## and a THRESHOLD_<area> connector in the face (-Z into the cliff).
 ##
 ## Output (at, solve): a plan in the ledge's frame (cell i spans x 4i..4i+4,
 ## z 0..-4, -Z out over the gorge), built by ChasmGrammar.build_room.
@@ -62,6 +64,8 @@ const CONSOLE_W: float = .7
 ## window frames); the guard covers the gap.
 const END_GAP: float = .85
 const GUARD_DEPTH: float = .6
+## The guard's gap in front of a door (along its bay): the doorway's lit card.
+const DOOR_GAP := Vector2(.7, 3.3)
 ## Headroom over the walk kept to the ledge.
 const HEADROOM: float = 3.6
 ## A bay's pier, 1.6 m square, from under its corbel (the kit ledge's
@@ -103,6 +107,7 @@ func at(slot: FrontageSlot, first: int, n: int, seed_value: int, open: Array = [
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([seed_value, slot.id, first, "facade"])
 	var w: float = n * BAY
+	var door_bay: int = n / 2 if slot.door != "" else -1
 	var deep: float = 0.0
 	for c: Vector2 in CONSOLE:
 		deep += c.y
@@ -116,10 +121,15 @@ func at(slot: FrontageSlot, first: int, n: int, seed_value: int, open: Array = [
 			_piece(out, "walls/chasm_parapet_4m", Transform3D(Basis(), Vector3(at_x, 0, 0)) * ChasmGrammar._cell_edge(2))
 		(out["joints"] as Array).append(Vector3(at_x, 0, -BAY + .18))
 		(out["joints"] as Array).append(Vector3(at_x + BAY, 0, -BAY + .18))
-		# The face behind: a window (with its lamp, some), a tiled panel, or plain.
+		# The face behind: the slot's door (its middle bay), a window (with its
+		# lamp, some), a tiled panel, or plain.
 		var bay := Transform3D(Basis(Vector3.UP, PI), Vector3(at_x + BAY, 0, 0))
 		var pick: float = rng.randf()
-		if pick < window_chance:
+		if i == door_bay:
+			_piece(out, "walls/gorge_bay_doorway", bay)
+			out["connectors"][StringName("THRESHOLD_" + slot.door)] = Transform3D(Basis(Vector3.UP, PI), Vector3(at_x + BAY * .5, 0, 0))
+			out["door"] = slot.door
+		elif pick < window_chance:
 			_piece(out, "walls/gorge_bay_window", bay)
 			if rng.randf() < wall_lamp_chance:
 				_piece(out, "dressing/gorge_lamp", Transform3D(bay.basis, bay * Vector3(3.62, 2.76, .42)))
@@ -162,7 +172,13 @@ func at(slot: FrontageSlot, first: int, n: int, seed_value: int, open: Array = [
 		(out["lamps"] as Array).append(Vector3(i * BAY, 0, -BAY + .18))
 	if n % 2 == 1:
 		(out["lamps"] as Array).append(Vector3(w, 0, -BAY + .18))
-	ChasmMasonry.guard(out, Vector3(w * .5, 1.0, -GUARD_DEPTH * .5), Vector3(w, 3.0, GUARD_DEPTH))
+	# The guard off the face's sills, but in front of the door.
+	var spans: Array[Vector2] = [Vector2(0, w)]
+	if door_bay >= 0:
+		spans = [Vector2(0, door_bay * BAY + DOOR_GAP.x), Vector2(door_bay * BAY + DOOR_GAP.y, w)]
+	for s: Vector2 in spans:
+		if s.y - s.x > .05:
+			ChasmMasonry.guard(out, Vector3((s.x + s.y) * .5, 1.0, -GUARD_DEPTH * .5), Vector3(s.y - s.x, 3.0, GUARD_DEPTH))
 	# What of the gorge clears off: the storey of faces behind (its bays, their
 	# lamps), the storey under the walk where the consoles go, and whatever
 	# stands where the walk and its headroom are.

@@ -17,10 +17,14 @@ extends SceneTree
 ## area_save, area_load: the library wing (phase-4-design.md 8.1.8 step 4), or
 ##           with --area-id=lower_stacks the Lower Stacks (phase-5-design.md 5.6.9),
 ##           in their own save file; see area_save_mode.
+## door_save, door_cross, door_back: through the gorge's door into the Lower
+##           Stacks and back (phase-6-design.md 5.7.6), in their own save file;
+##           see door_save_mode.
 
 var main_script: GDScript = load("res://scripts/main.gd")
 const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
 const EXPECT: String = "user://test/persist_expect.json"
+const DOOR_EXPECT: String = "user://test/persist_door_expect.json"
 const STALE_ID: String = "reading_room@1/Props/NoSuchVase"
 const LORE_SOCKET: String = "Shell/wall_shelfbay_4m/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill"
 const LORE_ID: String = "reading_room@1/" + LORE_SOCKET + "#lore:lore_hollow_index"
@@ -59,8 +63,11 @@ func run() -> void:
 		main_script.room_override = STACK_GALLERY
 	elif mode == "area_save":
 		main_script.room_override = "area:" + area_id()
+	elif mode == "door_save":
+		main_script.room_override = "area:gorge"
 	game = (load("res://main.tscn") as PackedScene).instantiate()
 	root.add_child(game)
+	current_scene = game     # a door reloads it (main.travel)
 	for _i: int in 12:
 		await physics_frame
 	room = game.world as RoomTemplate
@@ -91,6 +98,12 @@ func run() -> void:
 			await area_save_mode()
 		"area_load":
 			await area_load_mode()
+		"door_save":
+			await door_save_mode()
+		"door_cross":
+			await door_cross_mode()
+		"door_back":
+			await door_back_mode()
 	finish(mode, true)
 
 
@@ -567,6 +580,120 @@ func area_load_mode() -> void:
 	check(book_lies(f_room, expect["book"]), "%s: the book lies where it fell, its shelf slot empty" % far.slot_id)
 	check((ws.call("stale_ids") as PackedStringArray).is_empty(), "no change in the area went stale (%s)" % [ws.call("stale_ids")])
 
+
+
+## Eighth process (a fresh save): in the Gorge, stand where you arrive at the
+## Lower Stacks' door (on its ledge, facing out) and quit.
+func door_save_mode() -> void:
+	check(area != null and area.recipe.id == "gorge", "the game starts in the Gorge")
+	if area == null:
+		return
+	var door: Array = area.plan.threshold("lower_stacks")
+	check(not door.is_empty(), "the Gorge has a door to the Lower Stacks")
+	if door.is_empty():
+		return
+	fast_unloads()
+	var ledge: AreaPlan.Room = door[0]
+	await walk([arrival(door)])
+	await until(func() -> bool: return area.streamer.player_room == ledge.slot_id and area.rooms.has(ledge.slot_id))
+	check(area.streamer.player_room == ledge.slot_id and area.rooms.has(ledge.slot_id), "standing on %s, by its door (in %s)" % [ledge.slot_id, area.streamer.player_room])
+	write_door_expect({"ledge": ledge.slot_id, "seed": area.plan.area_seed, "pos": vec(game.player.global_position)})
+
+
+## Ninth: resumes on that ledge; walks into the door; arrives in the Lower
+## Stacks just inside its door back to the gorge, facing in; walks a little
+## further in and quits.
+func door_cross_mode() -> void:
+	var expect: Dictionary = door_expect()
+	check(area != null and area.recipe.id == "gorge" and area.streamer.player_room == expect.get("ledge", ""), "the game resumes in the Gorge on %s" % expect.get("ledge", ""))
+	check(area != null and game.player.global_position.distance_to(arr_vec(expect.get("pos", [0, 0, 0]))) < .1, "where it quit (%s)" % [game.player.global_position])
+	if area == null:
+		return
+	fast_unloads()
+	if not await through_door("lower_stacks", "gorge"):
+		return
+	var door: Array = area.plan.threshold("gorge")
+	var inward: Vector3 = (door[0] as AreaPlan.Room).connectors[door[1]]["xf"] * Vector3(0, .1, Area.ARRIVE_IN + 3.0)
+	await walk([inward])
+	await until(func() -> bool: return area.room_at(game.player.global_position) != null and area.streamer.player_room == area.room_at(game.player.global_position).slot_id)
+	expect["inside"] = vec(game.player.global_position)
+	expect["inside_room"] = area.streamer.player_room
+	write_door_expect(expect)
+
+
+## Tenth: resumes inside the Lower Stacks where it quit; walks back out
+## through the door and arrives on the same ledge, facing out.
+func door_back_mode() -> void:
+	var expect: Dictionary = door_expect()
+	check(area != null and area.recipe.id == "lower_stacks", "the game resumes in the Lower Stacks")
+	check(area != null and game.player.global_position.distance_to(arr_vec(expect.get("inside", [0, 0, 0]))) < .1, "where it quit, inside the door (%s)" % [game.player.global_position])
+	if area == null:
+		return
+	fast_unloads()
+	if not await through_door("gorge", "lower_stacks"):
+		return
+	check(area.streamer.player_room == expect.get("ledge", "") and area.plan.area_seed == int(expect.get("seed", -1)),
+		"back on %s of the same Gorge (on %s, seed %d)" % [expect.get("ledge", ""), area.streamer.player_room, area.plan.area_seed])
+
+
+## Steps into the current area's door to `to` and waits for the game to
+## reload there; then checks you stand just inside its door back to `from`,
+## facing in. Whether it got there.
+func through_door(to: String, from: String) -> bool:
+	var door: Array = area.plan.threshold(to)
+	check(not door.is_empty() and area.rooms.has((door[0] as AreaPlan.Room).slot_id), "%s: its door to %s is live" % [area.recipe.id, to])
+	if door.is_empty():
+		return false
+	var old_id: int = game.get_instance_id()
+	var at: Transform3D = (door[0] as AreaPlan.Room).connectors[door[1]]["xf"]
+	game.player.teleport(area.to_global(at * Vector3(0, .1, .5)), game.player.rotation.y)
+	await until(func() -> bool: return current_scene != null and current_scene.get_instance_id() != old_id and current_scene.get("world") is Area)
+	var moved: bool = current_scene != null and current_scene.get_instance_id() != old_id
+	check(moved, "stepping into the door to %s travels" % to)
+	if not moved:
+		return false
+	game = current_scene
+	area = game.world as Area
+	check(area.recipe.id == to, "arrived in %s (%s)" % [to, area.recipe.id])
+	fast_unloads()
+	await until(func() -> bool: return area.room_at(game.player.global_position) != null and area.streamer.player_room == area.room_at(game.player.global_position).slot_id and not area.streamer.busy())
+	var back: Array = area.plan.threshold(from)
+	check(not back.is_empty(), "%s has a door back to %s" % [to, from])
+	if back.is_empty():
+		return false
+	var want: Vector3 = area.to_global(arrival(back))
+	var facing: Vector3 = -game.player.global_basis.z
+	var inward: Vector3 = ((back[0] as AreaPlan.Room).connectors[back[1]]["xf"] as Transform3D).basis.z
+	check(game.player.global_position.distance_to(want) < .15 and facing.dot(inward) > .95,
+		"just inside %s's door back to %s, facing in (%s, want %s)" % [to, from, game.player.global_position, want])
+	check(area.rooms.has((back[0] as AreaPlan.Room).slot_id), "the room with the door back is live")
+	return true
+
+
+## Where you arrive through a door (area frame).
+func arrival(door: Array) -> Vector3:
+	return ((door[0] as AreaPlan.Room).connectors[door[1]]["xf"] as Transform3D) * Vector3(0, .1, Area.ARRIVE_IN)
+
+
+func door_expect() -> Dictionary:
+	var e: Variant = JSON.parse_string(FileAccess.get_file_as_string(DOOR_EXPECT))
+	check(e is Dictionary, "the earlier door run left its expectations")
+	return e if e is Dictionary else {}
+
+
+func write_door_expect(e: Dictionary) -> void:
+	DirAccess.make_dir_recursive_absolute("user://test")
+	var f: FileAccess = FileAccess.open(DOOR_EXPECT, FileAccess.WRITE)
+	f.store_string(JSON.stringify(e))
+	f.close()
+
+
+static func vec(v: Vector3) -> Array:
+	return [v.x, v.y, v.z]
+
+
+static func arr_vec(a: Array) -> Vector3:
+	return Vector3(a[0], a[1], a[2])
 
 ## The root room's change: R01's west vase knocked over (E), or else a book
 ## pulled from a shelf (a hall's bookcase or wall recess) onto the floor.

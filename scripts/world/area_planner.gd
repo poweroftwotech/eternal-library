@@ -103,6 +103,13 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot) -> AreaPla
 		if why != "":
 			p.errors.append("%s (seed %d) on %s %s: %s" % [s.slot_id, seed_value, s.parent, s.connector, why])
 	r.pinned = s.pinned
+	for name: StringName in s.thresholds:
+		if r.connectors.has(name) and str(r.connectors[name]["joined"]) == "":
+			r.connectors[name]["cap"] = "threshold"
+			r.connectors[name]["to"] = str(s.thresholds[name])
+			if String(name).begins_with("SNAP_exit"):
+				_drop_stub(r, name)
+			break
 	p.add_room(r)
 	if parent_room != null:
 		p.join(r, parent_room, s.connector)
@@ -183,7 +190,7 @@ static func _free_exits(p: AreaPlan, among: Array, g: AreaGrow, order_seed: int)
 		var names: Array = r.connectors.keys()
 		names.sort()
 		for name: StringName in names:
-			if String(name).begins_with("SNAP_exit") and str(r.connectors[name]["joined"]) == "":
+			if String(name).begins_with("SNAP_exit") and str(r.connectors[name]["joined"]) == "" and str(r.connectors[name]["cap"]) != "threshold":
 				out.append([r, name])
 	var rng := RandomNumberGenerator.new()
 	rng.seed = order_seed

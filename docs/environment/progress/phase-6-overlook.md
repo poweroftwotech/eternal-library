@@ -16,7 +16,93 @@ to a lower far ledge, by seed. You walked it four times (18 reports fixed) and
 approved it; committed b65d383. Step 4 is built: the near gorge is a small
 network of 4–6 cliff galleries on both cliffs, joined by spans across and
 stairs along the cliffs, different by seed. You walked it once (14 reports,
-fixed); waiting for your next walk.
+fixed); waiting for your next walk. Step 5 is built: two of the galleries
+have a door, one into the Lower Stacks and one into the library wing, and
+each of those areas has a door back.
+
+---
+
+## Step 5: thresholds, doors between the gorge and the library (built 2026-10-26; you walked through both ways: it works)
+
+### Try it
+
+Esc → Walk the Gorge. Cross the main span to the first gallery on the right
+cliff (bank 2): the lit pointed doorway in the middle of it is the door to
+**the Lower Stacks**. Walk into it: the game saves, shows "Finding the
+way…", and you arrive in the caravanserai's west side passage, facing the
+court. The passage's far end now glows a pale misty blue; walk into it and
+you're back on the same gallery, in front of the door, facing out over the
+gorge. The door to **the library wing** is on a gallery on the left cliff
+(bank 3, at the balcony's height); you arrive in R01 at its entrance, where
+the library wing always started, and R01's entrance leads back.
+
+**Look at:** `previews/p6_step5/doors/` (seed 1 of each area):
+`gorge_to_<area>_front`, `_side` (the doors from the gallery),
+`gorge_to_<area>_arrive` (where you arrive coming back: facing out),
+`<area>_to_gorge_front` (the door back, inside) and `_arrive` (where you
+arrive from the gorge). Re-take them with
+`tests/report_capture.gd -- <out dir> all --from=res://previews/p6_step5/poses/`.
+
+### What's there
+
+- **The doors in the gorge.** Two frontage slots have a door
+  (`gen/gorge/frontage.tres`, `door`): `b2_l17_E_s1_2` (bank 2, a storey
+  under the balcony, the main span's usual far gallery) to the Lower Stacks,
+  and `b3_l18_W_s1_0` (bank 3, at the balcony's height) to the library
+  wing. A gallery on one of them has the door in its middle bay: the gorge's
+  own doorway bay (`gorge_bay_doorway`), a lit glazed door in the gorge
+  windows' look, the face's invisible guard open in front of it.
+- **Every seed has both.** The network (`AreaNetwork`) pulls toward the door
+  slots (a link to one counts 40 m shorter), lets a tree grow to the most
+  galleries allowed until it has them, and keeps a tree with both doors over
+  any without. All 20 test seeds have both; the galleries per seed are as
+  before (4–6).
+- **The doors back.** A recipe's room can name its doors out
+  (`AreaSlot.thresholds`): R01's entrance in the library wing, and the
+  caravanserai's west side passage in the Lower Stacks (the first of its
+  three sizes' names it has). Such a door is never grown from; its glowing
+  exit stub gives way to a cooler, misty one with a wall behind.
+- **Crossing** (`Threshold`, `scripts/world/threshold.gd`): a trigger in the
+  doorway calls `main.cross(<area>)`, which notes where you came from
+  (`WorldState.data["arrive"]`) and travels. The area you enter starts its
+  streaming at its door back to where you came from and puts you 2 m inside
+  it, facing in (`Area.arrive_from`).
+- **Saves** are unchanged in shape: travelling saves first, and a save made
+  anywhere resumes there, the gorge included.
+
+### Things that differ from the brief (your call)
+
+| Brief | Built | Why |
+|---|---|---|
+| the door back appears only when you entered from the gorge, and the save remembers which slot | the doors back are always there, and each area has one door to the gorge, so arriving needs only where you came from | a plan that changed with how you arrived would move rooms between visits; with one fixed door each way there's nothing to remember |
+| the Lower Stacks' arrival at the caravanserai's gate, outside the pishtaq | its west side passage | the pishtaq gate opens onto the hypostyle hall, so its outside isn't free; the side passage is an unused exit in all three court sizes |
+| R01's entrance becomes the door back | as the brief, so **the Front Stacks gallery that grew from R01's entrance is gone**; the far stacks grow off the west and east galleries (the wing's minimum is now 5 rooms, not 6: the seed the game uses grew only 5, and with the lower minimum 5 of seeds 1–20 stop at 5; the rest have 6–8) | it was the only way to keep R01's entrance as the library's front door |
+| a `facade_door_bay` kit piece | the gorge's doorway bay plus a door card set inside its arch ring | on bank 3 the cliff face stands proud of the doorway piece's own card and hid it (a brick wall in the arch); the card in front fixes that without a Blender pass |
+
+### Checks
+
+| Test | Result |
+|---|---|
+| `gorge_network_test` | 790 checks, 0 failures (20 seeds; was 670): adds a gallery with each door, its threshold live, and the capsule walks from where you arrive into the doorway and is stopped there |
+| `persist_test` door_save, door_cross, door_back (new, in `persist_gate.sh`) | pass, each its own process: save on the Lower Stacks' gallery and resume there; walk into the door, arrive just inside the caravanserai facing in, walk on and save; resume inside, walk back out and arrive on the same gallery |
+| `area_plan_test` | 266 checks, 0 failures |
+| `area_route_test` | both areas walked whole, seeds 1–5: 418 checks, 0 failures; the library wing again after its minimum changed: 172 checks, 0 failures |
+| 240-frame runs | clean in the Gorge, the library wing and the Lower Stacks (only the expected "recipe version" notice) |
+| `gorge_route_test` | 8 checks, 0 failures |
+
+### Caveats
+
+- **The door to the library wing is on bank 3 at the balcony's height**,
+  usually the third or fourth gallery out; the Lower Stacks' is usually the
+  first gallery you reach. Swap them (or move either) by editing `door` on
+  the slots in `gen/gorge/frontage.tres`. Re-running
+  `tools/gorge_frontage.gd` would clear them.
+- **The library wing is smaller**: without the Front Stacks it has 5–8 rooms (it was 6–9). If you want it back to size, the far stacks could grow more from the west and east galleries (a bigger grow count), at the cost of longer dead-end runs.
+- **Saves of all three areas go stale once** (recipe versions raised: the
+  gorge 4, the Lower Stacks 7, the library wing 2): things you moved there
+  are put back.
+- **Not run:** the frame gate, the full persistence gate (only its three new
+  processes), the camp's tests (nothing of the camp changed).
 
 ---
 

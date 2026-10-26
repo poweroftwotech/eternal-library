@@ -8,12 +8,13 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 6 step 4 committed (f90ee72) after your third walk.** Next is step 5, thresholds: doors in the gallery facades that take you into the Lower Stacks or the library wing. The gaps you saw (slit, hollow bank tiers) and the clipping and extra geometry wait for a gorge scenery clean-up pass after the rest of the gorge | [Phase 6 design](docs/environment/phase-6-design.md) (5.7.6, step 5) | Say when to start step 5 |
+| **Phase 6 step 5 built: doors between the gorge and the library.** A gallery on bank 2 has a door into the Lower Stacks (you arrive in the caravanserai's side passage), one on bank 3 a door into the library wing (you arrive in R01); each has a door back to the same gallery. Four choices differ from the brief (the doors back are always there; the Lower Stacks' is a side passage, not the gate; the Front Stacks off R01's entrance are gone; the door is the gorge's doorway bay with a card) | [Progress, step 5](docs/environment/progress/phase-6-overlook.md) | You walked through a door both ways: it works. Say when to commit step 5 |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-26 | **Phase 6 step 5 built: thresholds.** Walk into the lit doorway on a bank 2 gallery and you're in the Lower Stacks' caravanserai; the misty doorway there brings you back to the same gallery. The same between a bank 3 gallery and R01 in the library wing. Every gorge seed (1–20) reaches both doors; three new save-and-resume processes cross and come back; network test 790 checks pass ([progress](docs/environment/progress/phase-6-overlook.md)). Waiting for your walk. |
 | 2026-10-26 | **Your third walk of step 4: the waterfalls.** Each now pours from a stone trough on the aqueduct's side (the spans' and the baked aqueducts'), clear of the arcades below; the gorge was re-baked. The gaps you saw (slit, hollow bank tiers) are left for a scenery clean-up pass ([progress](docs/environment/progress/phase-6-overlook.md)). |
 | 2026-10-26 | **Your second walk of step 4: 3 reports fixed.** The straight piers you saw under "the span" were the Overlook's own ledge (step 2): it now stands on span decks and arcades, one arch carrying its run toward bank 1 from the corner to the facade, and the ledge runs one bay further into that facade, so the stub pier and the block on the terrace are gone. A span's last flight resting on an arcade pier has no pier of its own. Network test 670 checks, route, span and area-plan tests and box art (8 seeds) pass ([progress](docs/environment/progress/phase-6-overlook.md)). Waiting for your next walk. |
 | 2026-10-26 | **Your walk of step 4: 14 reports fixed.** One fault behind ten of them: the made-to-measure stonework was built inside out (stairs looked unflush, wall bases flickered, newels floated). Galleries and stairs now keep clear of the blank mass round the Overlook; a span's level part stands on arches stretched to fit (a short one is a lintel); a flight without arches has one pier, not one per bay. Network test 660 checks and box art (8 seeds) pass ([progress](docs/environment/progress/phase-6-overlook.md)). Waiting for your next walk. |
@@ -82,7 +83,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
 | **5. Kit breadth** | More room types, mostly from data | ✅ Done 2026-10-25 |
-| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–4 committed (4bce7c1, 8f789de, b65d383, f90ee72; step 4 after three walks, 19 reports fixed); next step 5 (thresholds); a scenery clean-up pass after the rest of the gorge |
+| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–4 committed (4bce7c1, 8f789de, b65d383, f90ee72; step 4 after three walks, 19 reports fixed); step 5 (thresholds) built, waiting for your walk; then step 6 (the camp link) and a scenery clean-up pass |
 
 ## 10. Roadmap (each phase is a playable slice)
 
@@ -97,7 +98,7 @@ relevant, the route audit and the two-process persistence test.
 | 3. Props and persistence | `WorldProp`, wake and sleep, breakables, book promotion, `ItemDef` pickup, `AreaState`, aging rules | Knock over a vase, pull a lore book and take it, quit; in a new process both stay changed. Advancing the world clock darkens untouched lamps only. |
 | **4. Areas and streaming** | `AreaRecipe`, graph and routing, threaded room streaming, light budget | An area of 6–10 rooms (R01, several R02, one baked room) streams without hitches at the frame target. |
 | **5. Kit breadth** | R03 grid generator, R11 (R03 plus water), R09 ring generator, R05 courtyard template, in a new area (the Lower Stacks). Porting the Overlook and R10 from `vista.gd` moved to a later phase (phase 5 Q1) | Each new type is added mostly through modules and `.tres` rules, with little new code. That is the test of the architecture. |
-| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–4 committed (4bce7c1, 8f789de, b65d383, f90ee72; step 4 after three walks, 19 reports fixed); next step 5 (thresholds); a scenery clean-up pass after the rest of the gorge |
+| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–4 committed (4bce7c1, 8f789de, b65d383, f90ee72; step 4 after three walks, 19 reports fixed); step 5 (thresholds) built, waiting for your walk; then step 6 (the camp link) and a scenery clean-up pass |
 | 7. The navigation map (proposed) | The map drawn from the areas' plans, floor by floor, revealed as you visit (architecture §2.1) | You can find your way back to any room you've been to. |
 
 ## The documents

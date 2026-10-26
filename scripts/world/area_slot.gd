@@ -27,3 +27,8 @@ enum SeedMode { FIXED, AREA }
 ## Always live once the area is (phase-4-design.md 8.1.8 risks: the root room
 ## costs too much to stream in while you walk).
 @export var pinned: bool = false
+## Doors out of the area (phase-6-design.md 5.7.6): connector -> the area id
+## it leads to. The first of them the room has (a scene choice's names
+## differ) is a threshold: never grown from, its exit stub gone, crossing it
+## travels; arriving from that area puts you just inside it.
+@export var thresholds: Dictionary = {}

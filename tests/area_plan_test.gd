@@ -2,7 +2,7 @@ extends SceneTree
 ## Gate for the area planner (phase-4-design.md 8.1.7, 8.1.9).
 ##   godot --headless --path . --script res://tests/area_plan_test.gd [-- seeds=N map=<dir>]
 ## For area seeds 1-20 of gen/recipes/library_wing.tres: AreaPlan.check()
-## passes (a tree, 6-9 rooms, no shared cell in 3D, inside the envelope, no
+## passes (a tree, its room_count (5-9: R01's entrance is the door to the gorge), no shared cell in 3D, inside the envelope, no
 ## sightline deeper than 2 rooms beyond the first, every exit joined or
 ## capped); planning twice gives the same plan; the baked gallery sits on R01's
 ## west door; every generated room has min_bays; R01's room key is
@@ -79,7 +79,7 @@ func run() -> void:
 			DirAccess.make_dir_recursive_absolute(map_dir)
 			p.draw_map().save_png("%s/area_plan_seed_%d.png" % [map_dir, s])
 	print("  room counts over %d seeds: %s; dead ends %d; slowest plan %.0f ms; grow tries %s" % [seeds, counts, dead_ends, slowest, totals])
-	check(counts.keys().all(func(n: int) -> bool: return n >= 6 and n <= 9), "every seed has 6-9 rooms (%s)" % [counts])
+	check(counts.keys().all(func(n: int) -> bool: return n >= recipe.room_count.x and n <= recipe.room_count.y), "every seed has %d-%d rooms (%s)" % [recipe.room_count.x, recipe.room_count.y, counts])
 	lower_stacks(seeds)
 	hand_made()
 	print("area_plan_test: %d checks, %d failures" % [checks, failures.size()])

@@ -92,6 +92,7 @@ bank = 2
 cliff = "right"
 xf = Transform3D(0.11908869, 0, 0.9928836, 0, 1, 0, -0.9928836, 0, 0.11908869, 49.0967, -4, -79.37965)
 width = 12
+door = "lower_stacks"
 
 [sub_resource type="Resource" id="Resource_w1sms"]
 script = ExtResource("2_ax5ff")
@@ -142,6 +143,7 @@ id = "b3_l18_W_s1_0"
 bank = 3
 xf = Transform3D(-0.036911476, 0, -0.99931854, 0, 1, 0, 0.99931854, 0, -0.036911476, -37.548206, 0, -144.1899)
 width = 7
+door = "library"
 
 [sub_resource type="Resource" id="Resource_vuku4"]
 script = ExtResource("2_ax5ff")

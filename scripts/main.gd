@@ -64,12 +64,16 @@ func _ready() -> void:
 			saved = AREA_PREFIX + str(ws().data["area"])     # an area wins over the scene (8.1.6)
 		room_path = saved if saved != "camp" and _exists(saved) else ""
 	scene_path = room_path if room_path != "" else "camp"
+	var arrive: Dictionary = ws().data.get("arrive", {})
+	ws().data.erase("arrive")     # used once: the next start resumes where you are
 	ws().saving.connect(_on_saving)
 	if room_path.is_empty():
 		world = World.new()
 	elif room_path.begins_with(AREA_PREFIX):
 		world = Area.new()
 		world.recipe = load(AREAS[room_path.trim_prefix(AREA_PREFIX)])
+		if not resuming:
+			world.arrive_from = str(arrive.get("from", ""))
 		var saved_pos: Array = (ws().data.get("player", {}) as Dictionary).get("pos", [])
 		if resuming and saved_pos.size() == 3:
 			world.start_point = Vector3(saved_pos[0], saved_pos[1], saved_pos[2])     # build the rooms around you first
@@ -182,6 +186,15 @@ func travel(path: String) -> void:
 		for _i: int in 2:     # let the panel reach the screen: the build blocks the frame
 			await get_tree().process_frame
 	get_tree().reload_current_scene()
+
+## Through a threshold (phase-6-design.md 5.7.6) into area `to`: you arrive
+## at its door back to this area.
+func cross(to: String) -> void:
+	if not AREAS.has(to) or not world is Area:
+		return
+	ws().data["arrive"] = {"from": (world as Area).recipe.id}
+	Area.seed_override = -1     # each area plans from its own seed
+	travel(AREA_PREFIX + to)
 
 ## Just before every save: where the player is, so the next start resumes there.
 func _on_saving() -> void:
