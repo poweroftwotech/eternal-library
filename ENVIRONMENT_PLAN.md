@@ -8,12 +8,13 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 6 step 3: your second and third walks' 7 reports fixed, and the windows redesigned as you asked.** Windows in a faience-panelled frame, no balcony; balconies with shut glazed patio doors; upper book stacks behind deep-set windows; a mix of lit, dim and dark windows; the Overlook's landing, stair and ledge on piers that stand cleanly; the entrance iwan dressed. Box art passes; triangles 2.6–2.8 M of 3 M | [Phase 6 progress](docs/environment/progress/phase-6-overlook.md), step 3; before/after in `previews/p6_step3/reports/` | Walk it again with the report key (your fourth walk's 3 reports are fixed too), then say if step 3 can be committed |
+| **Phase 6 step 3 committed (b65d383): a span across the gorge.** A generated bridge or chain of flights from the Overlook's ledge toward bank 2, in place of the near aqueduct; after four walks (18 reports) the gorge's windows, balconies, book windows, undersides and the entrance pishtaq redesigned. Box art passes for the Overlook and the camp | [Phase 6 progress](docs/environment/progress/phase-6-overlook.md) | Say when to start step 4 (the near gorge: 4–6 ledges joined by spans) |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-25 | **Phase 6 step 3 committed** (b65d383) after your fourth walk ([progress](docs/environment/progress/phase-6-overlook.md)). |
 | 2026-10-25 | **Step 3 after your fourth walk:** no z-fighting on the window frames' sides; the ledge's pierless bay on a lintel; the entrance pishtaq in brick, tile only in its roundels and niches ([progress](docs/environment/progress/phase-6-overlook.md)). |
 | 2026-10-25 | **Step 3 after your second and third walks:** windows redesigned (framed windows, patio-door balconies, books behind windows, lit/dim/dark mix), the Overlook on clean piers, the entrance iwan dressed, no z-fighting under the arches; lighter pieces keep triangles in budget ([progress](docs/environment/progress/phase-6-overlook.md)). |
 | 2026-10-25 | **Your walk of step 3: 8 reports fixed** (soffits under overhangs, decks to the walls, every span bay carried, falls from spouts, windows lit edge to edge with bars, reading balconies for unreachable stacks, the cliff round the balcony dressed) ([progress](docs/environment/progress/phase-6-overlook.md)). |
@@ -77,7 +78,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
 | **5. Kit breadth** | More room types, mostly from data | ✅ Done 2026-10-25 |
-| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–2 committed (4bce7c1, 8f789de); step 3 built, waiting for your walk |
+| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–3 committed (4bce7c1, 8f789de, b65d383) |
 
 ## 10. Roadmap (each phase is a playable slice)
 

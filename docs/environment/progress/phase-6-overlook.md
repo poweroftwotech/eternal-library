@@ -12,11 +12,12 @@ Overlook is walkable, from the balcony down the rock-cut stair to the landing
 and on down to a lantern-lit ledge, with a parapet everywhere. Step 3 is built:
 from the ledge's corner a generated span crosses the gorge toward bank 2 on
 the old near aqueduct's arcades, as a level bridge or a chain of flights down
-to a lower far ledge, by seed. Waiting for your walk.
+to a lower far ledge, by seed. You walked it four times (18 reports fixed) and
+approved it; committed b65d383.
 
 ---
 
-## Step 3: a span across the gorge (built 2026-10-25; walked four times, 18 reports fixed; waiting for your next walk)
+## Step 3: a span across the gorge (built 2026-10-25; walked four times, 18 reports fixed; you approved it; committed b65d383)
 
 ### Your fourth walk: three reports (2026-10-25)
 
