@@ -134,6 +134,8 @@ func make_room(r: AreaPlan.Room) -> RoomTemplate:
 		g.planned_storey = r.storey
 		g.inherit_style_groups = []
 		room = g
+	elif r.kind == "span":
+		room = ChasmGrammar.build_room(r.span)
 	else:
 		room = r.scene.instantiate() as RoomTemplate
 		room.area_seed = r.seed_value

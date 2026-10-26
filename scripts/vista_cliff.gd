@@ -23,6 +23,15 @@ const DRESSED: Rect2 = Rect2(-14.0, 0.0, 26.0, 23.0)  # flat quarried surround o
 ## Rock-cut windows: [x, sill y].
 const WINDOWS: Array = [[-22.0, 16.0], [17.0, 13.0], [-34.0, 27.0], [9.0, 30.0], [30.0, 24.0], [-12.0, 38.0], [44.0, 35.0]]
 const WINDOW_SIZE: Vector2 = Vector2(3.2, 5.0)
+## Walked (the Gorge area, phase 6 step 3: seen from the span the face stood
+## bare): storeys of the banks' bays and galleries set into the face either
+## side of the loggia and over its iwan (GorgeGrammar.cliff), on flat dressed
+## rock, a window falling inside them left out. x, y, width, height.
+## (Widened a bay toward the iwan after your next walk: the flat strips
+## between them read plain.)
+const FACADES: Array[Rect2] = [Rect2(-46, -6, 32, 40), Rect2(12, -6, 32, 40), Rect2(-14, 26, 28, 16)]
+## The rock stays flat this far round them (their galleries' end squares).
+const FACADE_MARGIN: float = 3.0
 
 var vista
 var world
@@ -50,6 +59,8 @@ func build() -> void:
 	art.render_layer = previous
 	iwan()
 	for data: Array in WINDOWS:
+		if in_facade(data[0], data[1]):
+			continue
 		window(data[0], data[1])
 
 ## How far the rock stands proud of the face plane (toward the gorge, -Z).
@@ -66,7 +77,22 @@ func dressed_distance(x: float, y: float) -> float:
 	for data: Array in WINDOWS:
 		var w: float = Vector2(x - data[0], (y - data[1] - WINDOW_SIZE.y * .5) * .7).length() - WINDOW_SIZE.y * .6
 		d = minf(d, maxf(w, 0.0))
-	return d
+	return minf(d, facade_distance(x, y))
+
+## How far (x, y) is from the walked facades (their margin included); far
+## off when the face isn't walked.
+func facade_distance(x: float, y: float) -> float:
+	var d: float = INF
+	if not vista.get_script().walkable_overlook:
+		return d
+	for r: Rect2 in FACADES:
+		var g: Rect2 = r.grow(FACADE_MARGIN)
+		d = minf(d, maxf(maxf(g.position.x - x, x - g.end.x), maxf(g.position.y - y, y - g.end.y)))
+	return maxf(d, 0.0)
+
+## Whether a rock-cut window falls inside a walked facade.
+func in_facade(x: float, sill: float) -> bool:
+	return facade_distance(x, sill + WINDOW_SIZE.y * .5) <= FACADE_MARGIN + WINDOW_SIZE.x
 
 func face(surface: SurfaceTool) -> void:
 	var xs: Array = []
@@ -95,7 +121,7 @@ func face(surface: SurfaceTool) -> void:
 		for px: float in xs:
 			var r: float = relief(px, y)
 			if seated and y <= LOGGIA_FLOOR:
-				r = (RELIEF * (1.0 + noise.get_noise_2d(px, y)) + noise.get_noise_2d(px * 4.0, y * 4.0) * .8) * smoothstep(LOGGIA_FLOOR, LOGGIA_FLOOR - 14.0, y)
+				r = (RELIEF * (1.0 + noise.get_noise_2d(px, y)) + noise.get_noise_2d(px * 4.0, y * 4.0) * .8) * smoothstep(LOGGIA_FLOOR, LOGGIA_FLOOR - 14.0, y) * smoothstep(0.0, 5.0, facade_distance(px, y))
 			row.append(Vector3(px, y, FACE_Z - maxf(r, 0.0) - (.1 if seated and y < LOGGIA_FLOOR else 0.0)))     # clear of the block's face (-28.5)
 		points.append(row)
 	for j in range(ys.size() - 1):
@@ -142,19 +168,67 @@ func iwan() -> void:
 	var span: float = LOGGIA_X.y - LOGGIA_X.x + pier * 2.0 + .08
 	var height: float = 17.8
 	var start := Vector3(LOGGIA_X.x - pier - .04, LOGGIA_FLOOR + height, FACE_Z - .9)
-	art.extrude(vista.arch_bay(span, height, pier, true), 2.0, art.mat("limestone"), start)
+	# Walked, the pishtaq is brick but its niches and roundels (your call: the
+	# mottled stone and tile all over read incomplete).
+	var walked: bool = vista.get_script().walkable_overlook
+	var body: String = "sandstone" if walked else "limestone"
+	art.extrude(vista.arch_bay(span, height, pier, true), 2.0, art.mat(body), start)
 	# Walked, the piers go on down into the rock (from the stair they ended in air).
 	if vista.get_script().walkable_overlook:
 		for x: float in [start.x + pier * .5, start.x + span - pier * .5]:
-			vista.block(Vector3(x, LOGGIA_FLOOR - 9.0, FACE_Z - .9), Vector3(pier, 18.0, 2.0), "limestone")
+			vista.block(Vector3(x, LOGGIA_FLOOR - 9.0, FACE_Z - .9), Vector3(pier, 18.0, 2.0), body)
 	# 10 cm proud of the cliff face; flush, its back face fought the two-sided rock.
-	var tympanum: Node3D = vista.block(Vector3((LOGGIA_X.x + LOGGIA_X.y) * .5, LOGGIA_TOP + 5.5, FACE_Z - .15), Vector3(LOGGIA_X.y - LOGGIA_X.x, 11.0, .1), "mosaic")
+	var tympanum: Node3D = vista.block(Vector3((LOGGIA_X.x + LOGGIA_X.y) * .5, LOGGIA_TOP + 5.5, FACE_Z - .15), Vector3(LOGGIA_X.y - LOGGIA_X.x, 11.0, .1), body if walked else "mosaic")
 	tympanum.name = "LoggiaTympanum"
-	vista.block(Vector3(start.x + span * .5, start.y + .4, FACE_Z - 1.0), Vector3(span + 1.0, .8, 2.2), "exterior_faience")
+	vista.block(Vector3(start.x + span * .5, start.y + .4, FACE_Z - 1.0), Vector3(span + 1.0, .8, 2.2), body if walked else "exterior_faience")
 	for side: float in [LOGGIA_X.x - 1.2, LOGGIA_X.y + 1.2]:
 		vista.lamp(Vector3(side, 6.5, FACE_Z - 1.2), .35, true)
+	if vista.get_script().walkable_overlook:
+		iwan_dressing(start, span, height, pier)
 	# Short range: it lights the iwan and cliff, not the colossi and stair beyond.
 	vista.big_light(Vector3(-1, 12.0, FACE_Z - 5.0), Color("ffb874"), 2.0, 14, 2 | 4)
+
+## Walked (the Gorge area, phase 6 step 3: seen from the balcony's stair and
+## the span, the iwan's faces were flat and the same all over): a brick
+## frame round it (an alfiz) under its top band, two blind niches with tiled
+## panels and string courses up each pier, a tiled roundel in each spandrel,
+## merlons along the top; tile only in the niches and roundels (your call).
+## `start` is the iwan's top-left at its middle depth.
+func iwan_dressing(start: Vector3, span: float, height: float, pier: float) -> void:
+	var front: float = start.z - 1.0                  # the iwan's face (it's 2 m deep)
+	var foot: float = start.y - height
+	var mid: float = start.x + span * .5
+	for x: float in [start.x + .35, start.x + span - .35]:
+		vista.block(Vector3(x, (foot + start.y - .95) * .5, front - .06), Vector3(.5, start.y - .95 - foot, .12), "sandstone")
+	vista.block(Vector3(mid, start.y - .7, front - .06), Vector3(span, .5, .12), "sandstone")
+	for x0: float in [start.x, start.x + span - pier]:
+		var cx: float = x0 + pier * .5
+		for top: float in [foot + 6.2, foot + 14.2]:
+			var w: float = 1.7
+			art.extrude(vista.arch_bay(w, 3.6, .25, true), .3, art.mat("sandstone"), Vector3(cx - w * .5, top, front - .1))
+			vista.block(Vector3(cx, top - (3.6 + 1.4) * .5, front - .02), Vector3(w - .5, 3.6 - 1.4, .04), "mosaic")
+		for y: float in [foot + 2.0, foot + 9.7]:
+			vista.block(Vector3(cx, y, front - .075), Vector3(pier, .3, .15), "sandstone")
+	# Roundels in the spandrels, clear of the arch's curve.
+	for x: float in [start.x + pier + 1.3, start.x + span - pier - 1.3]:
+		var ring := CylinderMesh.new()
+		ring.top_radius = 1.2
+		ring.bottom_radius = 1.2
+		ring.height = .12
+		ring.radial_segments = 16
+		art.mesh_node(ring, Vector3(x, start.y - 3.2, front - .04), art.mat("sandstone")).rotation.x = PI * .5
+		var disc := CylinderMesh.new()
+		disc.top_radius = .95
+		disc.bottom_radius = .95
+		disc.height = .2
+		disc.radial_segments = 16
+		art.mesh_node(disc, Vector3(x, start.y - 3.2, front - .08), art.mat("mosaic")).rotation.x = PI * .5
+	# Merlons along the top band (its top 0.8 m over the iwan's).
+	var n: int = int(span / 1.6)
+	for k: int in n + 1:
+		var x: float = start.x + span * k / n
+		vista.block(Vector3(x, start.y + 1.25, start.z - .1), Vector3(.9, .9, .9), "sandstone")
+		vista.block(Vector3(x, start.y + 1.9, start.z - .1), Vector3(.5, .4, .5), "sandstone")
 
 ## A small lit rock-cut window: pointed limestone frame on the dressed face,
 ## warm lamplight just behind.

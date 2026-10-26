@@ -27,6 +27,11 @@ New modules (laid out on a row at Blender Y = -120 for viewing):
                      edge: a pointed arch frame round a lit lattice window;
                      with a balcony slab and balusters; a tall doorway with
                      a step (a figure stands in some, a separate piece)
+  gorge_bay_stack_window (+ _near)
+                     edge: books behind a deep-set window
+                     (where nothing in front of a stack can be stood on)
+  gorge_soffit       cell: a tier's underside where it overhangs the tier
+                     below
   gorge_bay_stack / _stack_ladder (+ _near)
                      edge: a framed book stack under a cornice; with a
                      rolling ladder; _near: the candle-lit books of the
@@ -147,32 +152,171 @@ def wall(material):
 BASE = 0.2         # a bay's foot over the storey floor
 
 
+SILL = 0.58       # a window's sill top over the bay's foot
+# Rev 5 windows (walked: the plain ring read too simple, and windows and
+# balconies with nothing behind them didn't say how anyone used them): a
+# pointed opening in a faience-panelled rectangular frame (an alfiz), a stone
+# border and arch ring round it, a sill on brackets, a hood over it; the
+# opening set back in the ring's depth.
+OPEN = (1.25, 1.55, 1.45)      # the opening's half width, spring and rise over z0
+FRAME_HALF = 1.75
+FRAME_TOP = 3.45
+
+
+def front_box(bm, x0, x1, y0, y1, z0, z1):
+    """add_box without its back face (at y1, against the wall: never seen;
+    thousands of facade bays, so their triangles count)."""
+    vs = [bm.verts.new(v) for v in (
+        (x0, y0, z0), (x1, y0, z0), (x1, y1, z0), (x0, y1, z0),
+        (x0, y0, z1), (x1, y0, z1), (x1, y1, z1), (x0, y1, z1))]
+    for f in ((0, 3, 2, 1), (4, 5, 6, 7), (0, 1, 5, 4), (1, 2, 6, 5), (3, 0, 4, 7)):
+        bm.faces.new([vs[i] for i in f])
+
+
+def front_prism(bm, outline, x_off, z_off, y0, y1):
+    """add_prism without its back cap (at y1, against the wall)."""
+    a = [bm.verts.new((x_off + u, y0, z_off + v)) for (u, v) in outline]
+    b = [bm.verts.new((x_off + u, y1, z_off + v)) for (u, v) in outline]
+    bm.faces.new(a)
+    n = len(outline)
+    for i in range(n):
+        j = (i + 1) % n
+        bm.faces.new((a[i], a[j], b[j], b[i]))
+
+
+def arch(half, spring, rise, foot, n=6):
+    """A pointed arch's outline (XZ, centred on X = 0) from its left foot at
+    `foot` round to its right foot."""
+    pts = pointed(half, spring, rise, n)
+    return [(-half, foot)] + pts[1:-1] + [(half, foot)]
+
+
+def surround(root, name, z0, opening, foot, depth, proud=0.0):
+    """The frame round an opening (half, spring, rise; its bottom at `foot`),
+    the ring `depth` deep (its inner faces are the opening's reveal), the
+    whole frame stood `proud` further out from the wall (filled back to it).
+    The panel's opening follows the ring's outer edge (walked: on its inner
+    edge, the two faces under the arch fought)."""
+    half, spring, rise = opening
+    inner = arch(half, spring, rise, foot)
+    outer = arch(half + 0.16, spring, rise + 0.16, foot)
+    bottom = foot - 0.12
+    # Its outer edges stop inside the stone border (rev 9: flush with the
+    # border's outer faces, the two fought down the frame's sides).
+    e, top = FRAME_HALF - 0.08, FRAME_TOP - 0.08
+    bottom_in = bottom + 0.03
+    panel = [(-e, bottom_in), (-e, top), (e, top), (e, bottom_in)] \
+        + [(x, z if z > foot else bottom_in) for (x, z) in reversed(arch(half + 0.17, spring, rise + 0.17, foot))]
+    solid(name + "__panel", root, ["gorge_faience"], lambda bm: front_prism(bm, panel, 2.0, z0, -0.22 - proud, -0.02))
+
+    def stone(bm):
+        front_prism(bm, outer + list(reversed(inner)), 2.0, z0, -depth - proud, -0.02)
+        for x0 in (-FRAME_HALF, FRAME_HALF - 0.16):
+            front_box(bm, 2.0 + x0, 2.0 + x0 + 0.16, -0.32 - proud, -0.02, z0 + bottom, z0 + FRAME_TOP)
+        front_box(bm, 2.0 - FRAME_HALF, 2.0 + FRAME_HALF, -0.32 - proud, -0.02, z0 + FRAME_TOP - 0.16, z0 + FRAME_TOP)
+        front_box(bm, 2.0 - FRAME_HALF - 0.1, 2.0 + FRAME_HALF + 0.1, -0.46 - proud, -0.02, z0 + FRAME_TOP, z0 + FRAME_TOP + 0.14)   # hood
+    solid(name + "__frame", root, ["gorge_sandstone"], stone)
+
+
+def sill(root, name, z0, proud=0.0, brackets=True):
+    def build(bm):
+        front_box(bm, 2.0 - FRAME_HALF, 2.0 + FRAME_HALF, -0.48 - proud, -0.02, z0 + SILL - 0.14, z0 + SILL)
+        for x in ((2.0 - 1.2, 2.0 + 1.2) if brackets else ()):
+            front_box(bm, x - 0.12, x + 0.12, -0.4 - proud, -0.02, z0 + SILL - 0.5, z0 + SILL - 0.14)
+    solid(name + "__sill", root, ["gorge_sandstone"], build)
+
+
+def glow(root, name, z0, opening, foot):
+    half, spring, rise = opening
+    bm = bmesh.new()
+    verts = [bm.verts.new((2.0 + x, -0.04, z0 + z)) for (x, z) in reversed(arch(half, spring, rise, foot))]
+    bm.faces.new(verts)
+    mesh_object(name + "__glow", bm, ["gorge_window_glow"], root, recalc=False)
+
+
+def lattice(root, name, z0, opening, foot, y, w=0.08):
+    """Wooden bars across an opening: a mullion from its foot to its crown and
+    a transom at its spring, each meeting the frame."""
+    half, spring, rise = opening
+
+    def bars(bm):
+        front_box(bm, 2.0 - w / 2, 2.0 + w / 2, y - w, y, z0 + foot, z0 + spring + rise)
+        front_box(bm, 2.0 - half, 2.0 + half, y - w, y, z0 + spring, z0 + spring + w)
+    solid(name + "__bars", root, ["gorge_wood"], bars)
+
+
 def bay_window(r):
-    arch_frame(r, "gorge_bay_window", BASE)
-    window_card(r, "gorge_bay_window", 2.0, BASE + 0.55, 2.3, 2.75)
-    solid("gorge_bay_window__sill", r, ["gorge_sandstone"], lambda bm: add_box(bm, 0.55, 3.45, -0.46, 0.04, BASE + 0.42, BASE + 0.58))
+    """Rev 5: a lit window in its frame, no balcony."""
+    surround(r, "gorge_bay_window", BASE, OPEN, SILL, 0.36)
+    sill(r, "gorge_bay_window", BASE)
+    glow(r, "gorge_bay_window", BASE, OPEN, SILL)
+    lattice(r, "gorge_bay_window", BASE, OPEN, SILL, -0.14)
+
+
+DOOR = (0.95, 2.35, 1.0)       # a patio door's half width, spring and rise over z0
+DOOR_FOOT = 0.45               # the balcony's floor over z0
 
 
 def bay_balcony(r):
-    arch_frame(r, "gorge_bay_balcony", BASE)
-    window_card(r, "gorge_bay_balcony", 2.0, BASE + 0.55, 2.3, 2.75)
+    """Rev 6: a balcony with a patio door onto it (walked: a balcony before a
+    window said nothing of how anyone came out onto it): a pair of glazed
+    doors, shut (rev 8, walked: shut by default), wood below and barred
+    lamplit glass above, a lit fanlight over them; the balcony on two
+    brackets, balusters round its open sides, a gold rail."""
+    name = "gorge_bay_balcony"
+    surround(r, name, BASE, DOOR, DOOR_FOOT, 0.36)
+    glow(r, name, BASE, DOOR, DOOR_FOOT)
+    half, spring, rise = DOOR
+
+    def wood(bm):
+        y0, y1 = -0.24, -0.16
+        front_box(bm, 2.0 - half, 2.0 + half, y0, y1, BASE + spring, BASE + spring + 0.08)    # the fanlight's transom
+        add_box(bm, 1.96, 2.04, y0, y1, BASE + spring, BASE + spring + rise)
+        front_box(bm, 2.0 - half, 2.0 + half, y0, y1, BASE + DOOR_FOOT, BASE + DOOR_FOOT + 0.9)   # the leaves' wooden lower halves
+        for x in (2.0 - half, 1.96, 2.0 + half - 0.08):                                       # stiles: the jambs' and the meeting one
+            front_box(bm, x, x + 0.08, y0, y1, BASE + DOOR_FOOT + 0.9, BASE + spring)
+        for x in (2.0 - half / 2, 2.0 + half / 2):                                            # a glazing bar in each leaf
+            front_box(bm, x - 0.025, x + 0.025, y0 + 0.02, y1, BASE + DOOR_FOOT + 0.9, BASE + spring)
+        front_box(bm, 2.0 - half, 2.0 + half, y0 + 0.02, y1, BASE + DOOR_FOOT + 1.6, BASE + DOOR_FOOT + 1.65)
+    solid(name + "__door", r, ["gorge_wood"], wood)
 
     def slab(bm):
-        add_box(bm, 0.5, 3.5, -1.49, -0.19, BASE + 0.4, BASE + 0.58)
+        front_box(bm, 0.3, 3.7, -1.6, -0.02, BASE + DOOR_FOOT - 0.2, BASE + DOOR_FOOT)
+        for x in (0.75, 3.25):
+            front_box(bm, x - 0.14, x + 0.14, -1.2, -0.02, BASE + DOOR_FOOT - 0.6, BASE + DOOR_FOOT - 0.2)
         for k in range(5):
-            x = 2.0 + (k - 2) * 0.7
-            add_box(bm, x - 0.06, x + 0.06, -1.45, -1.33, BASE + 0.58, BASE + 1.33)
-        # Rev 4: balusters down both sides too (walked past, the open sides
-        # read as missing).
-        for x in (0.56, 3.44):
-            for y in (-1.39, -0.92, -0.45):
-                add_box(bm, x - 0.06, x + 0.06, y - 0.06, y + 0.06, BASE + 0.58, BASE + 1.33)
-    solid("gorge_bay_balcony__slab", r, ["gorge_sandstone"], slab)
+            x = 0.6 + k * 0.7
+            add_box(bm, x - 0.06, x + 0.06, -1.54, -1.42, BASE + DOOR_FOOT, BASE + DOOR_FOOT + 0.85)
+        for x in (0.36, 3.64):
+            for y in (-1.1, -0.55):
+                add_box(bm, x - 0.06, x + 0.06, y - 0.06, y + 0.06, BASE + DOOR_FOOT, BASE + DOOR_FOOT + 0.85)
+    solid(name + "__slab", r, ["gorge_sandstone"], slab)
+
     def rails(bm):
-        add_box(bm, 0.5, 3.5, -1.46, -1.32, BASE + 1.33, BASE + 1.43)
-        for x in (0.5, 3.38):
-            add_box(bm, x, x + 0.12, -1.46, -0.19, BASE + 1.33, BASE + 1.43)
-    solid("gorge_bay_balcony__rail", r, ["gorge_gold"], rails)
+        add_box(bm, 0.3, 3.7, -1.56, -1.4, BASE + DOOR_FOOT + 0.85, BASE + DOOR_FOOT + 0.95)
+        for x in (0.3, 3.58):
+            front_box(bm, x, x + 0.12, -1.56, -0.02, BASE + DOOR_FOOT + 0.85, BASE + DOOR_FOOT + 0.95)
+    solid(name + "__rail", r, ["gorge_gold"], rails)
+
+
+STACK_PROUD = 0.35     # a stack window's frame stands this much further out
+
+
+def bay_stack_window(near=False):
+    """Books behind a window, for a stack with nothing in front of it to stand
+    on (walked: a stack on a bare wall, or on a balcony nobody could reach,
+    didn't say how its books were read): the window's frame stood out from
+    the wall (rev 3, walked: the books sat too close behind the window), so
+    the stack is 0.9 m back from the light glazing bars at the frame's front."""
+    def build(r):
+        name = r.name[2:]
+        surround(r, name, BASE, OPEN, SILL, 0.55, STACK_PROUD)
+        sill(r, name, BASE, STACK_PROUD, brackets=False)
+        half, spring, rise = OPEN
+        solid(name + "__books", r, ["gorge_stacks_near" if near else "gorge_stacks"],
+              lambda bm: front_box(bm, 2.0 - half, 2.0 + half, -0.05, 0.05, BASE + SILL, BASE + spring + rise))
+        lattice(r, name, BASE, OPEN, SILL, -0.82, 0.05)
+    return build
 
 
 def bay_doorway(r):
@@ -204,6 +348,12 @@ def bay_stack(ladder, near=False):
                     add_box(bm, 2.33, 2.77, -0.215, -0.165, z, z + 0.05)
             solid(name + "__ladder", r, ["gorge_wood"], rungs)
     return build
+
+
+def soffit(r):
+    """The underside of a tier where it overhangs the one below (walked, from
+    under them the tiers were open shells)."""
+    solid("gorge_soffit__slab", r, ["gorge_stone"], lambda bm: add_box(bm, 0.0, 4.0, 0.0, 4.0, 0.0, 0.3))
 
 
 def bay_panel(r):
@@ -487,6 +637,9 @@ MODULES = [
     ("M_gorge_bay_stack_near", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books"), bay_stack(False, True)),
     ("M_gorge_bay_stack_ladder_near", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books"), bay_stack(True, True)),
     ("M_gorge_bay_panel", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,tile"), bay_panel),
+    ("M_gorge_bay_stack_window", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books,window"), bay_stack_window()),
+    ("M_gorge_bay_stack_window_near", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books,window"), bay_stack_window(True)),
+    ("M_gorge_soffit", props("cell", [1, 0, 1], "", "scenery,gorge,deck"), soffit),
     ("M_gorge_pier", props("edge", [1, 1, 0], "none", "scenery,gorge,pier"), pier(False)),
     ("M_gorge_pier_streaked", props("edge", [1, 1, 0], "none", "scenery,gorge,pier"), pier(True)),
     ("M_gorge_deck", props("cell", [1, 0, 1], "", "scenery,gorge,deck"), deck),
@@ -525,12 +678,14 @@ MODULES = [
     ("M_aqueduct_landing", props("free", [2, 0, 2], "", "scenery,gorge,aqueduct", family="dressing"), aqueduct_landing),
 ]
 
-REBUILD = [("M_gorge_bay_window", 3), ("M_gorge_bay_balcony", 4), ("M_gorge_bay_doorway", 3)]   # rev 2: pointed arches; rev 3: the glow fits inside the arch, so its pointed top shows
+REBUILD = [("M_gorge_bay_window", 9), ("M_gorge_bay_balcony", 10), ("M_gorge_bay_doorway", 3),
+           ("M_gorge_bay_stack_window", 5), ("M_gorge_bay_stack_window_near", 5)]   # rev 2: pointed arches; rev 3: the glow fits inside the arch; window 4, balcony 5: lit edge to edge, bars; window 5: a framed window, balcony 6: a patio door; window 6, balcony 7, stack window 2: no faces against the wall (lighter); window 7, balcony 8, stack window 3: no z-fighting under the arch, doors shut, books further back; then lighter again (6-segment arches); then the panel inside the border (z-fighting)
 # rev 2: stone paving on the decks (tile reads as a wall or ceiling, not a floor)
 REBUILD += [(n, 2) for n in ("M_gorge_deck", "M_gorge_deck_edge", "M_gorge_deck_edge_streaked", "M_gorge_deck_edge_mossy",
                              "M_gorge_crown_edge", "M_gorge_crown_edge_worn", "M_gorge_crown_edge_broken",
                              "M_gorge_deck_corner", "M_gorge_crown_corner", "M_aqueduct_landing")]
 REBUILD = [(n, 3 if n == "M_gorge_deck_corner" else v) for (n, v) in REBUILD]     # rev 3: railed on both open sides
+
 
 
 def main():

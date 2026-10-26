@@ -4,6 +4,8 @@
 [ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="2_slot"]
 [ext_resource type="PackedScene" path="res://rooms/gorge/overlook.tscn" id="3_overlook"]
 [ext_resource type="PackedScene" path="res://rooms/baked/gorge.tscn" id="4_gorge"]
+[ext_resource type="Resource" path="res://gen/grammars/r10_chasm.tres" id="5_chasm"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="6_place"]
 
 [sub_resource type="Resource" id="Resource_overlook"]
 script = ExtResource("2_slot")
@@ -12,11 +14,26 @@ display_name = "The Overlook"
 scene = ExtResource("3_overlook")
 pinned = true
 
+[sub_resource type="Resource" id="Resource_span"]
+script = ExtResource("2_slot")
+slot_id = "span"
+display_name = "The Span"
+grammar = ExtResource("5_chasm")
+parent = "overlook"
+connector = &"SNAP_exit_span"
+pinned = true
+
+[sub_resource type="Resource" id="Resource_place"]
+script = ExtResource("6_place")
+envelope = AABB(-122, -180, -300, 256, 220, 412)
+
 [resource]
 script = ExtResource("1_recipe")
 id = "gorge"
 display_name = "The Gorge"
-slots = Array[ExtResource("2_slot")]([SubResource("Resource_overlook")])
-room_count = Vector2i(1, 1)
+version = 2
+slots = Array[ExtResource("2_slot")]([SubResource("Resource_overlook"), SubResource("Resource_span")])
+room_count = Vector2i(2, 2)
+placement = SubResource("Resource_place")
 scenery = ExtResource("4_gorge")
 fall_limit = -50.0

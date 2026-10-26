@@ -33,7 +33,7 @@ class Room:
 	extends RefCounted
 	var slot_id: String = ""
 	var display_name: String = ""
-	## "scene" (authored or baked) or "generated".
+	## "scene" (authored or baked), "generated" or "span" (a ChasmGrammar span).
 	var kind: String = "scene"
 	var scene: PackedScene
 	var grammar: RoomGrammar
@@ -70,6 +70,8 @@ class Room:
 	var grid: CellGrid
 	## A generated room: "exit" or "dead_end".
 	var end_kind: String = ""
+	## A span's solved plan (kind "span": ChasmGrammar.solve, its own frame).
+	var span: Dictionary = {}
 	## Nodes the built room drops (relative paths): a baked exit stub where a room joins.
 	var drop_nodes: PackedStringArray = []
 	## Always live (AreaSlot.pinned).

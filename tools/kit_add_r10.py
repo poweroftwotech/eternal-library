@@ -24,6 +24,12 @@ New modules (laid out on a row at Blender Y = -160 for viewing):
                      ramp over the nosings and guards for walking; it
                      descends toward +Y (the room's -Z)
   chasm_lamp_post    free: a post and lantern on a parapet (a lantern light)
+  chasm_deck_4m      cell: a span's deck bay (step 3): paving over a faience
+                     course, as the scenery aqueducts' deck, sitting on their
+                     arcades (the course's underside 1 m under the walk)
+  chasm_span_flight  cell, 2 bays: chasm_stair_flight on a span: its mass
+                     stops 1 m under its foot (the arcade's top), with the
+                     deck's faience course down both sides
 """
 import math
 import os
@@ -101,7 +107,7 @@ FLIGHT_FOOT = -8.0   # the flight is one masonry mass down to here (a storey und
 PARAPET = 0.0        # its balustrades stand this far in from the mass's edges
 
 
-def stair_flight(r):
+def stair_flight(r, name="chasm_stair_flight", foot=FLIGHT_FOOT):
     """Rev 3: one masonry mass, balustrades on its edges as the landing's
     (chasm_parapet_4m: a stone plinth, turned balusters, a gold rail), ends
     square. (Rev 1's thin tiled cheeks poked into the landing; rev 2's solid
@@ -111,8 +117,8 @@ def stair_flight(r):
 
     def treads(bm):
         for k in range(steps):
-            add_box(bm, 0.0, 4.0, k * tread, (k + 1) * tread, FLIGHT_FOOT, -(k + 1) * rise)
-    solid("chasm_stair_flight__steps", r, ["gorge_sandstone"], treads)
+            add_box(bm, 0.0, 4.0, k * tread, (k + 1) * tread, foot, -(k + 1) * rise)
+    solid(name + "__steps", r, ["gorge_sandstone"], treads)
 
     def line(y):
         return -rise / 2 - rise / tread * y
@@ -121,7 +127,7 @@ def stair_flight(r):
     def plinths(bm):
         for x in inner:
             add_yz_prism(bm, [(0.0, line(0.0) - 0.45), (run, line(run) - 0.45), (run, line(run) + 0.25), (0.0, line(0.0) + 0.25)], x, x + 0.36)
-    solid("chasm_stair_flight__plinth", r, ["gorge_sandstone"], plinths)
+    solid(name + "__plinth", r, ["gorge_sandstone"], plinths)
 
     def balusters(bm):
         n = int(round(run / 0.5))
@@ -131,23 +137,42 @@ def stair_flight(r):
                 base = line(y) + 0.25
                 add_lathe(bm, [(0.07, base), (0.11, base + 0.08), (0.06, base + 0.25), (0.09, base + 0.5), (0.06, base + 0.7), (0.08, base + 0.77)],
                           cx=x + 0.18, cy=y, segs=8)
-    solid("chasm_stair_flight__balusters", r, ["gorge_sandstone"], balusters)
+    solid(name + "__balusters", r, ["gorge_sandstone"], balusters)
 
     def rails(bm):
         for x in inner:
             add_yz_prism(bm, [(0.0, line(0.0) + 1.02), (run, line(run) + 1.02), (run, line(run) + 1.1), (0.0, line(0.0) + 1.1)], x - 0.02, x + 0.38)
-    solid("chasm_stair_flight__rail", r, ["gorge_gold"], rails)
+    solid(name + "__rail", r, ["gorge_gold"], rails)
     slope = math.atan2(drop, run)
     length = math.hypot(run, drop)
     # The walk: one plane through the step noses (the player climbs slopes).
     walk = 4.0 - 2 * (PARAPET + 0.36)
-    solid("chasm_stair_flight__ramp-colonly", r, ["gorge_sandstone"],
+    solid(name + "__ramp-colonly", r, ["gorge_sandstone"],
           lambda bm: add_obox(bm, (2.0, run / 2, -drop / 2 - 0.15 / math.cos(slope)), (walk, length, 0.3), (-slope, 0.0, 0.0)))
 
     def guards(bm):
         for x in inner:
             add_yz_prism(bm, [(0.0, line(0.0) - 0.5), (run, line(run) - 0.5), (run, line(run) + GUARD), (0.0, line(0.0) + GUARD)], x, x + 0.36)
-    solid("chasm_stair_flight__guards-colonly", r, ["gorge_sandstone"], guards)
+    solid(name + "__guards-colonly", r, ["gorge_sandstone"], guards)
+
+
+def deck(r):
+    solid("chasm_deck_4m__walk-col", r, ["gorge_sandstone"], lambda bm: add_box(bm, 0.0, 4.0, 0.0, 4.0, -0.45, 0.0))
+    # The course overhangs the arcade's sides (3.2 m) as the scenery deck's
+    # does; flush at the ends, so bays run on without a seam.
+    solid("chasm_deck_4m__course", r, ["gorge_faience"], lambda bm: add_box(bm, -0.05, 4.05, 0.0, 4.0, -1.0, -0.45))
+
+
+def span_flight(r):
+    stair_flight(r, "chasm_span_flight", -5.0)
+    run, drop = 8.0, 4.0
+
+    def course(bm):
+        # The deck's course (0.45 to 1 m under the walk), following the slope
+        # down both sides, so the decks' bands run on over the flight.
+        for (x0, x1) in ((-0.05, 0.0), (4.0, 4.05)):
+            add_yz_prism(bm, [(0.0, -1.0), (run, -drop - 1.0), (run, -drop - 0.45), (0.0, -0.45)], x0, x1)
+    solid("chasm_span_flight__course", r, ["gorge_faience"], course)
 
 
 def lamp_post(r):
@@ -168,6 +193,8 @@ MODULES = [
     ("M_cliff_ledge_4m", props("cell", [1, 0, 1], "", "gorge,floor,ledge"), ledge),
     ("M_chasm_stair_flight", props("cell", [1, 1, 2], "", "gorge,vertical"), stair_flight),
     ("M_chasm_lamp_post", props("free", [0, 1, 0], "", "gorge,lamp,light", family="dressing"), lamp_post),
+    ("M_chasm_deck_4m", props("cell", [1, 0, 1], "", "gorge,floor,span"), deck),
+    ("M_chasm_span_flight", props("cell", [1, 1, 2], "", "gorge,vertical,span"), span_flight),
 ]
 
 

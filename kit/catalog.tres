@@ -797,6 +797,15 @@ modules = Array[Dictionary]([{
 "tags": PackedStringArray("rock", "cavern", "court"),
 "weight": 1.0
 }, {
+"edge": "",
+"family": "walls",
+"name": "chasm_deck_4m",
+"scene": "res://kit/modules/walls/chasm_deck_4m.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("gorge", "floor", "span"),
+"weight": 1.0
+}, {
 "edge": "none",
 "family": "walls",
 "name": "chasm_parapet_4m",
@@ -804,6 +813,15 @@ modules = Array[Dictionary]([{
 "shape": "edge",
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("gorge", "rail"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "chasm_span_flight",
+"scene": "res://kit/modules/walls/chasm_span_flight.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 1, 2),
+"tags": PackedStringArray("gorge", "vertical", "span"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -1303,6 +1321,24 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "none",
 "family": "walls",
+"name": "gorge_bay_stack_window",
+"scene": "res://kit/modules/walls/gorge_bay_stack_window.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "facade", "books", "window"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_bay_stack_window_near",
+"scene": "res://kit/modules/walls/gorge_bay_stack_window_near.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "facade", "books", "window"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
 "name": "gorge_bay_window",
 "scene": "res://kit/modules/walls/gorge_bay_window.tscn",
 "shape": "edge",
@@ -1407,6 +1443,15 @@ modules = Array[Dictionary]([{
 "shape": "edge",
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("gorge", "pier", "scenery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "gorge_soffit",
+"scene": "res://kit/modules/walls/gorge_soffit.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("scenery", "gorge", "deck"),
 "weight": 1.0
 }, {
 "edge": "none",

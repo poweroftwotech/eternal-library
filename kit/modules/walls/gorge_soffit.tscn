@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_xpy8d"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gorge_soffit.glb" id="2_65aab"]
+
+[node name="gorge_soffit" type="Node3D" unique_id=1344919085]
+script = ExtResource("1_xpy8d")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "gorge", "deck")
+source_glb = "res://assets/kit/walls/gorge_soffit.glb"
+
+[node name="Mesh" parent="." unique_id=1714100593 instance=ExtResource("2_65aab")]

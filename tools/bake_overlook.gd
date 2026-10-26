@@ -14,7 +14,8 @@ extends SceneTree
 ##     leaves; a stair flight down one storey from the landing's far side; a
 ##     corbelled ledge on piers round the south end of the left colossus's
 ##     pedestal, with balustrades and lamp posts, ending at a connector facing
-##     bank 1 (step 3's span starts there);
+##     bank 1 (a door into it later), and one on the corner where it turns,
+##     facing across the gorge, where step 3's span starts;
 ##   - a sealed bronze door in the loggia's back wall, closing the passage
 ##     toward the camp (step 6 opens it), and a safety floor far below.
 
@@ -33,9 +34,10 @@ const GUARD_H: float = 3.0
 ## bank 1 (three on: with two, the west run passed under the colossus's plinth).
 const ON_BAYS: int = 3
 const WEST_BAYS: int = 4
-## Piers carry the ledge down into the mist, one under each bay's corbel.
+## Piers carry the ledge, one under each bay's corbel, down to what they
+## stand on cleanly (ChasmGrammar.pier_under: the mist, or well on a terrace).
 const PIER_SIZE: float = 1.6
-const PIER_FOOT: float = -90.0
+
 
 var room: RoomTemplate
 var scenes: Dictionary = {}
@@ -44,6 +46,10 @@ var placed: int = 0
 ## them once, those within NEWEL_MERGE of each other as one), and lamps.
 var ends: Array[Vector3] = []
 var lamps: Array[Vector3] = []
+## The span's grammar, for where a pier stands cleanly; the piers that found
+## no place.
+var chasm: ChasmGrammar = load("res://gen/grammars/r10_chasm.tres")
+var unsupported: PackedStringArray = []
 const NEWEL: float = .55
 const NEWEL_MERGE: float = .7
 ## The stair's downhill direction; the newels square to it.
@@ -134,12 +140,34 @@ func _initialize() -> void:
 	for i: int in range(1, WEST_BAYS + 1):
 		path[Vector2i(-i, 1 + ON_BAYS)] = true
 	var foot := Vector3(0, -4.0, 0)
+	var ledge_offsets: Array = []
+	for o: Vector2 in [Vector2.ZERO, Vector2(.9, 0), Vector2(-.9, 0), Vector2(0, .9), Vector2(0, -.9), Vector2(1.2, 1.2), Vector2(-1.2, 1.2), Vector2(1.2, -1.2), Vector2(-1.2, -1.2)]:
+		ledge_offsets.append(Vector3(o.x, 0, o.y))
+	var held: Dictionary = {}         # cell -> the top of its pier
 	for c: Vector2i in path:
 		var cell := g * Transform3D(Basis(), Vector3(c.x * 4.0, 0, -c.y * 4.0) + foot)
 		piece(pieces, "walls/cliff_ledge_4m", cell)
-		# Its pier, from under the corbel (2.3 m under the walk) down into the mist.
+		# Its pier, from under the corbel (2.3 m under the walk) down to what it
+		# stands on cleanly: the mist, or well on one of bank 1's terraces
+		# (walked: down into the mist they cut through the terraces).
 		var under: Vector3 = cell * Vector3(2.0, -2.3, -2.0)
-		pillar(pieces, "ledge_pier_%d_%d" % [c.x, c.y], Vector3(under.x, (under.y + PIER_FOOT) * .5, under.z), Vector3(PIER_SIZE, under.y - PIER_FOOT, PIER_SIZE), cell.basis)
+		if support(pieces, "ledge_pier_%d_%d" % [c.x, c.y], under, Vector2.ONE * PIER_SIZE * .5, cell.basis, ledge_offsets):
+			held[c] = under
+	# A bay with no clean place for a pier (one straddles bank 1's terrace edge)
+	# is carried by a lintel between its neighbours' piers (walked: its corbel
+	# hung on nothing), as deep as the corbels, under the ledge's fascia.
+	for c: Vector2i in path:
+		if held.has(c):
+			continue
+		for pair: Array in [[c + Vector2i(1, 0), c - Vector2i(1, 0)], [c + Vector2i(0, 1), c - Vector2i(0, 1)]]:
+			if held.has(pair[0]) and held.has(pair[1]):
+				var a: Vector3 = held[pair[0]]
+				var b: Vector3 = held[pair[1]]
+				var along: Vector3 = (b - a).normalized()
+				var basis := Basis(Vector3.UP.cross(along).normalized(), Vector3.UP, -along)
+				pillar(pieces, "ledge_lintel_%d_%d" % [c.x, c.y], (a + b) * .5 + Vector3(0, .9, 0), Vector3(1.6, 1.8, a.distance_to(b) + PIER_SIZE), basis)
+				unsupported.erase("ledge_pier_%d_%d" % [c.x, c.y])
+				break
 	# Its open edges get balustrades (but the flight's foot); lamp posts on every
 	# other bay's outer edge.
 	var end: Vector2i = Vector2i(-WEST_BAYS, 1 + ON_BAYS)
@@ -149,6 +177,15 @@ func _initialize() -> void:
 			if path.has(n) or (c == Vector2i(0, 2) and side == 0):
 				continue
 			var xf: Transform3D = g * Transform3D(Basis(), Vector3(c.x * 4.0, 0, -c.y * 4.0) + foot) * _cell_edge(side)
+			if c == Vector2i(0, 1 + ON_BAYS) and side == 1:
+				# The corner's gorge side opens onto step 3's span, which runs
+				# from here across to bank 2 (nearly the near aqueduct's line).
+				var span := Marker3D.new()
+				span.name = "SNAP_exit_span"
+				add(connectors, span)
+				span.transform = Transform3D(xf.basis * Basis(Vector3.UP, PI), xf * Vector3(2.0, 0, 0))
+				lamps.append(xf * Vector3(0, 0, -.18))
+				continue
 			piece(pieces, "walls/chasm_parapet_4m", xf)
 			joints(xf)
 			if c == end and side == 3:
@@ -169,6 +206,16 @@ func _initialize() -> void:
 	piece(pieces, "walls/wall_vault_door_4m", Transform3D(Basis(), Vector3(left, gate.position.y, back)))
 	piece(pieces, "walls/wall_plain_4m", Transform3D(Basis(), Vector3(left, gate.position.y + 4.0, back)))
 	# (The passage's brick walls fill its sides: rock there z-fought their faces.)
+	# The landing and the stair are masonry cut down to the stair's base, 20 m
+	# under the balcony (walked: they hung there on nothing): a broad pier under
+	# the landing and one under the stair's middle, down to what they stand on.
+	var grid: Array = []
+	for i: int in [0, 1, -1, 2, -2]:
+		for j: int in [0, 1, -1, 2, -2]:
+			grid.append(Vector3(i, 0, j))
+	support(pieces, "landing_pier", Vector3(landing.x, FOREGROUND.STAIR_BASE, landing.z), Vector2(2.5, 2.5), land, grid)
+	var stair_mid: Vector3 = top.lerp(landing, .5)
+	support(pieces, "stair_pier", Vector3(stair_mid.x, FOREGROUND.STAIR_BASE, stair_mid.z), Vector2(1.6, 1.6), land, grid)
 	newels(pieces)
 	# A safety floor far below the near gorge (AGENTS.md 6).
 	guard(collision, "safety_floor", Vector3(0, -60, -110), Vector3(260, 1, 220), Basis())
@@ -177,6 +224,8 @@ func _initialize() -> void:
 	var err: Error = scene.pack(room)
 	if err == OK:
 		err = ResourceSaver.save(scene, OUT)
+	if not unsupported.is_empty():
+		print("bake_overlook: no clean place for %s" % [unsupported])
 	print("bake_overlook: %d pieces, %d collision shapes, connector at %s -> %s (%s)" % [placed, collision.get_child_count(),
 		(connectors.get_child(0) as Node3D).position if connectors.get_child_count() > 0 else "none", OUT, error_string(err)])
 	room.free()
@@ -314,3 +363,19 @@ func guard(collision: Node, name: String, at: Vector3, size: Vector3, basis: Bas
 func add(parent: Node, node: Node) -> void:
 	parent.add_child(node)
 	node.owner = room
+
+
+## A pier under `top` (its half size across and along, turned by `basis`)
+## down to what it stands on cleanly, at the first of `offsets` (in the
+## basis) where one does. Whether one stood.
+func support(pieces: Node, name: String, top: Vector3, half: Vector2, basis: Basis, offsets: Array) -> bool:
+	for o: Vector3 in offsets:
+		var p: Vector3 = top + basis * o
+		var r: Dictionary = chasm.pier_under(p, Vector2.ONE * half.length())
+		if r.is_empty():
+			continue
+		var foot: float = r["foot"]
+		pillar(pieces, name, Vector3(p.x, (p.y + foot) * .5, p.z), Vector3(half.x * 2.0, p.y - foot, half.y * 2.0), basis)
+		return true
+	unsupported.append(name)
+	return false

@@ -9,7 +9,249 @@ aqueducts, the sanctum) from 45 kit pieces, baked to scenes you can edit,
 shown in a new area, Esc → Walk the Gorge, from the balcony. It passes the
 box-art comparison and loads in a quarter of a second. Step 2 is built: the
 Overlook is walkable, from the balcony down the rock-cut stair to the landing
-and on down to a lantern-lit ledge, with a parapet everywhere.
+and on down to a lantern-lit ledge, with a parapet everywhere. Step 3 is built:
+from the ledge's corner a generated span crosses the gorge toward bank 2 on
+the old near aqueduct's arcades, as a level bridge or a chain of flights down
+to a lower far ledge, by seed. Waiting for your walk.
+
+---
+
+## Step 3: a span across the gorge (built 2026-10-25; walked four times, 18 reports fixed; waiting for your next walk)
+
+### Your fourth walk: three reports (2026-10-25)
+
+**Look at:** `previews/p6_step3/reports/report_<16..18>_before.png` and
+`_after.png`, and `report_17_lintel.png` (the ledge from below).
+
+| # | You said | Now |
+|---|---|---|
+| 16 | z-fighting on the window frames' outer sides (brick and tile) | the faience panel's outer edges lay flush with the stone border's outer faces: the panel now stops 8 cm inside the border, so only the border shows there (windows, balconies, book windows) |
+| 17 | what happened to the disconnected supports here? | since your last walk the ledge's piers stop where they stand cleanly; one bay straddles bank 1's terrace edge, so it had none and its corbel hung in the air. It's now carried by a brick lintel between its neighbours' piers, as deep as the corbels. The last bay's pier stands on the terrace below (1.7 m) |
+| 18 | the facade's tiling looks incomplete: tile only in the circles and niches, brick for the rest of the pishtaq | the pishtaq (its arch, piers, tympanum, top band, frame bands, string courses, merlons) is brick; tile only in the two roundels and the four niches. Gorge area only; the camp's entrance is as it was |
+
+**Checks:** box art passes for the Overlook on three seeds (near flanks
+1.12, mist floor 0.76–0.77) and the camp (1.07, 0.90). Triangles in view
+2.72–2.80 M (budget 3 M), draw calls 628–861, GPU 3.8–5.3 ms.
+`r10_span_test` 485, `gorge_route_test` 8, `kit_test` 3,036 pass; 240-frame
+runs clean.
+
+### Your third walk: five reports (2026-10-25)
+
+**Look at:** `previews/p6_step3/reports/report_<11..15>_before.png` and
+`_after.png` (and `report_6..10_after.png`, re-taken with everything below).
+
+| # | You said | Now |
+|---|---|---|
+| 11 | z-fighting under every window's arch | the faience panel's opening followed the arch ring's inner edge, so under the arch the two faces lay on each other: the panel's opening now follows the ring's outer edge |
+| 12 | leave the patio doors closed | a pair of glazed doors, shut: wood below, lamplit glass behind wooden bars above, the fanlight lit over them |
+| 13 | the bookshelves are too close to the window | the book window's frame now stands 0.35 m further out, so the stack is 0.9 m back from its glazing bars |
+| 14 | not all windows need to be lit | about a quarter of the gorge's windows are dark, a third dim and the rest fully lit (the doorways' and towers' too), by place; the average is near what it was, so the gorge's light holds |
+| 15 | the facade round the entrance is repetitive and flat | the loggia's iwan has a mosaic frame (an alfiz) round it, two blind niches (sandstone frames, mosaic panels) and two string courses up each pier, a mosaic roundel in each spandrel and merlons along its top; the cliff's facades either side now come a bay closer, so the flat strips beside it are 4 m wide. In the Gorge area only |
+
+**The lighter pieces** (from last time) are built: no faces against the wall,
+arches in 6 segments, no brackets under the book windows. Triangles in view
+went from 2.84–3.01 M to **2.63–2.80 M** (budget 3 M).
+
+**Checks:** the box art passes for the Overlook on three seeds (near flanks
+1.12, mist floor 0.76–0.77) and the camp (1.07, 0.90). `r10_span_test` 485,
+`gorge_route_test` 8, `kit_test` 3,036, `area_plan_test` 266 pass; 240-frame
+runs clean. Draw calls 503–858, GPU 3.6–5.1 ms.
+
+**Found on the way:** a camp capture once came out dark: a camp event's
+dialog ("The reading garden") had opened over the view. Re-taken, the camp
+passes as before; the capture can catch such a dialog.
+
+### Your second walk: two reports, and the windows redesigned (2026-10-25)
+
+**Look at:** `previews/p6_step3/reports/report_<9,10>_before.png` and
+`_after.png`, and `report_6_after.png` / `report_7_after.png` again (the new
+windows, balconies and stacks).
+
+| # | You said | Now |
+|---|---|---|
+| 9 | the supports here clip into the geometry below | the Overlook ledge's piers went straight down into the mist, through bank 1's terraces: they now stop where they stand cleanly, as the span's do (in the mist, or well on one terrace clear of its edge and dressing). One bay, between two piered bays 8 m apart, found no clean place and has none |
+| 10 | the whole thing on the left is unsupported | the landing and the rock-cut stair are masonry cut down to 20 m under the balcony, and stopped there in the air: a broad pier now carries the landing, and another the stair's middle, down to the mist |
+
+**The windows, as you asked** (you weren't sure about the window balconies
+and the stacks on balconies, since nothing showed how anyone used them):
+
+- **Windows**, no balcony, in a nicer frame: the pointed opening in a
+  rectangular frame with faience spandrels (an alfiz), a stone border and
+  arch ring, a sill on two brackets and a hood over it; the lit opening set
+  back in the ring, a wooden mullion and transom across it.
+- **Balconies with a patio door**: the same frame round a tall door, its two
+  wooden leaves standing open onto the balcony, the room behind lit, a
+  fanlight over them; the balcony on two brackets, balusters round its open
+  sides, a gold rail.
+- **Books behind a window**, for every stack with no terrace in front of it
+  (the reading balconies are gone): the window's frame, the opening set
+  0.55 m deep, the stack at the back of it, light glazing bars at the front.
+  Stacks on a terrace keep their ladders.
+
+To keep the triangle count in budget, none of these pieces has faces
+against the wall (they're never seen).
+
+### Your walk: eight reports (2026-10-25)
+
+You found the span good in general, and reported eight other things.
+
+**Look at:** `previews/p6_step3/reports/report_<1..8>_before.png` (your
+screenshot) and `_after.png` (the same spot, re-taken), and
+`report_4_span_end.png` (the chain's last bays from the side).
+
+| # | You said | What it was | Now |
+|---|---|---|---|
+| 1, 2 | buildings at the top have see-through floors | the tiers were shells: where one overhangs the one below, nothing closed its underside | a stone **soffit** under every bay of a tier that overhangs the one below (new kit piece `gorge_soffit`); a lower tier's deck edge (balustrade, lamps, figures) no longer runs on under the tier above, into its soffit |
+| 3 | a gap near the base of the building | a terrace's deck bay was left out when its centre was under the tier above, but the tiers sit on different grids, so a strip at the foot of the wall stayed open | a deck goes wherever any of its bay is open |
+| 4 | the stairs aren't supported by anything | near bank 2 the chain's arcades would have run into its terraces and no pier could stand cleanly, so the flights had nothing under them | every bay is carried: by its arcade (standing on a pier at one end at least) or by a pier of its own, found along the bay; if a row can't be carried, the head moves a bay back. The span test checks it for every seed |
+| 5 | water appears out of mid-air | the falls started at the arch's spring line, in the middle of the opening | each fall pours from a faience **spout** under the arch's crown, 3.2 m wide (it fits the arch); one arcade bay in three pours |
+| 6 | the half-closed windows look strange: remove the shade, make the bars meet the sides and ledges | the lit card was narrower than its arch (a half-drawn shade), its bars painted on and stopping short | window and balcony bays (kit rev 4 and 5): the arch's whole opening is lit, from the sill to the crown, with wooden **bars** in front, a mullion from the sill to the crown and two transoms from side to side. Every window in the gorge changed |
+| 7 | remove or replace bookshelves you can't reach | stacks stood on sheer walls, on upper storeys or over a drop | a stack with nothing to stand on in front (no terrace under it) now stands on a **reading balcony** (new kit piece `gorge_bay_stack_gallery`: balcony, balusters, rail); stacks on a terrace keep their ladders |
+| 8 | this side of the cavern looks plain | the cliff round the balcony was only ever behind you: rough rock with seven small windows | in the Gorge area, **storeys of the banks' bays and galleries** are set into the cliff either side of the loggia (7 bays wide, 10 storeys) and over its iwan (2 storeys), with balustraded galleries every two storeys, merlons on top, lamps and banners; the rock round them is dressed flat. The camp's cliff is as it was |
+
+**The box art** passes for the Overlook on three seeds (a bridge, two
+chains): vault 49, focal glow 126, far depth 88, near flanks 79 (1.13),
+**mist floor 81–82 (0.76; limit 0.75)**. It was 0.77–0.78: the overhangs'
+deck edges that are gone carried lamps, and the cluster lights that come from
+them. The camp: near flanks 1.07, mist floor 0.90, unchanged.
+
+**The cost:** in view 2.73–2.90 M triangles (budget 3 M; it was about 2.5 M),
+draw calls 457–809, GPU 3.6–4.6 ms (it was 3.0–4.4). The reading balconies
+are thousands of pieces; the first try (a ladder on each, more balusters) was
+1.5 M triangles across the gorge, now 0.55 M, and far ones draw at lower
+detail. The new windows' bars and glows, the soffits and the cliff's
+facades account for the rest.
+
+**Checks:** `r10_span_test` 485 (new: every bay carried), `gorge_route_test`
+8, `kit_test` 3,028, `area_plan_test` 266 pass; 240-frame runs clean for the
+camp and the Gorge.
+
+**Also changed:**
+
+| Piece | File |
+|---|---|
+| 3 kit pieces (soffit, stack on a reading balcony, and its near version), window and balcony bays rebuilt | `tools/kit_add_gorge.py`, `art_src/kit/kit_gorge.blend`, `kit/materials/gorge_window_glow.tres` |
+| Soffits, decks, deck edges, reading balconies; the cliff's facades | `scripts/gen/gorge_grammar.gd` (`_tier`, `_facade`, `cliff`) |
+| The cliff's facades' places, the rock dressed flat round them | `scripts/vista_cliff.gd` (`FACADES`) |
+| The cliff part of the bake | `tools/bake_gorge.gd` → `rooms/baked/gorge/cliff.scn` |
+| Every bay carried; falls from spouts | `scripts/gen/chasm_grammar.gd`, `gen/grammars/r10_chasm.tres` |
+| A view of the span's last bays from the side | `tests/gorge_capture.gd` (`span_end`) |
+
+**Still to know:**
+
+- **The mist floor is at 0.76** of the box art (limit 0.75). The next change
+  that darkens the low middle of the balcony's view could fail it; the lever
+  is a little more light low in the gorge.
+- **Triangles in view are near the budget** (2.9 M of 3 M).
+- The lit windows are now a flat warm colour (the old card's painted texture
+  is gone with the shade); a gentle gradient is possible if they read flat.
+
+### As built
+
+**Try it:** Esc → **Walk the Gorge**. Go down to the ledge as before. Where
+the ledge turns west, its corner now opens on the gorge side, and the span
+leaves from there, about 72 m across toward bank 2. It ends at a **far ledge**
+(the head): a row of 2 to 4 bays across the span's end, standing in front of
+bank 2's terraces. Esc → **Reseed the Gorge** gives another span. The seed
+picks one of two kinds:
+
+- **A bridge** (about half the seeds): level all the way, on the old near
+  aqueduct's two tiers of round arches.
+- **A chain** (the other half): level at first, then in its last bays toward
+  bank 2 a flight and a landing per storey, down 1 to 3 storeys to a lower
+  head. The flights are the Overlook's, set on the same arcades.
+
+Both have balustrades down both sides of every bay and round the head
+(stone plinth, turned balusters, gold rail, as on the Overlook), a square
+newel at every joint, a lamp post on a newel every third bay (alternating
+sides) and at the head's two front corners, and stone paving with the
+aqueduct's faience course under its edge. One or more upper arches pour a
+waterfall. Under the head and the first bays, square piers go down into the
+mist, or onto one of bank 2's terraces where they stand cleanly.
+
+**The old near aqueduct is gone from the Gorge area** (your Q9): the span
+takes its place, on nearly its line but about 12 m nearer the balcony and
+7–14 m higher (a chain's head at about its height). The cascade
+that poured off its east end went with it. The camp still shows its own
+gorge, aqueduct and all.
+
+**Look at:** `previews/p6_step3/bridge/` (area seed 2, a bridge) and
+`previews/p6_step3/chain/` (area seed 9, a chain three storeys down), each:
+
+- `gorge_concept`: the box-art view from the balcony; the span where the
+  aqueduct was;
+- `gorge_span`: from the ledge's corner, out along the span;
+- `gorge_span_mid`: from the middle, on toward the head (the chain's flights);
+- `gorge_span_head`: from the head, back toward the Overlook;
+- `gorge_span_side`: from the ledge's west end, back along it onto the span;
+- `gorge_span_under`: from under the span's start, up along its arcades and
+  a waterfall.
+
+And `camp_concept.png`: the camp's own view, unchanged.
+
+**The box art** passes for both kinds. From the Overlook: vault 48, focal
+glow 125, far depth 88, near flanks 82 (1.18), **mist floor 83–84 (0.77–0.78
+of the box art; the limit is 0.75**; it was 0.83). The span stands nearer and
+higher than the aqueduct did, so it covers a little more of the mist. The
+camp: near flanks 1.07, mist floor 0.90, as before.
+
+**The cost** (RTX 5090, 1600 × 900): draw calls 434–787 (budget 1,500), GPU
+3.0–4.4 ms, about 2.5 M triangles (budget 3 M). The span's ~80 kit pieces are
+drawn in batches (`KitBatcher`); its piers and newels are one mesh each.
+
+**Built:**
+
+| Piece | File |
+|---|---|
+| 2 kit pieces in `kit_chasm.blend`: a span deck bay (paving over the scenery aqueduct's faience course) and the stair flight on a span (its masonry stops on the arcade, the course down both sides) | `tools/kit_add_r10.py`, `art_src/kit/kit_chasm.blend` |
+| `ChasmGrammar`, the span from a connector: walks out bay by bay against the gorge's terraces, puts the head as far out as it stands cleanly, lays the run (corbelled bays, then 12 m arcade bays, level or a flight and landing), the head, balustrades, newels, lamps, waterfalls, piers; builds the room | `scripts/gen/chasm_grammar.gd`, `gen/grammars/r10_chasm.tres` |
+| The banks' terraces as a keep-out: where they are (with their decks' 2.2 m overhang and balustrades), what's on them (figures, cypresses, pavilions, banners, lamps) | `scripts/gen/gorge_grammar.gd` (`keep_out`, `solid_at`, `ground_at`, `dressing`) |
+| A new kind of room in areas, a span: planned from its parent's connector by its grammar, built by it | `scripts/world/area_planner.gd`, `scripts/world/area.gd`, `scripts/world/area_plan.gd` |
+| The Overlook's ledge corner opens onto the span (connector `SNAP_exit_span`); the ledge's west end keeps its connector for a door later | `tools/bake_overlook.gd` → `rooms/gorge/overlook.tscn` |
+| The near aqueduct and its east cascade left out of the Gorge area's scenery (`GorgeLayout.walked`), rebaked | `scripts/gen/gorge_layout.gd`, `tools/bake_gorge.gd`, `scripts/vista.gd`, `rooms/baked/gorge/` |
+| The Gorge's recipe: the span slot, two rooms, an envelope deep enough for the gorge (version 2) | `gen/recipes/gorge.tres` |
+| Span views in the capture | `tests/gorge_capture.gd` |
+
+**Found on the way:** `KitBatcher` freed each batched mesh with everything
+under it, and a kit piece's collision sits under its mesh, so the batched
+span had no floor (the test capsule fell through). It now moves what hangs
+under a mesh up to the mesh's parent before freeing it. The gorge's scenery
+has no collision, so nothing changed there.
+
+**Tests:**
+
+| Test | What it checks |
+|---|---|
+| `r10_span_test` (new, 445 checks) | the Gorge plans clean with its span on the Overlook's corner; then 20 seeds of each kind, each solved from the Overlook's connector, built, and checked: of its kind (the chains 1–3 storeys down); bank 2 within two bays behind its head; nothing (walk, arcades, piers) inside the banks' terraces, piers on a terrace clear of its edge; no climb steeper than the kit's stair; the real player's capsule walks from the Overlook's corner over the span to both ends of the head without catching, and finds no way off at both sides of every bay and flight, the head's front, back and ends |
+| `gorge_route_test` | 8 checks pass (it skips the corner's open side, which leads onto the span) |
+| `kit_test` 2,994, `area_plan_test` 266 | pass |
+| 240-frame runs | clean for the camp and `--area=gorge` |
+
+**Caveats:**
+
+- **The head stands off bank 2, not against it.** Bank 2 steps out in
+  terraces below the span's height, about 16–20 m in front of its wall at
+  that height, and a pier must stand on one terrace clear of its edge and
+  its figures and cypresses. So the head goes as far out as its piers stand
+  cleanly: about 4 m in front of the nearest terrace's balustrade (8 m below
+  it) and about 12 m from the wall at its own height. Step 5's door into
+  bank 2 needs a way across that (a short bridge, or the head on the
+  terrace). If you'd rather the span reached the wall now, say so.
+- **Longer than the brief's bridges.** The brief's bridges are up to 40 m
+  (10 bays); bank to bank here is about 80 m, so the span's limit is 24 bays
+  (`bridge_max_bays`, a setting in `gen/grammars/r10_chasm.tres`).
+- **No ramps.** A head a storey lower is a chain (flights), never a sloped
+  deck: the brief's 1-in-8 ramp bays aren't built. Every seed so far is a
+  level bridge or a chain.
+- **Some arch ends hang in the air** where no pier could stand cleanly (a
+  pier only goes where it lands in the mist or well on a terrace), as the
+  scenery aqueducts' lower arches did between their piers.
+- **The mist floor is near its limit** in the box-art view (0.77, limit
+  0.75).
+- **The grammar is 516 lines** (the design said under 400): about 140 of
+  them build the room (batches, newels, lamps, waterfalls).
+- **Not run:** the frame gate (it doesn't walk the gorge yet), the full test
+  gates (an hour), the persistence gate.
 
 ---
 

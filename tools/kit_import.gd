@@ -116,7 +116,7 @@ func _vec3i(value: Variant) -> Vector3i:
 
 ## Materials whose meshes cast no shadow (phase 6: the gorge's lit windows, lamps,
 ## rain streaks, moss, banners and carpets; vista.gd's windows cast none either).
-const NO_SHADOW: PackedStringArray = ["gorge_window", "gorge_lamp", "gorge_grime", "gorge_moss", "gorge_tapestry_0", "gorge_tapestry_1", "gorge_tapestry_2", "gorge_carpet"]
+const NO_SHADOW: PackedStringArray = ["gorge_window", "gorge_window_glow", "gorge_lamp", "gorge_grime", "gorge_moss", "gorge_tapestry_0", "gorge_tapestry_1", "gorge_tapestry_2", "gorge_carpet"]
 
 
 func _fix_materials(inst: MeshInstance3D) -> void:

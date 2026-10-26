@@ -12,6 +12,12 @@ extends SceneTree
 ##   landing  from the landing toward the flight and the ledge (step 2)
 ##   ledge    from the ledge's end back along it
 ##   up       from the landing back up the stair to the balcony
+## and, when the area has a span (step 3), from the plan:
+##   span        from the ledge's corner out along the span
+##   span_mid    from the middle on toward the far ledge
+##   span_head   from the far ledge back toward the Overlook
+##   span_side   from the ledge's west end back along it onto the span
+##   span_under  from under its start up along the arcades
 ## A view's third value is where you stand (default: the balcony).
 ##   (a second argument picks views: concept,stair)
 ##   (or `sweep`: at each stop on the walk, eight headings a little below
@@ -71,7 +77,22 @@ func run() -> void:
 	var vp_rid: RID = root.get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(vp_rid, true)
 	var only: PackedStringArray = args[1].split(",") if args.size() > 1 else PackedStringArray()
-	var views: Dictionary = VIEWS
+	var views: Dictionary = VIEWS.duplicate()
+	var span: AreaPlan.Room = area.plan.room("span")
+	if span != null and span.span.get("ok", false):
+		var s: Transform3D = span.xf
+		var n: int = span.span["bays"]
+		var low: float = -int(span.span["drop"]) * 4.0
+		var head: Vector3 = s * Vector3(0, low, -n * 4.0 - 2.0)
+		print("gorge_capture: span seed %d, %s, %d bays, %d storeys down" % [span.seed_value, span.span["kind"], n, span.span["drop"]])
+		views["span"] = [s * Vector3(0, -2, -60), 70.0, s * Vector3(0, 0, 2)]
+		views["span_mid"] = [head + Vector3(0, -1, 0), 70.0, s * Vector3(0, 0, -n * 2.0)]
+		views["span_head"] = [s * Vector3(0, 1, 0), 70.0, head]
+		views["span_side"] = [s * Vector3(0, -16, -n * 2.0), 70.0, STOPS["end"]]
+		# From under its start (the camera only: the player's physics is off).
+		views["span_under"] = [s * Vector3(0, -14, -n * 4.0), 80.0, s * Vector3(9, -46, -4)]
+		# The last bays by the far bank, from the air beside them: what carries them.
+		views["span_end"] = [s * Vector3(0, low - 10.0, -n * 4.0 + 14.0), 70.0, s * Vector3(26, low - 6.0, -n * 4.0 + 14.0)]
 	if only.has("sweep"):
 		views = {}
 		only = PackedStringArray()

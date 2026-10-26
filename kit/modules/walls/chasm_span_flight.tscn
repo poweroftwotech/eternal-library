@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_c1os7"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/chasm_span_flight.glb" id="2_upqgk"]
+
+[node name="chasm_span_flight" type="Node3D" unique_id=1028194797]
+script = ExtResource("1_c1os7")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 1, 2)
+tags = PackedStringArray("gorge", "vertical", "span")
+source_glb = "res://assets/kit/walls/chasm_span_flight.glb"
+
+[node name="Mesh" parent="." unique_id=1666411407 instance=ExtResource("2_upqgk")]

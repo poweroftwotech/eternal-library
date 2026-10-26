@@ -36,7 +36,7 @@ func _initialize() -> void:
 func run() -> void:
 	var t0: int = Time.get_ticks_usec()
 	if OS.get_cmdline_user_args().has("--rebatch"):
-		var parts: Array = ["bank_1", "bank_2", "bank_3", "bank_4", "bank_5", "bank_6", "bank_7", "bank_8", "sanctum", "aqueducts"]
+		var parts: Array = ["bank_1", "bank_2", "bank_3", "bank_4", "bank_5", "bank_6", "bank_7", "bank_8", "sanctum", "aqueducts", "cliff"]
 		print("bake_gorge: rebatched %s" % rebatch(parts.filter(func(p: String) -> bool: return ResourceLoader.exists(OUT_DIR + p + ".scn"))))
 		quit()
 		return
@@ -53,12 +53,19 @@ func run() -> void:
 		parts["bank_%d" % (i + 1)] = grammar.bank(Vector2(b[0], b[1]), b[2], b[3], b[4], int(b[5]))
 	parts["sanctum"] = grammar.sanctum(layout.sanctum)
 	var aqueducts: Array[Dictionary] = []
-	for a: PackedFloat32Array in layout.aqueducts:
+	for i: int in layout.aqueducts.size():
+		var a: PackedFloat32Array = layout.aqueducts[i]
+		if layout.walked.has(i):
+			continue          # a walkable span takes its place (phase 6 Q9)
 		var falls: Array[int] = []
 		for k: int in range(6, a.size()):
 			falls.append(int(a[k]))
 		aqueducts.append_array(grammar.aqueduct(Vector3(a[0], a[1], a[2]), Vector3(a[3], a[4], a[5]), falls))
 	parts["aqueducts"] = aqueducts
+	# The near cliff's facades round the loggia (walked only: the camp's view
+	# never turns round to them).
+	var cliff_script: GDScript = load("res://scripts/vista_cliff.gd")
+	parts["cliff"] = grammar.cliff(cliff_script.FACADES, cliff_script.FACE_Z - .3)
 	var counts: Dictionary = {}
 	var extras: Array[Dictionary] = []
 	var lamps := PackedVector3Array()

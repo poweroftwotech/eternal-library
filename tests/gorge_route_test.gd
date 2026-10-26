@@ -9,7 +9,8 @@ extends SceneTree
 ## its feet on the ledge (12 m below the landing's... -12) at the end. And
 ## nowhere can it step off: the balcony's parapet, both sides of the stair,
 ## the landing's balustrades, the flight's cheeks, every open side of the
-## ledge and its end hold (phase 6 Q4).
+## ledge (but the corner's, onto the span: tests/r10_span_test.gd) and its
+## end hold (phase 6 Q4).
 
 const RECIPE: String = "res://gen/recipes/gorge.tres"
 const FOREGROUND = preload("res://scripts/vista_foreground.gd")
@@ -107,6 +108,8 @@ func run() -> void:
 		for step: Vector2i in sides:
 			if cells.has(cells[k] + step) or (cells[k] == Vector2i(0, 2) and step == Vector2i(0, -1)):
 				continue
+			if cells[k] == Vector2i(0, 1 + ON_BAYS) and step == Vector2i(1, 0):
+				continue      # onto the span (tests/r10_span_test.gd walks it)
 			off["ledge bay %s toward %s" % [cells[k], step]] = [ledge[k], (sides[step] as Vector3) * 3.0]
 	var open: PackedStringArray = []
 	for what: String in off:

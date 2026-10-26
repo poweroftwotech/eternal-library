@@ -88,6 +88,11 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot) -> AreaPla
 		r = _scene_room(p, s.slot_id, s.display_name, scene, info, seed_value, parent_room, s.connector)
 		if r == null:
 			return null
+	elif s.grammar is ChasmGrammar:
+		var seed_value: int = s.fixed_seed if s.seed_mode == AreaSlot.SeedMode.FIXED else _seed_for(p, s.slot_id)
+		r = _span_room(p, s, seed_value, parent_room)
+		if r == null:
+			return null
 	else:
 		var seed_value: int = s.fixed_seed if s.seed_mode == AreaSlot.SeedMode.FIXED else _seed_for(p, s.slot_id)
 		r = _generated_room(p, recipe, s.slot_id, s.display_name, s.grammar, s.rules, seed_value, parent_room, s.connector, "exit")
@@ -254,6 +259,39 @@ static func _scene_room(p: AreaPlan, slot_id: String, display_name: String, scen
 		r.sight[AreaPlan.key_between(AreaPlan.cell_of(r.xf * _centre(w[0])), AreaPlan.cell_of(r.xf * _centre(w[1])))] = w[2]
 	for c: Vector3i in info["blocked"]:
 		r.blocked_cells[AreaPlan.cell_of(r.xf * _centre(c))] = true
+	return r
+
+
+## A span (phase-6-design.md 5.7.4) from the parent's connector out over the
+## gorge, solved by its ChasmGrammar. Its far ledge's connectors are exits
+## for later steps.
+static func _span_room(p: AreaPlan, s: AreaSlot, seed_value: int, parent_room: AreaPlan.Room) -> AreaPlan.Room:
+	if parent_room == null:
+		p.errors.append("%s: a span starts from a parent's connector" % s.slot_id)
+		return null
+	var r := AreaPlan.Room.new()
+	r.slot_id = s.slot_id
+	r.display_name = s.display_name
+	r.kind = "span"
+	r.grammar = s.grammar
+	r.seed_value = seed_value
+	r.entry = &"SNAP_entry"
+	r.xf = _joined_xf(parent_room, s.connector, ChasmGrammar.ENTRY)
+	r.storey = AreaPlan.cell_of(r.xf.origin).y
+	r.span = (s.grammar as ChasmGrammar).solve(r.xf, seed_value)
+	if not r.span["ok"]:
+		p.errors.append("%s (seed %d): %s" % [s.slot_id, seed_value, r.span["why"]])
+	for name: StringName in r.span["connectors"]:
+		var xf: Transform3D = r.xf * (r.span["connectors"][name] as Transform3D)
+		r.connectors[name] = {"xf": xf, "storey": AreaPlan.cell_of(xf.origin).y, "joined": "", "cap": "" if name == r.entry else "glow"}
+	for c: Vector3 in r.span["walk"]:
+		var at: Vector3i = AreaPlan.cell_of(r.xf * (c + Vector3(0, .1, 0)))
+		r.floor_cells[at] = true
+		r.cells[at] = true
+		r.blockers.append(r.xf * AABB(c - Vector3(2, 0, 2), Vector3(4, CellGrid.CELL_HEIGHT, 4)))
+	for b: AABB in r.span["boxes"]:
+		r.blockers.append(r.xf * b)
+	_sight_all_open(r)
 	return r
 
 

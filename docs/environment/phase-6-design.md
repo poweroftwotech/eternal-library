@@ -137,6 +137,18 @@ its ends exist).
 - **Rules.** `gen/rules/r10_spans.tres`; `gen/grammars/r10_chasm.tres`
   (bridge_max_bays, bridge_max_rise, pier_depth, falls_every,
   lamp_every_bays). Target: under 400 lines of grammar.
+- **As built in step 3** (`scripts/gen/chasm_grammar.gd`, 516 lines with the
+  room builder): the span grows from one connector (the Overlook's
+  `SNAP_exit_span`) and finds its own far end, walking out bay by bay
+  against the banks' tiers (`GorgeGrammar.keep_out`, with their decks'
+  overhang); the far ledge is the span's own head row, its back connectors
+  (`SNAP_exit_far_*`) left for steps 4–5. Spans are a room kind of their own
+  (`AreaPlan.Room.kind` "span"), not a CellGrid. bridge_max_bays is 24 (bank
+  to bank is about 80 m); no ramps (bridge_max_rise): a lower head is a
+  chain of flights and landings, in its last bays. The arcades are the
+  scenery aqueducts' 12 m pieces; piers stand in the mist or on a terrace
+  clear of its edge and dressing, or are left out. Pieces are named in the
+  grammar (no `r10_spans.tres` rules yet).
 
 ## 5.7.5 Ledges, loggias and the network (step 4)
 

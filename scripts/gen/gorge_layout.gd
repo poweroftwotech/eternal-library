@@ -19,3 +19,7 @@ extends Resource
 	PackedFloat32Array([-37, -19, -89, 41, -26, -116, 3]), PackedFloat32Array([-29, -58, -141, 34, -63, -172]),
 	PackedFloat32Array([-37, -105, -91, 38, -100, -133]), PackedFloat32Array([-26, -20, -211, 30, -12, -231, 2]),
 	PackedFloat32Array([-32, -132, -192, 36, -124, -222]), PackedFloat32Array([-47, 14, -205, -11, 8, -249])]
+## Aqueducts (indices) the Gorge area leaves out of its scenery: a walkable
+## span takes their place (phase 6 Q9; the near one, 20 m under the balcony).
+## The camp's own view keeps them all.
+@export var walked: PackedInt32Array = [0]

@@ -88,9 +88,16 @@ func batch() -> Dictionary:
 
 
 ## Frees a batched mesh, and the piece it belonged to once nothing else is
-## left in it.
+## left in it. What hangs under the mesh (an imported piece's collision body,
+## a "-col" mesh's) stays where it was, moved up to the mesh's parent.
 func _free_up(mi: Node) -> void:
 	var parent: Node = mi.get_parent()
+	for c: Node in mi.get_children():
+		var xf: Transform3D = (mi as Node3D).transform * (c as Node3D).transform if c is Node3D else Transform3D()
+		mi.remove_child(c)
+		parent.add_child(c)
+		if c is Node3D:
+			(c as Node3D).transform = xf
 	mi.free()
 	while parent != null and parent != self and parent.get_child_count() == 0:
 		var up: Node = parent.get_parent()
@@ -137,4 +144,9 @@ static func _tinted(mesh: Mesh) -> bool:
 ## 0.25-0.85; from the window's position, so it's the same every load.
 static func _window_tint(p: Vector3) -> Color:
 	var h := func(k: float) -> float: return fposmod(sin(p.x * 12.9898 + p.y * 78.233 + p.z * 37.719 + k) * 43758.5453, 1.0)
-	return Color(1.0, lerpf(.70, .94, h.call(1.0)), lerpf(.42, .70, h.call(2.0))) * lerpf(.25, .85, h.call(3.0))
+	# Walked (phase 6 step 3): not every window lit alike. About a quarter
+	# dark (a room nobody's in), a third dim, the rest full; the average about
+	# as before (0.55), so the gorge's light holds.
+	var pick: float = h.call(4.0)
+	var level: float = .07 if pick < .25 else (lerpf(.25, .4, h.call(3.0)) if pick < .58 else lerpf(.8, 1.0, h.call(3.0)))
+	return Color(1.0, lerpf(.70, .94, h.call(1.0)), lerpf(.42, .70, h.call(2.0))) * level

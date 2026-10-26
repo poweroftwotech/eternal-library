@@ -1,0 +1,18 @@
+[gd_resource type="Resource" script_class="ChasmGrammar" format=3]
+
+[ext_resource type="Script" path="res://scripts/gen/chasm_grammar.gd" id="1_chasm"]
+[ext_resource type="Resource" path="res://gen/gorge/gorge_layout.tres" id="2_layout"]
+
+[resource]
+script = ExtResource("1_chasm")
+styles = PackedStringArray("gorge")
+wear_lanes_enabled = false
+bridge_max_bays = 24
+bridge_chance = 0.5
+drop_storeys_max = 3
+head_side_bays = Vector2i(1, 2)
+face_clearance = 1.0
+falls_every = 3
+lamp_every_bays = 3
+pier_foot = -120.0
+gorge_layout = ExtResource("2_layout")

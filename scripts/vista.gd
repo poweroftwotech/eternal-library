@@ -434,9 +434,11 @@ func build() -> void:
 		bridge(Vector3(-47,14,-205),Vector3(-11,8,-249),3.0)
 	# Walked, the cascade off the near aqueduct's west landing is gone: by the
 	# ledge's end it read as a sharp wedge between bank 1 and the bridge.
+	# The east one poured off that aqueduct's east landing; in the Gorge area a
+	# walkable span takes the aqueduct's place (phase 6 Q9) and pours its own.
 	if not walkable_overlook:
 		cascade(Vector3(-35,-18.4,-88),Vector2(4.8,94))
-	cascade(Vector3(40,-25.4,-114),Vector2(6,121))
+		cascade(Vector3(40,-25.4,-114),Vector2(6,121))
 	cascade(Vector3(8,-12.4,-228),Vector2(12,148))
 	cascade(Vector3(-29,-57.4,-140),Vector2(4.5,101))
 	# The closed cavern needs every terrace in vista.ledges, so it comes last.
