@@ -20,7 +20,7 @@ fixed); waiting for your next walk.
 
 ---
 
-## Step 4: the near gorge (built 2026-10-26; walked three times, 19 reports fixed; waiting for your next walk)
+## Step 4: the near gorge (built 2026-10-26; walked three times, 19 reports fixed; you approved it; committed f90ee72)
 
 ### Walk 3 (2026-10-26, seed 433536861): the waterfalls, and a gap
 

@@ -8,7 +8,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 6 step 4 after your third walk: waterfalls fixed.** Every fall now pours from a stone trough on the aqueduct's side and falls clear of the arcades below. The gaps (hollow, slit bank tiers seen from the links) are proposed for a gorge scenery clean-up pass with the clipping you noticed | [Phase 6 progress](docs/environment/progress/phase-6-overlook.md) (step 4, "Walk 3") | Walk it again, or say when to commit |
+| **Phase 6 step 4 committed (f90ee72) after your third walk.** Next is step 5, thresholds: doors in the gallery facades that take you into the Lower Stacks or the library wing. The gaps you saw (slit, hollow bank tiers) and the clipping and extra geometry wait for a gorge scenery clean-up pass after the rest of the gorge | [Phase 6 design](docs/environment/phase-6-design.md) (5.7.6, step 5) | Say when to start step 5 |
 
 ## What's new
 
@@ -82,7 +82,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 3. Props and persistence | Push and break props, take lore books, save and restore, aging lamps | ✅ Done 2026-10-20 |
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
 | **5. Kit breadth** | More room types, mostly from data | ✅ Done 2026-10-25 |
-| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–3 committed (4bce7c1, 8f789de, b65d383); step 4 built, walked three times (19 reports fixed; the gaps go to a scenery clean-up), waiting for your next walk |
+| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–4 committed (4bce7c1, 8f789de, b65d383, f90ee72; step 4 after three walks, 19 reports fixed); next step 5 (thresholds); a scenery clean-up pass after the rest of the gorge |
 
 ## 10. Roadmap (each phase is a playable slice)
 
@@ -97,7 +97,7 @@ relevant, the route audit and the two-process persistence test.
 | 3. Props and persistence | `WorldProp`, wake and sleep, breakables, book promotion, `ItemDef` pickup, `AreaState`, aging rules | Knock over a vase, pull a lore book and take it, quit; in a new process both stay changed. Advancing the world clock darkens untouched lamps only. |
 | **4. Areas and streaming** | `AreaRecipe`, graph and routing, threaded room streaming, light budget | An area of 6–10 rooms (R01, several R02, one baked room) streams without hitches at the frame target. |
 | **5. Kit breadth** | R03 grid generator, R11 (R03 plus water), R09 ring generator, R05 courtyard template, in a new area (the Lower Stacks). Porting the Overlook and R10 from `vista.gd` moved to a later phase (phase 5 Q1) | Each new type is added mostly through modules and `.tres` rules, with little new code. That is the test of the architecture. |
-| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–3 committed (4bce7c1, 8f789de, b65d383); step 4 built, walked three times (19 reports fixed; the gaps go to a scenery clean-up), waiting for your next walk |
+| **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–4 committed (4bce7c1, 8f789de, b65d383, f90ee72; step 4 after three walks, 19 reports fixed); next step 5 (thresholds); a scenery clean-up pass after the rest of the gorge |
 | 7. The navigation map (proposed) | The map drawn from the areas' plans, floor by floor, revealed as you visit (architecture §2.1) | You can find your way back to any room you've been to. |
 
 ## The documents
