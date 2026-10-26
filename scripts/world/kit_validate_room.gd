@@ -39,8 +39,9 @@ static func run(root: Node) -> Dictionary:
 	var warnings: PackedStringArray = []
 	var modules: Array[KitModule] = []
 	_modules(root, modules)
-	_edge_gaps(root, modules, errors)
-	_connectors(root, errors)
+	if not (root is RoomTemplate and (root as RoomTemplate).off_grid):
+		_edge_gaps(root, modules, errors)
+		_connectors(root, errors)
 	_socket_fit(root, modules, errors, warnings)
 	_lore_pins(root, errors)
 	return {"errors": errors, "warnings": warnings}

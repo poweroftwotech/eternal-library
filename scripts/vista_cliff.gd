@@ -83,15 +83,25 @@ func face(surface: SurfaceTool) -> void:
 	while ys.back() < CLIFF_TOP:
 		ys.append(ys.back() + 2.5)
 	var points: Array = []
+	# Walked (the Gorge area), the face goes on down under the balcony as rough
+	# rock (the flat cliff block there showed its edges from the stair), its
+	# relief growing from nothing at the balcony's floor.
+	var seated: bool = vista.get_script().walkable_overlook
+	if seated:
+		for y: float in [0.0, -3.0, -7.0, -12.0, -18.0, -26.0, -36.0, -48.0, -62.0]:
+			ys.push_front(y)
 	for y: float in ys:
 		var row: Array = []
 		for px: float in xs:
-			row.append(Vector3(px, y, FACE_Z - relief(px, y)))
+			var r: float = relief(px, y)
+			if seated and y <= LOGGIA_FLOOR:
+				r = (RELIEF * (1.0 + noise.get_noise_2d(px, y)) + noise.get_noise_2d(px * 4.0, y * 4.0) * .8) * smoothstep(LOGGIA_FLOOR, LOGGIA_FLOOR - 14.0, y)
+			row.append(Vector3(px, y, FACE_Z - maxf(r, 0.0) - (.1 if seated and y < LOGGIA_FLOOR else 0.0)))     # clear of the block's face (-28.5)
 		points.append(row)
 	for j in range(ys.size() - 1):
 		for i in range(xs.size() - 1):
 			var mid := Vector2((xs[i] + xs[i + 1]) * .5, (ys[j] + ys[j + 1]) * .5)
-			if mid.x > LOGGIA_X.x and mid.x < LOGGIA_X.y and mid.y < LOGGIA_TOP:
+			if mid.x > LOGGIA_X.x and mid.x < LOGGIA_X.y and mid.y > LOGGIA_FLOOR and mid.y < LOGGIA_TOP:
 				continue
 			quad(surface, [points[j][i], points[j][i + 1], points[j + 1][i + 1], points[j + 1][i]])
 
@@ -133,6 +143,10 @@ func iwan() -> void:
 	var height: float = 17.8
 	var start := Vector3(LOGGIA_X.x - pier - .04, LOGGIA_FLOOR + height, FACE_Z - .9)
 	art.extrude(vista.arch_bay(span, height, pier, true), 2.0, art.mat("limestone"), start)
+	# Walked, the piers go on down into the rock (from the stair they ended in air).
+	if vista.get_script().walkable_overlook:
+		for x: float in [start.x + pier * .5, start.x + span - pier * .5]:
+			vista.block(Vector3(x, LOGGIA_FLOOR - 9.0, FACE_Z - .9), Vector3(pier, 18.0, 2.0), "limestone")
 	# 10 cm proud of the cliff face; flush, its back face fought the two-sided rock.
 	var tympanum: Node3D = vista.block(Vector3((LOGGIA_X.x + LOGGIA_X.y) * .5, LOGGIA_TOP + 5.5, FACE_Z - .15), Vector3(LOGGIA_X.y - LOGGIA_X.x, 11.0, .1), "mosaic")
 	tympanum.name = "LoggiaTympanum"

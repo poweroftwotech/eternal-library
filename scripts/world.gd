@@ -210,7 +210,9 @@ func arch_point(radius: float, spring: float, rise: float, t: float) -> Vector2:
 	var angle: float = atan2(rise,-center)*t
 	return Vector2(center+circle_radius*cos(angle),spring+circle_radius*sin(angle))
 
-func arch(pose: Vector3, radius: float, spring: float, rise: float, thickness: float) -> void:
+## `jambs` false: the arch springs from columns of its own (the Gorge's loggia,
+## where jambs beside the columns made two supports).
+func arch(pose: Vector3, radius: float, spring: float, rise: float, thickness: float, jambs: bool = true) -> void:
 	var steps: int = 24
 	var top: float = maxf(spring+rise+thickness+.25,8.3 if absf(pose.z)<.01 else 0)
 	for side in [-1,1]:
@@ -235,6 +237,8 @@ func arch(pose: Vector3, radius: float, spring: float, rise: float, thickness: f
 		outer_curve.append(Vector2(0,top))
 		outer_curve.append(Vector2(side*(radius+thickness),top))
 		art.extrude(PackedVector2Array(outer_curve),.85,art.mat("mosaic"),pose)
+		if not jambs:
+			continue
 		var rows: int = maxi(1,int(ceil(spring/.43)))
 		for row in range(rows):
 			# 2 cm wider each side: the inner face stands proud of the wall end it

@@ -19,3 +19,4 @@ display_name = "The Gorge"
 slots = Array[ExtResource("2_slot")]([SubResource("Resource_overlook")])
 room_count = Vector2i(1, 1)
 scenery = ExtResource("4_gorge")
+fall_limit = -50.0

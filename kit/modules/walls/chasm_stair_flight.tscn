@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_kwaxh"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/chasm_stair_flight.glb" id="2_6o3a7"]
+
+[node name="chasm_stair_flight" type="Node3D" unique_id=441093708]
+script = ExtResource("1_kwaxh")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 1, 2)
+tags = PackedStringArray("gorge", "vertical")
+source_glb = "res://assets/kit/walls/chasm_stair_flight.glb"
+
+[node name="Mesh" parent="." unique_id=1238902006 instance=ExtResource("2_6o3a7")]

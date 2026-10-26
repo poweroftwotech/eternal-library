@@ -8,12 +8,21 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 6 step 1 built: the gorge from kit pieces.** Esc → **Walk the Gorge**: the whole gorge rebuilt from 45 kit pieces (61,274 placed), baked to scenes you can edit (`rooms/baked/gorge/`), seen from the balcony. Box-art comparison passes; loads in 0.25 s; 427 draw calls. You approved its look; committed (4bce7c1) | [Phase 6 progress](docs/environment/progress/phase-6-overlook.md) | Say when to start step 2 (the Overlook, walkable) |
+| **Phase 6 step 2 committed: the Overlook, walkable.** From the balcony down the rock-cut stair, the landing and the flight to a ledge facing bank 1, balustrades everywhere; redesigned for walking over five walks (46 reports fixed); the report key (`) for reporting anything you see. Box art passes for the Overlook and the camp | [Phase 6 progress](docs/environment/progress/phase-6-overlook.md) | Say when to start step 3 (a span across the gorge) |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-25 | **Phase 6 step 2 committed** after your fifth walk ([progress](docs/environment/progress/phase-6-overlook.md)). |
+| 2026-10-25 | **Your fifth walk's 2 reports fixed** (loggia columns in a square round the middle, arches on their own sides; floating carpets gone) ([progress](docs/environment/progress/phase-6-overlook.md)). |
+| 2026-10-25 | **Your fourth walk's 6 reports fixed** (stair balustrades to the foot, single fluted columns, railed balcony sides) ([progress](docs/environment/progress/phase-6-overlook.md)). |
+| 2026-10-25 | **Your third walk's 15 reports fixed** (newels at every balustrade joint, lamps on them, railed terrace corners, arches on their columns, and more) ([progress](docs/environment/progress/phase-6-overlook.md)). |
+| 2026-10-25 | **Your second walk's 14 reports fixed** (balustrades throughout, stone floors, rock-strata cavern walls, plainer upper walls, and more) ([progress](docs/environment/progress/phase-6-overlook.md)). |
+| 2026-10-25 | **Your nine reports fixed:** the pieces made for the balcony's view are redesigned for walking (stair parapets and head, the flight, the colossus on a pedestal, the ledge on piers, the cliff under the balcony, floor, pavilions, the gate's corbels). Each report re-taken from your spot, before and after ([progress](docs/environment/progress/phase-6-overlook.md)). |
+| 2026-10-25 | **The ` key reports what you see** (anywhere, for anything): a screenshot, where you stood and looked, what's in the screen's centre, and a note, one line each in `reports/reports.jsonl`; `tests/report_capture.gd` re-takes the view. The landing is paved. Falling below the camp's floor height no longer sends you back from the Gorge's ledge ([progress](docs/environment/progress/phase-6-overlook.md)). |
+| 2026-10-25 | **The Overlook after your walk:** the cavern's walls are rock, not books (the camp's too); the gaps that showed only once you could walk past them are closed; the ledge meets the colossus's pier with a rock face ([progress](docs/environment/progress/phase-6-overlook.md)). |
+| 2026-10-25 | **Phase 6 step 2 built: the Overlook, walkable.** Four new kit pieces (balustrade, ledge, stair flight, lamp post) in `kit_chasm.blend`; the Overlook room from the balcony to a ledge facing bank 1, where step 3's span starts. The route test walks it and finds no way off at 14 places ([progress](docs/environment/progress/phase-6-overlook.md)). Waiting for your walk. |
 | 2026-10-25 | **Phase 6 step 1 built: the gorge rebuilt from kit pieces.** All eight banks, 11 Persian towers, six aqueducts and the sanctum's tiers from 45 kit pieces, the cavern, water and lights generated once at the bake; baked to one editable scene per part, drawn in 64 batches. A new area, Walk the Gorge, shows it from the balcony. Box-art comparison passes ([progress](docs/environment/progress/phase-6-overlook.md)). |
 | 2026-10-25 | **Bank 1 rebuilt from kit pieces** (phase 6 step 1): 33 gorge pieces in a new `kit_gorge.blend`, the camp's gorge materials copied into the kit, and `GorgeGrammar` laying a bank out from today's numbers. Set in its place in the camp's view for your review ([progress](docs/environment/progress/phase-6-overlook.md)). |
 | 2026-10-25 | **Phase 6 approved** with the recommended answers except Q2: the gorge is rebuilt from kit pieces (bakeable, editable). The brief now has six steps; step 1 rebuilds the gorge ([brief](docs/environment/phase-6-approval.md)). |

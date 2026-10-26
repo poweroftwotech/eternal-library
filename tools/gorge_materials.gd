@@ -2,13 +2,14 @@ extends SceneTree
 ## Copies the gorge's finished materials out of the camp into the kit's
 ## material library (phase-6-design.md 5.7.2, 5.7.10), so kit pieces modelled
 ## to the gorge's shapes look as the gorge does today.
-##   godot --headless --path . --script res://tools/gorge_materials.gd [-- --force]
+##   godot --headless --path . --script res://tools/gorge_materials.gd [-- --force] [--only=<kit name>,...]
 ## Boots the camp (which builds the gorge with vista.gd and then runs every art
 ## pass over it), takes each material from the camp's factory after the passes,
 ## and saves it as kit/materials/<kit name>.tres. Kit names carry a gorge_
 ## prefix: the kit already has its own moss, wood, tile, brass and cloth. A
 ## material already in the library is kept (it's yours to tweak after the
-## first run) unless --force.
+## first run) unless --force. --only= copies just the named ones
+## (with --force, overwriting them).
 
 ## kit material name -> the camp factory's material name.
 const NAMES: Dictionary = {
@@ -53,6 +54,10 @@ func _initialize() -> void:
 
 func run() -> void:
 	var force: bool = OS.get_cmdline_user_args().has("--force")
+	var only := PackedStringArray()
+	for arg: String in OS.get_cmdline_user_args():
+		if arg.begins_with("--only="):
+			only = arg.trim_prefix("--only=").split(",")
 	var game: Node = (load("res://main.tscn") as PackedScene).instantiate()
 	root.add_child(game)
 	for _i: int in 3:
@@ -62,6 +67,8 @@ func run() -> void:
 	var kept: PackedStringArray = []
 	var missing: PackedStringArray = []
 	for kit_name: String in NAMES:
+		if not only.is_empty() and not only.has(kit_name):
+			continue
 		var path: String = "res://kit/materials/%s.tres" % kit_name
 		if ResourceLoader.exists(path) and not force:
 			kept.append(kit_name)

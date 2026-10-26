@@ -6,3 +6,6 @@ __pycache__/
 
 # Frame logs from tests/area_walk_capture.gd (about 5 MB each; summaries are in the progress logs)
 previews/p4_frames*.csv
+
+# Reports from the in-game report key (F9, scripts/report_tool.gd): screenshots and notes for Claude
+reports/

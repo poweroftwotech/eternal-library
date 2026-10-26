@@ -282,7 +282,29 @@ func portal(sill: Vector3, normal: Vector3, stone: String = "limestone") -> void
 	# Faience lintel across the top of the frame, and a landing in front.
 	vista.block(sill + normal * 2.1 + Vector3(0, PORTAL_HEIGHT - .5, 0), Vector3(.6, .8, PORTAL_WIDTH + 1.0), "exterior_faience").rotation.y = yaw - PI * .5
 	var landing: Vector3 = sill + normal * 3.5
-	vista.prism(vista.tower_outline(Vector2(landing.x, landing.z), 4.0, PORTAL_WIDTH * .55, atan2(normal.z, normal.x)), sill.y - .8, .8, art.mat("exterior_faience"))
+	if vista.get_script().walkable_overlook:
+		# Seen from the walk: a stone-paved platform (tile is for walls), its
+		# faience a fascia, square-cornered, balustrades on its three open sides.
+		var half := Vector2(4.0, PORTAL_WIDTH * .55)
+		var turn: float = atan2(normal.z, normal.x)
+		var outline := PackedVector2Array()
+		for v: Vector2 in [Vector2(half.x, half.y), Vector2(-half.x, half.y), Vector2(-half.x, -half.y), Vector2(half.x, -half.y)]:
+			outline.append(Vector2(landing.x, landing.z) + v.rotated(turn))
+		vista.prism(outline, sill.y - .8, .73, art.mat("exterior_faience"))
+		vista.prism(outline, sill.y - .07, .07, art.mat("sandstone"))
+		var front: Vector3 = landing + normal * (half.x - .36)
+		var side: Vector3 = along * (half.y - .36)
+		var back: Vector3 = landing - normal * (half.x - 1.2)
+		vista.balustrade(front - side, front + side, normal)
+		vista.balustrade(back + side, front + side, along)
+		vista.balustrade(back - side, front - side, -along)
+	else:
+		vista.prism(vista.tower_outline(Vector2(landing.x, landing.z), 4.0, PORTAL_WIDTH * .55, atan2(normal.z, normal.x)), sill.y - .8, .8, art.mat("exterior_faience"))
+	# Stepped corbels carry it back into the rock (seen walking, it hung in air).
+	for k: int in 3:
+		var reach: float = 7.5 - (k + 1) * 2.0          # out from the quarried face (the landing reaches 7.5)
+		var at: Vector3 = sill + normal * (reach - .5) * .5
+		vista.prism(vista.tower_outline(Vector2(at.x, at.z), (reach + .5) * .5, PORTAL_WIDTH * .5 - k * .9, atan2(normal.z, normal.x)), sill.y - .8 - (k + 1) * 1.1, 1.1, art.mat(stone))
 	for side: float in [-1.0, 1.0]:
 		vista.lamp(sill + normal * 2.6 + along * side * (PORTAL_WIDTH * .5 - 1.0) + Vector3(0, 3.2, 0), .35, true)
 	# Lights the landing, the rock around the opening (layer 4) and the mist.

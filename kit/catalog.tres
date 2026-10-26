@@ -25,6 +25,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "chasm_lamp_post",
+"scene": "res://kit/modules/dressing/chasm_lamp_post.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("gorge", "lamp", "light"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "court_brazier_ring",
 "scene": "res://kit/modules/dressing/court_brazier_ring.tscn",
 "shape": "free",
@@ -788,6 +797,33 @@ modules = Array[Dictionary]([{
 "tags": PackedStringArray("rock", "cavern", "court"),
 "weight": 1.0
 }, {
+"edge": "none",
+"family": "walls",
+"name": "chasm_parapet_4m",
+"scene": "res://kit/modules/walls/chasm_parapet_4m.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("gorge", "rail"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "chasm_stair_flight",
+"scene": "res://kit/modules/walls/chasm_stair_flight.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 1, 2),
+"tags": PackedStringArray("gorge", "vertical"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cliff_ledge_4m",
+"scene": "res://kit/modules/walls/cliff_ledge_4m.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("gorge", "floor", "ledge"),
+"weight": 1.0
+}, {
 "edge": "",
 "family": "walls",
 "name": "cone_base100",
@@ -1411,8 +1447,26 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "solid",
 "family": "walls",
+"name": "gorge_tower_wall_stone",
+"scene": "res://kit/modules/walls/gorge_tower_wall_stone.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "tower"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
 "name": "gorge_tower_window",
 "scene": "res://kit/modules/walls/gorge_tower_window.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "tower", "window"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
+"name": "gorge_tower_window_stone",
+"scene": "res://kit/modules/walls/gorge_tower_window_stone.tscn",
 "shape": "edge",
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("scenery", "gorge", "tower", "window"),

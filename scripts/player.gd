@@ -12,6 +12,8 @@ var wading: bool = false
 var elapsed: float = 0.0
 ## Where a fall below the world puts you back (the camp default; rooms set their spawn).
 var respawn_point: Vector3 = Vector3(0, 0.2, 11.5)
+## Falling below this height puts you back at respawn_point (the area recipe can lower it).
+var fall_limit: float = -8.0
 
 func _ready() -> void:
 	name = "Player"
@@ -73,7 +75,7 @@ func _physics_process(delta: float) -> void:
 	bump_props(walk)
 	elapsed += delta
 	# Minimal, subtle movement: no compulsory camera shake or strong head bob.
-	if position.y < -8.0:
+	if position.y < fall_limit:
 		position = respawn_point
 		velocity = Vector3.ZERO
 

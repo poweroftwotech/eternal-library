@@ -14,6 +14,10 @@ extends Node3D
 @export var room_id: String = ""
 ## Shown in the HUD and menus when the room is played on its own.
 @export var display_name: String = ""
+## An authored room deliberately turned off the world's 4 m grid (the
+## Overlook follows its diagonal stair, phase 6 step 2): Validate Room skips
+## its edge-gap and connector-line checks, which assume the grid.
+@export var off_grid: bool = false
 @export var preview_seed: int = 1:
 	set(value):
 		preview_seed = value

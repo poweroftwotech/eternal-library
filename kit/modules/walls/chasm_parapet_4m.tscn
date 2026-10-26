@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_tmh0v"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/chasm_parapet_4m.glb" id="2_0bfu7"]
+
+[node name="chasm_parapet_4m" type="Node3D" unique_id=1239265404]
+script = ExtResource("1_tmh0v")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("gorge", "rail")
+source_glb = "res://assets/kit/walls/chasm_parapet_4m.glb"
+
+[node name="Mesh" parent="." unique_id=1804028075 instance=ExtResource("2_0bfu7")]

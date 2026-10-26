@@ -55,6 +55,8 @@ New modules (laid out on a row at Blender Y = -120 for viewing):
                      free: the small glowing lamp box (0.14 and 0.3 m)
   gorge_wall_4m_faience
                      edge: the sanctum's tier wall (gorge_pier stone)
+  gorge_tower_wall_stone / _window_stone
+                     edge: the same in clean stone (most storeys; faience in bands)
   gorge_tower_wall / _window
                      edge: a Persian tower's storey; with a lit window
   gorge_tower_band   edge: the faience course over a gold band, every two
@@ -160,8 +162,17 @@ def bay_balcony(r):
         for k in range(5):
             x = 2.0 + (k - 2) * 0.7
             add_box(bm, x - 0.06, x + 0.06, -1.45, -1.33, BASE + 0.58, BASE + 1.33)
+        # Rev 4: balusters down both sides too (walked past, the open sides
+        # read as missing).
+        for x in (0.56, 3.44):
+            for y in (-1.39, -0.92, -0.45):
+                add_box(bm, x - 0.06, x + 0.06, y - 0.06, y + 0.06, BASE + 0.58, BASE + 1.33)
     solid("gorge_bay_balcony__slab", r, ["gorge_sandstone"], slab)
-    solid("gorge_bay_balcony__rail", r, ["gorge_gold"], lambda bm: add_box(bm, 0.5, 3.5, -1.46, -1.32, BASE + 1.33, BASE + 1.43))
+    def rails(bm):
+        add_box(bm, 0.5, 3.5, -1.46, -1.32, BASE + 1.33, BASE + 1.43)
+        for x in (0.5, 3.38):
+            add_box(bm, x, x + 0.12, -1.46, -0.19, BASE + 1.33, BASE + 1.43)
+    solid("gorge_bay_balcony__rail", r, ["gorge_gold"], rails)
 
 
 def bay_doorway(r):
@@ -211,13 +222,22 @@ def pier(streaked):
     return build
 
 
+PAVING = 0.07     # rev 2: decks are walked on: a stone top over the faience slab (its sides stay tiled)
+
+
+def paved(name, r, x0, x1, y0, y1):
+    """A deck slab: faience to just under the top, stone paving on it."""
+    solid(name + "__slab", r, ["gorge_faience"], lambda bm: add_box(bm, x0, x1, y0, y1, DECK_TOP - 0.65, DECK_TOP - PAVING))
+    solid(name + "__paving", r, ["gorge_sandstone"], lambda bm: add_box(bm, x0, x1, y0, y1, DECK_TOP - PAVING, DECK_TOP))
+
+
 def deck(r):
-    solid("gorge_deck__slab", r, ["gorge_faience"], lambda bm: add_box(bm, 0.0, 4.0, 0.0, 4.0, DECK_TOP - 0.65, DECK_TOP))
+    paved("gorge_deck", r, 0.0, 4.0, 0.0, 4.0)
 
 
 def overhang(bm_name, r, crowned):
     """The overhang's slab and the gold band under its lip."""
-    solid(bm_name + "__slab", r, ["gorge_faience"], lambda bm: add_box(bm, 0.0, 4.0, -OVER, 0.0, DECK_TOP - 0.65, DECK_TOP))
+    paved(bm_name, r, 0.0, 4.0, -OVER, 0.0)
     solid(bm_name + "__band", r, ["gorge_gold"], lambda bm: add_box(bm, 0.0, 4.0, -OVER - 0.02, -OVER + 0.18, DECK_TOP - 0.98, DECK_TOP - 0.78))
 
 
@@ -267,11 +287,25 @@ def crown_edge(variant):
 def corner(crowned):
     def build(r):
         name = r.name[2:]
-        solid(name + "__slab", r, ["gorge_faience"], lambda bm: add_box(bm, -OVER, 0.0, -OVER, 0.0, DECK_TOP - 0.65, DECK_TOP))
+        paved(name, r, -OVER, 0.0, -OVER, 0.0)
         if crowned:
             solid(name + "__merlon", r, ["gorge_sandstone"], lambda bm: merlon(bm, -OVER + 0.6, 3))
         else:
-            solid(name + "__rails", r, ["gorge_gold"], lambda bm: add_box(bm, -OVER - 0.05, -OVER + 0.05, -OVER - 0.05, 0.0, 1.095, 1.205))
+            # Rev 3: the rails round both open sides, a stone post at the corner and
+            # a baluster on each (rev 1-2 railed one side: walked, the other
+            # read as missing).
+            def rails(bm):
+                for z in (1.15, -0.2):
+                    h = 0.055 if z > 0 else 0.09
+                    add_box(bm, -OVER - 0.05, -OVER + 0.05, -OVER - 0.05, 0.0, z - h, z + h)
+                    add_box(bm, -OVER - 0.05, 0.0, -OVER - 0.05, -OVER + 0.05, z - h, z + h)
+            solid(name + "__rails", r, ["gorge_gold"], rails)
+
+            def posts(bm):
+                add_box(bm, -OVER - 0.12, -OVER + 0.12, -OVER - 0.12, -OVER + 0.12, DECK_TOP, 1.25)
+                for (x, y) in ((-OVER, -OVER / 2), (-OVER / 2, -OVER)):
+                    add_box(bm, x - 0.085, x + 0.085, y - 0.085, y + 0.085, DECK_TOP, 1.1)
+            solid(name + "__posts", r, ["gorge_sandstone"], posts)
     return build
 
 
@@ -333,10 +367,12 @@ def lamp(size):
 
 # --- Persian towers (vista.gd persian_tower) ------------------------------------------
 
-def tower_wall(window):
+def tower_wall(window, material="gorge_pier"):
+    """A tower's storey of wall (stone variants: all-faience towers read as too
+    busy up close, so most storeys are stone and the faience comes in bands)."""
     def build(r):
         name = r.name[2:]
-        solid(name + "__body", r, ["gorge_pier"], lambda bm: add_box(bm, 0.0, 4.0, 0.0, 0.5, 0.0, H))
+        solid(name + "__body", r, [material], lambda bm: add_box(bm, 0.0, 4.0, 0.0, 0.5, 0.0, H))
         if window:
             window_card(r, name, 2.0, 0.85, 0.9, 2.3)
     return build
@@ -429,7 +465,9 @@ def aqueduct_deck(r):
 
 def aqueduct_landing(r):
     solid("aqueduct_landing__slab", r, ["gorge_faience"],
-          lambda bm: add_ngon_prism(bm, 12, 4.3, -0.6, 0.0))
+          lambda bm: add_ngon_prism(bm, 12, 4.3, -0.6, -PAVING))
+    solid("aqueduct_landing__paving", r, ["gorge_sandstone"],
+          lambda bm: add_ngon_prism(bm, 12, 4.3, -PAVING, 0.0))
 
 
 def wall_faience(r):
@@ -474,6 +512,8 @@ MODULES = [
     ("M_gorge_wall_4m_faience", props("edge", [1, 1, 0], "solid", "scenery,stone,gorge,wall"), wall_faience),
     ("M_gorge_tower_wall", props("edge", [1, 1, 0], "solid", "scenery,gorge,tower"), tower_wall(False)),
     ("M_gorge_tower_window", props("edge", [1, 1, 0], "solid", "scenery,gorge,tower,window"), tower_wall(True)),
+    ("M_gorge_tower_wall_stone", props("edge", [1, 1, 0], "solid", "scenery,gorge,tower"), tower_wall(False, "gorge_stone_clean")),
+    ("M_gorge_tower_window_stone", props("edge", [1, 1, 0], "solid", "scenery,gorge,tower,window"), tower_wall(True, "gorge_stone_clean")),
     ("M_gorge_tower_band", props("edge", [1, 1, 0], "none", "scenery,gorge,tower"), tower_band),
     ("M_gorge_tower_crown", props("edge", [1, 0, 0], "none", "scenery,gorge,tower,crown"), tower_crown),
     ("M_gorge_tower_crown_corner", props("post", [0, 0, 0], "", "scenery,gorge,tower,crown"), tower_crown_corner),
@@ -485,7 +525,12 @@ MODULES = [
     ("M_aqueduct_landing", props("free", [2, 0, 2], "", "scenery,gorge,aqueduct", family="dressing"), aqueduct_landing),
 ]
 
-REBUILD = [("M_gorge_bay_window", 3), ("M_gorge_bay_balcony", 3), ("M_gorge_bay_doorway", 3)]   # rev 2: pointed arches; rev 3: the glow fits inside the arch, so its pointed top shows
+REBUILD = [("M_gorge_bay_window", 3), ("M_gorge_bay_balcony", 4), ("M_gorge_bay_doorway", 3)]   # rev 2: pointed arches; rev 3: the glow fits inside the arch, so its pointed top shows
+# rev 2: stone paving on the decks (tile reads as a wall or ceiling, not a floor)
+REBUILD += [(n, 2) for n in ("M_gorge_deck", "M_gorge_deck_edge", "M_gorge_deck_edge_streaked", "M_gorge_deck_edge_mossy",
+                             "M_gorge_crown_edge", "M_gorge_crown_edge_worn", "M_gorge_crown_edge_broken",
+                             "M_gorge_deck_corner", "M_gorge_crown_corner", "M_aqueduct_landing")]
+REBUILD = [(n, 3 if n == "M_gorge_deck_corner" else v) for (n, v) in REBUILD]     # rev 3: railed on both open sides
 
 
 def main():

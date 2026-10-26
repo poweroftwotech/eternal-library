@@ -1,12 +1,12 @@
 [gd_resource type="StandardMaterial3D" format=3]
 
-[ext_resource type="Texture2D" path="res://assets/textures/px/stack_atlas.png" id="1_gey52"]
-[ext_resource type="Texture2D" path="res://assets/textures/px/stack_atlas_normal.png" id="2_n8ykl"]
-[ext_resource type="Texture2D" path="res://assets/textures/px/stack_atlas_rough.png" id="3_q674m"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/cave.png" id="1_gey52"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/cave_normal.png" id="2_n8ykl"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/cave_rough.png" id="3_q674m"]
 
 [resource]
 resource_name = "gorge_background"
-albedo_color = Color(0.54901963, 0.54509807, 0.53333336, 1)
+albedo_color = Color(0.7882353, 0.827451, 0.8627451, 1)
 albedo_texture = ExtResource("1_gey52")
 metallic_specular = 0.65
 roughness_texture = ExtResource("3_q674m")

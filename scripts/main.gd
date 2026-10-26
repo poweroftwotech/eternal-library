@@ -7,6 +7,8 @@ var player
 var hud
 ## Live performance and streaming stats (F3 or the controls menu).
 var stats: StatsOverlay
+## Reports what you see for Claude: a screenshot, where you stand and look, a note (the ` key).
+var report: ReportTool
 var inventory: Dictionary = {"mushroom":0,"root":0,"herb":0}
 var nourishment: float = 80
 var warmth: float = 65
@@ -87,6 +89,8 @@ func _ready() -> void:
 			pose = (world as Area).spawn_transform()
 		player.teleport(pose.origin, pose.basis.get_euler().y)
 		player.respawn_point = pose.origin
+		if world is Area:
+			player.fall_limit = (world as Area).recipe.fall_limit
 	else:
 		# v0.11: spawn on the concept-art framing (see tests/capture.gd 'concept').
 		player.teleport(Vector3(-1.05,.08,9.2))
@@ -109,6 +113,10 @@ func _ready() -> void:
 	stats.area = world as Area
 	stats.visible = StatsOverlay.saved_visible()
 	add_child(stats)
+	report = ReportTool.new()
+	report.game = self
+	report.ui_theme = hud.theme
+	add_child(report)
 	audio = AudioStreamPlayer.new()
 	audio.stream = load("res://assets/reading_garden_tar.ogg")
 	if audio.stream is AudioStreamOggVorbis:
@@ -364,7 +372,7 @@ func show_menu() -> void:
 	open_panel(room_title().capitalize() if in_room() else "The reading garden",text,options,"menu")
 
 func show_controls() -> void:
-	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen     F3 — performance stats\n\nMovement pauses while a panel is open.",[
+	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen     F3 — performance stats\n` — report what you see (a screenshot, where you stand, a note)\n\nMovement pauses while a panel is open.",[
 		{"text":"Mouse sensitivity: %.4f — cycle" % player.sensitivity,"action":"sensitivity"},
 		{"text":"Invert look: %s" % ("On" if player.invert_y else "Off"),"action":"invert"},
 		{"text":"Music: %s" % ("Off" if mute else "On"),"action":"mute"},
@@ -492,7 +500,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		ws().save_now()     # closing the window keeps the world (ENVIRONMENT_PLAN.md 6.5.3)
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and hud != null and not hud.modal_open:
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and hud != null and not hud.modal_open and not (report != null and report.is_open()):
 		show_menu()
 
 func _exit_tree() -> void:

@@ -26,6 +26,10 @@ const FACADE_WINDOW: float = .22
 const FACADE_BALCONY: float = .08
 const FACADE_PANEL: float = .14
 const FACADE_LADDER: float = .35
+## Above UPPER_FROM, this share of a tier's upper storeys are plain stone wall
+## (no bay): walked, bay upon tiled bay up there read as too busy.
+const PLAIN_UPPER: float = .35
+const UPPER_FROM: float = -40.0
 ## Lamp clusters (vista_light.gd): a lamp burns where this noise is high.
 const LAMP_CLUSTER_FREQUENCY: float = .035
 const LAMP_CLUSTER_CUTOFF: float = .05
@@ -121,8 +125,9 @@ func _towers(out: Array[Dictionary], top_tier: Dictionary, top: float, seed_valu
 		_tower(out, c, half, top, top + local.randf_range(10, 19))
 
 
-## A square tower of 3 or 4 bays: walls of gorge_pier stone, a pair of
-## windows a storey on each face, a faience band every two storeys, a crown
+## A square tower of 3 or 4 bays: walls of clean stone, faience on the top
+## storey and every third, a pair of windows a storey on each face, a faience
+## band every two storeys, a crown
 ## with merlons, a carpet down its face toward the gorge, a lamp over it.
 func _tower(out: Array[Dictionary], c: Vector2, half: float, bottom: float, top: float) -> void:
 	var w: int = clampi(roundi(2.0 * half / BAY), 3, 4)
@@ -139,7 +144,10 @@ func _tower(out: Array[Dictionary], c: Vector2, half: float, bottom: float, top:
 			var along: int = _bay_index(cell, side, w)
 			for s: int in storeys:
 				var xf: Transform3D = frame * CellGrid.edge_transform(Vector3i(cell.x, s, cell.y), side)
-				out.append(_piece("walls/" + ("gorge_tower_window" if windows.has(along) else "gorge_tower_wall"), xf))
+				# Faience on the top storey and every third; clean stone between (all
+				# faience, the towers read as too busy up close).
+				var tiled: bool = s == storeys - 1 or s % 3 == 2
+				out.append(_piece("walls/" + ("gorge_tower_window" if windows.has(along) else "gorge_tower_wall") + ("" if tiled else "_stone"), xf))
 				if s % 2 == 1 and s < storeys - 1:
 					out.append(_piece("walls/gorge_tower_band", xf))
 			var top_xf: Transform3D = frame * CellGrid.edge_transform(Vector3i(cell.x, storeys, cell.y), side)
@@ -206,7 +214,8 @@ func sanctum(p: Vector3) -> Array[Dictionary]:
 ## at its own height under the sloping deck (so the piers stay vertical), the
 ## upper arcade, a faience course and the taller lower arcade, a plain pier
 ## under every other bay down into the mist; the deck in sloped 12 m pieces
-## with lamps and readers; a landing and a pavilion at each end; waterfalls
+## with lamps and readers; a landing at each end (no pavilion: it clipped the
+## banks' balustrades beside it); waterfalls
 ## through the `falls` bays' upper arches.
 func aqueduct(a: Vector3, b: Vector3, falls: Array[int]) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
@@ -246,7 +255,6 @@ func aqueduct(a: Vector3, b: Vector3, falls: Array[int]) -> Array[Dictionary]:
 			out.append({"waterfall": Vector3(mid.x, spring, mid.z), "size": Vector2(span * .5, spring + 90.0)})
 	for point: Vector3 in [a, b]:
 		out.append(_piece("dressing/aqueduct_landing", Transform3D(Basis(), point)))
-		out.append(_piece("dressing/gorge_pavilion_4", Transform3D(Basis(), point + Vector3(1.5, .15, -2))))
 	return out
 
 
@@ -297,7 +305,9 @@ func _tier(out: Array[Dictionary], tier: Dictionary, above: Dictionary, seed_val
 			for s: int in storeys:
 				var xf: Transform3D = frame * CellGrid.edge_transform(Vector3i(cell.x, s, cell.y), side)
 				out.append(_piece("walls/" + stone, xf))
-				_bay(out, xf, s == 0)
+				var plain: bool = s > 0 and xf.origin.y > UPPER_FROM and _hash01(xf.origin * 1.7 + Vector3(0, 0, 11)) < PLAIN_UPPER
+				if not plain:
+					_bay(out, xf, s == 0)
 				if first:
 					out.append(_piece("walls/" + _pier(xf), xf))
 				if last:
@@ -306,6 +316,12 @@ func _tier(out: Array[Dictionary], tier: Dictionary, above: Dictionary, seed_val
 			_edge_lamps(out, top_xf, crowned)
 			if first and not cells.has(_before(cell, side)):     # a convex corner: the overhang's square
 				out.append(_piece("walls/" + ("gorge_crown_corner" if crowned else "gorge_deck_corner"), top_xf))
+			# A convex corner at the run's end whose face round it isn't built
+			# (it faces away from the gorge): the square there too, turned, or the
+			# overhang's end stood open.
+			var round_xf: Transform3D = top_xf * Transform3D(Basis(Vector3.UP, PI * .5), Vector3(BAY, 0, 0))
+			if last and not cells.has(_after(cell, side)) and not _faces_gorge(round_xf):
+				out.append(_piece("walls/" + ("gorge_crown_corner" if crowned else "gorge_deck_corner"), round_xf))
 			if first:
 				if tier["occupied"]:
 					_dressing(out, cells, cell, side, frame, storeys, run, style)
@@ -331,7 +347,7 @@ func _dressing(out: Array[Dictionary], cells: Dictionary, cell: Vector2i, side: 
 			var tree: String = CYPRESS[(style + run + k + 2) % CYPRESS.size()]
 			out.append(_piece("dressing/" + tree, xf * Transform3D(Basis(), Vector3(mid + k * 2.6, .15, .6))))
 		if run % 2 == 0:
-			out.append(_piece("dressing/gorge_pavilion_4", xf * Transform3D(Basis(), Vector3(mid, .2, -1.8))))
+			out.append(_piece("dressing/gorge_pavilion_4", xf * Transform3D(Basis(), Vector3(mid, .2, -2.2))))     # posts 3.6 m apart: the front pair clear of the edge's balustrade (at 1.8 they stood in it)
 	if style % 4 == run % 4:
 		out.append(_piece("dressing/gorge_banner_%d" % (style % 3), xf * Transform3D(Basis(), Vector3(mid, -.5, 2.5))))
 

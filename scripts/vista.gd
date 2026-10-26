@@ -54,6 +54,15 @@ static var extra_lamps: PackedVector3Array = []
 ## sanctum's rotunda, portal, columns, hangings and light stay.
 static var skip_bridges: bool = false
 static var skip_sanctum_tiers: bool = false
+## The Gorge area's Overlook (phase 6 step 2): the balcony's front-left
+## parapet opens onto the rock-cut stair (x < stair_gap()), and what was made
+## to be seen only from the balcony is closed up for walking past it (the
+## stair's side walls and landing, vista_foreground.gd; the cliff face's foot,
+## vista_cliff.gd).
+static var walkable_overlook: bool = false
+## Where the balcony's front parapet starts again: the stair head's east corner.
+static func stair_gap() -> float:
+	return VistaForeground.head_corner(-1.0).x
 var _geometry: bool = true
 
 func _init(owner, factory) -> void:
@@ -65,6 +74,31 @@ func _init(owner, factory) -> void:
 
 func block(p: Vector3, size: Vector3, material: String = "sandstone", solid: bool = false) -> Node3D:
 	return art.box(p,size,art.mat(material),solid)
+
+## A balustrade from `a` to `b` (points on the walk's edge, level or sloped, the
+## stair's), standing just outside it: a stone plinth from `foot` under the line to 0.25 m
+## over it, turned stone balusters every half metre, a gold rail 1.1 m over
+## the walk; `out` is the side away from the walk. As the kit's
+## chasm_parapet_4m, so the Overlook's balustrades all match.
+func balustrade(a: Vector3, b: Vector3, out: Vector3, foot: float = .45) -> void:
+	var along: Vector3 = b - a
+	var flat := Vector3(along.x, 0, along.z).normalized()
+	var frame := Basis(flat, Vector3.UP, flat.cross(Vector3.UP))
+	var rise: float = along.y / Vector2(along.x, along.z).length()
+	var origin := Vector3(a.x, 0, a.z) + out.normalized() * .18
+	var run: float = Vector2(along.x, along.z).length()
+	var plinth := PackedVector2Array([Vector2(0, a.y - foot), Vector2(run, b.y - foot), Vector2(run, b.y + .25), Vector2(0, a.y + .25)])
+	art.extrude(plinth, .36, art.mat("sandstone"), origin).basis = frame
+	var rail := PackedVector2Array([Vector2(0, a.y + 1.02), Vector2(run, b.y + 1.02), Vector2(run, b.y + 1.1), Vector2(0, a.y + 1.1)])
+	art.extrude(rail, .4, art.mat("vista_gold"), origin).basis = frame
+	var n: int = maxi(1, roundi(run / .5))
+	var turned: ArrayMesh = art.lathe([Vector2(.07, 0), Vector2(.11, .08), Vector2(.06, .25), Vector2(.09, .5), Vector2(.06, .7), Vector2(.08, .77), Vector2(0, .77)], 8)
+	# One mesh for the run's balusters (one each cost a draw call apiece).
+	var all := SurfaceTool.new()
+	for k in range(n):
+		var s: float = (k + .5) * run / n
+		all.append_from(turned, 0, Transform3D(Basis(), origin + flat * s + Vector3(0, a.y + rise * s + .25, 0)))
+	art.mesh_node(all.commit(), Vector3.ZERO, art.mat("sandstone"))
 
 func exterior_materials() -> void:
 	# Exterior variants leave the v0.5 interior material/lighting calibration intact.
@@ -131,24 +165,43 @@ func build_balcony() -> void:
 	# Top at 2.18, just under the passage paving (2.2) where they overlap.
 	block(Vector3(-1,1.79,-24.0),Vector3(13,.78,8.6),"sandstone",true)
 	block(Vector3(-1,2.21,-24),Vector3(12.6,.035,8),"tile")
+	if walkable_overlook:
+		# On to the loggia's back wall (-18.4): in the camp the gallery's floor
+		# covers this strip; in the Gorge area it was open to the sky beneath.
+		block(Vector3(-1,1.79,-19.05),Vector3(13,.78,1.3),"sandstone",true)
+		block(Vector3(-1,2.21,-19.2),Vector3(12.6,.035,1.6),"tile")
 	# Ceiling and columns frame the view while keeping the player underground.
 	block(Vector3(-1,8.8,-23.8),Vector3(14,.6,10),"cave",true)
 	for x in [-7.0,5.0]:
 		for z in [-20.7,-27.4]:
+			# Walked, the arches stand on their own jambs and these square columns
+			# go (beside the jambs they read as clipped): only their collision stays.
+			if walkable_overlook:
+				guard(Vector3(x,5.0,z),Vector3(.55,5.7,.65))
+				continue
 			block(Vector3(x,5.0,z),Vector3(.55,5.7,.65),"sandstone",true)
 			block(Vector3(x,2.6,z),Vector3(.9,.7,.95),"tile")
 			block(Vector3(x,7.6,z),Vector3(.85,.3,.95),"vista_gold")
 	for z in [-20.7,-27.4]:
 		world.arch(Vector3(-1,2.2,z),5.7,3.0,2.7,.26)
-	# Solid stone parapets and a continuous guard prevent falling or jumping out.
-	block(Vector3(-1,2.56,-28.1),Vector3(13,.7,.5),"sandstone",true)
+	# Solid stone parapets and a continuous guard prevent falling or jumping out
+	# (in the Gorge area, but for the gap onto the stair: x -7.5 .. stair_gap()).
+	var front_x: float = -1.0 if not walkable_overlook else (stair_gap() + 5.5) * .5
+	var front_w: float = 13.0 if not walkable_overlook else 5.5 - stair_gap()
+	block(Vector3(front_x,2.56,-28.1),Vector3(front_w,.7,.5),"sandstone",true)
+	# Walked, the side parapets run on to the loggia's back wall (-18.4), as
+	# the floor does; in the camp the gallery begins at -19.85.
+	var side_z: float = -23.375 if walkable_overlook else -24.1
+	var side_l: float = 9.95 if walkable_overlook else 8.5
 	for x in [-7.3,5.3]:
-		block(Vector3(x,2.56,-24.1),Vector3(.45,.7,8.5),"sandstone",true)
-		block(Vector3(x,3.25,-24.1),Vector3(.24,.18,8.5),"vista_gold")
-		guard(Vector3(x,4.0,-24.1),Vector3(.4,3.8,8.5))
-	guard(Vector3(-1,4,-28.1),Vector3(13,3.8,.4))
-	block(Vector3(-1,3.25,-28.1),Vector3(13,.08,.12),"limestone")
+		block(Vector3(x,2.56,side_z),Vector3(.45,.7,side_l),"sandstone",true)
+		block(Vector3(x,3.25,side_z),Vector3(.24,.18,side_l),"vista_gold")
+		guard(Vector3(x,4.0,side_z),Vector3(.4,3.8,side_l))
+	guard(Vector3(front_x,4,-28.1),Vector3(front_w,3.8,.4))
+	block(Vector3(front_x,3.25,-28.1),Vector3(front_w,.08,.12),"limestone")
 	for x in range(-7,6):
+		if walkable_overlook and x < stair_gap():
+			continue
 		block(Vector3(x,2.72,-27.79),Vector3(.55,.42,.035),"tile")
 	world.lantern(Vector3(-6.4,3.9,-26.4))
 	world.lantern(Vector3(4.4,3.9,-26.4))
@@ -175,21 +228,37 @@ func guard(p: Vector3, size: Vector3) -> void:
 func balcony_details() -> void:
 	# Carved stone caps and turned balusters soften the former dark horizontal bar.
 	for x in range(-7,6):
+		if walkable_overlook and x < stair_gap():
+			continue
 		art.bevel_box(Vector3(x,2.95,-28.06),Vector3(.91,.12,.66),art.mat("limestone"),.035)
 		var profile = [Vector2(0,0),Vector2(.11,0),Vector2(.07,.08),Vector2(.12,.18),Vector2(.055,.28),Vector2(.06,.44),Vector2(.10,.49),Vector2(0,.49)]
 		art.mesh_node(art.lathe(profile,12),Vector3(x+.46,2.76,-28.1),art.mat("limestone"))
 	for x in [-6.8,-3.7,1.7,4.8]:
+		if walkable_overlook and x < stair_gap():
+			continue
 		art.bevel_box(Vector3(x,2.89,-28.01),Vector3(.42,.64,.74),art.mat("exterior_faience"),.04)  # 3 cm proud of the parapet front
 		art.bevel_box(Vector3(x,3.24,-28.0),Vector3(.56,.12,.8),art.mat("limestone"),.025)
-	# The rug is folded over the parapet and continues onto the terrace floor.
-	var rug = QuadMesh.new()
-	rug.size = Vector2(2.1,1.2)
-	art.mesh_node(rug,Vector3(-3.2,2.52,-27.76),art.mat("rug"))
-	var fold = block(Vector3(-3.2,2.94,-27.96),Vector3(2.1,.025,.8),"rug")
-	fold.rotation.z = .012
-	art.lying_books(Vector3(-5.7,3.06,-27.9),4,.42)
+	# The rug is folded over the parapet and continues onto the terrace floor
+	# (walked, the parapet there is the way onto the stair: no rug).
+	if not walkable_overlook or -3.2 > stair_gap() + 1.05:
+		var rug = QuadMesh.new()
+		rug.size = Vector2(2.1,1.2)
+		art.mesh_node(rug,Vector3(-3.2,2.52,-27.76),art.mat("rug"))
+		var fold = block(Vector3(-3.2,2.94,-27.96),Vector3(2.1,.025,.8),"rug")
+		fold.rotation.z = .012
+	if not walkable_overlook:
+		art.lying_books(Vector3(-5.7,3.06,-27.9),4,.42)
 	art.vase(Vector3(4.45,2.96,-27.85),.45)
 	for side in [-1,1]:
+		if walkable_overlook:
+			# Walked, four fluted columns in a square round the balcony's middle
+			# hold up its roof (6.2 m, to the canopy's underside); beside the
+			# arches' jambs they read as a second support. Behind the box-art view.
+			for z in [-22.0,-25.4]:
+				var cx: float = -1+side*2.6
+				fluted_column(Vector3(cx,2.22,z),.35,6.28)
+				guard(Vector3(cx,5.4,z),Vector3(.7,6.2,.7))
+			continue
 		var x: float = -1+side*5.9
 		for z in [-21.1,-27.0]:
 			fluted_column(Vector3(x,2.3,z),.35,5.8)
@@ -363,7 +432,10 @@ func build() -> void:
 		bridge(Vector3(-26,-20,-211),Vector3(30,-12,-231),3.6,[2])
 		bridge(Vector3(-32,-132,-192),Vector3(36,-124,-222),3.5)
 		bridge(Vector3(-47,14,-205),Vector3(-11,8,-249),3.0)
-	cascade(Vector3(-35,-18.4,-88),Vector2(4.8,94))
+	# Walked, the cascade off the near aqueduct's west landing is gone: by the
+	# ledge's end it read as a sharp wedge between bank 1 and the bridge.
+	if not walkable_overlook:
+		cascade(Vector3(-35,-18.4,-88),Vector2(4.8,94))
 	cascade(Vector3(40,-25.4,-114),Vector2(6,121))
 	cascade(Vector3(8,-12.4,-228),Vector2(12,148))
 	cascade(Vector3(-29,-57.4,-140),Vector2(4.5,101))
@@ -417,9 +489,11 @@ func gorge_materials() -> void:
 	var pier = art.mat("exterior_faience").duplicate()
 	pier.uv1_scale = Vector3.ONE*.25
 	art.materials["gorge_pier"] = pier
-	var back = art.mat("stack_atlas").duplicate()
-	back.uv1_scale = Vector3.ONE*.11
-	back.albedo_color = Color("8c8b88")
+	# The cavern's own walls (the enclosure, the cliff under the balcony, the
+	# floor, the aqueducts' piers into the mist) are rock as the vault is, not
+	# book stacks: books holding the gorge up read as structure (phase 6 step 2).
+	var back = art.mat("cave").duplicate()
+	back.albedo_color = Color("c9d3dc")
 	art.materials["gorge_background"] = back
 	var warm = art.mat("lit_window").duplicate()
 	warm.emission_operator = BaseMaterial3D.EMISSION_OP_MULTIPLY
@@ -786,6 +860,13 @@ func build_enclosure() -> void:
 	# kilometre-wide rectangular box. All vertical boundary faces hold collections.
 	art.render_layer = 4
 	var path = [Vector2(-147,-35),Vector2(-151,-109),Vector2(-141,-189),Vector2(-111,-270),Vector2(-55,-308),Vector2(15,-323),Vector2(82,-309),Vector2(137,-267),Vector2(151,-190),Vector2(149,-106),Vector2(144,-35)]
+	# Walked, the walls reach back past the cliff face (z -28.45): from the stair
+	# the far corners showed a gap where the two never met.
+	if walkable_overlook:
+		path[0] = Vector2(-147.5,-20)
+		path[path.size()-1] = Vector2(144.5,-20)
+	var strata := SurfaceTool.new()
+	strata.begin(Mesh.PRIMITIVE_TRIANGLES)
 	for i in range(path.size()-1):
 		var a: Vector2 = path[i]
 		var b: Vector2 = path[i+1]
@@ -802,10 +883,52 @@ func build_enclosure() -> void:
 			for bay in range(int(a.distance_to(b)/5)):
 				var v: Vector2 = a.lerp(b,(bay+.5)/int(a.distance_to(b)/5))
 				window(Vector3(v.x,y+5,v.y)+inward*6.6,Vector2(.65,2),atan2(inward.x,inward.z))
+		if walkable_overlook:
+			enclosure_strata(strata,a,b,inward,(i%3)*2)
+	if walkable_overlook:
+		var node = art.mesh_node(strata.commit(),Vector3.ZERO,art.mat("gorge_background"))
+		node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	# The cliff beneath the player's balcony is also occupied library.
 	block(Vector3(0,-88,-24),Vector3(300,180,9),"gorge_background")
 	prism(outline(Vector2(0,-180),150,150,.1,0),-184,8,art.mat("gorge_background"))
 	art.render_layer = 2
+
+## Walked, a cavern wall's face as rock (flat, its box read as a wall, not
+## the cavern): between each row of galleries (beam at y, windows at y + 4 ..
+## 6) the rock swells out up to 4 m in a stratum and is cut back flush where
+## the galleries run.
+func enclosure_strata(surface: SurfaceTool, a: Vector2, b: Vector2, inward: Vector3, offset: float) -> void:
+	var cavern = Cavern.new(self)
+	var rock := FastNoiseLite.new()
+	rock.seed = 6151
+	rock.frequency = .09
+	var dir: Vector2 = (b-a).normalized()
+	var length: float = a.distance_to(b)
+	var us: Array = []
+	var u: float = -1.0
+	while u < length+1.0:
+		us.append(u)
+		u += 3.0
+	us.append(length+1.0)
+	var ys: Array = []
+	var y: float = -176.0
+	while y < 82.0:
+		ys.append(y)
+		y += 2.0
+	var face := func(uu: float, yy: float) -> Vector3:
+		var t: float = fposmod(yy-(-175.0+offset),15.0)
+		var swell: float = 0.0 if t < 7.0 or t > 13.0 else sin(PI*(t-7.0)/6.0)
+		var p: Vector2 = a+dir*uu
+		var r: float = swell*(2.4+1.6*rock.get_noise_2d(p.x+p.y,yy))+rock.get_noise_2d(p.x*3.0,yy*3.0)*.35*swell
+		return Vector3(p.x,yy,p.y)+inward*(6.55+maxf(r,0.0))
+	for j in range(ys.size()-1):
+		for i in range(us.size()-1):
+			var c: Array = [face.call(us[i],ys[j]),face.call(us[i+1],ys[j]),face.call(us[i+1],ys[j+1]),face.call(us[i],ys[j+1])]
+			var n: Vector3 = (c[1]-c[0]).cross(c[3]-c[0]).normalized()
+			if n.dot(inward) < 0.0:
+				n = -n
+			cavern.triangle(surface,[c[0],c[1],c[2]],[n,n,n])
+			cavern.triangle(surface,[c[0],c[2],c[3]],[n,n,n])
 
 ## Rectangle with square-notched corners (twelve points, counter-clockwise like
 ## outline()): the stepped plan of Persian towers and terraces.

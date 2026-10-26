@@ -18,9 +18,6 @@ extends SceneTree
 ##       the scene the Gorge area adds: the environment, the generated part,
 ##       the kit parts under a KitBatcher (drawn in batches when it loads), and
 ##       a PlayerSpawn on the balcony facing the gorge;
-##   rooms/gorge/overlook.tscn
-##       the area's root room for now: the balcony's spawn (step 2 makes it
-##       walkable).
 
 const OUT_DIR: String = "res://rooms/baked/gorge/"
 const MAIN: String = "res://rooms/baked/gorge.tscn"
@@ -75,7 +72,6 @@ func run() -> void:
 	# The batched kit, the scene the area adds, and its root room.
 	var batched: Dictionary = rebatch(parts.keys())
 	save_main()
-	save_root_room()
 	print("bake_gorge: %s; generated %d visuals; %d lamps; batched %s; %.1f s -> %s" % [counts, generated_count, lamps.size(), batched, (Time.get_ticks_usec() - t0) / 1000000.0, MAIN])
 	quit()
 
@@ -135,6 +131,7 @@ func generate(layout: GorgeLayout, extras: Array[Dictionary], lamps: PackedVecto
 	vista_script.skip_banks = seeds
 	vista_script.skip_bridges = true
 	vista_script.skip_sanctum_tiers = true
+	vista_script.walkable_overlook = true     # the balcony opens onto the stair (step 2)
 	vista_script.extra_lamps = lamps
 	var world_script: GDScript = load("res://scripts/world.gd")
 	world_script.scenery_only = true
@@ -228,20 +225,6 @@ func save_main() -> void:
 	save_scene(main, MAIN)
 	main.free()
 
-
-## The Gorge area's root room for step 1: only where you start, on the
-## balcony (the balcony itself is in the generated part).
-func save_root_room() -> void:
-	var room := RoomTemplate.new()
-	room.name = "Overlook"
-	room.display_name = "The Overlook"
-	var spawn := Marker3D.new()
-	spawn.name = "PlayerSpawn"
-	room.add_child(spawn)
-	spawn.owner = room
-	spawn.transform = Transform3D(Basis.looking_at(Vector3(FACING.x - EYE.x, 0, FACING.z - EYE.z)), EYE)
-	save_scene(room, ROOT_ROOM)
-	room.free()
 
 
 func save_scene(node: Node, path: String) -> void:
