@@ -141,12 +141,23 @@ def side_prism(bm, outline_yz, x0, x1):
         bm.faces.new((a[i], a[j], b[j], b[i]))
 
 
-def crown_strips(bm, pts, cx, z_off, top, y0, y1):
-    """The solid over an arch's curve up to `top`, as one convex quad prism
-    per arch segment. (One concave n-gon here exported with a sliver
-    triangle across the springing: a bar across every arch.)"""
+def crown_strips(bm, pts, cx, z_off, top, y0, y1, keep_back=False):
+    """The solid over an arch's curve up to `top`, one convex quad strip per
+    arch segment. (One concave n-gon here exported with a sliver triangle
+    across the springing: a bar across every arch.) Only the faces that can
+    show: the front, the arch's soffit and the top; the sides between strips
+    are inside the crown, and the back (y1) against the building unless
+    `keep_back` (phase 8 cost check: about a third of a window's triangles)."""
     for (xa, za), (xb, zb) in zip(pts[:-1], pts[1:]):
-        add_prism(bm, [(xa, za), (xb, zb), (xb, top), (xa, top)], cx, z_off, y0, y1)
+        if keep_back:
+            add_prism(bm, [(xa, za), (xb, zb), (xb, top), (xa, top)], cx, z_off, y0, y1)
+            continue
+        q = [(xa, za), (xb, zb), (xb, top), (xa, top)]
+        a = [bm.verts.new((cx + u, y0, z_off + v)) for (u, v) in q]
+        b = [bm.verts.new((cx + u, y1, z_off + v)) for (u, v) in q]
+        bm.faces.new(a)
+        bm.faces.new((a[0], a[1], b[1], b[0]))
+        bm.faces.new((a[2], a[3], b[3], b[2]))
 
 
 def arch_band(bm, outer, inner, cx, z_off, y0, y1):
@@ -164,20 +175,23 @@ def spandrels(bm, e, top, half, spring, rise, cx, z_off, y0, y1, n=8):
     crown_strips(bm, pointed(half, spring, rise, n)[1:-1], cx, z_off, top, y0, y1)
 
 
-def opened(bm, half, foot, spring, rise, y0=0.0, y1=T, back=None, x0=0.0, width=4.0, cx=None, height=H, n=8):
+def opened(bm, half, foot, spring, rise, y0=0.0, y1=T, back=None, x0=0.0, width=4.0, cx=None, height=H, n=8, keep_back=False):
     """A wall slab (X x0..x0+width, Y y0..y1, Z 0..height) with a pointed
     opening through it, built from boxes round the opening (no booleans):
     below its foot, either side, and the crown over its arch; `back` closes
-    the opening with a plate from that Y to y1."""
+    the opening with a plate from that Y to y1.
+    The back (y1) is left open: against the building or the rock, never seen
+    (`keep_back` for a piece that stands free above its building, the portal)."""
     cx = x0 + width / 2 if cx is None else cx
     a, b = cx - half, cx + half
+    box = add_box if keep_back else front_box
     if foot > 0:
-        add_box(bm, x0, x0 + width, y0, y1, 0.0, foot)
-    add_box(bm, x0, a, y0, y1, foot, height)
-    add_box(bm, b, x0 + width, y0, y1, foot, height)
-    crown_strips(bm, pointed(half, spring, rise, n)[1:-1], cx, foot, height - foot, y0, y1)
+        box(bm, x0, x0 + width, y0, y1, 0.0, foot)
+    box(bm, x0, a, y0, y1, foot, height)
+    box(bm, b, x0 + width, y0, y1, foot, height)
+    crown_strips(bm, pointed(half, spring, rise, n)[1:-1], cx, foot, height - foot, y0, y1, keep_back)
     if back is not None:
-        add_box(bm, a, b, back, y1, foot, foot + spring + rise)
+        box(bm, a, b, back, y1, foot, foot + spring + rise)
 
 
 def arch_face(root, name, mat, half, foot, spring, rise, y, cx=2.0, n=8):
@@ -297,16 +311,18 @@ def corbel(r):
 
 def cornice(r):
     """A house's corbelled brick cornice under its parapet: three stepped
-    courses and a row of small brackets (finishes the wall's top)."""
+    courses and a row of small brackets (finishes the wall's top); five
+    brackets a bay (ten before the phase 8 cost check: 130 triangles a bay,
+    321 bays on bank 1)."""
     name = r.name[2:]
 
     def brick(bm):
         front_box(bm, 0.0, 4.0, -0.08, 0.0, H - 0.55, H - 0.45)
         front_box(bm, 0.0, 4.0, -0.16, 0.0, H - 0.45, H - 0.35)
         front_box(bm, 0.0, 4.0, -0.24, 0.0, H - 0.12, H)
-        for k in range(10):
-            x = 0.2 + k * 0.4
-            front_box(bm, x - 0.06, x + 0.06, -0.24, 0.0, H - 0.35, H - 0.12)
+        for k in range(5):
+            x = 0.4 + k * 0.8
+            front_box(bm, x - 0.08, x + 0.08, -0.24, 0.0, H - 0.35, H - 0.12)
     solid(name + "__courses", r, [BRICK], brick)
 
 
@@ -440,7 +456,7 @@ def portal_of(width, height, opening, door=(1.5, 3.0, 1.3), glass=(5.2, 9.6)):
         cx = width / 2
         b = 0.9 if width <= 12 else 1.1
         band = height - b - 1.0
-        solid(name + "__body-col", r, [BRICK], lambda bm: opened(bm, half, foot, spring, rise, y0=-1.5, y1=1.5, back=0.9,
+        solid(name + "__body-col", r, [BRICK], lambda bm: opened(bm, half, foot, spring, rise, y0=-1.5, y1=1.5, back=0.9, keep_back=True,
                                                                  width=width, cx=cx, height=height, n=12))
 
         def border(bm):
@@ -929,7 +945,7 @@ def spillway(cells):
         half, foot, spring, rise = (1.1, 0.6, 0.7, 0.85) if cells == 1 else (4.0, 1.0, 1.4, 2.2)
         top, depth, out = (3.6, 1.2, 1.2) if cells == 1 else (2 * H, 2.5, 2.2)     # a great one: two storeys
         a, b = w / 2 - half - 0.15, w / 2 + half + 0.15
-        solid(name + "__head-col", r, [STONE], lambda bm: opened(bm, half, foot, spring, rise, y0=0.0, y1=depth, back=depth - 0.2,
+        solid(name + "__head-col", r, [STONE], lambda bm: opened(bm, half, foot, spring, rise, y0=0.0, y1=depth, back=depth - 0.2, keep_back=True,
                                                                  width=w, height=top))
         solid(name + "__lip", r, [STONE], lambda bm: (add_box(bm, a, b, -out, 0.0, foot - 0.3, foot),
                                                       add_box(bm, a, a + 0.15, -out, 0.0, foot, foot + 0.25),
@@ -1011,13 +1027,13 @@ MODULES = WALL_SET + [
     ("M_persian_iwan_tier", props("edge", [2, 3, 0], "solid", "scenery,persian,carved,iwan,water"), iwan_tier),
 ]
 
-KIT_REV = 4     # rev 4: arch crowns, rings and fields built from convex pieces (every module rebuilt)
+KIT_REV = 7     # rev 7: hidden faces left out of walls and arch crowns, fewer cornice brackets (the cost check; every module rebuilt)
 REV_GREAT = 5   # rev 5: the great spillway two storeys tall (bank 1)
 REVS = {name: KIT_REV for (name, _p, _b) in MODULES}
-REVS["M_persian_spillway_great"] = REV_GREAT
+REVS["M_persian_spillway_great"] = max(REV_GREAT, KIT_REV)
 REV_WALK3 = 6   # rev 6: brick stairs, the tiled iwan front (the third walk of bank 1)
 for _n in ("M_persian_stair_flight", "M_persian_iwan_tier"):
-    REVS[_n] = REV_WALK3
+    REVS[_n] = max(REV_WALK3, KIT_REV)
 
 
 

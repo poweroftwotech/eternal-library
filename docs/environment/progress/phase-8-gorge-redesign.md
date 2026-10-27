@@ -289,3 +289,26 @@ Re-taken from your spots in `previews/p8_step3e/`.
 | A small fountain or pool in the middle, with room to walk round | the kit's pool (scaled to 4.8 x 2.4 m) with its fountain in the loggia's middle: 2 m clear of the side beds, 1 m of the columns, 1.2 m of the back beds; solid, so you walk round it. The fountain's jet is left out here (its cards read as a dark strip against the door: `kit_piece`'s `skip`) |
 
 Verified: route 8, span 485, network 790, kit 6,056, all passing; box art passes.
+
+## The cost check on bank 1 (2026-10-27)
+
+Your call: check what bank 1's rules cost before they are copied to the other banks, and leave the full budget check (step 4) for the finished gorge. New tool: `tools/gorge_bank_cost.gd` (per part: pieces, triangles, meshes, the meshes only it uses, lights; and what goes once the old banks are rebuilt).
+
+**Measured in the game** (1920x1080, the same four views: the box-art view and three of your spots near bank 1; GPU time on the RTX 5090, steady across runs):
+
+| | Draw calls (box art / near bank 1) | Triangles (box art / near bank 1) | GPU (box art / near) |
+|---|---|---|---|
+| Bank 1 in the old look | 1,631 / ~430 | 7.76 M / ~5.1 M | 3.1 ms / 1.9 ms |
+| Bank 1 Persian, as committed | 1,731 / ~670 | 8.18 M / ~5.8 M | 3.1 ms / 1.9 ms |
+| Bank 1 Persian, trimmed | 1,731 / ~670 | **7.25 M / ~4.8 M** | 3.1 ms / 1.9 ms |
+
+**What costs what:**
+
+- **Triangles** grow with every bank, and they were the cost to fix before copying. Most of a Persian wall's triangles were faces nobody can see: the backs against the building, and the sides between the strips of each arch's crown. Walls and arch crowns now leave them out (`opened()`, `crown_strips()`; kept on the portal, which stands free above its roof). The cornice has five brackets a bay, not ten. Bank 1's kit went from 0.50 to 0.37 M triangles, against 0.44–0.60 M for an old bank. In the game, bank 1 now costs less than its old look did.
+- **Draw calls** come from distinct meshes, not from how many pieces use them. Bank 1 brings 111 meshes of its own (about 230 draw calls near it, 100 in the box-art view), but the other banks will reuse them. Once those banks are rebuilt, the 128 meshes only the old banks use (about 256 draw calls) go away. If the rebuilt banks need few new pieces, the box-art view should come out near 1,475, under its 1,500.
+- **GPU time** is unchanged: the falls' mist, the light shaft and the new lights don't show in it.
+- **Lights to watch:** bank 1 asks for 13 lights (9 of them the teal glow over fungal beds), against 4–7 for an old bank. Across eight banks that would be about 100. The light budget keeps only the nearest on, but step 4 should check how many are in reach from the Overlook.
+
+No change to how bank 1 looks; re-taken from your spots in `previews/p8_cost/`, with no holes from above, below or close up.
+
+Verified: kit 6,056, route 8, span 485, all passing; box art passes.

@@ -8,13 +8,14 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 8 steps 1–3 committed** after your walks: the Persian kit, bank 1 as a hill town, the camp's front. Next is **step 4, the budget check**: the box-art view draws about 1,785 of 1,500 draw calls and 8.2 of 3 million triangles | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | Nothing yet; step 4 starts when you say go |
+| **Phase 8 steps 1–3 committed** and **bank 1's cost checked** (it now costs less than its old look; uncommitted). Next: **the other banks, bank by bank**, then step 4 (the full budget check) on the finished gorge | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | Say when to start bank 2 |
 | Phase 6 step 6 (the gorge clean-up) is folded into phase 8: the triangles in view and the frame testing are measured on the redesigned bank 1 | [Brief, phase 8](docs/environment/phase-8-approval.md) | Nothing |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-27 | **The cost check on bank 1:** in the game it now costs less than its old look did (box-art view 7.25 M triangles, was 7.76 M with the old bank 1), after leaving out faces nobody can see in the Persian walls; GPU time unchanged; its draw calls come back once the other banks reuse its pieces. Watch item: lights (13 per bank, old banks 4–7). New tool `tools/gorge_bank_cost.gd` ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
 | 2026-10-27 | **Phase 8 steps 1–3 committed** (b58f86c) after your walks: the Persian kit, bank 1 as a hill town (six walks), the camp's front (four walks). Step 4, the budget check, is next ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
 | 2026-10-27 | **Your two reports on the camp's front fixed:** a newel where the stair's rail turns down from the head, and a pool with a fountain in the loggia's middle with room to walk round. Tests and box art pass ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
 | 2026-10-27 | **Your four reports on the terrace fixed** and the new box-art view accepted: the stair's rails start at newels where they meet the parapet (no gap, nothing clipping), the parapets have a plain stone coping, and the back wall has a bed either side of the door with its lumen stone turned the right way. Tests and box art pass ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
@@ -115,7 +116,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | **5. Kit breadth** | More room types, mostly from data | ✅ Done 2026-10-25 |
 | **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–4 committed (4bce7c1, 8f789de, b65d383, f90ee72; step 4 after three walks, 19 reports fixed); step 5 (thresholds) committed 4670712; step 6 (the gorge scenery clean-up pass) started 2026-10-26 with a fly mode (V) for reporting |
 | **7. The camp from kit pieces** | The Reading Garden camp rebuilt from kit pieces: same look, faster, editable, with its door to the gorge | Approved 2026-10-26 as recommended ([brief](docs/environment/camp-rebuild-approval.md)); step 1 (the hearth corner) settled; step 2 (the whole camp baked) approved after two walks; step 3 (gameplay moved, the game starts there) walked, 3 reports fixed; step 4 (the door to the Gorge, the old camp retired) built; all committed 9e1346a: **complete** |
-| **8. The gorge redesigned** | Direction C: a Persian hill town with carved rooms round a few monuments, great falls, gardens by light; a reusable Persian kit | Approved 2026-10-26 as recommended ([brief](docs/environment/phase-8-approval.md)); step 1 (the Persian kit), step 2 (bank 1, six walks) and step 3 (the camp's front, four walks) committed b58f86c 2026-10-27; step 4 (the budget check) next |
+| **8. The gorge redesigned** | Direction C: a Persian hill town with carved rooms round a few monuments, great falls, gardens by light; a reusable Persian kit | Approved 2026-10-26 as recommended ([brief](docs/environment/phase-8-approval.md)); step 1 (the Persian kit), step 2 (bank 1, six walks) and step 3 (the camp's front, four walks) committed b58f86c 2026-10-27; the cost check on bank 1 done; the other banks next, then step 4 (the budget check) |
 
 ## 10. Roadmap (each phase is a playable slice)
 
