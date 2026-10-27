@@ -8,12 +8,13 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 7 step 4 built: the camp's door to the Gorge, and the old camp retired.** Walk into the glowing doorway at the back of the gallery and you arrive on the Overlook, inside its bronze door; walk into that door and you're back in the gallery. `world.gd` and its ten passes are deleted; the gorge's bake keeps their five helpers in `scripts/gorge_host.gd`. This is the last step of phase 7 | [Progress, phase 7](docs/environment/progress/phase-7-camp.md) | Walk through the door both ways; report with the ` key |
+| **Phase 7 committed (9e1346a): the camp from kit pieces.** Next on the roadmap: phase 6 step 6, the gorge scenery clean-up pass (gaps, clipping, extra geometry, then its frame testing), then the map (phase 8) | [Progress, phase 7](docs/environment/progress/phase-7-camp.md) | Say when to start the gorge clean-up |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-26 | **Phase 7 committed** (9e1346a) at your go-ahead: the camp from kit pieces, its door to the Gorge, the old camp retired ([progress](docs/environment/progress/phase-7-camp.md)). **Phase 7 complete.** |
 | 2026-10-26 | **Phase 7 step 4 built: the camp's door to the Gorge; the old camp retired.** The gallery doorway is a door into the Gorge (you arrive inside the Overlook's bronze door, which leads back). The code-built camp (`world.gd` and ten passes, about 2,000 lines) is deleted; the camp is edited by hand from now on. Two new save-and-resume processes through the door pass, as do the playtest (33), walk test (17), network (790) and area plan (266) tests; the camp passes every frame limit (1.43 ms GPU) ([progress](docs/environment/progress/phase-7-camp.md)). Waiting for your walk. |
 | 2026-10-26 | **Your walk of step 3: 3 reports fixed.** The stair's railing runs into its end posts cleanly at both ends, and the gallery floor and its balustrade run to the west wall ([progress](docs/environment/progress/phase-7-camp.md)). |
 | 2026-10-26 | **Phase 7 step 3 built: the game starts in the camp from kit pieces.** The pot and the six patches are baked in, so cooking, eating and foraging work as before; saves resume there (two new save-and-resume processes pass). The code-built camp stays on the Esc menu until step 4. Playtest passes in both camps (32 and 44 checks) and the camp still passes every frame limit ([progress](docs/environment/progress/phase-7-camp.md)). Waiting for your walk. |
@@ -92,7 +93,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | 4. Areas and streaming | 6–10 connected rooms that load as you walk | ✅ Done 2026-10-22 |
 | **5. Kit breadth** | More room types, mostly from data | ✅ Done 2026-10-25 |
 | **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–4 committed (4bce7c1, 8f789de, b65d383, f90ee72; step 4 after three walks, 19 reports fixed); step 5 (thresholds) committed 4670712; step 6 is now the gorge scenery clean-up pass (the camp link moved to phase 7) |
-| **7. The camp from kit pieces** | The Reading Garden camp rebuilt from kit pieces: same look, faster, editable, with its door to the gorge | Approved 2026-10-26 as recommended ([brief](docs/environment/camp-rebuild-approval.md)); step 1 (the hearth corner) settled; step 2 (the whole camp baked) approved after two walks; step 3 (gameplay moved, the game starts there) walked, 3 reports fixed; step 4 (the door to the Gorge, the old camp retired) built, waiting for your walk |
+| **7. The camp from kit pieces** | The Reading Garden camp rebuilt from kit pieces: same look, faster, editable, with its door to the gorge | Approved 2026-10-26 as recommended ([brief](docs/environment/camp-rebuild-approval.md)); step 1 (the hearth corner) settled; step 2 (the whole camp baked) approved after two walks; step 3 (gameplay moved, the game starts there) walked, 3 reports fixed; step 4 (the door to the Gorge, the old camp retired) built; all committed 9e1346a: **complete** |
 
 ## 10. Roadmap (each phase is a playable slice)
 

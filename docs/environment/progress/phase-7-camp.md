@@ -8,11 +8,11 @@ answers, and all four steps are built. The camp is 29 kit pieces baked to
 its GPU time. The game starts there with cooking, foraging and saves working
 as before. Its gallery doorway is the door to the Gorge's Overlook and back.
 The code-built camp is deleted, and from now on the camp scene is edited by
-hand. Waiting for your walk of step 4.
+hand. Committed (9e1346a): phase 7 is complete.
 
 ---
 
-## Step 4: the door to the gorge; the old camp retired (built 2026-10-26)
+## Step 4: the door to the gorge; the old camp retired (built 2026-10-26; committed 9e1346a)
 
 ### Try it
 
