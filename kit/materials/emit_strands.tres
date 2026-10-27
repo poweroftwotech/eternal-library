@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/persian_strands.png" id="1_strands"]
+
+[resource]
+resource_name = "emit_strands"
+transparency = 2
+cull_mode = 2
+shading_mode = 0
+albedo_texture = ExtResource("1_strands")
+emission_enabled = true
+emission_texture = ExtResource("1_strands")
+emission_energy_multiplier = 2.2
+texture_filter = 2

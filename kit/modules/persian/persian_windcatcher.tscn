@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_pnhuk"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_windcatcher.glb" id="2_3al4t"]
+
+[node name="persian_windcatcher" type="Node3D" unique_id=2075383257]
+script = ExtResource("1_pnhuk")
+family = "persian"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("scenery", "persian", "house", "roof")
+source_glb = "res://assets/kit/persian/persian_windcatcher.glb"
+
+[node name="Mesh" parent="." unique_id=1121921117 instance=ExtResource("2_3al4t")]

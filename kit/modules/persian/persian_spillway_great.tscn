@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_2lf6d"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_spillway_great.glb" id="2_081h1"]
+
+[node name="persian_spillway_great" type="Node3D" unique_id=1574370243]
+script = ExtResource("1_2lf6d")
+shape = 0
+family = "persian"
+size_cells = Vector3i(3, 2, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "water", "fall")
+source_glb = "res://assets/kit/persian/persian_spillway_great.glb"
+
+[node name="Mesh" parent="." unique_id=785312353 instance=ExtResource("2_081h1")]

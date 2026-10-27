@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_kqst0"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_parapet_lime.glb" id="2_squpd"]
+
+[node name="persian_parapet_lime" type="Node3D" unique_id=1431352418]
+script = ExtResource("1_kqst0")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "rail"
+tags = PackedStringArray("scenery", "persian", "rail", "house")
+source_glb = "res://assets/kit/persian/persian_parapet_lime.glb"
+
+[node name="Mesh" parent="." unique_id=2095977930 instance=ExtResource("2_squpd")]

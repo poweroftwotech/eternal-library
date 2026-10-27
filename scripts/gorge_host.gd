@@ -33,9 +33,11 @@ func arch_point(radius: float, spring: float, rise: float, t: float) -> Vector2:
 
 ## `jambs` false: the arch springs from columns of its own (the Gorge's loggia,
 ## where jambs beside the columns made two supports).
-func arch(pose: Vector3, radius: float, spring: float, rise: float, thickness: float, jambs: bool = true) -> void:
+## `top` (above `pose`), when given, is where the arch's spandrels end: up to
+## a ceiling (the Gorge's loggia: your walk, they stopped short of it).
+func arch(pose: Vector3, radius: float, spring: float, rise: float, thickness: float, jambs: bool = true, top_at: float = 0.0) -> void:
 	var steps: int = 24
-	var top: float = maxf(spring+rise+thickness+.25,8.3 if absf(pose.z)<.01 else 0)
+	var top: float = top_at if top_at > 0.0 else maxf(spring+rise+thickness+.25,8.3 if absf(pose.z)<.01 else 0)
 	for side in [-1,1]:
 		var outer_curve: Array = []
 		for i in range(steps):

@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_flmhq"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_dome.glb" id="2_axjqo"]
+
+[node name="persian_dome" type="Node3D" unique_id=1862085828]
+script = ExtResource("1_flmhq")
+family = "persian"
+size_cells = Vector3i(2, 3, 2)
+tags = PackedStringArray("scenery", "persian", "monument", "dome")
+source_glb = "res://assets/kit/persian/persian_dome.glb"
+
+[node name="Mesh" parent="." unique_id=407301045 instance=ExtResource("2_axjqo")]

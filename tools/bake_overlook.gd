@@ -90,7 +90,10 @@ func _initialize() -> void:
 	var landing: Vector3 = FOREGROUND.STAIR_LANDING
 	var run := Vector3(landing.x - top.x, 0, landing.z - top.z)
 	var flat: Vector3 = run.normalized()
-	flat_dir = flat
+	# The landing, its flight and the ledge keep their own line (phase 8 step 3:
+	# only the stair turned, to arrive centred on the camp's door).
+	var line: Vector3 = FOREGROUND.landing_flat()
+	flat_dir = line
 	var across := Vector3(flat.z, 0, -flat.x)
 	var length: float = Vector3(run.x, landing.y - top.y, run.z).length()
 	var down: Vector3 = (landing - top).normalized()
@@ -114,30 +117,43 @@ func _initialize() -> void:
 		guard(collision, "stair_guard_%d" % side, mid + across * side * (walk * .5 + .2) + slope.y * (GUARD_H * .5 - .4),
 			Vector3(.4, GUARD_H, (to - from) / run.length() * length), slope)
 	# The landing (vista.gd turns its outline by -yaw: about +Y by yaw).
-	var yaw: float = atan2(flat.x, flat.z)
-	var land := Basis(Vector3.UP, yaw)          # its local +z is `flat`
+	var yaw: float = atan2(line.x, line.z)
+	var land := Basis(Vector3.UP, yaw)          # its local +z is `line`
 	var land_xf := Transform3D(land, Vector3(landing.x, landing.y, landing.z))
 	ramp(collision, "landing_top", land_xf * Vector3(0, -.3, 0), Vector3(LANDING_HALF * 2, .6, LANDING_HALF * 2), land)
+	# Where the stair's balustrades cross the landing's near edge (landing x;
+	# the stair meets it at an angle): one newel each, the edge open between.
+	var inv: Transform3D = land_xf.affine_inverse()
+	var crossing: Array[float] = []
+	for side: float in [-1.0, 1.0]:
+		var p0: Vector3 = Vector3(top.x, landing.y, top.z) + across * side * (FOREGROUND.STAIR_WIDTH * .5 - FOREGROUND.STAIR_PARAPET + .18)
+		var z0: float = (inv * p0).z
+		var at: Vector3 = p0 + flat * ((-LANDING_HALF - z0) / ((inv * (p0 + flat)).z - z0))
+		ends.append(at)
+		crossing.append((inv * at).x)
+	var open_lo: float = minf(crossing[0], crossing[1]) - .25
+	var open_hi: float = maxf(crossing[0], crossing[1]) + .25
 	# Balustrades round the landing: 4 m pieces from corner to corner; the
 	# near edge open where the stair arrives, the far edge where the flight leaves.
-	for edge: int in 4:
+	for edge: int in [1, 2, 3]:
 		for k: int in 3:
-			if (edge == 0 or edge == 2) and k == 1:
-				continue          # 0: the near edge (the stair), 2: the far edge (the flight)
+			if edge == 2 and k == 1:
+				continue          # the far edge (the flight)
 			var along: Transform3D = land_xf * _landing_edge(edge, k)
 			piece(pieces, "walls/chasm_parapet_4m", along)
 			joints(along)
+	# The near edge (edge 0, its pieces running toward -x): stretched pieces
+	# from each corner to the stair's opening.
+	for run_x: Vector2 in [Vector2(LANDING_HALF, open_hi), Vector2(open_lo, -LANDING_HALF)]:
+		var along := land_xf * Transform3D(Basis(Vector3.UP, PI) * Basis.from_scale(Vector3((run_x.x - run_x.y) / 4.0, 1, 1)), Vector3(run_x.x, 0, -LANDING_HALF))
+		piece(pieces, "walls/chasm_parapet_4m", along)
+		joints(along)
 
 	# The flight down a storey from the landing's far side, then the ledge.
-	# Frame G: its -Z downhill (flat), X along the landing's local -x.
+	# Frame G: its -Z downhill (line), X along the landing's local -x.
 	var far_mid: Vector3 = land_xf * Vector3(0, 0, LANDING_HALF)
-	var g_basis := Basis(Vector3.UP.cross(-flat).normalized(), Vector3.UP, -flat)
+	var g_basis := Basis(Vector3.UP.cross(-line).normalized(), Vector3.UP, -line)
 	var g := Transform3D(g_basis, far_mid - g_basis.x * 2.0)
-	# Where the stair's balustrades cross the landing's near edge, and its
-	# balustrades meet: one newel each.
-	for side: float in [-1.0, 1.0]:
-		var line_at: Vector3 = Vector3(top.x, landing.y, top.z) + across * side * (FOREGROUND.STAIR_WIDTH * .5 - FOREGROUND.STAIR_PARAPET + .18) + flat * (run.length() - LANDING_HALF)
-		ends.append(line_at)
 	piece(pieces, "walls/chasm_stair_flight", g)
 	# The flight's balustrades' ends (kit_add_r10.py: 0.18 m in from its edges,
 	# on the line through its step tops, 0.1 m under its top and its foot).

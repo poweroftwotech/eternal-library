@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ncceb"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_stair_flight_top.glb" id="2_6y1pa"]
+
+[node name="persian_stair_flight_top" type="Node3D" unique_id=935125163]
+script = ExtResource("1_ncceb")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "vertical", "stair")
+source_glb = "res://assets/kit/persian/persian_stair_flight_top.glb"
+
+[node name="Mesh" parent="." unique_id=1563433071 instance=ExtResource("2_6y1pa")]

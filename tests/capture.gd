@@ -46,7 +46,9 @@ func capture() -> void:
 		game.look_toward(Vector3(-.3,1.3,4.2))
 	elif mode == "vista_concept":
 		# Measured against the box art by tests/compare_vista.gd (section 8).
-		game.player.teleport(Vector3(-1,2.25,-27.45))
+		# East of the stair since it arrives in the parapet's middle (phase 8
+		# step 3); at x -1 the view looked down it.
+		game.player.teleport(Vector3(2.6,2.25,-27.45))
 		game.player.camera.fov = 68
 		game.look_toward(Vector3(5,-22,-178))
 		game.hud.zone_label.text = "THE ETERNAL LIBRARY · OVERLOOK"

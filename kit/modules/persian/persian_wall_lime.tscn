@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ktrov"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_wall_lime.glb" id="2_q56qu"]
+
+[node name="persian_wall_lime" type="Node3D" unique_id=1968340017]
+script = ExtResource("1_ktrov")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house")
+source_glb = "res://assets/kit/persian/persian_wall_lime.glb"
+
+[node name="Mesh" parent="." unique_id=1904241935 instance=ExtResource("2_q56qu")]

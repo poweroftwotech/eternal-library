@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_tl02v"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_carved_door.glb" id="2_0pepy"]
+
+[node name="persian_carved_door" type="Node3D" unique_id=611174223]
+script = ExtResource("1_tl02v")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "carved", "door", "light")
+source_glb = "res://assets/kit/persian/persian_carved_door.glb"
+
+[node name="Mesh" parent="." unique_id=1154907636 instance=ExtResource("2_0pepy")]

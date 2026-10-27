@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://c61hv85te00ue"]
+
+[ext_resource type="Texture2D" uid="uid://djcl3068rqmfb" path="res://assets/textures/px/persian_plaster_lime.png" id="1_1sb83"]
+[ext_resource type="Texture2D" uid="uid://bxsn5ffeq12la" path="res://assets/textures/px/persian_plaster_lime_normal.png" id="2_yqc6l"]
+[ext_resource type="Texture2D" uid="uid://cs4bvuxbcqgfp" path="res://assets/textures/px/persian_plaster_lime_rough.png" id="3_tv7sn"]
+
+[resource]
+resource_name = "persian_plaster_lime"
+albedo_texture = ExtResource("1_1sb83")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_tv7sn")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_yqc6l")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(0.5, 0.5, 0.5)

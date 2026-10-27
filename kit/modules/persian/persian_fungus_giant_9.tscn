@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_m83ls"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_fungus_giant_9.glb" id="2_t6sk3"]
+
+[node name="persian_fungus_giant_9" type="Node3D" unique_id=160119951]
+script = ExtResource("1_m83ls")
+family = "persian"
+size_cells = Vector3i(1, 3, 1)
+tags = PackedStringArray("scenery", "persian", "fungus", "dark", "light")
+source_glb = "res://assets/kit/persian/persian_fungus_giant_9.glb"
+
+[node name="Mesh" parent="." unique_id=459967301 instance=ExtResource("2_t6sk3")]

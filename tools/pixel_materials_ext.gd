@@ -32,6 +32,7 @@ func _init() -> void:
 	architecture()
 	foliage()
 	kit_room()
+	persian()
 	var file: FileAccess = FileAccess.open(OUT + "manifest_ext.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify({"texel_density": 32, "materials": manifest}, " "))
 	file.close()
@@ -621,6 +622,198 @@ func mottled_kit(material_name: String, palette: PackedColorArray, size: int, ce
 			height.append(g * .3 + swell[i] * 3.0)
 			rough.append(rough_base + (g - .5) * .1 - (swell[i] - .5) * .2)
 	save(material_name, w, h, rgb, height, rough)
+
+# ---------------------------------------------------------------- persian
+## The reusable Persian kit (phase-8-design.md 8.2): fired brick, banai brick,
+## kahgel plaster in two tints, stone, dressed rock, faience, dome tile, wood,
+## soil, fungus, mirror mosaic, and alpha cards for the lattice screen,
+## flowers, glow moss and fungus strands; the orosi's coloured glass is a uv
+## map. Glowing variants are hand-written .tres in kit/materials (emit_*).
+func persian() -> void:
+	var brick: PackedColorArray = pal(["#3b2618", "#6a4630", "#84583a", "#9a6a46", "#ad7b53", "#bf8c61", "#cf9f72"])
+	ashlar_kit("persian_brick", brick, 64, 4, 7, 10, 91, 0, .03)
+	banai("persian_banai", brick, 92)
+	# The three wall tints stay in one family (your report: as far apart as
+	# they were, a street read as a messy mosaic): plaster, a lighter lime,
+	# and dressed rock a step darker, all warm.
+	mottled_kit("persian_plaster", pal(["#765a42", "#86684e", "#957659", "#a38464", "#b0916f", "#bc9d7a"]), 64, 12, 93, .3)
+	mottled_kit("persian_plaster_lime", pal(["#836c54", "#937b61", "#a28a6e", "#b0987b", "#bda587", "#c8b192"]), 64, 12, 94, .3)
+	gills("persian_gills")
+	ashlar_kit("persian_stone", pal(["#2e2a25", "#4d463e", "#625a50", "#766d61", "#888072", "#9a9283", "#aca595"]), 64, 8, 12, 20, 95)
+	mottled_kit("persian_rock_dressed", pal(["#4a3f35", "#56493d", "#625446", "#6e5f4f", "#7a6a58", "#867562"]), 64, 10, 97, .6)
+	faience("persian_tile", 99)
+	mottled_kit("persian_dome_tile", pal(["#0d4446", "#125859", "#1a6d6c", "#26837f", "#369a93", "#4fb2a8"]), 32, 4, 101, .9, .55)
+	mottled("persian_wood", pal(["#24150c", "#3a2414", "#50331d", "#664328", "#7c5434"]), 16, 4, 103, 1.0, 0.0,
+		Color(0, 0, 0, 0), .85, 3)
+	mottled_kit("persian_soil", pal(["#1a130d", "#261c13", "#33261a", "#403021", "#4c3a28"]), 32, 4, 105)
+	mottled("persian_fungus_cap", pal(["#0d1a1b", "#132628", "#1a3335", "#224144", "#2b5053"]), 16, 4, 107,
+		1.0, .07, Color("6fd8c6"), .7)
+	mottled("persian_fungus_stalk", pal(["#3e4440", "#4f5650", "#626a62", "#768076", "#8a958a"]), 16, 4, 108,
+		.9, 0.0, Color(0, 0, 0, 0), .8, 0)
+	mirror("persian_mirror", 109)
+	flat_card("persian_lattice", 32, 48, lattice_px, 110)
+	flat_card("persian_flowers", 32, 16, flowers_px, 111)
+	flat_card("persian_glowmoss", 32, 32, glowmoss_px, 112)
+	flat_card("persian_strands", 16, 64, strands_px, 113)
+	orosi("persian_orosi", 114)
+	woven("persian_awning", pal(["#8a2f24", "#d9c39a", "#2f5a8a", "#d9c39a"]), [4, 2, 2, 2], 32, 115)
+
+## Banai: stretcher-bond brick in regular courses with a diamond lattice of
+## pale glazed bricks and a turquoise brick at each lattice's heart (the
+## brick-on-brick ornament of Isfahan and Yazd, calm from a distance).
+func banai(material_name: String, palette: PackedColorArray, seed_value: int) -> void:
+	var w: int = 64
+	var h: int = 64
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var grain: PackedFloat32Array = noise(w, h, 4, seed_value + 1)
+	var glaze: Color = Color("d9c49b")
+	var turq: Color = Color("2f948d")
+	var tones: Dictionary = {}
+	var rgb: PackedColorArray = PackedColorArray()
+	var height: PackedFloat32Array = PackedFloat32Array()
+	var rough: PackedFloat32Array = PackedFloat32Array()
+	for y: int in range(h):
+		for x: int in range(w):
+			var row: int = y / 4
+			var xs: int = x + (4 if row % 2 == 1 else 0)
+			var col: int = (xs / 8) % 8
+			var key: int = row * 16 + col
+			if not tones.has(key):
+				tones[key] = rng.randf() * .3 - .15
+			var joint: bool = y % 4 == 0 or xs % 8 == 0
+			var cx: int = (col * 8 + 4 - (4 if row % 2 == 1 else 0) + w) % w
+			var cy: int = row * 4 + 2
+			var d: float = absf(float(cx % 32) - 16.0) + absf(float(cy % 32) - 16.0)
+			var c: Color
+			var g: float = grain[y * w + x]
+			if joint:
+				c = palette[0]
+			elif d <= 2.0:
+				c = turq * (.9 + g * .2)
+			elif absf(d - 12.0) <= 2.5:
+				c = glaze * (.88 + g * .2)
+			else:
+				var v: float = .45 + (g - .5) * .5 + tones[key] + (.15 if y % 4 == 1 else (-.15 if y % 4 == 3 else 0.0))
+				c = quant(clampf(v, 0.0, .999), palette, x, y)
+			rgb.append(c)
+			height.append(-.1 if joint else .7 + g * .2)
+			rough.append(.95 if joint else (.5 if d <= 2.0 or absf(d - 12.0) <= 2.5 else .85))
+	save(material_name, w, h, rgb, height, rough)
+
+## A mushroom's gills, uv mapped round the cap's underside (u round it, v
+## from the stalk out to the rim): bright teal lines with dark furrows
+## between, brightest near the stalk (emissive via emit_gills).
+func gills(material_name: String) -> void:
+	var w: int = 64
+	var h: int = 16
+	var rgb: PackedColorArray = PackedColorArray()
+	var height: PackedFloat32Array = PackedFloat32Array()
+	for y: int in range(h):
+		var fade: float = 1.0 - float(y) / h * .55
+		for x: int in range(w):
+			var furrow: bool = x % 4 == 0 or (x % 4 == 2 and y > h / 2)
+			var c: Color = Color("0f3b39") if furrow else Color("7ef0dc").lerp(Color("2fa898"), float(y) / h)
+			rgb.append(c * (fade if not furrow else 1.0))
+			height.append(.2 if furrow else .7)
+	save(material_name, w, h, rgb, height, filled(w * h, .6), "uv", 1.0)
+
+## Mirror mosaic (aineh-kari): small facets catching light at random angles.
+func mirror(material_name: String, seed_value: int) -> void:
+	var w: int = 16
+	var h: int = 16
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var rgb: PackedColorArray = PackedColorArray()
+	var height: PackedFloat32Array = PackedFloat32Array()
+	var rough: PackedFloat32Array = PackedFloat32Array()
+	var facet: Array = []
+	for i: int in range(16):
+		facet.append(rng.randf())
+	for y: int in range(h):
+		for x: int in range(w):
+			var f: float = facet[(y / 4) * 4 + x / 4]
+			var edge: bool = x % 4 == 0 or y % 4 == 0
+			var v: float = .35 + f * .6
+			rgb.append(Color("5a4520") if edge else Color(v, v * .98, v * .92))
+			height.append(.2 if edge else .6 + f * .3)
+			rough.append(.6 if edge else .08 + f * .1)
+	save(material_name, w, h, rgb, height, rough, "world", 1.0)
+
+## An alpha card from a per-texel colour function (transparent where it
+## returns alpha 0): the kit's non-leaf cards.
+func flat_card(material_name: String, w: int, h: int, texel: Callable, seed_value: int) -> void:
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var rgb: PackedColorArray = PackedColorArray()
+	var alpha: PackedByteArray = PackedByteArray()
+	var height: PackedFloat32Array = PackedFloat32Array()
+	for y: int in range(h):
+		for x: int in range(w):
+			var c: Color = texel.call(x, y, w, h, rng)
+			alpha.append(255 if c.a > .5 else 0)
+			rgb.append(Color(c.r, c.g, c.b))
+			height.append(.6 if c.a > .5 else 0.0)
+	save(material_name, w, h, rgb, height, filled(w * h, 1.0), "card", 1.0, alpha)
+
+## A wooden gereh screen: an 8-texel square grid turned 45 degrees with a
+## frame, bars two texels wide, lit on the top-left edge.
+func lattice_px(x: int, y: int, w: int, h: int, _rng: RandomNumberGenerator) -> Color:
+	var frame: bool = x < 2 or y < 2 or x >= w - 2 or y >= h - 2
+	var a: int = posmod(x + y, 8)
+	var b: int = posmod(x - y, 8)
+	var bar: bool = a < 2 or b < 2 or (posmod(x, 16) == 8 and posmod(y, 16) < 2)
+	if not (frame or bar):
+		return Color(0, 0, 0, 0)
+	var lit: bool = a == 0 or b == 0
+	return Color("7c5434") if lit else Color("4a2f1b")
+
+## A clump of small blossoms over leaves, for beds (top of the map is up).
+func flowers_px(x: int, y: int, w: int, h: int, rng: RandomNumberGenerator) -> Color:
+	var v: float = float(y) / h
+	var r: float = rng.randf()
+	if v > .35 and r < .55:
+		return [Color("2f4a22"), Color("3c5a28"), Color("4a6a30")][int(r * 5.4) % 3]
+	if v <= .55 and r < .28:
+		return [Color("c8463a"), Color("e2b44a"), Color("eadfc6"), Color("a65aa0")][int(r * 13.0) % 4]
+	return Color(0, 0, 0, 0)
+
+## Glow moss: scattered specks and small rosettes (emissive via emit_glowmoss).
+func glowmoss_px(x: int, y: int, w: int, h: int, rng: RandomNumberGenerator) -> Color:
+	var cx: float = x - w / 2.0
+	var cy: float = y - h / 2.0
+	var fall: float = 1.0 - sqrt(cx * cx + cy * cy) / (w / 2.0)
+	var r: float = rng.randf()
+	if r < fall * .45:
+		return Color("7ef0dc") if r < fall * .12 else Color("2f9e92")
+	return Color(0, 0, 0, 0)
+
+## Hanging strands of a jelly fungus: a few wavy threads fading down.
+func strands_px(x: int, y: int, w: int, h: int, _rng: RandomNumberGenerator) -> Color:
+	var v: float = float(y) / h
+	for k: int in range(3):
+		var cx: float = 2.5 + k * 5.0 + sin(v * 9.0 + k * 2.0) * 1.2
+		if absf(x - cx) < 1.0 and v < .95 - k * .1:
+			return Color("a0fbe9") if v < .5 else Color("4fc7b6")
+	return Color(0, 0, 0, 0)
+
+## Orosi: coloured panes in a wooden grid under a pointed head, uv mapped
+## onto the window's 1 x 2 frame.
+func orosi(material_name: String, seed_value: int) -> void:
+	var w: int = 32
+	var h: int = 64
+	var colours: Array = [Color("c8463a"), Color("2f5aa8"), Color("e2b44a"), Color("3f9c6a"), Color("eadfc6")]
+	var rgb: PackedColorArray = PackedColorArray()
+	var height: PackedFloat32Array = PackedFloat32Array()
+	var rough: PackedFloat32Array = PackedFloat32Array()
+	for y: int in range(h):
+		for x: int in range(w):
+			var wood: bool = x % 6 == 0 or y % 7 == 0 or x >= w - 1 or y >= h - 1
+			var pane: int = (x / 6 + (y / 7) * 3 + seed_value) % colours.size()
+			rgb.append(Color("3a2414") if wood else colours[pane])
+			height.append(.8 if wood else .4)
+			rough.append(.9 if wood else .2)
+	save(material_name, w, h, rgb, height, rough, "uv", 1.0)
 
 # ------------------------------------------------------------------ foliage
 ## Alpha card from an SDF-style inside test. Lit top-left rim, shadow

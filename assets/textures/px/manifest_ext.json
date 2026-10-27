@@ -133,6 +133,146 @@
     8
    ]
   },
+  "persian_awning": {
+   "mapping": "world",
+   "size": [
+    32,
+    32
+   ]
+  },
+  "persian_banai": {
+   "mapping": "world",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "persian_brick": {
+   "mapping": "world",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "persian_dome_tile": {
+   "mapping": "world",
+   "size": [
+    32,
+    32
+   ]
+  },
+  "persian_flowers": {
+   "mapping": "card",
+   "size": [
+    32,
+    16
+   ]
+  },
+  "persian_fungus_cap": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "persian_fungus_stalk": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "persian_gills": {
+   "mapping": "uv",
+   "size": [
+    64,
+    16
+   ]
+  },
+  "persian_glowmoss": {
+   "mapping": "card",
+   "size": [
+    32,
+    32
+   ]
+  },
+  "persian_lattice": {
+   "mapping": "card",
+   "size": [
+    32,
+    48
+   ]
+  },
+  "persian_mirror": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
+  "persian_orosi": {
+   "mapping": "uv",
+   "size": [
+    32,
+    64
+   ]
+  },
+  "persian_plaster": {
+   "mapping": "world",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "persian_plaster_lime": {
+   "mapping": "world",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "persian_rock_dressed": {
+   "mapping": "world",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "persian_soil": {
+   "mapping": "world",
+   "size": [
+    32,
+    32
+   ]
+  },
+  "persian_stone": {
+   "mapping": "world",
+   "size": [
+    64,
+    64
+   ]
+  },
+  "persian_strands": {
+   "mapping": "card",
+   "size": [
+    16,
+    64
+   ]
+  },
+  "persian_tile": {
+   "mapping": "world",
+   "size": [
+    32,
+    32
+   ]
+  },
+  "persian_wood": {
+   "mapping": "world",
+   "size": [
+    16,
+    16
+   ]
+  },
   "pomegranate": {
    "mapping": "world",
    "size": [

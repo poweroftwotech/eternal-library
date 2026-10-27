@@ -55,14 +55,19 @@ static var extra_lamps: PackedVector3Array = []
 static var skip_bridges: bool = false
 static var skip_sanctum_tiers: bool = false
 ## The Gorge area's Overlook (phase 6 step 2): the balcony's front-left
-## parapet opens onto the rock-cut stair (x < stair_gap()), and what was made
+## parapet opens in its middle onto the rock-cut stair (in_stair_gap), and what was made
 ## to be seen only from the balcony is closed up for walking past it (the
 ## stair's side walls and landing, vista_foreground.gd; the cliff face's foot,
 ## vista_cliff.gd).
 static var walkable_overlook: bool = false
-## Where the balcony's front parapet starts again: the stair head's east corner.
-static func stair_gap() -> float:
-	return VistaForeground.head_corner(-1.0).x
+## Walked, the balcony's front parapet stops for the stair from x .x to .y
+## (where the stair's own parapets cross its line; the stair arrives on the
+## camp door's line).
+static func stair_gap() -> Vector2:
+	return Vector2(VistaForeground.parapet_crossing(1.0), VistaForeground.parapet_crossing(-1.0))
+
+static func in_stair_gap(x: float, margin: float = 0.0) -> bool:
+	return walkable_overlook and x > stair_gap().x - margin and x < stair_gap().y + margin
 var _geometry: bool = true
 
 func _init(owner, factory) -> void:
@@ -145,75 +150,169 @@ func exterior_materials() -> void:
 	art.materials["vista_lamp"] = lamp
 
 func build_balcony() -> void:
+	if walkable_overlook:
+		for name: String in ["persian_brick", "persian_tile", "persian_banai", "persian_stone"]:
+			art.materials[name] = load("res://kit/materials/%s.tres" % name)
 	# Unbroken walking surface from gallery through a short vaulted passage.
 	# Passage pieces end 5 cm inside the reading-room wall (z -13.0..-13.4), not
 	# flush with its face, which made their end faces z-fight with the brick.
 	# Ends at -13.1, where the gallery floor begins (overlapping it, the two
 	# floors fought in the doorway).
 	block(Vector3(-1,2,-17.45),Vector3(4.4,.4,8.7),"paving",true)
+	# Walked, it ends at the loggia's back wall (-18.45), whose arch frames its
+	# door (your walk: it stood 3.6 m out into the loggia, with gaps round it);
+	# its arch and lantern out there went with it.
+	var end_z: float = -18.45 if walkable_overlook else -22.0
+	var run_l: float = end_z + 13.05
 	for x in [-3.3,1.3]:
-		block(Vector3(x,4.6,-17.525),Vector3(.4,5.2,8.95),"brick",true)
-		# Tile strip and lintel run 4.5 cm past the walls at the balcony end (z -22.0),
+		block(Vector3(x,4.6,-13.05+run_l*.5),Vector3(.4,5.2,-run_l),"brick",true)
+		# Tile strip and lintel run 4.5 cm past the walls at the balcony end,
 		# where their end faces were flush and flickered.
-		block(Vector3(x,3.0,-17.5475),Vector3(.46,.65,9.025),"tile")
+		block(Vector3(x,3.0,-13.0+(run_l-.045)*.5),Vector3(.46,.65,-run_l+.045),"tile")
 	# 4.96 wide: at 5.0 its ends were flush with the passage walls' outer faces.
-	block(Vector3(-1,7.25,-17.5475),Vector3(4.96,.5,9.025),"sandstone",true)
-	for z in [-14,-17,-20.2]:
+	block(Vector3(-1,7.25,-13.0+(run_l-.045)*.5),Vector3(4.96,.5,-run_l+.045),"sandstone",true)
+	for z in ([-14,-17] if walkable_overlook else [-14,-17,-20.2]):
 		world.arch(Vector3(-1,2.2,z),1.8,1.8,2.1,.22)
-	for z in [-15.6,-19.6]:
+	for z in ([-15.6] if walkable_overlook else [-15.6,-19.6]):
 		world.lantern(Vector3(-2.9,4.5,z))
 	# Top at 2.18, just under the passage paving (2.2) where they overlap.
 	block(Vector3(-1,1.79,-24.0),Vector3(13,.78,8.6),"sandstone",true)
-	block(Vector3(-1,2.21,-24),Vector3(12.6,.035,8),"tile")
+	block(Vector3(-1,2.21,-24),Vector3(12.6,.035,8),"persian_stone" if walkable_overlook else "tile")
 	if walkable_overlook:
 		# On to the loggia's back wall (-18.4): in the camp the gallery's floor
 		# covers this strip; in the Gorge area it was open to the sky beneath.
 		block(Vector3(-1,1.79,-19.05),Vector3(13,.78,1.3),"sandstone",true)
-		block(Vector3(-1,2.21,-19.2),Vector3(12.6,.035,1.6),"tile")
+		block(Vector3(-1,2.21,-19.2),Vector3(12.6,.035,1.6),"persian_stone")
 	# Ceiling and columns frame the view while keeping the player underground.
 	block(Vector3(-1,8.8,-23.8),Vector3(14,.6,10),"cave",true)
-	for x in [-7.0,5.0]:
+	if walkable_overlook:
+		loggia_arches()
+	else:
+		for x in [-7.0,5.0]:
+			for z in [-20.7,-27.4]:
+				block(Vector3(x,5.0,z),Vector3(.55,5.7,.65),"sandstone",true)
+				block(Vector3(x,2.6,z),Vector3(.9,.7,.95),"tile")
+				block(Vector3(x,7.6,z),Vector3(.85,.3,.95),"vista_gold")
 		for z in [-20.7,-27.4]:
-			# Walked, the arches stand on their own jambs and these square columns
-			# go (beside the jambs they read as clipped): only their collision stays.
-			if walkable_overlook:
-				guard(Vector3(x,5.0,z),Vector3(.55,5.7,.65))
-				continue
-			block(Vector3(x,5.0,z),Vector3(.55,5.7,.65),"sandstone",true)
-			block(Vector3(x,2.6,z),Vector3(.9,.7,.95),"tile")
-			block(Vector3(x,7.6,z),Vector3(.85,.3,.95),"vista_gold")
-	for z in [-20.7,-27.4]:
-		world.arch(Vector3(-1,2.2,z),5.7,3.0,2.7,.26)
+			world.arch(Vector3(-1,2.2,z),5.7,3.0,2.7,.26)
+	# Walked, the gorge town's look (phase 8 step 3): brick parapets with a
+	# banai strip, stone paving, a lumen-lit garden (balcony_garden).
+	var parapet: String = "persian_brick" if walkable_overlook else "sandstone"
 	# Solid stone parapets and a continuous guard prevent falling or jumping out
-	# (in the Gorge area, but for the gap onto the stair: x -7.5 .. stair_gap()).
-	var front_x: float = -1.0 if not walkable_overlook else (stair_gap() + 5.5) * .5
-	var front_w: float = 13.0 if not walkable_overlook else 5.5 - stair_gap()
-	block(Vector3(front_x,2.56,-28.1),Vector3(front_w,.7,.5),"sandstone",true)
+	# (in the Gorge area, but for the gap onto the stair in the middle: either
+	# side of it, x -7.525 .. stair_gap().x and stair_gap().y .. 5.525).
+	var fronts: Array[Vector2] = []
+	if walkable_overlook:
+		fronts.assign([Vector2(-7.525, stair_gap().x), Vector2(stair_gap().y, 5.525)])
+	else:
+		fronts.append(Vector2(-7.5, 5.5))
+	for f: Vector2 in fronts:
+		block(Vector3((f.x+f.y)*.5,2.56,-28.1),Vector3(f.y-f.x,.7,.5),parapet,true)
 	# Walked, the side parapets run on to the loggia's back wall (-18.4), as
 	# the floor does; in the camp the gallery begins at -19.85.
 	var side_z: float = -23.375 if walkable_overlook else -24.1
 	var side_l: float = 9.95 if walkable_overlook else 8.5
 	for x in [-7.3,5.3]:
-		block(Vector3(x,2.56,side_z),Vector3(.45,.7,side_l),"sandstone",true)
-		block(Vector3(x,3.25,side_z),Vector3(.24,.18,side_l),"vista_gold")
+		block(Vector3(x,2.56,side_z),Vector3(.45,.7,side_l),parapet,true)
+		if walkable_overlook:
+			block(Vector3(x,2.96,side_z),Vector3(.6,.1,side_l+.1),"persian_stone")
+		else:
+			block(Vector3(x,3.25,side_z),Vector3(.24,.18,side_l),"vista_gold")
 		guard(Vector3(x,4.0,side_z),Vector3(.4,3.8,side_l))
-	guard(Vector3(front_x,4,-28.1),Vector3(front_w,3.8,.4))
-	block(Vector3(front_x,3.25,-28.1),Vector3(front_w,.08,.12),"limestone")
-	for x in range(-7,6):
-		if walkable_overlook and x < stair_gap():
-			continue
-		block(Vector3(x,2.72,-27.79),Vector3(.55,.42,.035),"tile")
+	for f: Vector2 in fronts:
+		guard(Vector3((f.x+f.y)*.5,4,-28.1),Vector3(f.y-f.x,3.8,.4))
+		if walkable_overlook:
+			# A stone coping (5 cm over the parapet each side) and one banai band
+			# along its face, to the end under the stair's newel.
+			block(Vector3((f.x+f.y)*.5,2.96,-28.1),Vector3(f.y-f.x,.1,.6),"persian_stone")
+			block(Vector3((f.x+f.y)*.5,2.62,-28.37),Vector3(f.y-f.x-.1,.2,.04),"persian_banai")
+		else:
+			block(Vector3((f.x+f.y)*.5,3.25,-28.1),Vector3(f.y-f.x,.08,.12),"limestone")
+	if not walkable_overlook:
+		for x in range(-7,6):
+			block(Vector3(x,2.72,-27.79),Vector3(.55,.42,.035),"tile")
 	world.lantern(Vector3(-6.4,3.9,-26.4))
 	world.lantern(Vector3(4.4,3.9,-26.4))
 	world.light(Vector3(-1,6,-23.6),Color("92b9c2"),1.6,13)
-	world.interaction("vista","Survey the Eternal Library",Vector3(-1,3.4,-27.8),Vector3(5,1.8,.25))
+	# Walked, on the parapet east of the stair (the stair arrives in the middle).
+	var survey_x: float = (stair_gap().y + 5.525) * .5 if walkable_overlook else -1.0
+	world.interaction("vista","Survey the Eternal Library",Vector3(survey_x,3.4,-27.8),Vector3(5 if not walkable_overlook else 5.525 - stair_gap().y,1.8,.25))
 	# A small lectern and pots reward noticing the foreground rather than only the vista.
 	var lectern = block(Vector3(2.4,3,-26.2),Vector3(.8,.13,.55),"wood")
 	lectern.rotation.x = .24
 	block(Vector3(2.4,2.62,-26.2),Vector3(.2,.8,.24),"sandstone")
 	block(Vector3(2.4,3.12,-26.2),Vector3(.56,.08,.4),"pages").rotation.x = .24
-	art.vase(Vector3(-6.2,2.23,-22.4),1.2)
-	art.vase(Vector3(4.2,2.23,-22.4),1.0)
+	if walkable_overlook:
+		balcony_garden()
+	else:
+		art.vase(Vector3(-6.2,2.23,-22.4),1.2)
+		art.vase(Vector3(4.2,2.23,-22.4),1.0)
+
+## Walked (phase 8 step 3, your walk): the loggia's two arches run wall to
+## wall (their tiled spandrels met the brick-lined walls with a gap) and up
+## into the canopy (they stopped short of it); the back one stands on the back
+## wall and frames the camp's door, the front one at the loggia's mouth.
+## Their jambs' collision as the columns' was.
+const LOGGIA_ARCH_RADIUS: float = 6.23     # + thickness 0.26: 6.49 from x -1, the walls' brick
+const LOGGIA_ARCHES: Array[float] = [-19.01, -27.4]     # the back one's 1.1 m stones against the back wall's brick (-18.46)
+func loggia_arches() -> void:
+	for z: float in LOGGIA_ARCHES:
+		world.arch(Vector3(-1,2.2,z),LOGGIA_ARCH_RADIUS,3.0,2.7,.26,true,9.1-2.2)
+		for side: float in [-1.0, 1.0]:
+			guard(Vector3(-1+side*(LOGGIA_ARCH_RADIUS+.13),5.0,z),Vector3(.3,5.7,1.1))
+
+## Walked (phase 8 step 3): the terrace's garden, by the gorge town's rule
+## that green grows only in light: a planted bed along each side parapet, and
+## (your walk: the back wall looked empty) a bed against the back wall either
+## side of the door frame with a lumen stone at its outer end, inside the
+## arch's jamb, its mirror turned to throw the light out over the garden
+## (facing the door, it showed you its back). A pool with a fountain in the
+## middle. Kit pieces.
+func balcony_garden() -> void:
+	var along := Basis(Vector3.UP, PI * .5)
+	var out := Basis(Vector3.UP, PI)
+	for side: float in [-1.0, 1.0]:
+		kit_piece("persian_bed", Transform3D(along, Vector3(-1 + side * 5.25, 2.23, -22.6)))
+		# 2.5 m of the bed's 4 (scaled), between the lumen stone and the door
+		# frame (x -3.5 .. 1.5), its back 0.15 m off the wall's brick (-18.46).
+		kit_piece("persian_bed", Transform3D(Basis.from_scale(Vector3(.625, 1, 1)), Vector3(-1 + side * 3.85, 2.23, -19.41)))
+		kit_piece("persian_lumen_post", Transform3D(out, Vector3(-1 + side * 5.6, 2.23, -19.3)))
+	# A pool and fountain in the middle (your walk), 4.8 x 2.4 m (the kit's 8 x 4
+	# scaled, the kerb its height): 2 m clear of the side beds, 1 m of the
+	# columns, 1.2 m of the back beds, a walk all round. Solid, so you go round.
+	kit_piece("persian_pool", Transform3D(along * Basis.from_scale(Vector3(.6, 1, .6)), Vector3(-1, 2.23, -22.6)))
+	# (Its jet's cards read as a dark strip against the door: left out.)
+	kit_piece("persian_fountain", Transform3D(Basis(), Vector3(-1, 2.23, -22.6)), "jet")
+	guard(Vector3(-1, 2.6, -22.6), Vector3(4.8, .75, 2.4))
+
+## A Persian kit piece (kit/modules/persian), placed in the scene.
+## `skip`: parts (by name) to leave out.
+func kit_piece(module: String, xf: Transform3D, skip: String = "") -> Node3D:
+	# Copied out of its scene as plain meshes and lights, so a bake saves them
+	# with the vista's light layers (inside an instance they would load from
+	# the module's file); kept out of merge_static_geometry, which merges by
+	# material override.
+	var piece: Node3D = (load("res://kit/modules/persian/%s.tscn" % module) as PackedScene).instantiate()
+	var holder := Node3D.new()
+	holder.name = module
+	holder.set_meta("dynamic", true)
+	art.root.add_child(holder)
+	holder.transform = xf
+	for n: Node in piece.find_children("*", "", true, false):
+		if not (n is MeshInstance3D or n is Light3D) or (skip != "" and String(n.name).contains(skip)):
+			continue
+		var copy: Node3D = n.duplicate(0)
+		var at: Transform3D = Transform3D.IDENTITY
+		var up: Node = n
+		while up != piece:
+			at = (up as Node3D).transform * at
+			up = up.get_parent()
+		holder.add_child(copy)
+		copy.transform = at
+		if copy is MeshInstance3D:
+			(copy as MeshInstance3D).layers = art.render_layer
+	piece.free()
+	return holder
 
 func guard(p: Vector3, size: Vector3) -> void:
 	var body = StaticBody3D.new()
@@ -225,22 +324,28 @@ func guard(p: Vector3, size: Vector3) -> void:
 	body.add_child(collision)
 	world.add_child(body)
 
+# Walked, the parapets have a plain stone coping instead (build_balcony; your
+# walk: these caps, balusters and posts clipped through each other).
 func balcony_details() -> void:
 	# Carved stone caps and turned balusters soften the former dark horizontal bar.
 	for x in range(-7,6):
-		if walkable_overlook and x < stair_gap():
+		if walkable_overlook:
+			break
+		if in_stair_gap(x, .5):
 			continue
 		art.bevel_box(Vector3(x,2.95,-28.06),Vector3(.91,.12,.66),art.mat("limestone"),.035)
 		var profile = [Vector2(0,0),Vector2(.11,0),Vector2(.07,.08),Vector2(.12,.18),Vector2(.055,.28),Vector2(.06,.44),Vector2(.10,.49),Vector2(0,.49)]
 		art.mesh_node(art.lathe(profile,12),Vector3(x+.46,2.76,-28.1),art.mat("limestone"))
 	for x in [-6.8,-3.7,1.7,4.8]:
-		if walkable_overlook and x < stair_gap():
+		if walkable_overlook:
+			break
+		if in_stair_gap(x, .3):
 			continue
 		art.bevel_box(Vector3(x,2.89,-28.01),Vector3(.42,.64,.74),art.mat("exterior_faience"),.04)  # 3 cm proud of the parapet front
 		art.bevel_box(Vector3(x,3.24,-28.0),Vector3(.56,.12,.8),art.mat("limestone"),.025)
 	# The rug is folded over the parapet and continues onto the terrace floor
 	# (walked, the parapet there is the way onto the stair: no rug).
-	if not walkable_overlook or -3.2 > stair_gap() + 1.05:
+	if not in_stair_gap(-3.2, 1.05):
 		var rug = QuadMesh.new()
 		rug.size = Vector2(2.1,1.2)
 		art.mesh_node(rug,Vector3(-3.2,2.52,-27.76),art.mat("rug"))
@@ -254,7 +359,8 @@ func balcony_details() -> void:
 			# Walked, four fluted columns in a square round the balcony's middle
 			# hold up its roof (6.2 m, to the canopy's underside); beside the
 			# arches' jambs they read as a second support. Behind the box-art view.
-			for z in [-22.0,-25.4]:
+			# (Not the pair by the door: your walk, phase 8 step 3.)
+			for z in [-25.4]:
 				var cx: float = -1+side*2.6
 				fluted_column(Vector3(cx,2.22,z),.35,6.28)
 				guard(Vector3(cx,5.4,z),Vector3(.7,6.2,.7))

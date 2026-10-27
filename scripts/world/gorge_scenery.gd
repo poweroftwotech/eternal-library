@@ -8,7 +8,10 @@ extends RefCounted
 ## ledge) are hidden in their batches. Walls, tiers and decks stay: the
 ## planner keeps the network clear of those.
 
-const REMOVABLE: PackedStringArray = ["gorge_bay_", "gorge_lamp", "gorge_banner_", "gorge_figure", "gorge_cypress_", "gorge_pavilion_"]
+const REMOVABLE: PackedStringArray = ["gorge_bay_", "gorge_lamp", "gorge_banner_", "gorge_figure", "gorge_cypress_", "gorge_pavilion_",
+	# the Persian banks (phase-8-design.md 8.3): facades and roof life
+	"persian_wall_", "persian_lamp", "persian_glowmoss", "persian_fungus", "persian_bed", "persian_pomegranate",
+	"persian_windcatcher", "persian_stair", "persian_parapet", "persian_oriel", "persian_awning", "persian_cornice"]
 
 
 ## Hides what meets the claims ([{xf: Transform3D, size: Vector3}], global:

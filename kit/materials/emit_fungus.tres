@@ -1,0 +1,7 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://dajodtfwj5k08"]
+
+[resource]
+resource_name = "emit_fungus"
+shading_mode = 0
+albedo_color = Color(0.31, 0.82, 0.75, 1)
+texture_filter = 4

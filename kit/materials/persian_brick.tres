@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bvgsq31pudfqa"]
+
+[ext_resource type="Texture2D" uid="uid://blgy7ed3buop5" path="res://assets/textures/px/persian_brick.png" id="1_jj4vx"]
+[ext_resource type="Texture2D" uid="uid://c7502dtw4k2pp" path="res://assets/textures/px/persian_brick_normal.png" id="2_638sy"]
+[ext_resource type="Texture2D" uid="uid://be564dw3bx226" path="res://assets/textures/px/persian_brick_rough.png" id="3_5kv1b"]
+
+[resource]
+resource_name = "persian_brick"
+albedo_texture = ExtResource("1_jj4vx")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_5kv1b")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_638sy")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(0.5, 0.5, 0.5)

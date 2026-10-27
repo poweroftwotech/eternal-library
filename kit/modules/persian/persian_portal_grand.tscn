@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_pxu5l"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_portal_grand.glb" id="2_mec3d"]
+
+[node name="persian_portal_grand" type="Node3D" unique_id=1371001600]
+script = ExtResource("1_pxu5l")
+shape = 0
+family = "persian"
+size_cells = Vector3i(4, 5, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "monument", "portal", "door", "light")
+source_glb = "res://assets/kit/persian/persian_portal_grand.glb"
+
+[node name="Mesh" parent="." unique_id=78698976 instance=ExtResource("2_mec3d")]

@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_pasl8"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_crown_corner.glb" id="2_h7cd8"]
+
+[node name="persian_crown_corner" type="Node3D" unique_id=233201556]
+script = ExtResource("1_pasl8")
+shape = 2
+family = "persian"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("scenery", "persian", "trim", "crown")
+source_glb = "res://assets/kit/persian/persian_crown_corner.glb"
+
+[node name="Mesh" parent="." unique_id=406549616 instance=ExtResource("2_h7cd8")]

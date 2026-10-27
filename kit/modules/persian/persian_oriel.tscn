@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_c32qx"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_oriel.glb" id="2_tbuwm"]
+
+[node name="persian_oriel" type="Node3D" unique_id=1401471651]
+script = ExtResource("1_c32qx")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "house", "window", "light")
+source_glb = "res://assets/kit/persian/persian_oriel.glb"
+
+[node name="Mesh" parent="." unique_id=1096702736 instance=ExtResource("2_tbuwm")]

@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_nfxhc"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_lamp_bracket.glb" id="2_lhrvx"]
+
+[node name="persian_lamp_bracket" type="Node3D" unique_id=1548271543]
+script = ExtResource("1_nfxhc")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "lamp", "light")
+source_glb = "res://assets/kit/persian/persian_lamp_bracket.glb"
+
+[node name="Mesh" parent="." unique_id=651640700 instance=ExtResource("2_lhrvx")]

@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bp3gekcp2r2ba"]
+
+[ext_resource type="Texture2D" uid="uid://ctanr8jnyyvu6" path="res://assets/textures/px/persian_fungus_cap.png" id="1_3n7so"]
+[ext_resource type="Texture2D" uid="uid://iumud8d2e270" path="res://assets/textures/px/persian_fungus_cap_normal.png" id="2_kh3my"]
+[ext_resource type="Texture2D" uid="uid://bgy8f10wr7mjh" path="res://assets/textures/px/persian_fungus_cap_rough.png" id="3_8yyur"]
+
+[resource]
+resource_name = "persian_fungus_cap"
+albedo_texture = ExtResource("1_3n7so")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_8yyur")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_kh3my")
+uv1_scale = Vector3(2, 2, 2)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(2, 2, 2)

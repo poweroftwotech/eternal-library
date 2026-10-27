@@ -51,10 +51,12 @@ func run() -> void:
 	var top: Vector3 = FOREGROUND.STAIR_TOP
 	var landing: Vector3 = FOREGROUND.STAIR_LANDING
 	var flat: Vector3 = Vector3(landing.x - top.x, 0, landing.z - top.z).normalized()
+	# The landing and the walk beyond keep their own line (only the stair turned).
+	var line: Vector3 = FOREGROUND.landing_flat()
 	var across := Vector3(flat.z, 0, -flat.x)
-	var land := Transform3D(Basis(Vector3.UP, atan2(flat.x, flat.z)), landing)
+	var land := Transform3D(Basis(Vector3.UP, atan2(line.x, line.z)), landing)
 	var far_mid: Vector3 = land * Vector3(0, 0, LANDING_HALF)
-	var g_basis := Basis(Vector3.UP.cross(-flat).normalized(), Vector3.UP, -flat)
+	var g_basis := Basis(Vector3.UP.cross(-line).normalized(), Vector3.UP, -line)
 	var g := Transform3D(g_basis, far_mid - g_basis.x * 2.0)
 	var cell := func(i: int, j: int) -> Vector3: return g * Vector3(i * 4.0 + 2.0, -4.0, -j * 4.0 - 2.0)
 	# Along the balcony to behind its opening, then onto the stair's head.
@@ -64,7 +66,7 @@ func run() -> void:
 		route.append(top + flat * d)
 	route.append(landing)
 	route.append(land * Vector3(0, 0, LANDING_HALF - 1.0))
-	route.append(far_mid + flat * 4.0)
+	route.append(far_mid + line * 4.0)
 	var ledge: Array[Vector3] = []
 	for j: int in range(2, 2 + ON_BAYS):
 		ledge.append(cell.call(0, j))
@@ -85,16 +87,20 @@ func run() -> void:
 		"the walk's lowest point (%.1f) is well above the fall limit (%.1f), which is above the safety floor" % [feet, area.recipe.fall_limit])
 	# Nowhere to step off.
 	var off: Dictionary = {
-		"the balcony's parapet": [Vector3(0, 2.2, -27.4), Vector3(0, 0, -3)],
+		# (East of the stair, which arrives in the parapet's middle.)
+		"the balcony's parapet": [Vector3(4.0, 2.2, -27.4), Vector3(0, 0, -3)],
 		"the stair's left side": [top + flat * 15.0 - Vector3(0, 5.0, 0), across * 4.0],
 		"the stair's right side": [top + flat * 15.0 - Vector3(0, 5.0, 0), -across * 4.0],
 		"the landing's left side": [land * Vector3(4.5, 0, 2), land.basis.x * 3.0],
 		"the landing's right side": [land * Vector3(-4.5, 0, 2), -land.basis.x * 3.0],
 		"the landing's far corner": [land * Vector3(-4.5, 0, 4.5), land.basis.z * 3.0],
-		"the flight's cheek": [far_mid + flat * 4.0 + Vector3(0, -2.0, 0), g_basis.x * 3.0],
+		"the flight's cheek": [far_mid + line * 4.0 + Vector3(0, -2.0, 0), g_basis.x * 3.0],
 		"the ledge's end": [ledge[-1], -g_basis.x * 3.0],
 	}
-	off["the stair head's west side"] = [head_mid, across * 3.0]
+	# West, from the first step outside the parapet: from the head's middle that
+	# way is the balcony's floor (closed only by the old columns' collision,
+	# gone with them in phase 8 step 3).
+	off["the stair head's west side"] = [top + flat * .5, across * 3.0]
 	off["the stair head's east side"] = [head_mid, -across * 3.0]
 	# Every open side of every ledge bay (not toward the next bay, nor up the
 	# flight from the first).

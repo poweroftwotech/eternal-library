@@ -1,0 +1,1393 @@
+[gd_scene format=3]
+
+[ext_resource type="Environment" path="res://rooms/baked/gorge/environment.tres" id="1_cwd1t"]
+[ext_resource type="Material" path="res://kit/materials/persian_stone.tres" id="2_ii517"]
+[ext_resource type="Material" path="res://kit/materials/cave_rock.tres" id="3_l3paw"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_door.tscn" id="4_fjlj7"]
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="5_rrx8e"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_window.tscn" id="6_4054w"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster.tscn" id="7_d6vv7"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_window_dark.tscn" id="8_bm1l5"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_roof.tscn" id="9_orjx8"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_parapet.tscn" id="10_p2gsv"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_parapet_corner.tscn" id="11_brqgr"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_windcatcher.tscn" id="12_7o5s5"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_lamp_bracket.tscn" id="13_5qne1"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime_window.tscn" id="14_ebyvq"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime_door.tscn" id="15_oochr"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime_window_dark.tscn" id="16_664rv"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime.tscn" id="17_6v2km"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_parapet_lime.tscn" id="18_p26xi"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_bed.tscn" id="19_xkdil"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_pomegranate.tscn" id="20_iv0t1"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/gorge_cypress_6.tscn" id="21_dk1gv"]
+[ext_resource type="Script" path="res://scripts/world/light_shaft.gd" id="22_rdouq"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_brick_arcade.tscn" id="23_ejby6"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_brick_arcade_dark.tscn" id="24_gr6ws"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_brick_orosi.tscn" id="25_0lsif"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_portal.tscn" id="26_uesse"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_crown.tscn" id="27_rjg3n"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_brick.tscn" id="28_bw4vp"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_plinth.tscn" id="29_pysyr"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_dome.tscn" id="30_sm1kl"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_minaret.tscn" id="31_2jwr8"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_pool.tscn" id="32_oamjr"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_fountain.tscn" id="33_qs7fo"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_lumen_post.tscn" id="34_3lat3"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_carved_door.tscn" id="35_ny4ro"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_carved_window.tscn" id="36_iooyb"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_carved_door_dark.tscn" id="37_gsnsn"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_carved_window_dark.tscn" id="38_5s2jf"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_rock_path.tscn" id="39_3h6od"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_glowmoss.tscn" id="40_pdsfw"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_iwan_great.tscn" id="41_xvvgr"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_fungus_small.tscn" id="42_n3p2d"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_fungus_cluster.tscn" id="43_lwnt4"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_fungus_giant_9.tscn" id="44_lhig7"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_fungus_giant_6.tscn" id="45_0d14x"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_fungus_jelly.tscn" id="46_kxtwb"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_bed_fungal.tscn" id="47_pe7y5"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_channel.tscn" id="48_i3xyg"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_spillway_great.tscn" id="49_rihga"]
+[ext_resource type="Script" path="res://scripts/world/great_fall.gd" id="50_vr5gs"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_76dsb"]
+size = Vector3(200, 1, 90)
+
+[sub_resource type="BoxMesh" id="BoxMesh_c6vmb"]
+size = Vector3(200, 60, 20)
+
+[sub_resource type="BoxMesh" id="BoxMesh_u27of"]
+size = Vector3(20, 30, 10)
+
+[node name="PersianGallery" type="Node3D" unique_id=1105237810]
+
+[node name="Environment" type="WorldEnvironment" parent="." unique_id=1203778810]
+environment = ExtResource("1_cwd1t")
+
+[node name="VaultBounce" type="DirectionalLight3D" parent="." unique_id=725589804]
+transform = Transform3D(0.88294756, 0.29544804, -0.36484793, 0, 0.7771459, 0.6293204, 0.46947157, -0.5556569, 0.6861791, 0, 0, 0)
+light_color = Color(0.8039216, 0.7176471, 0.6039216, 1)
+light_energy = 0.68
+light_volumetric_fog_energy = 0.1
+shadow_enabled = true
+directional_shadow_mode = 1
+
+[node name="Ground" type="MeshInstance3D" parent="." unique_id=579296998]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.5, 10)
+material_override = ExtResource("2_ii517")
+mesh = SubResource("BoxMesh_76dsb")
+
+[node name="Cliff" type="MeshInstance3D" parent="." unique_id=1395059433]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 30, -16)
+material_override = ExtResource("3_l3paw")
+mesh = SubResource("BoxMesh_c6vmb")
+
+[node name="Houses" type="Node3D" parent="." unique_id=836917854]
+
+[node name="persian_wall_plaster_door" type="Node3D" parent="Houses" unique_id=1435608988 instance=ExtResource("4_fjlj7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54, 0, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house", "door")
+source_glb = "res://assets/kit/persian/persian_wall_plaster_door.glb"
+
+[node name="persian_wall_plaster_window" type="Node3D" parent="Houses" unique_id=1812242281 instance=ExtResource("6_4054w")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 0, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
+source_glb = "res://assets/kit/persian/persian_wall_plaster_window.glb"
+
+[node name="persian_wall_plaster" type="Node3D" parent="Houses" unique_id=2142448690 instance=ExtResource("7_d6vv7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46, 0, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house")
+source_glb = "res://assets/kit/persian/persian_wall_plaster.glb"
+
+[node name="persian_wall_plaster_window_dark" type="Node3D" parent="Houses" unique_id=317715666 instance=ExtResource("8_bm1l5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54, 4, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house", "window")
+source_glb = "res://assets/kit/persian/persian_wall_plaster_window_dark.glb"
+
+[node name="@Node3D@2" type="Node3D" parent="Houses" unique_id=834763448 instance=ExtResource("6_4054w")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 4, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
+source_glb = "res://assets/kit/persian/persian_wall_plaster_window.glb"
+
+[node name="@Node3D@3" type="Node3D" parent="Houses" unique_id=715985865 instance=ExtResource("6_4054w")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46, 4, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
+source_glb = "res://assets/kit/persian/persian_wall_plaster_window.glb"
+
+[node name="@Node3D@4" type="Node3D" parent="Houses" unique_id=2097108138 instance=ExtResource("7_d6vv7")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -54, 0, -6)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house")
+source_glb = "res://assets/kit/persian/persian_wall_plaster.glb"
+
+[node name="@Node3D@5" type="Node3D" parent="Houses" unique_id=830056678 instance=ExtResource("7_d6vv7")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -42, 0, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house")
+source_glb = "res://assets/kit/persian/persian_wall_plaster.glb"
+
+[node name="@Node3D@6" type="Node3D" parent="Houses" unique_id=70898803 instance=ExtResource("7_d6vv7")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -54, 4, -6)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house")
+source_glb = "res://assets/kit/persian/persian_wall_plaster.glb"
+
+[node name="@Node3D@7" type="Node3D" parent="Houses" unique_id=1758703153 instance=ExtResource("7_d6vv7")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -42, 4, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house")
+source_glb = "res://assets/kit/persian/persian_wall_plaster.glb"
+
+[node name="persian_roof" type="Node3D" parent="Houses" unique_id=1196020363 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="persian_parapet" type="Node3D" parent="Houses" unique_id=24204898 instance=ExtResource("10_p2gsv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "rail"
+tags = PackedStringArray("scenery", "persian", "rail", "house")
+source_glb = "res://assets/kit/persian/persian_parapet.glb"
+
+[node name="@Node3D@8" type="Node3D" parent="Houses" unique_id=238546048 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@9" type="Node3D" parent="Houses" unique_id=1173333912 instance=ExtResource("10_p2gsv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "rail"
+tags = PackedStringArray("scenery", "persian", "rail", "house")
+source_glb = "res://assets/kit/persian/persian_parapet.glb"
+
+[node name="@Node3D@10" type="Node3D" parent="Houses" unique_id=1434782212 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@11" type="Node3D" parent="Houses" unique_id=1767016260 instance=ExtResource("10_p2gsv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "rail"
+tags = PackedStringArray("scenery", "persian", "rail", "house")
+source_glb = "res://assets/kit/persian/persian_parapet.glb"
+
+[node name="persian_parapet_corner" type="Node3D" parent="Houses" unique_id=573991530 instance=ExtResource("11_brqgr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -54.2, 8, -2.2)
+script = ExtResource("5_rrx8e")
+shape = 2
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "rail", "house")
+source_glb = "res://assets/kit/persian/persian_parapet_corner.glb"
+
+[node name="@Node3D@12" type="Node3D" parent="Houses" unique_id=1456617727 instance=ExtResource("11_brqgr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -42.2, 8, -2.2)
+script = ExtResource("5_rrx8e")
+shape = 2
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "rail", "house")
+source_glb = "res://assets/kit/persian/persian_parapet_corner.glb"
+
+[node name="persian_windcatcher" type="Node3D" parent="Houses" unique_id=2075383257 instance=ExtResource("12_7o5s5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -44, 8, -4.5)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("scenery", "persian", "house", "roof")
+source_glb = "res://assets/kit/persian/persian_windcatcher.glb"
+
+[node name="persian_lamp_bracket" type="Node3D" parent="Houses" unique_id=1548271543 instance=ExtResource("13_5qne1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -50.9, 3, -2)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "lamp", "light")
+source_glb = "res://assets/kit/persian/persian_lamp_bracket.glb"
+
+[node name="persian_wall_lime_window" type="Node3D" parent="Houses" unique_id=827268654 instance=ExtResource("14_ebyvq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, -3)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
+source_glb = "res://assets/kit/persian/persian_wall_lime_window.glb"
+
+[node name="persian_wall_lime_door" type="Node3D" parent="Houses" unique_id=1666465568 instance=ExtResource("15_oochr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 0, -3)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house", "door")
+source_glb = "res://assets/kit/persian/persian_wall_lime_door.glb"
+
+[node name="persian_wall_lime_window_dark" type="Node3D" parent="Houses" unique_id=508410621 instance=ExtResource("16_664rv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 4, -3)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house", "window")
+source_glb = "res://assets/kit/persian/persian_wall_lime_window_dark.glb"
+
+[node name="@Node3D@13" type="Node3D" parent="Houses" unique_id=828116976 instance=ExtResource("14_ebyvq")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 4, -3)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
+source_glb = "res://assets/kit/persian/persian_wall_lime_window.glb"
+
+[node name="persian_wall_lime" type="Node3D" parent="Houses" unique_id=1968340017 instance=ExtResource("17_6v2km")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -40, 0, -7)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house")
+source_glb = "res://assets/kit/persian/persian_wall_lime.glb"
+
+[node name="@Node3D@14" type="Node3D" parent="Houses" unique_id=1250519720 instance=ExtResource("17_6v2km")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -32, 0, -3)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house")
+source_glb = "res://assets/kit/persian/persian_wall_lime.glb"
+
+[node name="@Node3D@15" type="Node3D" parent="Houses" unique_id=493329037 instance=ExtResource("17_6v2km")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -40, 4, -7)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house")
+source_glb = "res://assets/kit/persian/persian_wall_lime.glb"
+
+[node name="@Node3D@16" type="Node3D" parent="Houses" unique_id=398931386 instance=ExtResource("17_6v2km")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -32, 4, -3)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house")
+source_glb = "res://assets/kit/persian/persian_wall_lime.glb"
+
+[node name="@Node3D@17" type="Node3D" parent="Houses" unique_id=1999481344 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8, -3)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="persian_parapet_lime" type="Node3D" parent="Houses" unique_id=1431352418 instance=ExtResource("18_p26xi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 8, -3)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "rail"
+tags = PackedStringArray("scenery", "persian", "rail", "house")
+source_glb = "res://assets/kit/persian/persian_parapet_lime.glb"
+
+[node name="@Node3D@18" type="Node3D" parent="Houses" unique_id=2054083725 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 8, -3)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@19" type="Node3D" parent="Houses" unique_id=964457162 instance=ExtResource("18_p26xi")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36, 8, -3)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "rail"
+tags = PackedStringArray("scenery", "persian", "rail", "house")
+source_glb = "res://assets/kit/persian/persian_parapet_lime.glb"
+
+[node name="@Node3D@20" type="Node3D" parent="Houses" unique_id=134712186 instance=ExtResource("11_brqgr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40.2, 8, -3.2)
+script = ExtResource("5_rrx8e")
+shape = 2
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "rail", "house")
+source_glb = "res://assets/kit/persian/persian_parapet_corner.glb"
+
+[node name="@Node3D@21" type="Node3D" parent="Houses" unique_id=970603610 instance=ExtResource("11_brqgr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -32.2, 8, -3.2)
+script = ExtResource("5_rrx8e")
+shape = 2
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "rail", "house")
+source_glb = "res://assets/kit/persian/persian_parapet_corner.glb"
+
+[node name="@Node3D@22" type="Node3D" parent="Houses" unique_id=1152285312 instance=ExtResource("13_5qne1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -35, 3, -3)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "lamp", "light")
+source_glb = "res://assets/kit/persian/persian_lamp_bracket.glb"
+
+[node name="persian_bed" type="Node3D" parent="Houses" unique_id=1185140258 instance=ExtResource("19_xkdil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -46, 0, 5)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_bed.glb"
+
+[node name="@Node3D@23" type="Node3D" parent="Houses" unique_id=1892979746 instance=ExtResource("19_xkdil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -40, 0, 5)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_bed.glb"
+
+[node name="persian_pomegranate" type="Node3D" parent="Houses" unique_id=929135769 instance=ExtResource("20_iv0t1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43, 0, 8)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_pomegranate.glb"
+
+[node name="gorge_cypress_6" type="Node3D" parent="Houses" unique_id=1677194624 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -49.5, 0, 5)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@24" type="Node3D" parent="Houses" unique_id=305864035 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -36.5, 0, 5)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="LightShaft" type="Node3D" parent="Houses" unique_id=2009599777]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -43, 46, 5)
+script = ExtResource("22_rdouq")
+height = 46.0
+radius = 8.0
+energy = 10.0
+haze = 0.2
+
+[node name="Monument" type="Node3D" parent="." unique_id=940727131]
+
+[node name="persian_wall_brick_arcade" type="Node3D" parent="Monument" unique_id=1401012996 instance=ExtResource("23_ejby6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument", "arcade", "light")
+source_glb = "res://assets/kit/persian/persian_wall_brick_arcade.glb"
+
+[node name="persian_wall_brick_arcade_dark" type="Node3D" parent="Monument" unique_id=331774512 instance=ExtResource("24_gr6ws")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument", "arcade")
+source_glb = "res://assets/kit/persian/persian_wall_brick_arcade_dark.glb"
+
+[node name="@Node3D@25" type="Node3D" parent="Monument" unique_id=903275878 instance=ExtResource("23_ejby6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument", "arcade", "light")
+source_glb = "res://assets/kit/persian/persian_wall_brick_arcade.glb"
+
+[node name="@Node3D@26" type="Node3D" parent="Monument" unique_id=1372215529 instance=ExtResource("23_ejby6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument", "arcade", "light")
+source_glb = "res://assets/kit/persian/persian_wall_brick_arcade.glb"
+
+[node name="@Node3D@27" type="Node3D" parent="Monument" unique_id=1559055554 instance=ExtResource("24_gr6ws")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 4, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument", "arcade")
+source_glb = "res://assets/kit/persian/persian_wall_brick_arcade_dark.glb"
+
+[node name="persian_wall_brick_orosi" type="Node3D" parent="Monument" unique_id=1922620303 instance=ExtResource("25_0lsif")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 4, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument", "window", "light")
+source_glb = "res://assets/kit/persian/persian_wall_brick_orosi.glb"
+
+[node name="@Node3D@28" type="Node3D" parent="Monument" unique_id=2117748040 instance=ExtResource("25_0lsif")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 4, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument", "window", "light")
+source_glb = "res://assets/kit/persian/persian_wall_brick_orosi.glb"
+
+[node name="@Node3D@29" type="Node3D" parent="Monument" unique_id=362888992 instance=ExtResource("23_ejby6")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 4, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument", "arcade", "light")
+source_glb = "res://assets/kit/persian/persian_wall_brick_arcade.glb"
+
+[node name="persian_portal" type="Node3D" parent="Monument" unique_id=1317458781 instance=ExtResource("26_uesse")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(3, 4, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "monument", "portal", "door", "light")
+source_glb = "res://assets/kit/persian/persian_portal.glb"
+
+[node name="persian_crown" type="Node3D" parent="Monument" unique_id=102177331 instance=ExtResource("27_rjg3n")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 8, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "trim", "crown")
+source_glb = "res://assets/kit/persian/persian_crown.glb"
+
+[node name="@Node3D@30" type="Node3D" parent="Monument" unique_id=2133257332 instance=ExtResource("27_rjg3n")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 8, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "trim", "crown")
+source_glb = "res://assets/kit/persian/persian_crown.glb"
+
+[node name="@Node3D@31" type="Node3D" parent="Monument" unique_id=1150869633 instance=ExtResource("27_rjg3n")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 8, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "trim", "crown")
+source_glb = "res://assets/kit/persian/persian_crown.glb"
+
+[node name="@Node3D@32" type="Node3D" parent="Monument" unique_id=1647568985 instance=ExtResource("27_rjg3n")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 8, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "trim", "crown")
+source_glb = "res://assets/kit/persian/persian_crown.glb"
+
+[node name="persian_wall_brick" type="Node3D" parent="Monument" unique_id=605335472 instance=ExtResource("28_bw4vp")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -14, 0, -6)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument")
+source_glb = "res://assets/kit/persian/persian_wall_brick.glb"
+
+[node name="@Node3D@33" type="Node3D" parent="Monument" unique_id=511569875 instance=ExtResource("28_bw4vp")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 14, 0, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument")
+source_glb = "res://assets/kit/persian/persian_wall_brick.glb"
+
+[node name="@Node3D@34" type="Node3D" parent="Monument" unique_id=1326137934 instance=ExtResource("28_bw4vp")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -14, 0, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument")
+source_glb = "res://assets/kit/persian/persian_wall_brick.glb"
+
+[node name="@Node3D@35" type="Node3D" parent="Monument" unique_id=848181757 instance=ExtResource("28_bw4vp")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 14, 0, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument")
+source_glb = "res://assets/kit/persian/persian_wall_brick.glb"
+
+[node name="@Node3D@36" type="Node3D" parent="Monument" unique_id=1125202080 instance=ExtResource("28_bw4vp")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -14, 4, -6)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument")
+source_glb = "res://assets/kit/persian/persian_wall_brick.glb"
+
+[node name="@Node3D@37" type="Node3D" parent="Monument" unique_id=653528067 instance=ExtResource("28_bw4vp")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 14, 4, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument")
+source_glb = "res://assets/kit/persian/persian_wall_brick.glb"
+
+[node name="@Node3D@38" type="Node3D" parent="Monument" unique_id=40311698 instance=ExtResource("28_bw4vp")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -14, 4, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument")
+source_glb = "res://assets/kit/persian/persian_wall_brick.glb"
+
+[node name="@Node3D@39" type="Node3D" parent="Monument" unique_id=659809968 instance=ExtResource("28_bw4vp")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 14, 4, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "monument")
+source_glb = "res://assets/kit/persian/persian_wall_brick.glb"
+
+[node name="persian_plinth" type="Node3D" parent="Monument" unique_id=1610934538 instance=ExtResource("29_pysyr")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -14, 0, -6)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "trim")
+source_glb = "res://assets/kit/persian/persian_plinth.glb"
+
+[node name="@Node3D@40" type="Node3D" parent="Monument" unique_id=451379600 instance=ExtResource("29_pysyr")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 14, 0, 2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "trim")
+source_glb = "res://assets/kit/persian/persian_plinth.glb"
+
+[node name="@Node3D@41" type="Node3D" parent="Monument" unique_id=1857490895 instance=ExtResource("29_pysyr")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -14, 0, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "trim")
+source_glb = "res://assets/kit/persian/persian_plinth.glb"
+
+[node name="@Node3D@42" type="Node3D" parent="Monument" unique_id=30690646 instance=ExtResource("29_pysyr")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 14, 0, -2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "trim")
+source_glb = "res://assets/kit/persian/persian_plinth.glb"
+
+[node name="persian_roof" type="Node3D" parent="Monument" unique_id=1161874899 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 8, 2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@43" type="Node3D" parent="Monument" unique_id=1803973538 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@44" type="Node3D" parent="Monument" unique_id=1250816863 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 8, 2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@45" type="Node3D" parent="Monument" unique_id=409752977 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@46" type="Node3D" parent="Monument" unique_id=1400226241 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@47" type="Node3D" parent="Monument" unique_id=1317640138 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@48" type="Node3D" parent="Monument" unique_id=821649545 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@49" type="Node3D" parent="Monument" unique_id=814493812 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 8, 2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@50" type="Node3D" parent="Monument" unique_id=4104461 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@51" type="Node3D" parent="Monument" unique_id=1264588406 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 8, 2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="@Node3D@52" type="Node3D" parent="Monument" unique_id=1790703583 instance=ExtResource("9_orjx8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 8, -2)
+script = ExtResource("5_rrx8e")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="persian_dome" type="Node3D" parent="Monument" unique_id=1862085828 instance=ExtResource("30_sm1kl")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 8, -4)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(2, 3, 2)
+tags = PackedStringArray("scenery", "persian", "monument", "dome")
+source_glb = "res://assets/kit/persian/persian_dome.glb"
+
+[node name="persian_minaret" type="Node3D" parent="Monument" unique_id=2046589767 instance=ExtResource("31_2jwr8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.5, 0, 1)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(0, 6, 0)
+tags = PackedStringArray("scenery", "persian", "monument", "minaret")
+source_glb = "res://assets/kit/persian/persian_minaret.glb"
+
+[node name="@Node3D@53" type="Node3D" parent="Monument" unique_id=7658699 instance=ExtResource("31_2jwr8")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 16.5, 0, 1)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(0, 6, 0)
+tags = PackedStringArray("scenery", "persian", "monument", "minaret")
+source_glb = "res://assets/kit/persian/persian_minaret.glb"
+
+[node name="persian_pool" type="Node3D" parent="Monument" unique_id=1164329648 instance=ExtResource("32_oamjr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 11)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 2)
+tags = PackedStringArray("scenery", "persian", "garden", "water")
+source_glb = "res://assets/kit/persian/persian_pool.glb"
+
+[node name="persian_fountain" type="Node3D" parent="Monument" unique_id=1254969154 instance=ExtResource("33_qs7fo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 11)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "garden", "water")
+source_glb = "res://assets/kit/persian/persian_fountain.glb"
+
+[node name="persian_bed" type="Node3D" parent="Monument" unique_id=737126407 instance=ExtResource("19_xkdil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 8.5)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_bed.glb"
+
+[node name="@Node3D@54" type="Node3D" parent="Monument" unique_id=1477773230 instance=ExtResource("19_xkdil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 13.5)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_bed.glb"
+
+[node name="@Node3D@55" type="Node3D" parent="Monument" unique_id=1824193845 instance=ExtResource("19_xkdil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 8.5)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_bed.glb"
+
+[node name="@Node3D@56" type="Node3D" parent="Monument" unique_id=399701122 instance=ExtResource("19_xkdil")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5, 0, 13.5)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_bed.glb"
+
+[node name="gorge_cypress_6" type="Node3D" parent="Monument" unique_id=1179849491 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.5, 0, 6)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@57" type="Node3D" parent="Monument" unique_id=238876714 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0, 6)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@58" type="Node3D" parent="Monument" unique_id=2061726248 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.5, 0, 9.5)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@59" type="Node3D" parent="Monument" unique_id=1921983072 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0, 9.5)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@60" type="Node3D" parent="Monument" unique_id=30633218 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.5, 0, 13)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@61" type="Node3D" parent="Monument" unique_id=1022629617 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0, 13)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@62" type="Node3D" parent="Monument" unique_id=1725167950 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.5, 0, 16.5)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@63" type="Node3D" parent="Monument" unique_id=1076075925 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 0, 16.5)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="persian_lumen_post" type="Node3D" parent="Monument" unique_id=599451335 instance=ExtResource("34_3lat3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3, 0, 5.5)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("scenery", "persian", "light", "lumen")
+source_glb = "res://assets/kit/persian/persian_lumen_post.glb"
+
+[node name="@Node3D@64" type="Node3D" parent="Monument" unique_id=737096347 instance=ExtResource("34_3lat3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0, 5.5)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("scenery", "persian", "light", "lumen")
+source_glb = "res://assets/kit/persian/persian_lumen_post.glb"
+
+[node name="Carved" type="Node3D" parent="." unique_id=1553209329]
+
+[node name="persian_carved_door" type="Node3D" parent="Carved" unique_id=611174223 instance=ExtResource("35_ny4ro")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 0, -4.2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "carved", "door", "light")
+source_glb = "res://assets/kit/persian/persian_carved_door.glb"
+
+[node name="persian_carved_window" type="Node3D" parent="Carved" unique_id=978331576 instance=ExtResource("36_iooyb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 25, 1.2, -3.8)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "carved", "window", "light")
+source_glb = "res://assets/kit/persian/persian_carved_window.glb"
+
+[node name="persian_carved_door_dark" type="Node3D" parent="Carved" unique_id=266049499 instance=ExtResource("37_gsnsn")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29, 0, -4.2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "carved", "door")
+source_glb = "res://assets/kit/persian/persian_carved_door_dark.glb"
+
+[node name="persian_carved_window_dark" type="Node3D" parent="Carved" unique_id=691932203 instance=ExtResource("38_5s2jf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 1.2, -3.8)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "carved", "window")
+source_glb = "res://assets/kit/persian/persian_carved_window_dark.glb"
+
+[node name="persian_rock_path" type="Node3D" parent="Carved" unique_id=820823584 instance=ExtResource("39_3h6od")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20, 6, -4.2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "carved", "floor", "rail")
+source_glb = "res://assets/kit/persian/persian_rock_path.glb"
+
+[node name="@Node3D@65" type="Node3D" parent="Carved" unique_id=1121088098 instance=ExtResource("39_3h6od")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 6, -4.2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "carved", "floor", "rail")
+source_glb = "res://assets/kit/persian/persian_rock_path.glb"
+
+[node name="@Node3D@66" type="Node3D" parent="Carved" unique_id=1139609599 instance=ExtResource("39_3h6od")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 28, 6, -4.2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "carved", "floor", "rail")
+source_glb = "res://assets/kit/persian/persian_rock_path.glb"
+
+[node name="@Node3D@67" type="Node3D" parent="Carved" unique_id=882348048 instance=ExtResource("39_3h6od")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 32, 6, -4.2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "carved", "floor", "rail")
+source_glb = "res://assets/kit/persian/persian_rock_path.glb"
+
+[node name="@Node3D@68" type="Node3D" parent="Carved" unique_id=1151416865 instance=ExtResource("35_ny4ro")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 24, 6, -4.2)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "carved", "door", "light")
+source_glb = "res://assets/kit/persian/persian_carved_door.glb"
+
+[node name="@Node3D@69" type="Node3D" parent="Carved" unique_id=39042340 instance=ExtResource("38_5s2jf")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 29, 7.2, -3.8)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "carved", "window")
+source_glb = "res://assets/kit/persian/persian_carved_window_dark.glb"
+
+[node name="@Node3D@70" type="Node3D" parent="Carved" unique_id=1868346447 instance=ExtResource("36_iooyb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 22, 12.5, -3.8)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "carved", "window", "light")
+source_glb = "res://assets/kit/persian/persian_carved_window.glb"
+
+[node name="@Node3D@71" type="Node3D" parent="Carved" unique_id=909420064 instance=ExtResource("36_iooyb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 31, 13.5, -3.8)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "carved", "window", "light")
+source_glb = "res://assets/kit/persian/persian_carved_window.glb"
+
+[node name="persian_glowmoss" type="Node3D" parent="Carved" unique_id=1321966000 instance=ExtResource("40_pdsfw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 35, 4.5, -6)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "fungus", "dark")
+source_glb = "res://assets/kit/persian/persian_glowmoss.glb"
+
+[node name="persian_iwan_great" type="Node3D" parent="Carved" unique_id=272154031 instance=ExtResource("41_xvvgr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 2)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(4, 4, 2)
+tags = PackedStringArray("scenery", "persian", "carved", "iwan", "water")
+source_glb = "res://assets/kit/persian/persian_iwan_great.glb"
+
+[node name="persian_lumen_post" type="Node3D" parent="Carved" unique_id=486615125 instance=ExtResource("34_3lat3")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, -0.6)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("scenery", "persian", "light", "lumen")
+source_glb = "res://assets/kit/persian/persian_lumen_post.glb"
+
+[node name="persian_pool" type="Node3D" parent="Carved" unique_id=1358889033 instance=ExtResource("32_oamjr")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 11)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 2)
+tags = PackedStringArray("scenery", "persian", "garden", "water")
+source_glb = "res://assets/kit/persian/persian_pool.glb"
+
+[node name="persian_fountain" type="Node3D" parent="Carved" unique_id=1307668144 instance=ExtResource("33_qs7fo")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 45, 0, 11)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "garden", "water")
+source_glb = "res://assets/kit/persian/persian_fountain.glb"
+
+[node name="persian_bed" type="Node3D" parent="Carved" unique_id=844144878 instance=ExtResource("19_xkdil")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 40.5, 0, 11)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_bed.glb"
+
+[node name="@Node3D@72" type="Node3D" parent="Carved" unique_id=99638462 instance=ExtResource("19_xkdil")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 49.5, 0, 11)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_bed.glb"
+
+[node name="gorge_cypress_6" type="Node3D" parent="Carved" unique_id=1886137212 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.5, 0, 5)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@73" type="Node3D" parent="Carved" unique_id=612737702 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.5, 0, 9)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@74" type="Node3D" parent="Carved" unique_id=1698857439 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.5, 0, 13)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@75" type="Node3D" parent="Carved" unique_id=250534598 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 38.5, 0, 17)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@76" type="Node3D" parent="Carved" unique_id=913685568 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.5, 0, 5)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@77" type="Node3D" parent="Carved" unique_id=579015521 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.5, 0, 9)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@78" type="Node3D" parent="Carved" unique_id=424510622 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.5, 0, 13)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="@Node3D@79" type="Node3D" parent="Carved" unique_id=1520559024 instance=ExtResource("21_dk1gv")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 51.5, 0, 17)
+script = ExtResource("5_rrx8e")
+family = "dressing"
+size_cells = Vector3i(0, 2, 0)
+tags = PackedStringArray("gorge", "plant", "scenery")
+source_glb = "res://assets/kit/dressing/gorge_cypress_6.glb"
+
+[node name="persian_pomegranate" type="Node3D" parent="Carved" unique_id=1979653154 instance=ExtResource("20_iv0t1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 42, 0, 17)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_pomegranate.glb"
+
+[node name="@Node3D@80" type="Node3D" parent="Carved" unique_id=1050529024 instance=ExtResource("20_iv0t1")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 48, 0, 17)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_pomegranate.glb"
+
+[node name="persian_fungus_small" type="Node3D" parent="Carved" unique_id=521374711 instance=ExtResource("42_n3p2d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 56, 0, 6)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("scenery", "persian", "fungus", "dark", "light")
+source_glb = "res://assets/kit/persian/persian_fungus_small.glb"
+
+[node name="persian_fungus_cluster" type="Node3D" parent="Carved" unique_id=2104372749 instance=ExtResource("43_lwnt4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 55, 0, 13)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "fungus", "dark")
+source_glb = "res://assets/kit/persian/persian_fungus_cluster.glb"
+
+[node name="DarkGarden" type="Node3D" parent="." unique_id=2093980830]
+
+[node name="persian_fungus_giant_9" type="Node3D" parent="DarkGarden" unique_id=160119951 instance=ExtResource("44_lhig7")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 64, 0, -2)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 3, 1)
+tags = PackedStringArray("scenery", "persian", "fungus", "dark", "light")
+source_glb = "res://assets/kit/persian/persian_fungus_giant_9.glb"
+
+[node name="persian_fungus_giant_6" type="Node3D" parent="DarkGarden" unique_id=2093533356 instance=ExtResource("45_0d14x")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 83, 0, 1)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 2, 1)
+tags = PackedStringArray("scenery", "persian", "fungus", "dark", "light")
+source_glb = "res://assets/kit/persian/persian_fungus_giant_6.glb"
+
+[node name="@Node3D@81" type="Node3D" parent="DarkGarden" unique_id=1609785086 instance=ExtResource("45_0d14x")]
+transform = Transform3D(-0.76604444, 0, 0.64278764, 0, 1, 0, -0.64278764, 0, -0.76604444, 68, 0, 9)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 2, 1)
+tags = PackedStringArray("scenery", "persian", "fungus", "dark", "light")
+source_glb = "res://assets/kit/persian/persian_fungus_giant_6.glb"
+
+[node name="persian_fungus_jelly" type="Node3D" parent="DarkGarden" unique_id=781603012 instance=ExtResource("46_kxtwb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 71, 0, 2)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 1, 1)
+tags = PackedStringArray("scenery", "persian", "fungus", "dark", "light")
+source_glb = "res://assets/kit/persian/persian_fungus_jelly.glb"
+
+[node name="@Node3D@82" type="Node3D" parent="DarkGarden" unique_id=2098651318 instance=ExtResource("46_kxtwb")]
+transform = Transform3D(0.49999997, 0, 0.86602545, 0, 1, 0, -0.86602545, 0, 0.49999997, 79, 0, -3)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 1, 1)
+tags = PackedStringArray("scenery", "persian", "fungus", "dark", "light")
+source_glb = "res://assets/kit/persian/persian_fungus_jelly.glb"
+
+[node name="persian_fungus_small" type="Node3D" parent="DarkGarden" unique_id=681469497 instance=ExtResource("42_n3p2d")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 76, 0, 9)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("scenery", "persian", "fungus", "dark", "light")
+source_glb = "res://assets/kit/persian/persian_fungus_small.glb"
+
+[node name="persian_fungus_cluster" type="Node3D" parent="DarkGarden" unique_id=313449411 instance=ExtResource("43_lwnt4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66, 0, 4)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "fungus", "dark")
+source_glb = "res://assets/kit/persian/persian_fungus_cluster.glb"
+
+[node name="@Node3D@83" type="Node3D" parent="DarkGarden" unique_id=636116208 instance=ExtResource("43_lwnt4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 81, 0, 6)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "fungus", "dark")
+source_glb = "res://assets/kit/persian/persian_fungus_cluster.glb"
+
+[node name="@Node3D@84" type="Node3D" parent="DarkGarden" unique_id=29858747 instance=ExtResource("43_lwnt4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 73, 0, -4)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "fungus", "dark")
+source_glb = "res://assets/kit/persian/persian_fungus_cluster.glb"
+
+[node name="persian_bed_fungal" type="Node3D" parent="DarkGarden" unique_id=1058479120 instance=ExtResource("47_pe7y5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 73, 0, 5.5)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "fungus", "dark", "light")
+source_glb = "res://assets/kit/persian/persian_bed_fungal.glb"
+
+[node name="@Node3D@85" type="Node3D" parent="DarkGarden" unique_id=1607447520 instance=ExtResource("47_pe7y5")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 73, 0, 9.5)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "fungus", "dark", "light")
+source_glb = "res://assets/kit/persian/persian_bed_fungal.glb"
+
+[node name="persian_channel" type="Node3D" parent="DarkGarden" unique_id=1754203237 instance=ExtResource("48_i3xyg")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 71, 0, 13)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "persian", "garden", "water")
+source_glb = "res://assets/kit/persian/persian_channel.glb"
+
+[node name="persian_glowmoss" type="Node3D" parent="DarkGarden" unique_id=1488157396 instance=ExtResource("40_pdsfw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 66, 3, -6)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "fungus", "dark")
+source_glb = "res://assets/kit/persian/persian_glowmoss.glb"
+
+[node name="@Node3D@86" type="Node3D" parent="DarkGarden" unique_id=570688725 instance=ExtResource("40_pdsfw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 74, 5, -6)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "fungus", "dark")
+source_glb = "res://assets/kit/persian/persian_glowmoss.glb"
+
+[node name="@Node3D@87" type="Node3D" parent="DarkGarden" unique_id=506306351 instance=ExtResource("40_pdsfw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 82, 2.5, -6)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "fungus", "dark")
+source_glb = "res://assets/kit/persian/persian_glowmoss.glb"
+
+[node name="@Node3D@88" type="Node3D" parent="DarkGarden" unique_id=1778888577 instance=ExtResource("40_pdsfw")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 78, 9, -6)
+script = ExtResource("5_rrx8e")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "fungus", "dark")
+source_glb = "res://assets/kit/persian/persian_glowmoss.glb"
+
+[node name="GreatFall" type="Node3D" parent="." unique_id=578799513]
+
+[node name="persian_spillway_great" type="Node3D" parent="GreatFall" unique_id=1574370243 instance=ExtResource("49_rihga")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -81, 26, -6)
+script = ExtResource("5_rrx8e")
+shape = 0
+family = "persian"
+size_cells = Vector3i(3, 2, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "water", "fall")
+source_glb = "res://assets/kit/persian/persian_spillway_great.glb"
+
+[node name="Fall" type="Node3D" parent="GreatFall" unique_id=1639288917]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 27, -3.8)
+script = ExtResource("50_vr5gs")
+width = 7.5
+height = 27.0
+arc_out = 2.5
+
+[node name="persian_pool" type="Node3D" parent="GreatFall" unique_id=1035426228 instance=ExtResource("32_oamjr")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -75, 0, 3)
+script = ExtResource("5_rrx8e")
+family = "persian"
+size_cells = Vector3i(1, 0, 2)
+tags = PackedStringArray("scenery", "persian", "garden", "water")
+source_glb = "res://assets/kit/persian/persian_pool.glb"
+
+[node name="FallRock" type="MeshInstance3D" parent="." unique_id=1762720434]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -75, 15, -11)
+material_override = ExtResource("3_l3paw")
+mesh = SubResource("BoxMesh_u27of")

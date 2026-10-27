@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://qr163uk1shyf"]
+
+[ext_resource type="Texture2D" uid="uid://bi2wcu3pofrin" path="res://assets/textures/px/persian_dome_tile.png" id="1_8djob"]
+[ext_resource type="Texture2D" uid="uid://77k2coc77mrj" path="res://assets/textures/px/persian_dome_tile_normal.png" id="2_yxnf0"]
+[ext_resource type="Texture2D" uid="uid://cvpn3pvd0ohvb" path="res://assets/textures/px/persian_dome_tile_rough.png" id="3_xjqbn"]
+
+[resource]
+resource_name = "persian_dome_tile"
+albedo_texture = ExtResource("1_8djob")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_xjqbn")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_yxnf0")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

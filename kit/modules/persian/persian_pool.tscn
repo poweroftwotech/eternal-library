@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_r2emj"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_pool.glb" id="2_ylm5d"]
+
+[node name="persian_pool" type="Node3D" unique_id=1164329648]
+script = ExtResource("1_r2emj")
+family = "persian"
+size_cells = Vector3i(1, 0, 2)
+tags = PackedStringArray("scenery", "persian", "garden", "water")
+source_glb = "res://assets/kit/persian/persian_pool.glb"
+
+[node name="Mesh" parent="." unique_id=735605522 instance=ExtResource("2_ylm5d")]

@@ -26,10 +26,16 @@ const GATE_SILL: float = -19.0               # iwan top (-7) tucks under the pli
 const GATE_DEPTH: float = .8                 # quarried face at this fraction of the pier radius
 const PIER_RADIUS: float = 9.0
 
-## Just outside the balcony's front, its west balustrade clear of the iwan's
-## west pier (x -10.05 .. -7.55; at -7 the pier stood on half the stair, at
-## -4.7 the balustrade still ran into its corner).
-const STAIR_TOP: Vector3 = Vector3(-4.2, 2.2, -29.2)
+## Just outside the balcony's front, on the line of the camp's door (x -1:
+## your walk, phase 8 step 3, the stair should arrive centred on it). The
+## stair alone turned: the landing, its flight and the ledge keep the line
+## from LANDING_FROM (moved with it, the Overlook's whole walk swung 5 degrees
+## and the ledge ran into bank 1).
+const STAIR_TOP: Vector3 = Vector3(-1.0, 2.2, -29.2)
+## The stair's top before it turned (its west balustrade clear of the iwan's
+## west pier, x -10.05 .. -7.55): the landing and the walk beyond are laid on
+## the line from here to STAIR_LANDING.
+const LANDING_FROM: Vector3 = Vector3(-4.2, 2.2, -29.2)
 ## The camp's stair (only seen from the balcony) stays where the box art
 ## wants it: moved east, it covered the mist floor (box art 0.82 -> 0.75).
 const CAMP_STAIR_TOP: Vector3 = Vector3(-7.0, 2.2, -29.2)
@@ -44,7 +50,7 @@ const STAIR_BASE: float = -20.0              # the stair is cut from one mass
 ## reaches under the balcony's slab all along (at 1.25 its east corner fell
 ## 0.7 m short).
 const STAIR_PARAPET: float = .31
-const STAIR_HEAD: float = 2.2
+const STAIR_HEAD: float = 2.7     # 2.2 before the stair centred: its east balustrade now starts 2.5 m back along it
 const STAIR_FLOOR: float = 2.18
 
 var vista
@@ -147,10 +153,12 @@ func stair() -> void:
 		var head: Node3D = vista.block(stair_top - flat * STAIR_HEAD * .5 + Vector3(0, (head_top + STAIR_BASE) * .5 - stair_top.y, 0),
 			Vector3(STAIR_WIDTH + .1, head_top - STAIR_BASE, STAIR_HEAD), "sandstone")
 		head.rotation.y = yaw
-		# Balustrades as the landing's and the ledge's, from the head to the
-		# landing's edge, on the line through the step tops; the east one also
-		# along the head to the balcony's parapet (the west side of the head is
-		# the balcony's own). Newels where they turn and end.
+		# Balustrades as the landing's and the ledge's, on the line through the
+		# step tops to the landing's edge. Each begins at a newel where its line
+		# crosses the balcony's front parapet, which ends under that newel (your
+		# walk: the stair arrives at a slant, and its ends met the parapet with
+		# a gap on one side and clipped on the other); uphill of the top step
+		# (the east one) it runs level along the head first.
 		# Down to the stair's foot on the landing (stopping at the landing's edge,
 		# the last steps stood bare), a newel there.
 		var end: float = run.length()
@@ -158,24 +166,22 @@ func stair() -> void:
 		var ground := Vector3(stair_top.x, 0, stair_top.z)
 		for side: float in [-1.0, 1.0]:
 			var edge: Vector3 = ground + across * side * (STAIR_WIDTH * .5 - STAIR_PARAPET)
-			vista.balustrade(edge + Vector3(0, line.call(0.0), 0), edge + flat * end + Vector3(0, line.call(end), 0), across * side)
-			# Newels at the top (the landing's own stand at the foot): the west one
-			# wide enough to close the gap to the balcony's side parapet, whose
-			# end it caps.
-			var start: Vector3 = edge + across * side * .18 + Vector3(0, line.call(0.0), 0)
+			var s0: float = parapet_s(side)
+			var from: float = maxf(s0, 0.0)
+			vista.balustrade(edge + flat * from + Vector3(0, line.call(from), 0), edge + flat * end + Vector3(0, line.call(end), 0), across * side)
+			if s0 < 0.0:
+				vista.balustrade(edge + flat * s0 + Vector3(0, STAIR_FLOOR, 0), edge + Vector3(0, STAIR_FLOOR, 0), across * side, .3)
+				# A newel where the level run turns down the stair (your walk: the
+				# two rails met at different heights with nothing between them).
+				newel(edge + across * side * .18 + Vector3(0, STAIR_FLOOR, 0), yaw)
+			# Newels at the parapet and at the foot (the landing's own stand there).
+			newel(edge + flat * s0 + across * side * .18 + Vector3(0, STAIR_FLOOR if s0 < 0.0 else line.call(s0), 0), yaw)
 			newel(edge + flat * end + across * side * .18 + Vector3(0, maxf(line.call(end), STAIR_LANDING.y), 0), yaw)
-			if side < 0.0:
-				newel(start, yaw)
-			else:
-				var parapet_end := Vector3(-7.3, STAIR_FLOOR, -28.35)
-				var mid: Vector3 = (Vector3(start.x, STAIR_FLOOR, start.z) + parapet_end) * .5
-				var span: float = Vector2(start.x - parapet_end.x, start.z - parapet_end.z).length() + .3     # its west end 0.1 m clear of the iwan pier
-				newel(mid, atan2(start.x - parapet_end.x, start.z - parapet_end.z), Vector2(.55, span))
-			if side < 0.0:
-				vista.balustrade(edge - flat * STAIR_HEAD + Vector3(0, STAIR_FLOOR, 0), edge + Vector3(0, STAIR_FLOOR, 0), across * side, .3)
 	# Landing near the left colossus's feet (walked, square: the notched
 	# corners left the balustrade's corners over air).
-	var outline: Callable = (func(r: float) -> PackedVector2Array: return square(Vector2(STAIR_LANDING.x, STAIR_LANDING.z), r, -yaw)) if walkable \
+	# Walked, square to the landing's own line (the stair meets it at an angle).
+	var land_yaw: float = atan2(landing_flat().x, landing_flat().z)
+	var outline: Callable = (func(r: float) -> PackedVector2Array: return square(Vector2(STAIR_LANDING.x, STAIR_LANDING.z), r, -land_yaw)) if walkable \
 		else (func(r: float) -> PackedVector2Array: return vista.tower_outline(Vector2(STAIR_LANDING.x, STAIR_LANDING.z), r, r, -yaw))
 	vista.prism(outline.call(6.0), STAIR_BASE, STAIR_LANDING.y - STAIR_BASE, art.mat("sandstone"))
 	if walkable:
@@ -199,6 +205,27 @@ static func head_corner(side: float) -> Vector3:
 	var flat: Vector3 = Vector3(STAIR_LANDING.x - STAIR_TOP.x, 0, STAIR_LANDING.z - STAIR_TOP.z).normalized()
 	var across := Vector3(flat.z, 0, -flat.x)
 	return Vector3(STAIR_TOP.x, STAIR_FLOOR, STAIR_TOP.z) + across * side * (STAIR_WIDTH * .5 + .05) - flat * STAIR_HEAD
+
+## The line the landing, its flight and the ledge are laid on (downhill).
+static func landing_flat() -> Vector3:
+	return Vector3(STAIR_LANDING.x - LANDING_FROM.x, 0, STAIR_LANDING.z - LANDING_FROM.z).normalized()
+
+## How far down the stair (from its top, along it; negative: back along the
+## head) the middle of its balustrade on `side` (+1 west, -1 east) crosses
+## the balcony's front parapet's middle line (z -28.1): a newel stands there
+## and the parapet ends under it.
+static func parapet_s(side: float) -> float:
+	var flat: Vector3 = Vector3(STAIR_LANDING.x - STAIR_TOP.x, 0, STAIR_LANDING.z - STAIR_TOP.z).normalized()
+	var across := Vector3(flat.z, 0, -flat.x)
+	var mid: Vector3 = Vector3(STAIR_TOP.x, 0, STAIR_TOP.z) + across * side * (STAIR_WIDTH * .5 - STAIR_PARAPET + .18)
+	return (-28.1 - mid.z) / flat.z
+
+## Its x there: the ends of the gap the front parapet leaves for the stair.
+static func parapet_crossing(side: float) -> float:
+	var flat: Vector3 = Vector3(STAIR_LANDING.x - STAIR_TOP.x, 0, STAIR_LANDING.z - STAIR_TOP.z).normalized()
+	var across := Vector3(flat.z, 0, -flat.x)
+	var mid: Vector3 = Vector3(STAIR_TOP.x, 0, STAIR_TOP.z) + across * side * (STAIR_WIDTH * .5 - STAIR_PARAPET + .18)
+	return mid.x + flat.x * parapet_s(side)
 
 ## A square post where a balustrade turns or ends (its foot on `at`).
 ## `size` is its plan (x across, z along `yaw`).

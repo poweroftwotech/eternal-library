@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bnpk3e5kvw51f"]
+
+[ext_resource type="Texture2D" uid="uid://d2dcocqwn0v4v" path="res://assets/textures/px/persian_tile.png" id="1_dd1wh"]
+[ext_resource type="Texture2D" uid="uid://b6rl5kqlljqw5" path="res://assets/textures/px/persian_tile_normal.png" id="2_ihiyb"]
+[ext_resource type="Texture2D" uid="uid://dh3fnr2u5wiix" path="res://assets/textures/px/persian_tile_rough.png" id="3_k7j5b"]
+
+[resource]
+resource_name = "persian_tile"
+albedo_texture = ExtResource("1_dd1wh")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_k7j5b")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_ihiyb")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

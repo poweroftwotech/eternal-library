@@ -1,0 +1,13 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://dyqrl6085ht82"]
+
+[ext_resource type="Texture2D" uid="uid://dsm41fj1oy3rv" path="res://assets/textures/px/persian_lattice.png" id="1_e4dyw"]
+
+[resource]
+resource_name = "persian_lattice"
+transparency = 2
+alpha_scissor_threshold = 0.5
+alpha_antialiasing_mode = 0
+cull_mode = 2
+albedo_texture = ExtResource("1_e4dyw")
+metallic_specular = 0.65
+texture_filter = 4

@@ -1,0 +1,13 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://dk6j1ccr73yax"]
+
+[ext_resource type="Texture2D" uid="uid://bwlpy5alu6c41" path="res://assets/textures/px/persian_flowers.png" id="1_a0pym"]
+
+[resource]
+resource_name = "persian_flowers"
+transparency = 2
+alpha_scissor_threshold = 0.5
+alpha_antialiasing_mode = 0
+cull_mode = 2
+albedo_texture = ExtResource("1_a0pym")
+metallic_specular = 0.65
+texture_filter = 4

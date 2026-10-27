@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_fwlqe"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_wall_rock.glb" id="2_h2kea"]
+
+[node name="persian_wall_rock" type="Node3D" unique_id=153723142]
+script = ExtResource("1_fwlqe")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "carved")
+source_glb = "res://assets/kit/persian/persian_wall_rock.glb"
+
+[node name="Mesh" parent="." unique_id=793647635 instance=ExtResource("2_h2kea")]

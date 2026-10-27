@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ojgct"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_iwan_tier.glb" id="2_tkiwh"]
+
+[node name="persian_iwan_tier" type="Node3D" unique_id=1217530505]
+script = ExtResource("1_ojgct")
+shape = 0
+family = "persian"
+size_cells = Vector3i(2, 3, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "carved", "iwan", "water")
+source_glb = "res://assets/kit/persian/persian_iwan_tier.glb"
+
+[node name="Mesh" parent="." unique_id=540461202 instance=ExtResource("2_tkiwh")]

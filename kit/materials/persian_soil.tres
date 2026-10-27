@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://hrtwudg16ua1"]
+
+[ext_resource type="Texture2D" uid="uid://cpf1xoljoln43" path="res://assets/textures/px/persian_soil.png" id="1_y4paj"]
+[ext_resource type="Texture2D" uid="uid://b8fge1mujsli8" path="res://assets/textures/px/persian_soil_normal.png" id="2_gsloi"]
+[ext_resource type="Texture2D" uid="uid://i8836j3c8ev4" path="res://assets/textures/px/persian_soil_rough.png" id="3_ws55u"]
+
+[resource]
+resource_name = "persian_soil"
+albedo_texture = ExtResource("1_y4paj")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_ws55u")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_gsloi")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

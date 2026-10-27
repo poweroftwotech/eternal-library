@@ -73,10 +73,10 @@ func run() -> void:
 			falls.append(int(a[k]))
 		aqueducts.append_array(grammar.aqueduct(Vector3(a[0], a[1], a[2]), Vector3(a[3], a[4], a[5]), falls))
 	parts["aqueducts"] = aqueducts
-	# The near cliff's facades round the loggia (walked only: the camp's view
-	# never turns round to them).
+	# The near cliff round the loggia, a cliff village in the Persian look
+	# (phase 8 step 3; walked only: the camp's view never turns round to it).
 	var cliff_script: GDScript = load("res://scripts/vista_cliff.gd")
-	parts["cliff"] = grammar.cliff(cliff_script.FACADES, cliff_script.FACE_Z - .3)
+	parts["cliff"] = PersianTown.new(grammar).cliff(cliff_script.FACADES, cliff_script.FACE_Z - .3)
 	var counts: Dictionary = {}
 	var extras: Array[Dictionary] = []
 	var lamps := PackedVector3Array()
@@ -91,7 +91,7 @@ func run() -> void:
 			if p.has("xf"):
 				var at: Vector3 = (p["xf"] as Transform3D).origin
 				var k := Vector2i(floori(at.x / cell), floori(at.z / cell))
-				floor_grid[k] = maxf(float(floor_grid.get(k, -INF)), at.y + PIECE_TOP)
+				floor_grid[k] = maxf(float(floor_grid.get(k, -INF)), at.y + float(p.get("top", PIECE_TOP)))     # tall pieces say how tall (PersianTown)
 	load("res://scripts/cavern.gd").set("kit_floor", floor_grid)
 	# The generated part.
 	var generated: Node3D = await generate(layout, extras, lamps)
@@ -132,6 +132,8 @@ func save_part(part: String, placements: Array[Dictionary], extras: Array[Dictio
 			lamps.append((p["xf"] as Transform3D).origin)
 		elif path.contains("gorge_pavilion"):
 			lamps.append((p["xf"] as Transform3D) * Vector3(0, 3.0, 0))
+		elif path.ends_with("persian_lamp_bracket.tscn"):     # its lantern, under the arm
+			lamps.append((p["xf"] as Transform3D) * Vector3(0, -0.3, 0.75))
 		# Unseen (gorge_visibility.gd): left out, its lamp's light kept above.
 		if hidden.has("%s@%s" % [path.get_file().get_basename(), (p["xf"] as Transform3D).origin.snapped(Vector3.ONE * .01)]):
 			culled += 1
@@ -173,7 +175,26 @@ func generate(layout: GorgeLayout, extras: Array[Dictionary], lamps: PackedVecto
 	owner.art.render_layer = 2
 	var cores: Dictionary = {}
 	for p: Dictionary in extras:
-		if p.has("waterfall"):
+		if p.has("fall"):         # a great fall (PersianTown, phase-8-design.md 8.5)
+			var fall := GreatFall.new()
+			fall.name = "GreatFall"
+			fall.width = p["width"]
+			fall.height = p["height"]
+			fall.arc_out = p.get("arc", 3.0)
+			fall.mist = p.get("mist", true)
+			fall.seed_value = float(owner.get_child_count())
+			owner.add_child(fall)
+			fall.transform = p["fall"]
+		elif p.has("shaft"):      # a shaft of natural light (phase-8-design.md 8.4)
+			var shaft := LightShaft.new()
+			shaft.name = "LightShaft"
+			shaft.height = p["height"]
+			shaft.radius = p["radius"]
+			shaft.energy = p.get("energy", 9.0)
+			shaft.haze = p.get("haze", 0.14)     # the gallery's 0.035 default barely showed at gorge distances
+			owner.add_child(shaft)
+			shaft.position = p["shaft"]
+		elif p.has("waterfall"):
 			vista.waterfall(p["waterfall"], p["size"], false, p.get("basis", Basis()))
 		elif p.has("material"):   # a tier's core (GorgeGrammar): its own node, below
 			if not cores.has(p["material"]):
@@ -292,5 +313,12 @@ func save_scene(node: Node, path: String) -> void:
 	var err: Error = scene.pack(node)
 	if err == OK:
 		err = ResourceSaver.save(scene, path)
+		# Something outside Godot (a scanner or indexer) sometimes holds a
+		# just-written file for a moment: try again before giving up.
+		for attempt: int in 5:
+			if err != ERR_CANT_OPEN and err != ERR_FILE_CANT_OPEN and err != ERR_FILE_CANT_WRITE:
+				break
+			OS.delay_msec(400)
+			err = ResourceSaver.save(scene, path)
 	if err != OK:
 		push_error("bake_gorge: could not save %s (%s)" % [path, error_string(err)])

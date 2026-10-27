@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_14no8"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_corbel.glb" id="2_hyki7"]
+
+[node name="persian_corbel" type="Node3D" unique_id=58822339]
+script = ExtResource("1_14no8")
+family = "persian"
+tags = PackedStringArray("scenery", "persian", "trim", "support")
+source_glb = "res://assets/kit/persian/persian_corbel.glb"
+
+[node name="Mesh" parent="." unique_id=313625493 instance=ExtResource("2_hyki7")]

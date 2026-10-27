@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_7ctn1"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_stair_pier.glb" id="2_tr71h"]
+
+[node name="persian_stair_pier" type="Node3D" unique_id=452267983]
+script = ExtResource("1_7ctn1")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "vertical", "stair", "support")
+source_glb = "res://assets/kit/persian/persian_stair_pier.glb"
+
+[node name="Mesh" parent="." unique_id=1092724818 instance=ExtResource("2_tr71h")]

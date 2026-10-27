@@ -27,6 +27,11 @@ const LIGHT_PROFILES: Dictionary = {
 	# Blender properties "range", "spot_angle" and "energy" override these.
 	"shaft": {"color": Color(1.0, 0.95, 0.86), "energy": 8.0, "range": 30.0, "attenuation": 0.35, "shadow": false, "spot": 15.0, "spot_falloff": 2.0, "fog": 4.0, "far": true},
 	"bounce": {"color": Color(0.84, 0.87, 0.92), "energy": 0.55, "range": 12.0, "attenuation": 0.8, "shadow": false, "fog": 0.0, "far": true},
+	# The Persian kit (phase-8-design.md 8.4): a lumen stone's warm-white light,
+	# the light green gardens grow in; and the small teal glow of a fungus
+	# grove. Neither casts shadows, so they cost no shadow budget.
+	"lumen": {"color": Color(1.0, 0.93, 0.78), "energy": 2.4, "range": 14.0, "attenuation": 0.9, "shadow": false},
+	"fungus": {"color": Color(0.24, 0.9, 0.8), "energy": 0.9, "range": 5.0, "attenuation": 1.3, "shadow": false},
 }
 const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_", "FOG_"]
 ## Physics layer 8: walls only the player collides with (project layer names).

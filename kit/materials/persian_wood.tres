@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bh3n7wdyjqnhc"]
+
+[ext_resource type="Texture2D" uid="uid://dhrnb3d8hqpxr" path="res://assets/textures/px/persian_wood.png" id="1_ji1gv"]
+[ext_resource type="Texture2D" uid="uid://1cvphg0exvhk" path="res://assets/textures/px/persian_wood_normal.png" id="2_0hsay"]
+[ext_resource type="Texture2D" uid="uid://8ut5j8j45rwg" path="res://assets/textures/px/persian_wood_rough.png" id="3_eg2xp"]
+
+[resource]
+resource_name = "persian_wood"
+albedo_texture = ExtResource("1_ji1gv")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_eg2xp")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_0hsay")
+uv1_scale = Vector3(2, 2, 2)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(2, 2, 2)

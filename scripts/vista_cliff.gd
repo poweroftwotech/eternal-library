@@ -168,11 +168,19 @@ func iwan() -> void:
 	var span: float = LOGGIA_X.y - LOGGIA_X.x + pier * 2.0 + .08
 	var height: float = 17.8
 	var start := Vector3(LOGGIA_X.x - pier - .04, LOGGIA_FLOOR + height, FACE_Z - .9)
-	# Walked, the pishtaq is brick but its niches and roundels (your call: the
-	# mottled stone and tile all over read incomplete).
+	# Walked, it is the gorge town's pishtaq (phase 8 step 3, your call on the
+	# iwan: tiles on its face, the monument's brick inside the niche): a brick
+	# body faced with tile, a banai band, stone frame, niches and roundels
+	# (iwan_dressing); the loggia's walls and tympanum inside are brick.
 	var walked: bool = vista.get_script().walkable_overlook
-	var body: String = "sandstone" if walked else "limestone"
+	if walked:
+		kit_materials()
+	var body: String = "persian_brick" if walked else "limestone"
 	art.extrude(vista.arch_bay(span, height, pier, true), 2.0, art.mat(body), start)
+	if walked:
+		# The tile facing, 4 cm on the body's front (start is its middle depth).
+		art.extrude(vista.arch_bay(span, height, pier, true), .04, art.mat("persian_tile"), start - Vector3(0, 0, 1.02))
+		loggia_lining()
 	# Walked, the piers go on down into the rock (from the stair they ended in air).
 	if vista.get_script().walkable_overlook:
 		for x: float in [start.x + pier * .5, start.x + span - pier * .5]:
@@ -180,7 +188,7 @@ func iwan() -> void:
 	# 10 cm proud of the cliff face; flush, its back face fought the two-sided rock.
 	var tympanum: Node3D = vista.block(Vector3((LOGGIA_X.x + LOGGIA_X.y) * .5, LOGGIA_TOP + 5.5, FACE_Z - .15), Vector3(LOGGIA_X.y - LOGGIA_X.x, 11.0, .1), body if walked else "mosaic")
 	tympanum.name = "LoggiaTympanum"
-	vista.block(Vector3(start.x + span * .5, start.y + .4, FACE_Z - 1.0), Vector3(span + 1.0, .8, 2.2), body if walked else "exterior_faience")
+	vista.block(Vector3(start.x + span * .5, start.y + .4, FACE_Z - 1.0), Vector3(span + 1.0, .8, 2.2), "persian_banai" if walked else "exterior_faience")
 	for side: float in [LOGGIA_X.x - 1.2, LOGGIA_X.y + 1.2]:
 		vista.lamp(Vector3(side, 6.5, FACE_Z - 1.2), .35, true)
 	if vista.get_script().walkable_overlook:
@@ -199,16 +207,16 @@ func iwan_dressing(start: Vector3, span: float, height: float, pier: float) -> v
 	var foot: float = start.y - height
 	var mid: float = start.x + span * .5
 	for x: float in [start.x + .35, start.x + span - .35]:
-		vista.block(Vector3(x, (foot + start.y - .95) * .5, front - .06), Vector3(.5, start.y - .95 - foot, .12), "sandstone")
-	vista.block(Vector3(mid, start.y - .7, front - .06), Vector3(span, .5, .12), "sandstone")
+		vista.block(Vector3(x, (foot + start.y - .95) * .5, front - .06), Vector3(.5, start.y - .95 - foot, .12), "persian_stone")
+	vista.block(Vector3(mid, start.y - .7, front - .06), Vector3(span, .5, .12), "persian_stone")
 	for x0: float in [start.x, start.x + span - pier]:
 		var cx: float = x0 + pier * .5
 		for top: float in [foot + 6.2, foot + 14.2]:
 			var w: float = 1.7
-			art.extrude(vista.arch_bay(w, 3.6, .25, true), .3, art.mat("sandstone"), Vector3(cx - w * .5, top, front - .1))
-			vista.block(Vector3(cx, top - (3.6 + 1.4) * .5, front - .02), Vector3(w - .5, 3.6 - 1.4, .04), "mosaic")
+			art.extrude(vista.arch_bay(w, 3.6, .25, true), .3, art.mat("persian_stone"), Vector3(cx - w * .5, top, front - .1))
+			vista.block(Vector3(cx, top - (3.6 + 1.4) * .5, front - .06), Vector3(w - .5, 3.6 - 1.4, .04), "persian_banai")
 		for y: float in [foot + 2.0, foot + 9.7]:
-			vista.block(Vector3(cx, y, front - .075), Vector3(pier, .3, .15), "sandstone")
+			vista.block(Vector3(cx, y, front - .075), Vector3(pier, .3, .15), "persian_stone")
 	# Roundels in the spandrels, clear of the arch's curve.
 	for x: float in [start.x + pier + 1.3, start.x + span - pier - 1.3]:
 		var ring := CylinderMesh.new()
@@ -216,19 +224,19 @@ func iwan_dressing(start: Vector3, span: float, height: float, pier: float) -> v
 		ring.bottom_radius = 1.2
 		ring.height = .12
 		ring.radial_segments = 16
-		art.mesh_node(ring, Vector3(x, start.y - 3.2, front - .04), art.mat("sandstone")).rotation.x = PI * .5
+		art.mesh_node(ring, Vector3(x, start.y - 3.2, front - .04), art.mat("persian_stone")).rotation.x = PI * .5
 		var disc := CylinderMesh.new()
 		disc.top_radius = .95
 		disc.bottom_radius = .95
 		disc.height = .2
 		disc.radial_segments = 16
-		art.mesh_node(disc, Vector3(x, start.y - 3.2, front - .08), art.mat("mosaic")).rotation.x = PI * .5
+		art.mesh_node(disc, Vector3(x, start.y - 3.2, front - .08), art.mat("persian_banai")).rotation.x = PI * .5
 	# Merlons along the top band (its top 0.8 m over the iwan's).
 	var n: int = int(span / 1.6)
 	for k: int in n + 1:
 		var x: float = start.x + span * k / n
-		vista.block(Vector3(x, start.y + 1.25, start.z - .1), Vector3(.9, .9, .9), "sandstone")
-		vista.block(Vector3(x, start.y + 1.9, start.z - .1), Vector3(.5, .4, .5), "sandstone")
+		vista.block(Vector3(x, start.y + 1.25, start.z - .1), Vector3(.9, .9, .9), "persian_brick")
+		vista.block(Vector3(x, start.y + 1.9, start.z - .1), Vector3(.5, .4, .5), "persian_stone")
 
 ## A small lit rock-cut window: pointed limestone frame on the dressed face,
 ## warm lamplight just behind.
@@ -241,3 +249,25 @@ func window(x: float, sill: float) -> void:
 	inner.rotation.y = PI
 	# Back face 10 cm inside the rock (it was flush with the face).
 	vista.block(Vector3(x, sill - .15, FACE_Z - .5), Vector3(frame_span + .6, .3, 1.2), "limestone")
+
+## The Persian kit's materials (kit/materials, world-triplanar pixel maps),
+## by name for vista.block and art.mat.
+func kit_materials() -> void:
+	for name: String in ["persian_brick", "persian_tile", "persian_banai", "persian_stone", "persian_plaster"]:
+		if not art.materials.has(name):
+			art.materials[name] = load("res://kit/materials/%s.tres" % name)
+
+## Walked, the loggia is the pishtaq's niche: its rock cheeks and back wall
+## (round the gallery passage) are lined with the monument's brick, 6 cm
+## proud of the rock.
+func loggia_lining() -> void:
+	var h: float = LOGGIA_TOP - LOGGIA_FLOOR
+	var depth: float = FACE_Z - LOGGIA_BACK
+	var mid_z: float = (FACE_Z + LOGGIA_BACK) * .5
+	for x: float in [LOGGIA_X.x + .03, LOGGIA_X.y - .03]:
+		vista.block(Vector3(x, LOGGIA_FLOOR + h * .5, mid_z), Vector3(.06, h, absf(depth)), "persian_brick")
+	var p: Rect2 = PASSAGE
+	var z: float = LOGGIA_BACK - .03
+	vista.block(Vector3((LOGGIA_X.x + p.position.x) * .5, LOGGIA_FLOOR + h * .5, z), Vector3(p.position.x - LOGGIA_X.x - .12, h, .06), "persian_brick")
+	vista.block(Vector3((p.end.x + LOGGIA_X.y) * .5, LOGGIA_FLOOR + h * .5, z), Vector3(LOGGIA_X.y - p.end.x - .12, h, .06), "persian_brick")
+	vista.block(Vector3(p.position.x + p.size.x * .5, (p.end.y + LOGGIA_TOP) * .5, z), Vector3(p.size.x, LOGGIA_TOP - p.end.y, .06), "persian_brick")

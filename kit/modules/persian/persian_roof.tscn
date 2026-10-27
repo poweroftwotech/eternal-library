@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_6i8hv"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_roof.glb" id="2_31ojo"]
+
+[node name="persian_roof" type="Node3D" unique_id=1196020363]
+script = ExtResource("1_6i8hv")
+shape = 1
+family = "persian"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scenery", "persian", "floor", "roof")
+source_glb = "res://assets/kit/persian/persian_roof.glb"
+
+[node name="Mesh" parent="." unique_id=233597854 instance=ExtResource("2_31ojo")]

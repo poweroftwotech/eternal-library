@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_vmvn1"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_bed.glb" id="2_u1q0m"]
+
+[node name="persian_bed" type="Node3D" unique_id=1185140258]
+script = ExtResource("1_vmvn1")
+family = "persian"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
+source_glb = "res://assets/kit/persian/persian_bed.glb"
+
+[node name="Mesh" parent="." unique_id=426609932 instance=ExtResource("2_u1q0m")]

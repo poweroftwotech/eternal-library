@@ -1,0 +1,20 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://ctuurmntrodrd"]
+
+[ext_resource type="Texture2D" uid="uid://dtxsahc4fubpk" path="res://assets/textures/px/persian_mirror.png" id="1_ket13"]
+[ext_resource type="Texture2D" uid="uid://b5eckn24dnluf" path="res://assets/textures/px/persian_mirror_normal.png" id="2_cpr1g"]
+[ext_resource type="Texture2D" uid="uid://4ewsnht1dxy8" path="res://assets/textures/px/persian_mirror_rough.png" id="3_w7cgu"]
+
+[resource]
+resource_name = "persian_mirror"
+albedo_texture = ExtResource("1_ket13")
+metallic = 0.9
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_w7cgu")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_cpr1g")
+uv1_scale = Vector3(2, 2, 2)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(2, 2, 2)

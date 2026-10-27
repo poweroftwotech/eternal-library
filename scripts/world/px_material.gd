@@ -15,6 +15,7 @@ const EMIT_COLORS: Dictionary = {
 	"emit_lantern": Color(1.0, 0.72, 0.38),
 	"emit_glass_cool": Color(0.62, 0.86, 1.0),
 	"emit_fungus": Color(0.31, 0.82, 0.75),
+	"emit_lumen": Color(1.0, 0.95, 0.82),
 }
 
 static var _manifest: Dictionary = {}

@@ -57,6 +57,9 @@ const PIER_STREAKED: float = .65
 const EYE: Vector3 = Vector3(-1, 4, -27.5)
 const NEAR_REACH: float = 110.0
 
+## Banks built as a Persian hill town (phase-8-design.md 8.3, PersianTown):
+## bank 1 first (phase 8 step 2); the others keep their bays until theirs.
+const PERSIAN_BANKS: Array[int] = [1]
 const STONES: Array[String] = ["gorge_wall_4m", "gorge_wall_4m_aged", "gorge_wall_4m_clean"]
 const CYPRESS: Array[String] = ["gorge_cypress_5", "gorge_cypress_6", "gorge_cypress_8"]
 
@@ -78,6 +81,8 @@ func bank(center: Vector2, rx: float, rz: float, top: float, seed_value: int) ->
 	var local := RandomNumberGenerator.new()
 	local.seed = seed_value * 8329
 	var tiers: Array[Dictionary] = bank_tiers(center, rx, rz, top, seed_value, local)
+	if seed_value in PERSIAN_BANKS:
+		return PersianTown.new(self).bank(tiers, seed_value)
 	for i: int in tiers.size():
 		_tier(out, tiers[i], tiers[i + 1] if i + 1 < tiers.size() else {}, seed_value, tiers[i - 1] if i > 0 else {})
 	var top_q: float = BASE_Y + BAY * roundf((top - BASE_Y) / BAY)
@@ -113,44 +118,6 @@ func bank_tiers(center: Vector2, rx: float, rz: float, top: float, seed_value: i
 		bottom += storeys * BAY
 		level += 1
 	return tiers
-
-
-## The near cliff round the balcony's loggia (walked, phase 6 step 3: seen
-## from the span it stood bare): in each of `zones` (vista_cliff.gd FACADES:
-## x, y, width, height on the face at `face_z`, which looks toward -Z), the
-## banks' storeys of bays two to a band, a gallery (deck edge) over every band
-## and a crowned edge on top, piers and gallery squares at the ends, lamps by
-## the cluster noise, a banner here and there. A band's lower storey stands
-## on the gallery under it; the lowest has none, so its stacks get balconies.
-func cliff(zones: Array[Rect2], face_z: float) -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
-	for zone: Rect2 in zones:
-		var bays: int = roundi(zone.size.x / BAY)
-		var storeys: int = roundi(zone.size.y / BAY)
-		for i: int in bays:
-			# Turned to face -Z: its local x 0 is the bay's right-hand (+x) end.
-			var at := Transform3D(Basis(Vector3.UP, PI), Vector3(zone.position.x + (i + 1) * BAY, zone.position.y, face_z))
-			for s: int in storeys:
-				var xf: Transform3D = at.translated(Vector3(0, s * BAY, 0))
-				_wall_bay(out, "gorge_wall_4m_clean", xf, false, s % 2 == 0 and s > 0, s % 2 == 0 and s > 0)
-				if i == bays - 1:
-					out.append(_piece("walls/" + _pier(xf), xf))
-				if i == 0:
-					out.append(_piece("walls/" + _pier(xf), xf * Transform3D(Basis(), Vector3(BAY, 0, 0))))
-				if s % 2 == 0 and s + 1 < storeys:
-					continue
-				var top_xf: Transform3D = at.translated(Vector3(0, (s + 1) * BAY, 0))
-				var crowned: bool = s + 1 >= storeys
-				out.append(_piece("walls/" + _edge(top_xf, crowned), top_xf))
-				_edge_lamps(out, top_xf, crowned)
-				var square: String = "walls/" + ("gorge_crown_corner" if crowned else "gorge_deck_corner")
-				if i == bays - 1:
-					out.append(_piece(square, top_xf))
-				if i == 0:
-					out.append(_piece(square, top_xf * Transform3D(Basis(Vector3.UP, PI * .5), Vector3(BAY, 0, 0))))
-				if not crowned and _hash01(top_xf.origin * 2.3) < .12:
-					out.append(_piece("dressing/gorge_banner_%d" % (i % 3), top_xf * Transform3D(Basis(), Vector3(BAY * .5, -.5, 2.5))))
-	return out
 
 
 ## Every bank's tiers, for what must keep out of them (the spans, phase 6

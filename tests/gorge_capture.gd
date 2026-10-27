@@ -37,6 +37,19 @@ const VIEWS: Dictionary = {
 	"landing": [Vector3(-28, -12, -74), 70.0, Vector3(-14.5, -8, -56)],
 	"ledge": [Vector3(-19, -11, -70), 70.0, Vector3(-37, -12, -73)],
 	"up": [Vector3(-7, 4, -29), 70.0, Vector3(-17, -8, -61)],
+	# Bank 1 as a Persian hill town (phase 8 step 2)
+	"b1_iwan": [Vector3(-54, -2, -64), 34.0],
+	"b1_fall": [Vector3(-44, -72, -72), 66.0, Vector3(-12, -58, -78)],
+	"b1_north": [Vector3(-80, -36, -60), 70.0, Vector3(-66, -18, -34)],
+	"b1_garden": [Vector3(-50, -9, -66), 66.0, Vector3(-34, -2, -50)],
+	"b1_monument": [Vector3(-56, -4, -80), 46.0],
+	"b1_mon_close": [Vector3(-58, -6, -80), 68.0, Vector3(-18, -4, -98)],
+	"b1_mon_garden": [Vector3(-60, -8, -80), 72.0, Vector3(-40, -12, -74)],
+	"b1_shaft": [Vector3(-50, -6, -84), 64.0, Vector3(-26, 4, -76)],
+	"b1_top": [Vector3(-52, 18, -80), 36.0],
+	"b1_close": [Vector3(-52, -6, -66), 70.0, Vector3(-26, 0, -60)],
+	"b1_low": [Vector3(-46, -78, -72), 72.0, Vector3(-14, -64, -64)],
+	"b1_east": [Vector3(-50, -40, -80), 64.0, Vector3(-4, -30, -78)],
 }
 ## The sweep's stops: where you stand.
 const STOPS: Dictionary = {
