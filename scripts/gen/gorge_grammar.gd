@@ -57,9 +57,14 @@ const PIER_STREAKED: float = .65
 const EYE: Vector3 = Vector3(-1, 4, -27.5)
 const NEAR_REACH: float = 110.0
 
-## Banks built as a Persian hill town (phase-8-design.md 8.3, PersianTown):
-## bank 1 first (phase 8 step 2); the others keep their bays until theirs.
-const PERSIAN_BANKS: Array[int] = [1]
+## Banks built as a Persian hill town (phase-8-design.md 8.3, PersianTown),
+## each with its landmarks; the others keep their bays until theirs. At most
+## one monument in a view (bank 1, across from bank 2) and three or four
+## great falls in all (Q3).
+const PERSIAN_BANKS: Dictionary = {
+	1: ["monument", "iwan", "fall", "shaft"],
+	2: ["iwan", "fall"],
+}
 const STONES: Array[String] = ["gorge_wall_4m", "gorge_wall_4m_aged", "gorge_wall_4m_clean"]
 const CYPRESS: Array[String] = ["gorge_cypress_5", "gorge_cypress_6", "gorge_cypress_8"]
 
@@ -115,6 +120,10 @@ func bank_tiers(center: Vector2, rx: float, rz: float, top: float, seed_value: i
 		var stone: String = STONES[int(_hash01(Vector3(center.x, bottom, center.y)) * 3.0)]
 		tiers.append(_tier_shape(center + offset, sx * .88, sz * .88, turn, bottom, storeys))
 		tiers[-1].merge({"occupied": level % 3 == seed_value % 3, "crowned": crowned, "level": level, "stone": stone})
+		# A Persian bank's roofs end at its walls: no deck overhang to stand a
+		# pier on (your walk, phase 8: link piers half over a terrace's edge).
+		if seed_value in PERSIAN_BANKS:
+			tiers[-1]["over"] = 0.0
 		bottom += storeys * BAY
 		level += 1
 	return tiers
@@ -175,7 +184,7 @@ static func solid_at(tiers: Array[Dictionary], p: Vector3, margin: float = 0.0) 
 
 
 ## The top of the highest tier deck under p (at or below p.y; its overhang
-## counts), or the mist floor.
+## counts, a tier's "over" or DECK_OVER), or the mist floor.
 static func ground_at(tiers: Array[Dictionary], p: Vector3) -> float:
 	var t: Dictionary = ground_tier(tiers, p)
 	return float(t["bottom"]) + int(t["storeys"]) * BAY if not t.is_empty() else BASE_Y
@@ -189,7 +198,7 @@ static func ground_tier(tiers: Array[Dictionary], p: Vector3) -> Dictionary:
 		var top: float = float(t["bottom"]) + int(t["storeys"]) * BAY
 		if top > p.y + .01 or top <= best_top:
 			continue
-		if _over(t, p, DECK_OVER):
+		if _over(t, p, float(t.get("over", DECK_OVER))):
 			best = t
 			best_top = top
 	return best

@@ -669,6 +669,16 @@ def stair_flight(r, top=False):
         solid(name + "__end", r, [BRICK], lambda bm: add_box(bm, 3.8, 4.0, -1.8, 0.0, H, H + 0.85))
 
 
+def stair_landing(r):
+    """The top of a stair that ends at a door (your walk: a stair rammed into
+    the building overhanging it): a flat brick landing 4 x 1.8 m along the
+    face at a storey's floor, its parapet on the open side and across the
+    far end; a persian_stair_pier fills under it, the door is in the wall."""
+    name = r.name[2:]
+    solid(name + "__deck-col", r, [BRICK], lambda bm: add_box(bm, 0.0, 4.0, -1.8, 0.0, -0.3, 0.0))
+    solid(name + "__parapet", r, [BRICK], lambda bm: (add_box(bm, 0.0, 4.0, -1.8, -1.6, 0.0, 0.85), add_box(bm, 3.8, 4.0, -1.6, 0.0, 0.0, 0.85)))
+
+
 NICHE = (0.95, 0.4, 1.7, 0.95)     # a stair pier's niche: half width, foot, spring, rise
 
 
@@ -684,17 +694,29 @@ def stair_pier(r):
     solid(name + "__sill", r, [STONE], lambda bm: front_box(bm, 2.0 - half - 0.12, 2.0 + half + 0.12, -1.92, -1.35, foot - 0.1, foot))
 
 
-def iwan_tier(r):
+def iwan_tier_of(storeys):
+    return lambda r: iwan_tier(r, storeys)
+
+
+# Per storeys: the arch (half, spring, rise), the columns' height, the relief's
+# foot and top. Two storeys (bank 2, seen from the walkways where its tiers
+# are two storeys tall): the same iwan 8 m tall.
+IWAN_SIZES = {3: ((3.0, 4.6, 4.4), 7.6, 4.4, 6.8), 2: ((2.8, 3.0, 3.0), 5.2, 2.9, 4.9)}
+
+
+def iwan_tier(r, storeys=3):
     """An iwan cut into a tier of rock, 8 m wide and 12 tall (two bays,
     three storeys): the hood 3.5 m deep (inside the bays' own cells), lined
     with mirror mosaic, a relief at the back, carved columns, a spring in a
     basin and a channel out. A lumen stone stands in it (a separate piece).
     Its front is a pishtaq (your walk: it still read as bare rock): a tiled
     field round the arch, a stone ring and frame, a banai band near the top;
-    inside, the hood's walls and back are the monument's brick."""
+    inside, the hood's walls and back are the monument's brick. The
+    two-storey one (persian_iwan_tier2) is the same 8 m tall."""
     name = r.name[2:]
-    half, foot, spring, rise = 3.0, 0.0, 4.6, 4.4
-    top = 3 * H
+    (half, spring, rise), col_h, rel_lo, rel_hi = IWAN_SIZES[storeys]
+    foot = 0.0
+    top = storeys * H
     solid(name + "__block-col", r, [BRICK], lambda bm: opened(bm, half, foot, spring, rise, y0=0.0, y1=3.9, back=3.5,
                                                               width=8.0, height=top, n=12))
     solid(name + "__tile", r, [TILE], lambda bm: spandrels(bm, 3.65, top - 0.35, half + 0.3, spring, rise + 0.3, 4.0, foot, -0.08, 0.0, 12))
@@ -713,13 +735,13 @@ def iwan_tier(r):
         for (pa, pb, qa, qb) in zip(lining[:-1], lining[1:], inner[:-1], inner[1:]):
             add_prism(bm, [pa, pb, qb, qa], 4.0, foot, 0.3, 3.45)
     solid(name + "__mirror", r, ["persian_mirror"], mirror)
-    solid(name + "__relief", r, [STONE], lambda bm: add_box(bm, 2.2, 5.8, 3.38, 3.5, 4.4, 6.8))
-    solid(name + "__relief_frame", r, [STONE], lambda bm: (add_box(bm, 2.0, 6.0, 3.32, 3.5, 6.8, 7.0), add_box(bm, 2.0, 6.0, 3.32, 3.5, 4.2, 4.4)))
+    solid(name + "__relief", r, [STONE], lambda bm: add_box(bm, 2.2, 5.8, 3.38, 3.5, rel_lo, rel_hi))
+    solid(name + "__relief_frame", r, [STONE], lambda bm: (add_box(bm, 2.0, 6.0, 3.32, 3.5, rel_hi, rel_hi + 0.2), add_box(bm, 2.0, 6.0, 3.32, 3.5, rel_lo - 0.2, rel_lo)))
 
     def columns(bm):
         for x in (0.25, 7.25):
-            add_box(bm, x, x + 0.5, -0.3, 0.0, 0.0, 7.6)
-            add_box(bm, x - 0.1, x + 0.6, -0.42, 0.0, 7.6, 7.95)
+            add_box(bm, x, x + 0.5, -0.3, 0.0, 0.0, col_h)
+            add_box(bm, x - 0.1, x + 0.6, -0.42, 0.0, col_h, col_h + 0.35)
     solid(name + "__columns", r, [STONE], columns)
     solid(name + "__basin-col", r, [STONE], lambda bm: add_box(bm, 2.6, 5.4, 2.3, 3.5, 0.0, 0.5))
     bm = bmesh.new()
@@ -872,8 +894,33 @@ def fungus_jelly(r):
 
 
 def glowmoss(r):
-    card_obj("persian_glowmoss__patch", r, "emit_glowmoss",
-             [((-0.5, -0.02, -0.6), 1.4, 1.2, 0.0, 0.0), ((0.5, -0.03, -0.2), 1.0, 1.0, 0.0, 0.0), ((0.0, -0.04, -1.2), 0.9, 0.8, 0.0, 0.0)])
+    """Fungal vines (your walk, phase 8: the moss read as a spray, try a
+    fungus growing like vines): seven strands hanging from the origin down a
+    wall (-Y is out of it), 1.4 to 3.2 m long, swaying a little, small
+    glowing bracket caps along them, half sunk in the wall. About 0.6 m
+    wide, so it hangs beside a window or door, not across one."""
+    rng = random.Random(23)
+    stalks, caps = bmesh.new(), bmesh.new()
+    for i in range(7):
+        x0 = -0.3 + i * 0.1 + rng.uniform(-0.03, 0.03)
+        length = rng.uniform(1.4, 3.2)
+        n = max(3, int(length / 0.35))
+        phase = rng.uniform(0, 2 * math.pi)
+        path = []
+        for k in range(n + 1):
+            z = -length * k / n
+            path.append((x0 + 0.06 * math.sin(phase + k * 1.3), -0.04 - 0.02 * math.sin(phase * 0.7 + k), z))
+        add_tube(stalks, path, [0.022 * (1.0 - 0.5 * k / n) for k in range(n + 1)], segs=4)
+        # Caps along the strand, bigger toward the top where it is older.
+        for k in range(1, n + 1, 2):
+            (x, y, z) = path[k]
+            R = 0.1 * (1.0 - 0.45 * k / n) + rng.uniform(0.0, 0.03)
+            side = 0.04 if k % 4 == 1 else -0.04
+            add_lathe(caps, [(R, z), (R * 0.75, z + R * 0.35), (0.0, z + R * 0.5)], x + side, -0.01, segs=6)
+        (x, y, z) = path[-1]
+        add_lathe(caps, [(0.035, z - 0.06), (0.05, z - 0.02), (0.0, z + 0.03)], x, y, segs=5)     # a drop at the tip
+    mesh_object("persian_glowmoss__strands", stalks, ["persian_fungus_stalk"], r)
+    mesh_object("persian_glowmoss__caps", caps, ["emit_fungus_jelly"], r)
 
 
 def pomegranate(r):
@@ -1024,7 +1071,9 @@ MODULES = WALL_SET + [
     ("M_persian_stair_flight", props("edge", [1, 1, 0], "none", "scenery,persian,vertical,stair"), stair_flight_of(False)),
     ("M_persian_stair_flight_top", props("edge", [1, 1, 0], "none", "scenery,persian,vertical,stair"), stair_flight_of(True)),
     ("M_persian_stair_pier", props("edge", [1, 1, 0], "solid", "scenery,persian,vertical,stair,support"), stair_pier),
-    ("M_persian_iwan_tier", props("edge", [2, 3, 0], "solid", "scenery,persian,carved,iwan,water"), iwan_tier),
+    ("M_persian_stair_landing", props("edge", [1, 1, 0], "none", "scenery,persian,vertical,stair"), stair_landing),
+    ("M_persian_iwan_tier", props("edge", [2, 3, 0], "solid", "scenery,persian,carved,iwan,water"), iwan_tier_of(3)),
+    ("M_persian_iwan_tier2", props("edge", [2, 2, 0], "solid", "scenery,persian,carved,iwan,water"), iwan_tier_of(2)),
 ]
 
 KIT_REV = 7     # rev 7: hidden faces left out of walls and arch crowns, fewer cornice brackets (the cost check; every module rebuilt)
@@ -1034,6 +1083,9 @@ REVS["M_persian_spillway_great"] = max(REV_GREAT, KIT_REV)
 REV_WALK3 = 6   # rev 6: brick stairs, the tiled iwan front (the third walk of bank 1)
 for _n in ("M_persian_stair_flight", "M_persian_iwan_tier"):
     REVS[_n] = max(REV_WALK3, KIT_REV)
+REVS["M_persian_glowmoss"] = 8     # rev 8: fungal vines in place of the moss's spray (bank 2's fly-by)
+REVS["M_persian_stair_landing"] = 8     # new: a stair ending at a door
+REVS["M_persian_iwan_tier2"] = 8     # new: the iwan two storeys tall (bank 2)
 
 
 

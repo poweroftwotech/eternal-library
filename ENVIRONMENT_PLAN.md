@@ -8,13 +8,16 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 8 steps 1–3 committed** and **bank 1's cost checked** (it now costs less than its old look; uncommitted). Next: **the other banks, bank by bank**, then step 4 (the full budget check) on the finished gorge | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | Say when to start bank 2 |
+| **Phase 8 steps 1–3 committed** and bank 1's cost checked (64bf4b6). **Bank 2 built** (uncommitted): the glow at its fall fixed, and your fly-by's five reports and the falls' fog done; its iwan (two storeys) now stands where the span sees it. Then the other banks, then step 4 (the full budget check) | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | Walk bank 2 |
 | Phase 6 step 6 (the gorge clean-up) is folded into phase 8: the triangles in view and the frame testing are measured on the redesigned bank 1 | [Brief, phase 8](docs/environment/phase-8-approval.md) | Nothing |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-27 | **Bank 2's iwan placed where the walkways see it** (your call): a new two-storey iwan on tier 12's face under the span, its garden on the terrace in front ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
+| 2026-10-27 | **Your fly-by of bank 2:** the waterfalls are in the fog; walkway piers no longer stand half over a terrace's edge (the span from the Overlook now has a lower arcade too); fungal vines in place of the glow moss, beside openings, everywhere; parks with a pool and fungi on wide open roofs (three on bank 2); stairs that would ram into an overhang end at a door. The iwan must be seen from the Overlook, and no spot on bank 2 fits, so **your call** where it goes ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
+| 2026-10-27 | **Bank 2 built in the new look** (first pass, uncommitted): houses and carved fronts from bank 1's rules, an iwan, the second great fall, fungal terraces; costs less than its old look. Also a walkway pier fix the new bank exposed. The white glow at the top of its fall was a NaN in the waterfall shader at the lip, now fixed; box art passes ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
 | 2026-10-27 | **The cost check on bank 1:** in the game it now costs less than its old look did (box-art view 7.25 M triangles, was 7.76 M with the old bank 1), after leaving out faces nobody can see in the Persian walls; GPU time unchanged; its draw calls come back once the other banks reuse its pieces. Watch item: lights (13 per bank, old banks 4–7). New tool `tools/gorge_bank_cost.gd` ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
 | 2026-10-27 | **Phase 8 steps 1–3 committed** (b58f86c) after your walks: the Persian kit, bank 1 as a hill town (six walks), the camp's front (four walks). Step 4, the budget check, is next ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
 | 2026-10-27 | **Your two reports on the camp's front fixed:** a newel where the stair's rail turns down from the head, and a pool with a fountain in the loggia's middle with room to walk round. Tests and box art pass ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |

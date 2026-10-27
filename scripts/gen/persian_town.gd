@@ -18,11 +18,17 @@ extends RefCounted
 
 const P: String = "persian/"
 const BAY: float = 4.0
-## Bays nearer the gallery slots than this (z, metres) keep their walls plain
-## of features: the network's galleries stand there (gen/gorge/frontage.tres).
+## The network's galleries meet the banks at the frontage slots
+## (gen/gorge/frontage.tres): no feature (monument, iwan, fall, shaft) stands
+## in front of one (`_near_slot`). Bank 1 used a z line (-95) instead, which
+## would have shut half of bank 2 out.
+const FRONTAGE: String = "res://gen/gorge/frontage.tres"
+## Bank 1 keeps its z line (its layout is the one you walked and approved).
 const SLOT_Z: float = -95.0
+const SLOT_Z_BANKS: Array[int] = [1]
 const LUMEN: Color = Color(1.0, 0.93, 0.78)
 const TEAL: Color = Color(0.24, 0.9, 0.8)
+const TEAL_SPACING: float = 18.0
 ## Roof slabs sit this much below the walls' tops, and walls stand at least
 ## WALL_PROUD in front of the slab's edge: flush, the slab's edge and the
 ## wall front fought (your report: a flickering band at the top of the houses).
@@ -39,11 +45,15 @@ var tiers: Array[Dictionary] = []
 var runs: Array = []               # per tier: [{cells, side, normal, eye, axis}]
 var taken: Dictionary = {}         # "t:x,y:side:storey" -> a feature stands there
 var plain: Dictionary = {}         # the same keys: a plain wall (behind a stair)
+var doors: Dictionary = {}         # the same keys: a door (a stair's landing before it)
 var no_core: Dictionary = {}       # "t:x,y"
 var no_edge: Dictionary = {}       # "t:x,y:side"
 var zones: Array[Dictionary] = []  # {p, r, kind: "sun" | "gem" | "garden" | "monument"}
 var cut: Dictionary = {}           # tier -> {cell: true} cut away round the monument
 var bay_off: Dictionary = {}       # "t:x,y:side" -> how far its walls stand out (_bay)
+var slots: Array[FrontageSlot] = []     # this bank's frontage slots
+var slot_z: bool = false              # this bank uses SLOT_Z instead
+var teal_lights: Array[Vector3] = []   # where the fungal beds' lights stand
 
 
 func _init(grammar: GorgeGrammar) -> void:
@@ -54,12 +64,25 @@ func bank(bank_tiers: Array[Dictionary], seed_value: int) -> Array[Dictionary]:
 	tiers = bank_tiers
 	for t: Dictionary in tiers:
 		runs.append(_runs(t))
-	_monument()
-	_iwan()
-	_cascade()
-	_shaft()
+	slot_z = seed_value in SLOT_Z_BANKS
+	if ResourceLoader.exists(FRONTAGE):
+		for s: FrontageSlot in (load(FRONTAGE) as GorgeFrontage).slots:
+			if s.bank == seed_value:
+				slots.append(s)
+	# This bank's landmarks (GorgeGrammar.PERSIAN_BANKS).
+	var program: Array = GorgeGrammar.PERSIAN_BANKS.get(seed_value, [])
+	if "monument" in program:
+		_monument()
+	if "iwan" in program:
+		_iwan()
+	if "fall" in program:
+		_cascade()
+	if "shaft" in program:
+		_shaft()
 	for i: int in range(1, tiers.size()):
 		_stair(i)
+	if not slot_z:
+		_parks()
 	for i: int in tiers.size():
 		_tier(i, seed_value)
 	for i: int in range(0, tiers.size() - 1):
@@ -120,16 +143,18 @@ func _light(p: Vector3, color: Color, energy: float, reach: float) -> void:
 	out.append({"light": p, "color": color, "energy": energy, "range": reach})
 
 
-func _zone(p: Vector3) -> String:
+## Zones count in plan (x, z); with `dy`, only those within dy of p's height
+## (a park on a roof far above an iwan's garden).
+func _zone(p: Vector3, dy: float = INF) -> String:
 	for z: Dictionary in zones:
-		if z["kind"] not in ["garden", "monument"] and Vector2(p.x - z["p"].x, p.z - z["p"].z).length() < z["r"]:
+		if z["kind"] not in ["garden", "monument"] and absf(p.y - z["p"].y) < dy and Vector2(p.x - z["p"].x, p.z - z["p"].z).length() < z["r"]:
 			return z["kind"]
 	return "dark"
 
 
-func _in_garden(p: Vector3) -> bool:
+func _in_garden(p: Vector3, dy: float = INF) -> bool:
 	for z: Dictionary in zones:
-		if z["kind"] in ["garden", "monument"] and Vector2(p.x - z["p"].x, p.z - z["p"].z).length() < z["r"]:
+		if z["kind"] in ["garden", "monument"] and absf(p.y - z["p"].y) < dy and Vector2(p.x - z["p"].x, p.z - z["p"].z).length() < z["r"]:
 			return true
 	return false
 
@@ -158,6 +183,33 @@ func _runs(t: Dictionary, gone: Dictionary = {}) -> Array:
 				"eye": n.dot((GorgeGrammar.EYE - xf.origin).normalized()),
 				"axis": n.dot(Vector3(-xf.origin.x, 0, 0).normalized())})
 	return result
+
+
+## Whether a feature may not stand here: its origin past SLOT_Z (bank 1), or
+## `p` near a frontage slot (the other banks).
+func _shut(origin: Vector3, p: Vector3, reach: float) -> bool:
+	return origin.z < SLOT_Z if slot_z else _near_slot(p, reach)
+
+
+## Whether p is within `reach` (metres, along the face and up and down) of
+## one of this bank's frontage slots, where a gallery's ledge stands out from
+## the face (one bay deep, with headroom).
+func _near_slot(p: Vector3, reach: float) -> bool:
+	for s: FrontageSlot in slots:
+		var l: Vector3 = s.xf.affine_inverse() * p
+		if l.x > -reach and l.x < s.width * BAY + reach and l.y > -reach and l.y < reach + 4.0 and l.z > -BAY - reach and l.z < reach:
+			return true
+	return false
+
+
+## Where fungal vines (persian_glowmoss) hang on a storey's wall `piece`:
+## from under its top, beside its window or door, never across it (your
+## walk: they floated in front of an opening). A rock wall's opening is
+## 1.0 to 1.4 m wide in the middle; the vines are 0.6 m wide; the door side
+## away from its lamp (x 3.1).
+func _vines_at(piece: String, h: float) -> Transform3D:
+	var left: bool = piece.contains("_door") or fposmod(h * 5.0, 1.0) < .5
+	return Transform3D(Basis(), Vector3(.65 if left else 3.35, 3.75, .06))
 
 
 func _take(t: int, cell: Vector2i, side: int, storeys: Array) -> void:
@@ -200,7 +252,7 @@ func _monument() -> void:
 			for k: int in range(0, r["cells"].size() - span + 1):
 				var top_xf: Transform3D = _xf(t, r["cells"][k], r["side"], tiers[t]["storeys"])
 				var far: Vector3 = _xf(t, r["cells"][k + span - 1], r["side"], 0).origin
-				if top_xf.origin.z < SLOT_Z or far.z < SLOT_Z:
+				if _shut(top_xf.origin, top_xf.origin, 10.0) or _shut(far, far, 10.0):
 					continue
 				var fit: Dictionary = _mon_room(t, top_xf, span)
 				if fit.is_empty():
@@ -368,14 +420,16 @@ func _iwan() -> void:
 	var best: Array = []
 	var best_score: float = -INF
 	for t: int in range(1, tiers.size() - 1):
-		if tiers[t]["storeys"] != 3:
+		# Three storeys; on the other banks two will do (the two-storey iwan:
+		# bank 2's tiers the walkways see are two storeys tall).
+		if tiers[t]["storeys"] != 3 and (slot_z or tiers[t]["storeys"] != 2):
 			continue
 		for r: Dictionary in runs[t]:
 			if r["inner"] or r["eye"] < .3 or r["cells"].size() < 4:
 				continue
 			for k: int in range(1, r["cells"].size() - 2):
 				var xf: Transform3D = _xf(t, r["cells"][k], r["side"], 0)
-				if xf.origin.z < SLOT_Z or taken.has(_key(t, r["cells"][k], r["side"], 0)) or taken.has(_key(t, r["cells"][k + 1], r["side"], 0)):
+				if _shut(xf.origin, xf * Vector3(4, 4, 0), 6.0) or taken.has(_key(t, r["cells"][k], r["side"], 0)) or taken.has(_key(t, r["cells"][k + 1], r["side"], 0)):
 					continue
 				if _in_garden(xf * Vector3(4, 0, 5)) or _in_garden(xf * Vector3(4, 0, -2)):
 					continue     # the monument or its garden is here
@@ -386,6 +440,13 @@ func _iwan() -> void:
 				if not deep:
 					continue
 				var score: float = r["eye"] - (xf.origin - GorgeGrammar.EYE).length() * .002
+				if not slot_z:
+					# Seen from the walkways (your call: bank 2's stood behind the camp's
+					# front from the Overlook); bank 1's stays where you approved it.
+					var seen: float = _seen_fraction(xf, tiers[t]["storeys"])
+					if seen < IWAN_SEEN:
+						continue
+					score += seen * 2.0
 				if score > best_score:
 					best_score = score
 					best = [t, r, k]
@@ -396,9 +457,10 @@ func _iwan() -> void:
 	var k: int = best[2]
 	var side: int = r["side"]
 	var xf: Transform3D = _xf(t, r["cells"][k], side, 0)
-	_put("persian_iwan_tier", xf * Transform3D(Basis(), Vector3(0, 0, WALL_PROUD)))
+	var storeys: int = tiers[t]["storeys"]
+	_put("persian_iwan_tier" if storeys == 3 else "persian_iwan_tier2", xf * Transform3D(Basis(), Vector3(0, 0, WALL_PROUD)))
 	for b: int in [k, k + 1]:
-		_take(t, r["cells"][b], side, range(3))
+		_take(t, r["cells"][b], side, range(storeys))
 		no_core["%d:%d,%d" % [t, r["cells"][b].x, r["cells"][b].y]] = true
 	_put("persian_lumen_post", xf * Transform3D(Basis(), Vector3(4, 0, -1.6)))
 	_light(xf * Vector3(4, 3.4, -.6), LUMEN, 3.2, 17.0)
@@ -422,6 +484,162 @@ func _iwan() -> void:
 		var p: Vector3 = xf * Vector3(x, 0, 6.0)
 		if _on_roof(t - 1, p):
 			_put("persian_pomegranate", Transform3D(xf.basis, p))
+
+
+## Parks on the widest open roofs (your walk: a big empty terrace on bank 2
+## "would be a nice place for a fungal garden plus water pool, almost like a
+## park"): where a square PARK_HALF each way from a cell's centre is all open
+## roof with nothing over it, nearest its tier's middle first, up to
+## PARKS_PER_TIER on a roof PARK_SPACING apart and MAX_PARKS a bank (the widest
+## tiers first). A pool with a fountain in the middle,
+## two beds either side with paths between, fungi (dark) or pomegranates and
+## cypresses (lit) at the corners and ends. Not on bank 1 (as approved).
+const PARK_HALF: float = 9.0
+const MAX_PARKS: int = 4
+const PARKS_PER_TIER: int = 3
+const PARK_SPACING: float = 26.0
+
+
+func _parks() -> void:
+	var order: Array = range(tiers.size())
+	order.sort_custom(func(a: int, b: int) -> bool: return (tiers[a]["cells"] as Dictionary).size() > (tiers[b]["cells"] as Dictionary).size())
+	var placed: Array[Vector3] = []
+	for t: int in order:
+		var frame: Transform3D = tiers[t]["frame"]
+		var c: Vector2 = tiers[t]["c"]
+		var spots: Array[Vector3] = []
+		for cell: Vector2i in tiers[t]["cells"]:
+			var at: Vector3 = frame * Vector3(cell.x * BAY + 2.0, 0, -cell.y * BAY - 2.0)
+			at.y = _top(t)
+			spots.append(at)
+		spots.sort_custom(func(a: Vector3, b: Vector3) -> bool: return Vector2(a.x - c.x, a.z - c.y).length() < Vector2(b.x - c.x, b.z - c.y).length())
+		var here: int = 0
+		for at: Vector3 in spots:
+			if placed.size() >= MAX_PARKS or here >= PARKS_PER_TIER:
+				break
+			if placed.any(func(q: Vector3) -> bool: return q.distance_to(at) < PARK_SPACING):
+				continue
+			if _park_fits(t, at, frame.basis):
+				_park(t, at, frame.basis)
+				placed.append(at)
+				here += 1
+
+
+func _park_fits(t: int, at: Vector3, basis: Basis) -> bool:
+	var x: float = -PARK_HALF
+	while x <= PARK_HALF + .01:
+		var z: float = -PARK_HALF
+		while z <= PARK_HALF + .01:
+			var p: Vector3 = at + basis * Vector3(x, 0, z)
+			if not _on_roof(t, p) or not _open_above(t, p) or _in_garden(p, 6.0) or _blocked(p, 1.0) or _near_slot(p, 2.0):
+				return false
+			z += 3.0
+		x += 3.0
+	return true
+
+
+func _park(t: int, at: Vector3, basis: Basis) -> void:
+	var dark: bool = _zone(at, 12.0) == "dark"
+	var turn := Basis(Vector3.UP, PI * .5)
+	var put := func(path: String, local: Vector3, b: Basis = Basis()) -> void:
+		var p: Vector3 = at + basis * local
+		if _on_roof(t, p):
+			if path.begins_with("dressing/"):
+				_dress(path, Transform3D(basis * b, p))
+			else:
+				_put(path, Transform3D(basis * b, p))
+	put.call("persian_pool", Vector3.ZERO)
+	put.call("persian_fountain", Vector3.ZERO)
+	for x: float in [-4.6, 4.6]:
+		for z: float in [-2.4, 2.4]:
+			put.call("persian_bed_fungal" if dark else "persian_bed", Vector3(x, 0, z), turn)
+	if dark:
+		for corner: Array in [[Vector3(-5.2, 0, -5.6), "persian_fungus_giant_9"], [Vector3(5.2, 0, 5.6), "persian_fungus_giant_9"],
+				[Vector3(5.2, 0, -5.6), "persian_fungus_giant_6"], [Vector3(-5.2, 0, 5.6), "persian_fungus_giant_6"]]:
+			put.call(corner[1], corner[0])
+		for p: Vector3 in [Vector3(-7.4, 0, 0), Vector3(7.4, 0, 0)]:
+			put.call("persian_fungus_jelly", p)
+		for p: Vector3 in [Vector3(-2.6, 0, -6.2), Vector3(2.6, 0, 6.2)]:
+			put.call("persian_fungus_cluster", p)
+		for p: Vector3 in [Vector3(2.6, 0, -6.2), Vector3(-2.6, 0, 6.2)]:
+			put.call("persian_fungus_small", p)
+		var lit: bool = true
+		for q: Vector3 in teal_lights:
+			lit = lit and q.distance_to(at) > TEAL_SPACING
+		if lit:
+			teal_lights.append(at)
+			_light(at + Vector3(0, 3.0, 0), TEAL, 1.6, 12.0)
+	else:
+		for p: Vector3 in [Vector3(-5.2, 0, -5.6), Vector3(5.2, 0, 5.6), Vector3(5.2, 0, -5.6), Vector3(-5.2, 0, 5.6)]:
+			put.call("persian_pomegranate", p)
+		for p: Vector3 in [Vector3(-7.4, 0, -2.4), Vector3(-7.4, 0, 2.4), Vector3(7.4, 0, -2.4), Vector3(7.4, 0, 2.4)]:
+			put.call("dressing/gorge_cypress_6", p)
+	zones.append({"p": at, "r": PARK_HALF, "kind": "garden"})
+
+
+## How much of an iwan at `xf` (its two bays, `storeys` tall) the walkways
+## see (your call: bank 2's, from the span and the links, not the Overlook):
+## of nine points over its front, those some walkway eye (_walk_eyes) sees
+## within WALK_SIGHT, in front of the iwan, with a clear line past every
+## bank's tiers and the colossi on their piers (vista_foreground.gd). At
+## least IWAN_SEEN of it, where any is.
+const IWAN_SEEN: float = .6
+const WALK_SIGHT: float = 90.0
+const FOREGROUND: GDScript = preload("res://scripts/vista_foreground.gd")
+static var _all_tiers: Array[Dictionary] = []
+static var _eyes: Array[Vector3] = []
+
+
+func _seen_fraction(xf: Transform3D, storeys: int = 3) -> float:
+	if _all_tiers.is_empty():
+		_all_tiers = g.keep_out(load("res://gen/gorge/gorge_layout.tres"))
+	var n: Vector3 = xf.basis.z.normalized()
+	var seen: int = 0
+	for x: float in [1.0, 4.0, 7.0]:
+		for y: float in [.17, .5, .83]:
+			var p: Vector3 = xf * Vector3(x, y * storeys * BAY, .6)
+			for e: Vector3 in _walk_eyes():
+				var d: float = p.distance_to(e)
+				if d < WALK_SIGHT and n.dot(e - p) > .3 * d and _sight(e, p):
+					seen += 1
+					break
+	return seen / 9.0
+
+
+## Where you stand on the walkways, at eye height: each bay of every
+## frontage slot's gallery ledge (every seed's network walks them), and the
+## span from the Overlook's connector out over the gorge, level or a storey
+## or two down (links.res `fixed`; its length the longest a span may be).
+func _walk_eyes() -> Array[Vector3]:
+	if not _eyes.is_empty():
+		return _eyes
+	for s: FrontageSlot in (load(FRONTAGE) as GorgeFrontage).slots:
+		for k: int in s.width:
+			_eyes.append(s.xf * Vector3(k * BAY + 2.0, 1.6, -2.0))
+	var links: Resource = load("res://gen/gorge/links.res")
+	for id: Variant in links.get("fixed"):
+		if not String(id).ends_with("SNAP_exit_span"):
+			continue
+		var start: Transform3D = links.get("fixed")[id]
+		for d: float in range(4, 24 * int(BAY) + 1, 8):
+			for y: float in [1.6, -6.4]:
+				_eyes.append(start * Vector3(0, y, -d))
+	return _eyes
+
+
+func _sight(from: Vector3, p: Vector3) -> bool:
+	var length: float = from.distance_to(p)
+	var d: float = 3.0
+	while d < length - 2.0:
+		var q: Vector3 = from.lerp(p, d / length)
+		for c: Array in FOREGROUND.COLOSSI:
+			var r: float = FOREGROUND.PIER_RADIUS + .5 if q.y < FOREGROUND.COLOSSUS_FLOOR else 6.5
+			if q.y < FOREGROUND.COLOSSUS_FLOOR + 6.2 * FOREGROUND.COLOSSUS_SCALE and Vector2(q.x - float(c[0]), q.z - float(c[1])).length() < r:
+				return false
+		if GorgeGrammar.solid_at(_all_tiers, q):
+			return false
+		d += 2.0
+	return true
 
 
 ## The iwan's garden filled its terrace, so no one could walk past it (your
@@ -501,7 +719,7 @@ func _cascade() -> void:
 				continue
 			for k: int in range(1, r["cells"].size() - 3):
 				var xf: Transform3D = _xf(t, r["cells"][k], r["side"], 0)
-				if xf.origin.z < SLOT_Z:
+				if _shut(xf.origin, xf * Vector3(6, 4, 0), 8.0):
 					continue
 				var free: bool = true
 				for b: int in range(k, k + 3):
@@ -552,11 +770,19 @@ func _fall_steps(t: int, lip: Vector3, basis: Basis) -> Array:
 	return steps
 
 
+const MIN_DROP: float = 3.0
+
+
 func _lay_cascade(steps: Array, basis: Basis) -> void:
 	var first: bool = true
 	for s: Dictionary in steps:
 		var fall_xf := Transform3D(basis, s["from"])
-		out.append({"fall": fall_xf, "width": 7.5 if first else 9.0, "height": s["drop"], "arc": 3.0, "mist": true})
+		# A step shorter than MIN_DROP (the spillway's mouth onto the terrace in
+		# front) is the spillway's own water and the pool: as a fall node its
+		# mist and spray light hung at the next fall's lip and shone as white
+		# blots in the Overlook's view (bank 2).
+		if float(s["drop"]) >= MIN_DROP:
+			out.append({"fall": fall_xf, "width": 7.5 if first else 9.0, "height": s["drop"], "arc": 3.0, "mist": true})
 		if s["tier"] < 0:
 			break
 		var at: Vector3 = s["at"]
@@ -586,7 +812,7 @@ func _shaft() -> void:
 			for k: int in range(1, list.size() - 1):
 				var xf: Transform3D = _xf(t, list[k], r["side"], tiers[t]["storeys"])
 				var at: Vector3 = xf * Vector3(2, 0, -3.5)
-				if at.z < SLOT_Z or r["inner"] or not _on_roof(t, at) or not _open_above(t, at) or _blocked(at, 8.0) or _in_garden(at) or _zone(at) != "dark":
+				if _shut(at, at, 8.0) or r["inner"] or not _on_roof(t, at) or not _open_above(t, at) or _blocked(at, 8.0) or _in_garden(at) or _zone(at) != "dark":
 					continue
 				if not (_on_roof(t, xf * Vector3(-3, 0, -3.5)) and _on_roof(t, xf * Vector3(7, 0, -3.5)) and _on_roof(t, xf * Vector3(-2, 0, -6.0)) and _on_roof(t, xf * Vector3(6, 0, -6.0)) and _on_roof(t, xf * Vector3(2, 0, -1.2))):
 					continue
@@ -689,7 +915,10 @@ func _blocked(p: Vector3, r: float = 0.0) -> bool:
 ## its foot) where its top arrives on roof room to walk on, there is a way to
 ## its foot (3 m of terrace along the face before it), and
 ## no feature (an iwan's stepped-forward building) stands beside either end;
-## without one anywhere, a stair still goes up.
+## without one anywhere, a stair still goes up. Every flight has headroom
+## (_headroom); where the tier above overhangs the face, so that its top
+## flight would ram into it (your walk), the stair ends a storey short on a
+## landing (persian_stair_landing) at a door into the top storey.
 func _stair(i: int) -> void:
 	var storeys: int = tiers[i]["storeys"]
 	var best: Array = []
@@ -699,6 +928,7 @@ func _stair(i: int) -> void:
 		var side: int = r["side"]
 		for k: int in range(0, cells.size() - storeys + 1):
 			var ok: bool = true
+			var clear: Array[bool] = []      # per bay: its flight has headroom
 			for b: int in range(k, k + storeys):
 				var xf: Transform3D = _xf(i, cells[b], side, 0)
 				ok = ok and not taken.has(_key(i, cells[b], side, 0))
@@ -706,33 +936,78 @@ func _stair(i: int) -> void:
 					ok = ok and _on_roof(i - 1, xf * p)
 				for p: Vector3 in [Vector3(0, 0, .9), Vector3(4, 0, .9)]:
 					ok = ok and not _blocked(xf * p + Vector3(0, BAY * (b - k), 0), 1.0) and not _blocked(xf * p + Vector3(0, BAY * (b - k + 1), 0), 1.0)
+				clear.append(_headroom(i, xf, b - k))
 			if not ok:
+				continue
+			var full: bool = not clear.has(false)
+			var to_door: bool = false
+			if not full and storeys > 1:
+				to_door = not clear.slice(0, storeys - 1).has(false) and _landing_headroom(i, _xf(i, cells[k + storeys - 1], side, storeys - 1))
+			if not full and not to_door:
 				continue
 			var foot: Transform3D = _xf(i, cells[k], side, 0)
 			var landing: Transform3D = _xf(i, cells[k + storeys - 1], side, storeys)
-			var room_top: bool = _on_roof(i, landing * Vector3(3.0, 0, -1.2))
+			var room_top: bool = to_door or _on_roof(i, landing * Vector3(3.0, 0, -1.2))
 			# Its foot is reached along the face (its parapet closes its open side).
 			var way_in: bool = true
 			for p: Vector3 in [Vector3(-1.0, -.2, .4), Vector3(-1.0, -.2, 1.6), Vector3(-3.0, -.2, .4), Vector3(-3.0, -.2, 1.6)]:
 				way_in = way_in and _on_roof(i - 1, foot * p)
 			var free_ends: bool = (k == 0 or not taken.has(_key(i, cells[k - 1], side, 0))) \
 				and (k + storeys >= cells.size() or not taken.has(_key(i, cells[k + storeys], side, 0)))
-			var score: float = r["eye"] + (1.0 if room_top else 0.0) + (1.0 if way_in else 0.0) + (1.0 if free_ends else 0.0)
+			var score: float = r["eye"] + (1.0 if room_top else 0.0) + (1.0 if way_in else 0.0) + (1.0 if free_ends else 0.0) + (2.0 if full else 0.0)
 			if score > best_score:
 				best_score = score
-				best = [r, k]
+				best = [r, k, full]
 	if best.is_empty():
 		return
 	var r: Dictionary = best[0]
+	var full: bool = best[2]
 	for s: int in storeys:
 		var cell: Vector2i = r["cells"][best[1] + s]
-		# The top flight's parapet closes its far end (your walk: it ended in a drop).
-		_put("persian_stair_flight_top" if s == storeys - 1 else "persian_stair_flight", _xf(i, cell, r["side"], s))
+		var at: Transform3D = _xf(i, cell, r["side"], s)
+		if full:
+			# The top flight's parapet closes its far end (your walk: it ended in a drop).
+			_put("persian_stair_flight_top" if s == storeys - 1 else "persian_stair_flight", at)
+		else:
+			_put("persian_stair_landing" if s == storeys - 1 else "persian_stair_flight", at)
 		for st: int in s:
 			_put("persian_stair_pier", _xf(i, cell, r["side"], st))
 		for st: int in storeys:
 			plain[_key(i, cell, r["side"], st)] = true
-	no_edge[_key(i, r["cells"][best[1] + storeys - 1], r["side"])] = true
+	var last: Vector2i = r["cells"][best[1] + storeys - 1]
+	if full:
+		no_edge[_key(i, last, r["side"])] = true
+	else:
+		doors[_key(i, last, r["side"], storeys - 1)] = true
+		plain.erase(_key(i, last, r["side"], storeys - 1))
+
+
+## Headroom over a landing at `xf` (a storey's floor): as _headroom.
+func _landing_headroom(i: int, xf: Transform3D) -> bool:
+	for x: float in [.4, 2.0, 3.6]:
+		for z: float in [.3, 1.0, 1.7]:
+			var p: Vector3 = xf * Vector3(x, STAIR_HEADROOM, z)
+			for u: int in range(i + 1, tiers.size()):
+				if float(tiers[u]["bottom"]) < p.y and g._covered(tiers[u], p):
+					return false
+	return true
+
+
+## Whether the flight up bay `xf` from storey s of tier i (rising along +X
+## over the bay, 0.2 to 1.8 m out from the face) has STAIR_HEADROOM over its
+## steps and its top: no tier above hangs lower over it (your walk: a stair
+## rammed into the building overhanging it).
+const STAIR_HEADROOM: float = 2.4
+
+
+func _headroom(i: int, xf: Transform3D, s: int) -> bool:
+	for x: float in [.4, 2.0, 3.6, 4.4]:
+		for z: float in [.3, 1.0, 1.7]:
+			var p: Vector3 = xf * Vector3(x, BAY * s + minf(x, BAY) + STAIR_HEADROOM, z)
+			for u: int in range(i + 1, tiers.size()):
+				if float(tiers[u]["bottom"]) < p.y and g._covered(tiers[u], p):
+					return false
+	return true
 
 
 # ------------------------------------------------------------------ a tier
@@ -790,7 +1065,9 @@ func _bay(t: int, cell: Vector2i, side: int, kind: String, tint: String, door_ba
 		var h: float = GorgeGrammar._hash01(xf.origin * 1.3)
 		var on_terrace: bool = s == 0 and not below.is_empty() and _on_roof(t - 1, xf * Vector3(2, -.2, 1.2))
 		var piece: String
-		if plain.has(_key(t, cell, side, s)):
+		if doors.has(_key(t, cell, side, s)):
+			piece = {"house": "persian_wall_%s_door" % tint, "carved": "persian_wall_rock_door" + ("" if lit else "_dark"), "monument": "persian_wall_brick_arcade"}[kind]
+		elif plain.has(_key(t, cell, side, s)):
 			piece = {"house": "persian_wall_" + tint, "carved": "persian_wall_rock", "monument": "persian_wall_brick"}[kind]
 		elif kind == "monument":
 			if s == 0:
@@ -822,7 +1099,7 @@ func _bay(t: int, cell: Vector2i, side: int, kind: String, tint: String, door_ba
 			else:
 				piece = wall + "_window" + ("" if lit else "_dark")
 			if kind == "carved" and h > .91 and _zone(xf.origin) == "dark":
-				_put("persian_glowmoss", xf * Transform3D(Basis(), Vector3(.6 + h * 2.4, 2.8, .06)))
+				_put("persian_glowmoss", xf * _vines_at(piece, h))
 		_put(piece, xf)
 	# The top edge: a parapet on a house's or carved front's roof, the crown on
 	# a monument; none under the tier above, where the water pours or a stair
@@ -932,7 +1209,14 @@ func _roof_life(t: int, r: Dictionary, above: Dictionary) -> void:
 		var small: Vector3 = xf * Vector3(2 - (4.0 if h > .5 else -4.5), 0, -2.0)
 		if _on_roof(t, small):
 			_put("persian_fungus_cluster" if h < .6 else "persian_fungus_small", Transform3D(xf.basis, small))
-		_light(at + Vector3(0, 2.5, 0), TEAL, 1.6, 9.0)
+		# Its teal light only where no other is within TEAL_SPACING: the fungi glow
+		# by their own material, and a dark bank (bank 2) asked for 23 lights.
+		var lit: bool = true
+		for q: Vector3 in teal_lights:
+			lit = lit and q.distance_to(at) > TEAL_SPACING
+		if lit:
+			teal_lights.append(at)
+			_light(at + Vector3(0, 2.5, 0), TEAL, 1.6, 9.0)
 	else:
 		_put("persian_bed", Transform3D(xf.basis, at))
 		for x: float in [-1.0, 5.0]:
@@ -1036,7 +1320,7 @@ func _cliff_bay(i: int, band: int, n: int, bay_xf: Callable, house: bool, tint: 
 		else:
 			piece = wall + "_window" + ("" if lit else "_dark")
 		if not house and h > .88 and not lit:
-			_put("persian_glowmoss", xf * Transform3D(Basis(), Vector3(.6 + h * 2.4, 2.8, .06)))
+			_put("persian_glowmoss", xf * _vines_at(piece, h))
 		_put(piece, xf)
 	if house:
 		_put("persian_cornice", bay_xf.call(i, band + n - 1) * shift)

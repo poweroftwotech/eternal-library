@@ -3,9 +3,10 @@
 // lower third breaking into ragged threads. `veil` draws the wider, thinner
 // sheet behind the core. Used by GreatFall (scripts/world/great_fall.gd).
 shader_type spatial;
-// fog_disabled: volumetric fog's depth slices showed as bands across the
-// arcing sheet; the fall fades into the distance by itself (fog_tint).
-render_mode blend_mix, cull_disabled, depth_draw_never, fog_disabled;
+// Fogged like the rest (your walk, phase 8: it stood clear of the mist in
+// front of it). It was fog_disabled for bands across the arcing sheet, which
+// no longer show; it faded by its own tint instead.
+render_mode blend_mix, cull_disabled, depth_draw_never;
 
 uniform float seed = 0.0;
 uniform float veil = 0.0;              // 0: the core; 1: a veil
@@ -14,8 +15,6 @@ uniform float length_m = 40.0;         // the fall's height, so streaks keep the
 uniform vec3 water_dark : source_color = vec3(0.30, 0.46, 0.52);
 uniform vec3 water_light : source_color = vec3(0.86, 0.94, 0.96);
 uniform float glow = 0.35;             // its own light in the dark cavern
-uniform vec3 fog_tint : source_color = vec3(0.16, 0.21, 0.24);
-uniform float fog_far = 300.0;         // fully hazed at this distance (m)
 
 float hash(vec2 p) { return fract(sin(dot(p, vec2(127.1, 311.7)) + seed) * 43758.5453); }
 float noise(vec2 p) {
@@ -27,7 +26,9 @@ float noise(vec2 p) {
 void fragment() {
 	// Falling water accelerates: distance fallen grows with the square of
 	// time, so the scroll uses sqrt(v) and streaks stretch toward the foot.
-	float v = UV.y;
+	// Clamped: at the lip UV.y interpolates a hair below 0, and sqrt of that
+	// is NaN, which bloom spread into a white disc (phase 8, bank 2's fall).
+	float v = clamp(UV.y, 0.0, 1.0);
 	float fall = sqrt(v) * length_m * 0.18;
 	// Two layers of value noise half a cell apart, so no row of the noise
 	// lattice shows as a band across the sheet.
@@ -49,9 +50,8 @@ void fragment() {
 	float a = veil > 0.5 ? (0.16 + threads * 0.22) : (0.72 + threads * 0.25);
 	ALPHA = clamp(a * edge * body * tail + lip * edge * 0.2, 0.0, 1.0);
 	vec3 c = mix(water_dark, water_light, clamp(threads * 0.55 + streak * 0.35 + lip * 0.6 + (1.0 - veil) * 0.15, 0.0, 1.0));
-	float haze = clamp(length(VERTEX) / fog_far, 0.0, 1.0) * 0.75;
-	ALBEDO = mix(c, fog_tint, haze);
+	ALBEDO = c;
 	ROUGHNESS = 0.3;
-	EMISSION = mix(c * glow * (0.6 + streak * 0.5), fog_tint * 0.3, haze);
+	EMISSION = c * glow * (0.6 + streak * 0.5);
 	NORMAL_MAP = vec3(0.5 + (threads - 0.5) * 0.25, 0.5 + (streak - 0.5) * 0.15, 1.0);
 }

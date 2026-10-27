@@ -1157,6 +1157,15 @@ modules = Array[Dictionary]([{
 "tags": PackedStringArray("scenery", "persian", "carved", "iwan", "water"),
 "weight": 1.0
 }, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_iwan_tier2",
+"scene": "res://kit/modules/persian/persian_iwan_tier2.tscn",
+"shape": "edge",
+"size_cells": Vector3i(2, 2, 0),
+"tags": PackedStringArray("scenery", "persian", "carved", "iwan", "water"),
+"weight": 1.0
+}, {
 "edge": "",
 "family": "persian",
 "name": "persian_lamp_bracket",
@@ -1332,6 +1341,15 @@ modules = Array[Dictionary]([{
 "family": "persian",
 "name": "persian_stair_flight_top",
 "scene": "res://kit/modules/persian/persian_stair_flight_top.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "vertical", "stair"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "persian",
+"name": "persian_stair_landing",
+"scene": "res://kit/modules/persian/persian_stair_landing.tscn",
 "shape": "edge",
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("scenery", "persian", "vertical", "stair"),

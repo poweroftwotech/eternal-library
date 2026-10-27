@@ -315,7 +315,23 @@ func _ground(start: Transform3D, tiers: Array[Dictionary], p: Vector3) -> float:
 func _head_cell_ok(start: Transform3D, tiers: Array[Dictionary], h: int, i: int, low: float) -> bool:
 	var c := Vector3(i * BAY, 0, -h * BAY - BAY * .5)
 	return _clear(start, tiers, c, low, low, face_clearance) \
-		and _column_ok(start, tiers, c + Vector3(0, low - CORBEL_UNDER, 0), Vector2.ONE * CORBEL_PIER * .5)
+		and _cell_pier(start, tiers, c + Vector3(0, low - CORBEL_UNDER, 0)).is_finite()
+
+
+## Where under a corbelled cell (its centre `under`, span frame) its pier
+## stands cleanly: under the centre, else shifted up to CELL_PIER_SHIFT along
+## or across the cell (still under its corbel), so that by a terrace's edge
+## it stands wholly on the deck or wholly in the mist (a Persian bank's roof
+## ends at its wall, phase 8); Vector3.INF where nowhere.
+const CELL_PIER_SHIFT: float = 1.2
+
+
+func _cell_pier(start: Transform3D, tiers: Array[Dictionary], under: Vector3) -> Vector3:
+	for o: Vector2 in [Vector2.ZERO, Vector2(0, -CELL_PIER_SHIFT), Vector2(0, CELL_PIER_SHIFT), Vector2(-CELL_PIER_SHIFT, 0), Vector2(CELL_PIER_SHIFT, 0)]:
+		var p: Vector3 = under + Vector3(o.x, 0, o.y)
+		if _column_ok(start, tiers, p, Vector2.ONE * CORBEL_PIER * .5):
+			return p
+	return Vector3.INF
 
 
 ## Whether a pier under `c` (span frame; `half` its half size across and
@@ -331,6 +347,15 @@ func _column_ok(start: Transform3D, tiers: Array[Dictionary], c: Vector3, half: 
 				first = g
 			elif absf(g - first) > .01:
 				return false
+	# Its shaft clear of the tiers' walls from above the deck edge up (the span
+	# test's check; without it a pier could graze a wall where no dressing
+	# happened to keep it away: bank 2's new dressing, phase 8).
+	var top_y: float = (start * c).y
+	for y: float in [first + GorgeGrammar.DECK_EDGE_H + .1, (first + top_y) * .5, top_y - .1]:
+		for dx: float in [-half.x, half.x]:
+			for dz: float in [-half.y, half.y]:
+				if GorgeGrammar.solid_at(tiers, start * Vector3(c.x + dx, y - start.origin.y, c.z + dz)):
+					return false
 	if not avoid.is_empty():
 		var top: Vector3 = start * c
 		var y: float = top.y
@@ -475,8 +500,8 @@ func _arcades(out: Dictionary, start: Transform3D, tiers: Array[Dictionary], gro
 func _corbel_cell(out: Dictionary, start: Transform3D, tiers: Array[Dictionary], at: Vector3) -> bool:
 	_piece(out, "walls/cliff_ledge_4m", at)
 	(out["walk"] as Array).append(at + Vector3(2, 0, -2))
-	var under: Vector3 = at + Vector3(2, -CORBEL_UNDER, -2)
-	if not _column_ok(start, tiers, under, Vector2.ONE * CORBEL_PIER * .5):
+	var under: Vector3 = _cell_pier(start, tiers, at + Vector3(2, -CORBEL_UNDER, -2))
+	if not under.is_finite():
 		return false
 	var ground: float = _ground(start, tiers, under)
 	if under.y - ground > .1:
