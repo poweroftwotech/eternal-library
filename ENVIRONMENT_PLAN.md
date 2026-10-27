@@ -8,12 +8,13 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Your second flight: all 6 reports fixed.** The corner aqueduct is removed, the sanctum is four tiers, facades are calmer, the cave roof clears the building tops, the bank 5 rock pillar is quarried stone where it meets the tiers, and the terrace "dip" (decks the cull had dropped) is gone | [Progress, phase 6](docs/environment/progress/phase-6-overlook.md) | Fly it again; report with the ` key |
+| **The gorge clean-up so far is committed (e8ccf8b):** fly mode and three flights' fixes. Still to do in step 6: the triangles in view (5–7 M of 3 M), then the Gorge's frame testing | [Progress, phase 6](docs/environment/progress/phase-6-overlook.md) | Fly again, or say go on to the frame testing |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-26 | **Gorge clean-up committed** (e8ccf8b) at your go-ahead: fly mode and the fixes from three flights ([progress](docs/environment/progress/phase-6-overlook.md)). |
 | 2026-10-26 | **The last two of your second flight fixed:** the rock pillar is quarried stone inside bank 5; the terrace dip was decks dropped by the visibility cull, which now always keeps decks. Network, span, route and box art pass ([progress](docs/environment/progress/phase-6-overlook.md)). |
 | 2026-10-26 | **Your second flight: 4 of 6 reports fixed.** The corner aqueduct is gone, the sanctum is four tall tiers, facades are calmer (fewer balconies, plain bands), and the cavern roof clears the kit's building tops. Two reports need your choice. Network, span, route and box art pass ([progress](docs/environment/progress/phase-6-overlook.md)). |
 | 2026-10-26 | **Second round of the gorge clean-up built.** Flush window and stack bays (15 new kit pieces); a visibility bake (`tools/gorge_visibility.gd`) drops 16,094 unseen pieces; batches split by region, small pieces near-only; pishtaq doors (galleries, facades, rock gate); aqueduct gatehouses; the sanctum's old front gone. Network (790), route, span, door crossings and box art pass ([progress](docs/environment/progress/phase-6-overlook.md)). Waiting for your flight. |

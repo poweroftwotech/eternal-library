@@ -24,7 +24,7 @@ to report it.
 
 ---
 
-## Step 6: the gorge scenery clean-up pass (started 2026-10-26)
+## Step 6: the gorge scenery clean-up pass (started 2026-10-26; three flights committed e8ccf8b)
 
 What it's for: the gaps, clipping and extra geometry the walkable gorge
 shows close up (bank 1's and bank 3's slits and hollow tiers from step 4's
