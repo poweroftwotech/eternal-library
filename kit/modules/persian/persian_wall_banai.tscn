@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_crj0q"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_wall_banai.glb" id="2_irlop"]
+
+[node name="persian_wall_banai" type="Node3D" unique_id=1974792953]
+script = ExtResource("1_crj0q")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house")
+source_glb = "res://assets/kit/persian/persian_wall_banai.glb"
+
+[node name="Mesh" parent="." unique_id=2010643859 instance=ExtResource("2_irlop")]

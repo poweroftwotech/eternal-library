@@ -1006,7 +1006,9 @@ def spillway(cells):
 
 
 WALL_SET = []
-for (key, mat) in (("plaster", PLASTER), ("lime", LIME)):
+# banai (patterned brick) and tile (glazed faience): the houses of the banks
+# further from the camp, more ornamental the further (phase 8, your call).
+for (key, mat) in (("plaster", PLASTER), ("lime", LIME), ("banai", BANAI), ("tile", TILE)):
     WALL_SET += [
         ("M_persian_wall_%s" % key, props("edge", [1, 1, 0], "solid", "scenery,persian,wall,house"), wall_plain(mat)),
         ("M_persian_wall_%s_window" % key, props("edge", [1, 1, 0], "solid", "scenery,persian,wall,house,window,light"), wall_window(mat, True)),
@@ -1026,6 +1028,7 @@ MODULES = WALL_SET + [
     ("M_persian_crown_corner", props("post", [0, 1, 0], "", "scenery,persian,trim,crown"), crown_corner),
     ("M_persian_parapet", props("edge", [1, 0, 0], "rail", "scenery,persian,rail,house"), parapet(PLASTER)),
     ("M_persian_parapet_lime", props("edge", [1, 0, 0], "rail", "scenery,persian,rail,house"), parapet(LIME)),
+    ("M_persian_parapet_banai", props("edge", [1, 0, 0], "rail", "scenery,persian,rail,house"), parapet(BANAI)),     # banai and tile houses
     ("M_persian_parapet_corner", props("post", [0, 0, 0], "", "scenery,persian,rail,house"), parapet_corner(PLASTER)),
     ("M_persian_roof", props("cell", [1, 0, 1], "", "scenery,persian,floor,roof"), roof),
     ("M_persian_portal", props("edge", [3, 4, 0], "solid", "scenery,persian,monument,portal,door,light"), portal),

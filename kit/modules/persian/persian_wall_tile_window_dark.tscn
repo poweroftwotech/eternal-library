@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_hpyj8"]
+[ext_resource type="PackedScene" path="res://assets/kit/persian/persian_wall_tile_window_dark.glb" id="2_nchuk"]
+
+[node name="persian_wall_tile_window_dark" type="Node3D" unique_id=1750815787]
+script = ExtResource("1_hpyj8")
+shape = 0
+family = "persian"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "persian", "wall", "house", "window")
+source_glb = "res://assets/kit/persian/persian_wall_tile_window_dark.glb"
+
+[node name="Mesh" parent="." unique_id=244039074 instance=ExtResource("2_nchuk")]

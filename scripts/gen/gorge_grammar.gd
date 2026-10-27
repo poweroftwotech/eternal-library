@@ -64,7 +64,30 @@ const NEAR_REACH: float = 110.0
 const PERSIAN_BANKS: Dictionary = {
 	1: ["monument", "iwan", "fall", "shaft"],
 	2: ["iwan", "fall"],
+	3: ["iwan", "shaft"],
+	4: ["iwan", "fall"],
 }
+## How ornamental a bank is, 0 by the camp to 1 at the furthest (your call,
+## phase 8: more gardens, tiles and iwans the further a bank is, building up
+## to a last bank of monuments and grand buildings): its centre's distance
+## from the Overlook between the nearest's and the furthest's. Banks 1 and 2
+## stay as you approved them (0).
+const ORNAMENT_FIXED: Dictionary = {1: 0.0, 2: 0.0}
+
+
+static func ornament(layout: GorgeLayout, seed_value: int) -> float:
+	if seed_value in ORNAMENT_FIXED:
+		return ORNAMENT_FIXED[seed_value]
+	var near: float = INF
+	var far: float = 0.0
+	var mine: float = 0.0
+	for b: PackedFloat32Array in layout.banks:
+		var d: float = Vector2(b[0] - EYE.x, b[1] - EYE.z).length()
+		near = minf(near, d)
+		far = maxf(far, d)
+		if int(b[5]) == seed_value:
+			mine = d
+	return clampf((mine - near) / maxf(far - near, 1.0), 0.0, 1.0)
 const STONES: Array[String] = ["gorge_wall_4m", "gorge_wall_4m_aged", "gorge_wall_4m_clean"]
 const CYPRESS: Array[String] = ["gorge_cypress_5", "gorge_cypress_6", "gorge_cypress_8"]
 

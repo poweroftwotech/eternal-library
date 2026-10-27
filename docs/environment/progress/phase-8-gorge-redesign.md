@@ -313,7 +313,7 @@ No change to how bank 1 looks; re-taken from your spots in `previews/p8_cost/`, 
 
 Verified: kit 6,056, route 8, span 485, all passing; box art passes.
 
-## Bank 2 in the new look (2026-10-27, first pass, uncommitted)
+## Bank 2 in the new look (2026-10-27, committed)
 
 Pictures in `previews/p8_bank2/`.
 
@@ -342,3 +342,51 @@ Five reports and the waterfall's fog. Before-and-after pictures in `previews/p8_
 - **Bank 2's iwan, seen from the walkways** (your call, not from the Overlook): an iwan's front must be two-thirds seen, within 90 m and from in front, from some walkway eye: each bay of every frontage slot's gallery ledge (every seed's network walks them) and the span from the Overlook's connector, level or two storeys down (`_walk_eyes`). Only two-storey faces of bank 2 pass with room for its garden, so the other banks may now use a **two-storey iwan** (new piece `persian_iwan_tier2`, the same iwan 8 m tall; the three-storey one is unchanged). Bank 2's stands on tier 12's face at (55, -56, -87), its garden on the 9 m terrace in front, under the span. Parks now only count gardens at their own height, so the iwan's garden 68 m below doesn't push one off the top roof. Bank 1 unchanged.
 
 Verified: route 8, span 485, network 790, kit 6,104, all passing; box art passes (far depth band 0.76, mist floor 1.26).
+
+## Bank 3, and the ornament ramp (2026-10-27, committed)
+
+Your call: the further a bank is from the camp, the more ornamental it is (more gardens, tiles and iwans), building up to a last bank of monuments and grand buildings. Each bank has an **ornament level** (`GorgeGrammar.ornament`): its centre's distance from the Overlook, from the nearest bank's (0) to the furthest's (1). Banks 1 and 2 stay at 0, as approved.
+
+| Bank | 1 | 2 | 3 | 4 | 5 | 6 | 7 | 8 |
+|---|---|---|---|---|---|---|---|---|
+| Distance from the Overlook | 96 m | 117 m | 129 m | 152 m | 192 m | 213 m | 238 m | 257 m |
+| Ornament | 0 (fixed) | 0 (fixed) | 0.21 | 0.35 | 0.60 | 0.73 | 0.88 | 1.0 |
+| Iwans (1 + 3 × level) | 1 | 1 | 2 | 2 | 3 | 3 | 4 | 4 |
+| Banai + tile houses | 0 | 0 | 16% | 26% | 45% | 55% | 66% | 75% |
+| Rock-carved fronts (of today's share) | 100% | 100% | 83% | 72% | 52% | 42% | 30% | 20% |
+| Parks, at most | 4 | 4 | 5 | 5 | 6 | 7 | 8 | 8 |
+| Parks with a lumen stone and planting | 0 | 0 | 31% | 52% | 90% | all | all | all |
+
+What the level turns now (`PersianTown`):
+- **House finishes:** two new wall families, **banai** (patterned brick) and **tile** (glazed faience), each with windows, paired windows, doors and plain walls, and a banai parapet (`persian_wall_banai_*`, `persian_wall_tile_*`, `persian_parapet_banai`). At level 0 every house picks lime or plaster exactly as before (`_tint`).
+- **Carved fronts:** fewer cut from the rock, more built and finished.
+- **Iwans:** 1 + 3 × level, at least 24 m apart, each seen from the walkways.
+- **Parks:** more of them, and more lit by a lumen stone with real planting (flowers, pomegranates, cypresses), since plants grow only by light.
+
+For the far banks (from bank 5, level over 0.5) the plan is to add **monumental fronts**: a growing share of buildings with brick arcades, orosi windows and crowns, and domes and minarets on their roofs, up to bank 8 as mostly monuments and grand buildings. That will be built and shown when those banks come up.
+
+**Bank 3** (level 0.21): two iwans (both two storeys, seen from the walkways), the light shaft with its sun garden (`PERSIAN_BANKS[3] = ["iwan", "shaft"]`: no monument, since bank 1's is in the same view, and no fall, as the gorge has three or four), about 7% of its walls banai or tile, two parks with lumen stones. Kit 0.36 M triangles, 11 lights, 47 meshes of its own (the new wall families).
+
+To look at in step 4: in the box-art view, triangles went from 6.39 M to 7.73 M and draw calls from 1,576 to 1,841, more than bank 3's own kit accounts for.
+
+Verified: route 8, span 485, network 790, kit 6,295, all passing; box art passes. Pictures in `previews/p8_bank3/`.
+
+## Bank 4 (2026-10-27, committed)
+
+Level 0.35: two three-storey iwans (seen from the walkways), the gorge's third great fall (`PERSIAN_BANKS[4] = ["iwan", "fall"]`), about 16% of its walls banai or tile, parks with lumen stones. Its old-style surfaces are gone: in the box-art view draw calls fell from 1,841 to 1,399. Pictures in `previews/p8_bank4/`.
+
+- **Network test:** one seed failed "nowhere to step off" on a link that arrives at the end of a bank 4 gallery ledge and runs along its floor; the open side was the ledge itself, 4 m deep, not a drop. The test now lets a link's side open onto a ledge's own floor (`on_ledge`), and reports the world position of any side that is open.
+- To look at in step 4: planning seed 3 takes 5.3 s (others 1 to 2 s).
+
+Verified: route 8, span 485, network 790, kit 6,295, all passing; box art passes.
+
+### The iwans raised (2026-10-27, your call: bank 4's were too low)
+
+From bank 3 on, an iwan goes only on a tier in the top quarter of its bank (`IWAN_HIGH` 0.75 of the bank's height), and higher tiers score better. Up there the tiers step back only 4 to 5 m, so a high iwan needs a 4.5 m terrace (`IWAN_SHALLOW`), not 7.5 m, and its pool and fountain are left out when they would not fit. Banks 1 and 2 are unchanged.
+
+| Iwan | Before | Now |
+|---|---|---|
+| Bank 3 | y -36 | y -4 (one iwan; no second high spot is both seen and 24 m clear) |
+| Bank 4 | y -48 and y -68 | y 12 and y 4 |
+
+Verified: route 8, span 485, network 790 (worst plan 5.1 s), kit 6,295, all passing. Pictures: `previews/p8_bank4/b4_iwan_a.png`, `b4_iwan_b.png`, `b4_iwans_far.png`, `b3_iwan_high.png`, `b3_iwan_far.png`.

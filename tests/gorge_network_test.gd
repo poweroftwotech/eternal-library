@@ -230,8 +230,12 @@ func walk_link(p: AreaPlan, r: AreaPlan.Room, body: CharacterBody3D, tag: String
 	var open: PackedStringArray = []
 	for w: Vector3 in pts:
 		for side: float in [-1.0, 1.0]:
+			# Onto a ledge's own floor is no way off (a link arriving at a
+			# ledge's end runs along it: bank 4, phase 8).
+			if on_ledge(p, s * w + s.basis.x.normalized() * side * 3.0):
+				continue
 			if free_way(body, s * w + Vector3(0, 1.0, 0), s.basis.x * side * 3.0):
-				open.append("%s %s" % [w, "right" if side > 0 else "left"])
+				open.append("%s %s (world %s)" % [w, "right" if side > 0 else "left", (s * w).snapped(Vector3.ONE * .1)])
 	check(open.is_empty(), "%s: nowhere to step off %s (%s)" % [tag, r.slot_id, open])
 
 
@@ -308,6 +312,17 @@ func follow(b: CharacterBody3D, points: Array[Vector3]) -> int:
 			break
 		reached_n += 1
 	return reached_n
+
+
+## Whether p (feet height) is on a ledge's floor: x 0..bays x 4, z -4..0 in its frame.
+func on_ledge(p: AreaPlan, at: Vector3) -> bool:
+	for r: AreaPlan.Room in p.rooms:
+		if r.kind != "ledge":
+			continue
+		var l: Vector3 = r.xf.affine_inverse() * at
+		if l.x > -.1 and l.x < int(r.span["bays"]) * 4.0 + .1 and l.z > -4.1 and l.z < .1 and absf(l.y) < 1.0:
+			return true
+	return false
 
 
 func free_way(b: CharacterBody3D, from: Vector3, motion: Vector3) -> bool:

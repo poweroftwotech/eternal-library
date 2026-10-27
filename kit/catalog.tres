@@ -1220,6 +1220,15 @@ modules = Array[Dictionary]([{
 "tags": PackedStringArray("scenery", "persian", "rail", "house"),
 "weight": 1.0
 }, {
+"edge": "rail",
+"family": "persian",
+"name": "persian_parapet_banai",
+"scene": "res://kit/modules/persian/persian_parapet_banai.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 0, 0),
+"tags": PackedStringArray("scenery", "persian", "rail", "house"),
+"weight": 1.0
+}, {
 "edge": "",
 "family": "persian",
 "name": "persian_parapet_corner",
@@ -1362,6 +1371,60 @@ modules = Array[Dictionary]([{
 "shape": "edge",
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("scenery", "persian", "vertical", "stair", "support"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_banai",
+"scene": "res://kit/modules/persian/persian_wall_banai.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_banai_door",
+"scene": "res://kit/modules/persian/persian_wall_banai_door.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house", "door"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_banai_window",
+"scene": "res://kit/modules/persian/persian_wall_banai_window.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house", "window", "light"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_banai_window2",
+"scene": "res://kit/modules/persian/persian_wall_banai_window2.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house", "window", "light"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_banai_window2_dark",
+"scene": "res://kit/modules/persian/persian_wall_banai_window2_dark.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house", "window"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_banai_window_dark",
+"scene": "res://kit/modules/persian/persian_wall_banai_window_dark.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house", "window"),
 "weight": 1.0
 }, {
 "edge": "solid",
@@ -1551,6 +1614,60 @@ modules = Array[Dictionary]([{
 "shape": "edge",
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("scenery", "persian", "wall", "carved", "window"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_tile",
+"scene": "res://kit/modules/persian/persian_wall_tile.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_tile_door",
+"scene": "res://kit/modules/persian/persian_wall_tile_door.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house", "door"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_tile_window",
+"scene": "res://kit/modules/persian/persian_wall_tile_window.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house", "window", "light"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_tile_window2",
+"scene": "res://kit/modules/persian/persian_wall_tile_window2.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house", "window", "light"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_tile_window2_dark",
+"scene": "res://kit/modules/persian/persian_wall_tile_window2_dark.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house", "window"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_wall_tile_window_dark",
+"scene": "res://kit/modules/persian/persian_wall_tile_window_dark.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "persian", "wall", "house", "window"),
 "weight": 1.0
 }, {
 "edge": "",

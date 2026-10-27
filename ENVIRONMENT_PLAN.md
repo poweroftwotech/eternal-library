@@ -8,13 +8,15 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 8 steps 1–3 committed** and bank 1's cost checked (64bf4b6). **Bank 2 committed** (c63c42b): the glow at its fall fixed, and your fly-by's five reports and the falls' fog done; its iwan (two storeys) now stands where the span sees it. Then the other banks, then step 4 (the full budget check) | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | Walk bank 2 |
+| **Phase 8 steps 1–3 committed** and bank 1's cost checked (64bf4b6). **Bank 2 committed** (c63c42b). **Banks 3 and 4 committed** with the new ornament ramp (further banks get more tiles, gardens and iwans), their iwans raised onto the high tiers. | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | Next: bank 5, where the monumental fronts start |
 | Phase 6 step 6 (the gorge clean-up) is folded into phase 8: the triangles in view and the frame testing are measured on the redesigned bank 1 | [Brief, phase 8](docs/environment/phase-8-approval.md) | Nothing |
 
 ## What's new
 
 | Date | Change |
 |---|---|
+| 2026-10-27 | **Bank 4 built** (ornament 0.35): two iwans, the gorge's third great fall, more banai and tile houses; its old pieces gone, so the box-art view's draw calls fell from 1,841 to 1,399 ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
+| 2026-10-27 | **Bank 3 built, and the ornament ramp** (your call): each bank more ornamental the further it is from the camp: banai and glazed-tile houses, more iwans, more parks lit by lumen stones; monumental fronts, domes and minarets to come from bank 5 ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
 | 2026-10-27 | **Bank 2's iwan placed where the walkways see it** (your call): a new two-storey iwan on tier 12's face under the span, its garden on the terrace in front ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
 | 2026-10-27 | **Your fly-by of bank 2:** the waterfalls are in the fog; walkway piers no longer stand half over a terrace's edge (the span from the Overlook now has a lower arcade too); fungal vines in place of the glow moss, beside openings, everywhere; parks with a pool and fungi on wide open roofs (three on bank 2); stairs that would ram into an overhang end at a door. The iwan must be seen from the Overlook, and no spot on bank 2 fits, so **your call** where it goes ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
 | 2026-10-27 | **Bank 2 built in the new look** (first pass, uncommitted): houses and carved fronts from bank 1's rules, an iwan, the second great fall, fungal terraces; costs less than its old look. Also a walkway pier fix the new bank exposed. The white glow at the top of its fall was a NaN in the waterfall shader at the lip, now fixed; box art passes ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |

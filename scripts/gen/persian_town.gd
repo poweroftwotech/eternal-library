@@ -54,6 +54,8 @@ var bay_off: Dictionary = {}       # "t:x,y:side" -> how far its walls stand out
 var slots: Array[FrontageSlot] = []     # this bank's frontage slots
 var slot_z: bool = false              # this bank uses SLOT_Z instead
 var teal_lights: Array[Vector3] = []   # where the fungal beds' lights stand
+var ornament: float = 0.0             # 0 by the camp .. 1 at the furthest bank (GorgeGrammar.ornament)
+var iwans: Array[Vector3] = []         # where this bank's iwans stand
 
 
 func _init(grammar: GorgeGrammar) -> void:
@@ -65,6 +67,7 @@ func bank(bank_tiers: Array[Dictionary], seed_value: int) -> Array[Dictionary]:
 	for t: Dictionary in tiers:
 		runs.append(_runs(t))
 	slot_z = seed_value in SLOT_Z_BANKS
+	ornament = GorgeGrammar.ornament(load("res://gen/gorge/gorge_layout.tres"), seed_value)
 	if ResourceLoader.exists(FRONTAGE):
 		for s: FrontageSlot in (load(FRONTAGE) as GorgeFrontage).slots:
 			if s.bank == seed_value:
@@ -74,7 +77,9 @@ func bank(bank_tiers: Array[Dictionary], seed_value: int) -> Array[Dictionary]:
 	if "monument" in program:
 		_monument()
 	if "iwan" in program:
-		_iwan()
+		# More the further from the camp: one by it, four at the furthest bank.
+		for n: int in roundi(1.0 + ornament * 3.0):
+			_iwan()
 	if "fall" in program:
 		_cascade()
 	if "shaft" in program:
@@ -200,6 +205,21 @@ func _near_slot(p: Vector3, reach: float) -> bool:
 		if l.x > -reach and l.x < s.width * BAY + reach and l.y > -reach and l.y < reach + 4.0 and l.z > -BAY - reach and l.z < reach:
 			return true
 	return false
+
+
+## A house's finish from `u` (its 0..1 hash): lime or plaster as on banks 1
+## and 2, and further out banai brick and glazed tile, TILE_SHARE and
+## BANAI_SHARE of the houses at the furthest bank (none at ornament 0).
+const TILE_SHARE: float = .45
+const BANAI_SHARE: float = .3
+
+
+func _tint(u: float) -> String:
+	if u > 1.0 - TILE_SHARE * ornament:
+		return "tile"
+	if u > 1.0 - (TILE_SHARE + BANAI_SHARE) * ornament:
+		return "banai"
+	return "lime" if u < .35 else "plaster"
 
 
 ## Where fungal vines (persian_glowmoss) hang on a storey's wall `piece`:
@@ -424,6 +444,11 @@ func _iwan() -> void:
 		# bank 2's tiers the walkways see are two storeys tall).
 		if tiers[t]["storeys"] != 3 and (slot_z or tiers[t]["storeys"] != 2):
 			continue
+		# From bank 3 on, high up where the walkways look across at it (your
+		# walk: bank 4's two sat low in the mist); banks 1 and 2 as approved.
+		var high: float = _height01(t)
+		if ornament > 0.0 and high < IWAN_HIGH:
+			continue
 		for r: Dictionary in runs[t]:
 			if r["inner"] or r["eye"] < .3 or r["cells"].size() < 4:
 				continue
@@ -433,8 +458,12 @@ func _iwan() -> void:
 					continue
 				if _in_garden(xf * Vector3(4, 0, 5)) or _in_garden(xf * Vector3(4, 0, -2)):
 					continue     # the monument or its garden is here
+				if iwans.any(func(q: Vector3) -> bool: return q.distance_to(xf.origin) < IWAN_SPACING):
+					continue     # another of this bank's iwans
 				var deep: bool = true
-				for d: float in [2.0, 5.0, 7.5]:
+				# High up the tiers step back less: a balcony of a terrace will do
+				# there, its pool left out where it won't fit.
+				for d: float in ([2.0, IWAN_SHALLOW] if ornament > 0.0 else [2.0, 5.0, 7.5]):
 					for x: float in [1.0, 7.0]:
 						deep = deep and _on_roof(t - 1, xf * Vector3(x, -.2, d))
 				if not deep:
@@ -447,6 +476,8 @@ func _iwan() -> void:
 					if seen < IWAN_SEEN:
 						continue
 					score += seen * 2.0
+				if ornament > 0.0:
+					score += high * 3.0
 				if score > best_score:
 					best_score = score
 					best = [t, r, k]
@@ -457,6 +488,7 @@ func _iwan() -> void:
 	var k: int = best[2]
 	var side: int = r["side"]
 	var xf: Transform3D = _xf(t, r["cells"][k], side, 0)
+	iwans.append(xf.origin)
 	var storeys: int = tiers[t]["storeys"]
 	_put("persian_iwan_tier" if storeys == 3 else "persian_iwan_tier2", xf * Transform3D(Basis(), Vector3(0, 0, WALL_PROUD)))
 	for b: int in [k, k + 1]:
@@ -471,8 +503,9 @@ func _iwan() -> void:
 	# terrace's parapet: your report), beds between it and the iwan either
 	# side of the spring's channel.
 	var turn := Basis(Vector3.UP, PI * .5)
-	_put("persian_pool", xf * Transform3D(turn, Vector3(4, 0, 4.6)))
-	_put("persian_fountain", xf * Transform3D(Basis(), Vector3(4, 0, 4.6)))
+	if _on_roof(t - 1, xf * Vector3(1, -.2, 6.8)) and _on_roof(t - 1, xf * Vector3(7, -.2, 6.8)):
+		_put("persian_pool", xf * Transform3D(turn, Vector3(4, 0, 4.6)))
+		_put("persian_fountain", xf * Transform3D(Basis(), Vector3(4, 0, 4.6)))
 	for x: float in [1.6, 6.4]:
 		_put("persian_bed", xf * Transform3D(Basis(), Vector3(x, 0, 1.4)))
 	for x: float in [-.2, 8.2]:
@@ -498,6 +531,7 @@ const PARK_HALF: float = 9.0
 const MAX_PARKS: int = 4
 const PARKS_PER_TIER: int = 3
 const PARK_SPACING: float = 26.0
+const PARK_LUMEN: float = 1.5
 
 
 func _parks() -> void:
@@ -515,7 +549,7 @@ func _parks() -> void:
 		spots.sort_custom(func(a: Vector3, b: Vector3) -> bool: return Vector2(a.x - c.x, a.z - c.y).length() < Vector2(b.x - c.x, b.z - c.y).length())
 		var here: int = 0
 		for at: Vector3 in spots:
-			if placed.size() >= MAX_PARKS or here >= PARKS_PER_TIER:
+			if placed.size() >= MAX_PARKS + roundi(ornament * 4.0) or here >= PARKS_PER_TIER:
 				break
 			if placed.any(func(q: Vector3) -> bool: return q.distance_to(at) < PARK_SPACING):
 				continue
@@ -540,6 +574,11 @@ func _park_fits(t: int, at: Vector3, basis: Basis) -> bool:
 
 func _park(t: int, at: Vector3, basis: Basis) -> void:
 	var dark: bool = _zone(at, 12.0) == "dark"
+	# Further from the camp, more parks have a lumen stone, and real planting
+	# under it (plants grow only by light), PARK_LUMEN of them at the furthest.
+	var lumen: bool = dark and GorgeGrammar._hash01(at * .37) < ornament * PARK_LUMEN
+	if lumen:
+		dark = false
 	var turn := Basis(Vector3.UP, PI * .5)
 	var put := func(path: String, local: Vector3, b: Basis = Basis()) -> void:
 		var p: Vector3 = at + basis * local
@@ -549,6 +588,10 @@ func _park(t: int, at: Vector3, basis: Basis) -> void:
 			else:
 				_put(path, Transform3D(basis * b, p))
 	put.call("persian_pool", Vector3.ZERO)
+	if lumen:
+		put.call("persian_lumen_post", Vector3(0, 0, 7.0))
+		_light(at + basis * Vector3(0, 3.4, 7.0), LUMEN, 3.2, 17.0)
+		zones.append({"p": at, "r": PARK_HALF + 4.0, "kind": "gem"})
 	put.call("persian_fountain", Vector3.ZERO)
 	for x: float in [-4.6, 4.6]:
 		for z: float in [-2.4, 2.4]:
@@ -584,6 +627,17 @@ func _park(t: int, at: Vector3, basis: Basis) -> void:
 ## bank's tiers and the colossi on their piers (vista_foreground.gd). At
 ## least IWAN_SEEN of it, where any is.
 const IWAN_SEEN: float = .6
+const IWAN_SPACING: float = 24.0     # between a bank's iwans
+const IWAN_HIGH: float = .75         # of the bank's height, from bank 3 on
+const IWAN_SHALLOW: float = 4.5      # terrace depth the high iwans need
+
+
+## How high tier t's bottom stands in its bank: 0 at the gorge floor, 1 at the
+## top tier's roof.
+func _height01(t: int) -> float:
+	var low: float = tiers[0]["bottom"]
+	var top: float = float(tiers[-1]["bottom"]) + int(tiers[-1]["storeys"]) * GorgeGrammar.BAY
+	return (float(tiers[t]["bottom"]) - low) / maxf(top - low, 1.0)
 const WALK_SIGHT: float = 90.0
 const FOREGROUND: GDScript = preload("res://scripts/vista_foreground.gd")
 static var _all_tiers: Array[Dictionary] = []
@@ -1022,6 +1076,7 @@ func _tier(t: int, seed_value: int) -> void:
 	var crowned: bool = tier["crowned"]
 	# Carved fronts grow toward the mist and toward the cavern's roof (Q5).
 	var carved_p: float = .25 + (.35 if tier["bottom"] < -125.0 else 0.0) + (.2 if t >= tiers.size() - 2 else 0.0)
+	carved_p *= 1.0 - ornament * .8     # built and ornamented, not cut from the rock, further out
 	for r: Dictionary in runs[t]:
 		var list: Array = r["cells"]
 		var side: int = r["side"]
@@ -1033,7 +1088,7 @@ func _tier(t: int, seed_value: int) -> void:
 			var h: float = GorgeGrammar._hash01(Vector3(frame.origin.x + b, tier["bottom"], frame.origin.z + side * 7.0))
 			var length: int = mini(1 + int(h * 3.0), list.size() - b)
 			var kind: String = "monument" if is_monument else ("carved" if fposmod(h * 13.7, 1.0) < carved_p else "house")
-			var tint: String = "lime" if fposmod(h * 7.3, 1.0) < .35 else "plaster"
+			var tint: String = _tint(fposmod(h * 7.3, 1.0))
 			var door_bay: int = b + length / 2
 			# Buildings stand a little in or out of the run (their side walls show),
 			# so neighbours read as separate houses, not one long wall.
@@ -1107,7 +1162,7 @@ func _bay(t: int, cell: Vector2i, side: int, kind: String, tint: String, door_ba
 	var top_xf: Transform3D = _xf(t, cell, side, storeys) * shift
 	if no_edge.has(_key(t, cell, side)) or g._covered(above, top_xf * Vector3(2, .5, -.4)):
 		return built
-	var edge: String = {"house": "persian_parapet" + ("_lime" if tint == "lime" else ""), "carved": "persian_parapet_rock", "monument": "persian_crown"}[kind]
+	var edge: String = {"house": "persian_parapet" + {"lime": "_lime", "banai": "_banai", "tile": "_banai"}.get(tint, ""), "carved": "persian_parapet_rock", "monument": "persian_crown"}[kind]
 	_put(edge, top_xf)
 	built["edge"] = edge
 	if kind == "house" and not taken.has(_key(t, cell, side, storeys - 1)):
