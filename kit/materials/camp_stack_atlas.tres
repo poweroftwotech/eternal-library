@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/stack_atlas.png" id="1_ka08p"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/stack_atlas_normal.png" id="2_kkiyv"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/stack_atlas_rough.png" id="3_4iq68"]
+
+[resource]
+resource_name = "camp_stack_atlas"
+albedo_texture = ExtResource("1_ka08p")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_4iq68")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_kkiyv")
+uv1_scale = Vector3(0.5, 0.5, 0.5)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(0.5, 0.5, 0.5)

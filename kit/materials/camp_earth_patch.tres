@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/earth_patch.png" id="1_fj7pt"]
+
+[resource]
+resource_name = "camp_earth_patch"
+transparency = 1
+cull_mode = 2
+albedo_texture = ExtResource("1_fj7pt")
+metallic_specular = 0.65
+texture_filter = 2

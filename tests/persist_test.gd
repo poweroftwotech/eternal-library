@@ -17,6 +17,11 @@ extends SceneTree
 ## area_save, area_load: the library wing (phase-4-design.md 8.1.8 step 4), or
 ##           with --area-id=lower_stacks the Lower Stacks (phase-5-design.md 5.6.9),
 ##           in their own save file; see area_save_mode.
+## camp_save, camp_load: the camp from kit pieces (phase 7 step 3), where the
+##           game starts: gather amberroot, walk to the gallery, quit; a new
+##           process resumes there, the root in the satchel.
+## camp_cross, camp_back: on through the gallery's door to the Gorge's Overlook
+##           and back (phase 7 step 4), in the camp's save file.
 ## door_save, door_cross, door_back: through the gorge's door into the Lower
 ##           Stacks and back (phase-6-design.md 5.7.6), in their own save file;
 ##           see door_save_mode.
@@ -63,6 +68,8 @@ func run() -> void:
 		main_script.room_override = STACK_GALLERY
 	elif mode == "area_save":
 		main_script.room_override = "area:" + area_id()
+	elif mode == "camp_save":
+		main_script.room_override = "camp"
 	elif mode == "door_save":
 		main_script.room_override = "area:gorge"
 	game = (load("res://main.tscn") as PackedScene).instantiate()
@@ -102,8 +109,16 @@ func run() -> void:
 			await door_save_mode()
 		"door_cross":
 			await door_cross_mode()
+		"camp_save":
+			await camp_save_mode()
+		"camp_load":
+			await camp_load_mode()
 		"door_back":
 			await door_back_mode()
+		"camp_cross":
+			await camp_cross_mode()
+		"camp_back":
+			await camp_back_mode()
 	finish(mode, true)
 
 
@@ -580,6 +595,98 @@ func area_load_mode() -> void:
 	check(book_lies(f_room, expect["book"]), "%s: the book lies where it fell, its shelf slot empty" % far.slot_id)
 	check((ws.call("stale_ids") as PackedStringArray).is_empty(), "no change in the area went stale (%s)" % [ws.call("stale_ids")])
 
+
+
+## In the camp from kit pieces (a fresh save): gather a patch, stand in the
+## gallery, quit.
+func camp_save_mode() -> void:
+	check(game.world is CampRoom, "the game starts in the camp from kit pieces (%s)" % game.world)
+	if not game.world is CampRoom:
+		return
+	game.interact(game.world.gatherables["root_a"]["body"])
+	check(int(game.inventory["root"]) == 1, "gathered amberroot")
+	game.player.teleport(Vector3(-1.0, 2.3, -11.1), 0.4)
+	for _i: int in 10:
+		await physics_frame
+	write_door_expect({"pos": vec(game.player.global_position), "yaw": game.player.rotation.y})
+
+
+## A new process: back in the camp from kit pieces, in the gallery where it
+## quit, the amberroot in the satchel.
+func camp_load_mode() -> void:
+	var expect: Dictionary = door_expect()
+	check(game.world is CampRoom, "the game resumes in the camp from kit pieces (%s)" % game.world)
+	check(game.player.global_position.distance_to(arr_vec(expect.get("pos", [0, 0, 0]))) < .1 and absf(game.player.rotation.y - float(expect.get("yaw", 0.0))) < .01,
+		"in the gallery, where it quit (%s)" % game.player.global_position)
+	check(int(game.inventory["root"]) == 1 and ws.item_count(&"root") == 1, "the amberroot is still in the satchel")
+
+## Third camp process (phase 7 step 4): resumes in the gallery; walks into
+## its doorway, the door to the Gorge; arrives on the Overlook just inside its
+## door back to the camp, facing in; quits there.
+func camp_cross_mode() -> void:
+	var expect: Dictionary = door_expect()
+	check(game.world is CampRoom and game.player.global_position.distance_to(arr_vec(expect.get("pos", [0, 0, 0]))) < .1, "the game resumes in the camp's gallery (%s)" % game.player.global_position)
+	var door: Threshold = game.call("_door_to", "gorge")
+	check(door != null, "the camp has a door to the Gorge")
+	if door == null:
+		return
+	var old_id: int = game.get_instance_id()
+	game.player.teleport(door.global_transform * Vector3(0, .1, .5), game.player.rotation.y)
+	await until(func() -> bool: return current_scene != null and current_scene.get_instance_id() != old_id and current_scene.get("world") is Area)
+	check(current_scene != null and current_scene.get_instance_id() != old_id, "stepping into the camp's door travels")
+	if current_scene == null or current_scene.get_instance_id() == old_id:
+		return
+	game = current_scene
+	area = game.world as Area
+	check(area.recipe.id == "gorge", "arrived in the Gorge (%s)" % area.recipe.id)
+	fast_unloads()
+	await until(func() -> bool: return area.room_at(game.player.global_position) != null and not area.streamer.busy())
+	var back: Array = area.plan.threshold("camp")
+	check(not back.is_empty() and (back[0] as AreaPlan.Room).slot_id == "overlook", "the Overlook has the door back to the camp")
+	if back.is_empty():
+		return
+	var facing: Vector3 = -game.player.global_basis.z
+	var inward: Vector3 = ((back[0] as AreaPlan.Room).connectors[back[1]]["xf"] as Transform3D).basis.z
+	check(game.player.global_position.distance_to(area.to_global(arrival(back))) < .15 and facing.dot(inward) > .95,
+		"just inside the Overlook's door to the camp, facing in (%s)" % game.player.global_position)
+	for _i: int in 30:
+		await physics_frame
+	check(game.player.is_on_floor() and game.player.global_position.y > 2.0, "standing on the loggia's floor (%s)" % game.player.global_position)
+	expect["gorge_pos"] = vec(game.player.global_position)
+	write_door_expect(expect)
+
+
+## Fourth: resumes on the Overlook where it quit; walks into the bronze door
+## and arrives in the camp's gallery just inside its doorway, facing in, the
+## amberroot still in the satchel.
+func camp_back_mode() -> void:
+	var expect: Dictionary = door_expect()
+	check(area != null and area.recipe.id == "gorge" and game.player.global_position.distance_to(arr_vec(expect.get("gorge_pos", [0, 0, 0]))) < .1,
+		"the game resumes on the Overlook where it quit (%s)" % game.player.global_position)
+	if area == null:
+		return
+	var door: Array = area.plan.threshold("camp")
+	if door.is_empty():
+		return
+	var old_id: int = game.get_instance_id()
+	# On foot from where you arrived: turn round and walk into the door (its
+	# trigger must be reachable from the loggia's floor).
+	game.player.rotation.y += PI
+	Input.action_press("forward")
+	var leaving: Node = game
+	await until(func() -> bool: return not is_instance_valid(leaving) or leaving.player.blocked)     # the travel has begun
+	Input.action_release("forward")
+	await until(func() -> bool: return current_scene != null and current_scene.get_instance_id() != old_id and current_scene.get("world") is CampRoom)
+	check(current_scene != null and current_scene.get_instance_id() != old_id and current_scene.get("world") is CampRoom, "walking into the bronze door goes to the camp")
+	if current_scene == null or current_scene.get_instance_id() == old_id:
+		return
+	game = current_scene
+	var camp_door: Threshold = game.call("_door_to", "gorge")
+	var want: Vector3 = camp_door.global_transform * Vector3(0, .1, Area.ARRIVE_IN)
+	var facing: Vector3 = -game.player.global_basis.z
+	check(Vector2(game.player.global_position.x - want.x, game.player.global_position.z - want.z).length() < .15 and facing.dot(camp_door.global_basis.z) > .95,
+		"just inside the gallery's doorway, facing in (%s, want %s)" % [game.player.global_position, want])
+	check(int(game.inventory["root"]) == 1, "the amberroot is still in the satchel")
 
 
 ## Eighth process (a fresh save): in the Gorge, stand where you arrive at the

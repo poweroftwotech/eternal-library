@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/bark.png" id="1_kbvfe"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/bark_normal.png" id="2_ywuln"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/bark_rough.png" id="3_bu0ec"]
+
+[resource]
+resource_name = "camp_bark"
+albedo_texture = ExtResource("1_kbvfe")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_bu0ec")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_ywuln")
+uv1_scale = Vector3(1, 0.5, 1)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 0.5, 1)

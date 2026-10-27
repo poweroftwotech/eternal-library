@@ -1,0 +1,21 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/iron_cook.png" id="1_n1okl"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/iron_cook_normal.png" id="2_clvdu"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/iron_cook_rough.png" id="3_ha2yd"]
+
+[resource]
+resource_name = "camp_cauldron_iron"
+albedo_color = Color(0.36, 0.35, 0.34, 1)
+albedo_texture = ExtResource("1_n1okl")
+metallic = 0.6
+metallic_specular = 0.65
+roughness = 0.7
+roughness_texture = ExtResource("3_ha2yd")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_clvdu")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

@@ -12,6 +12,8 @@ LS_SAVE=--save=user://test/persist_lower_stacks.json
 LS_SEED=--area-seed=9
 # phase-6-design.md 5.7.6: through the gorge's door into the Lower Stacks and back.
 DOOR_SAVE=--save=user://test/persist_door.json
+# phase 7 steps 3-4: the camp from kit pieces, where the game starts, and its door to the Gorge.
+CAMP_SAVE=--save=user://test/persist_camp.json
 set -e
 timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- save "$SAVE" --fresh --gen-seed=7 > /tmp/persist_save.log 2>&1 || { grep -E "persist_test|FAIL|ERROR" /tmp/persist_save.log; exit 1; }
 grep -E "persist_test|FAIL" /tmp/persist_save.log
@@ -37,4 +39,12 @@ timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test
 grep -E "persist_test|FAIL" /tmp/persist_door_cross.log
 timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- door_back "$DOOR_SAVE" > /tmp/persist_door_back.log 2>&1 || { grep -E "persist_test|FAIL|ERROR|  " /tmp/persist_door_back.log; exit 1; }
 grep -E "persist_test|FAIL" /tmp/persist_door_back.log
-echo "persist_gate: all twelve processes passed"
+timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- camp_save "$CAMP_SAVE" --fresh > /tmp/persist_camp_save.log 2>&1 || { grep -E "persist_test|FAIL|ERROR|  " /tmp/persist_camp_save.log; exit 1; }
+grep -E "persist_test|FAIL" /tmp/persist_camp_save.log
+timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- camp_load "$CAMP_SAVE" > /tmp/persist_camp_load.log 2>&1 || { grep -E "persist_test|FAIL|ERROR|  " /tmp/persist_camp_load.log; exit 1; }
+grep -E "persist_test|FAIL" /tmp/persist_camp_load.log
+timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- camp_cross "$CAMP_SAVE" > /tmp/persist_camp_cross.log 2>&1 || { grep -E "persist_test|FAIL|ERROR|  " /tmp/persist_camp_cross.log; exit 1; }
+grep -E "persist_test|FAIL" /tmp/persist_camp_cross.log
+timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- camp_back "$CAMP_SAVE" > /tmp/persist_camp_back.log 2>&1 || { grep -E "persist_test|FAIL|ERROR|  " /tmp/persist_camp_back.log; exit 1; }
+grep -E "persist_test|FAIL" /tmp/persist_camp_back.log
+echo "persist_gate: all sixteen processes passed"

@@ -540,42 +540,47 @@ func lying_books(pose: Vector3, count: int, yaw: float = 0) -> void:
 		batch_mesh("lying_covers",unit_box,mat("book_leather"),Transform3D(rotation*Basis.from_scale(Vector3(.5,.083,.35)),p),palette[i%palette.size()])
 		batch_mesh("lying_pages",unit_box,mat("pages"),Transform3D(rotation*Basis.from_scale(Vector3(.47,.053,.325)),p+Vector3(.006,0,-.005)))
 
+## A bookcase as the library's other rooms draw them (phase 7; the camp's were
+## book by book): the books a painted face (stack_atlas, as library_dressing's
+## case panels) behind wooden shelves, in the case's footprint (1.08 deep,
+## its front at -Z). It still draws the random numbers the book-by-book case
+## drew, so everything placed after it in the camp stays where it was.
 func shelf(pose: Vector3, width: float, height: float, yaw: float = 0) -> void:
 	var group = Node3D.new()
 	root.add_child(group)
 	group.position = pose
 	group.rotation.y = yaw
-	box(Vector3(0,height*.5,.48),Vector3(width,height,.12),mat("wood"),true,group)
+	box(Vector3(0,height*.5,.22),Vector3(width,height,.64),mat("stack_atlas"),true,group)
 	for side in [-1,1]:
 		box(Vector3(side*width*.5,height*.5,0),Vector3(.18,height,1.08),mat("wood"),true,group)
 		box(Vector3(side*width*.5,height*.5,-.53),Vector3(.08,height,.09),mat("brass"),false,group)
-	var row_count: int = int(height/.75)
-	var colors = [Color(.40,.54,.55),Color(.67,.37,.26),Color(.67,.58,.35),Color(.32,.39,.37),Color(.55,.44,.37)]
-	for row in range(row_count+1):
-		var y: float = .13 + row*.75
-		box(Vector3(0,y,0),Vector3(width,.13,1.08),mat("wood"),false,group)
-		if row == row_count:
-			continue
+	for row in range(int(height/.75)+1):
+		box(Vector3(0,.13+row*.75,-.3),Vector3(width,.075,.4),mat("wood"),false,group)
+	for y in [.06,height-.06]:
+		box(Vector3(0,y,-.52),Vector3(width,.055,.055),mat("brass"),false,group)
+	shelf_draws(width,height)
+
+## The random numbers the camp's old book-by-book case drew (see shelf()).
+func shelf_draws(width: float, height: float) -> void:
+	for row in range(int(height/.75)):
 		var x: float = -width*.5+.2
 		while x < width*.5-.2:
 			if rng.randf()<.17 and x<width*.5-.85:
-				var local = Vector3(x+.25,y+.075,-.16)
-				lying_books(group.transform*local,rng.randi_range(2,4),yaw)
+				for i in range(rng.randi_range(2,4)):
+					rng.randf_range(-.14,.14)
 				x += .62
 				continue
 			var w: float = rng.randf_range(.08,.25)
-			var h: float = rng.randf_range(.29,.66)
-			var d: float = rng.randf_range(.33,.56)
-			var local = Vector3(x,y+.075+h*.5,rng.randf_range(-.28,-.11))
-			var rotation: Basis = group.basis*Basis.from_euler(Vector3(0,rng.randf_range(-.06,.06),rng.randf_range(-.20,.20)))
-			book_instance(group.transform*local,Vector3(w,h,d),colors[rng.randi_range(0,colors.size()-1)],rotation)
+			for i in range(5):     # height, depth, inset, turn, tilt
+				rng.randf()
+			rng.randi_range(0,4)
 			x += w+rng.randf_range(.008,.07)
 
 func ladder(pose: Vector3, height: float, yaw: float = 0) -> void:
 	var group = Node3D.new()
 	root.add_child(group)
 	group.position = pose
-	group.rotation = Vector3(-.1,yaw,0)
+	group.rotation = Vector3(.1,yaw,0)     # leaning back against the case behind it (local +Z)
 	for side in [-1,1]:
 		box(Vector3(side*.37,height*.5,0),Vector3(.09,height,.1),mat("wood"),false,group)
 	for i in range(int(height/.35)):

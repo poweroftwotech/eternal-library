@@ -42,7 +42,7 @@ func run() -> void:
 		return
 	DirAccess.make_dir_recursive_absolute(OUT_DIR)
 	DirAccess.make_dir_recursive_absolute(ROOT_ROOM.get_base_dir())
-	var environment: Environment = await camp_environment()
+	var environment: Environment = camp_environment()
 	ResourceSaver.save(environment, OUT_DIR + "environment.tres")
 	# The kit parts.
 	var layout: GorgeLayout = load(LAYOUT)
@@ -83,17 +83,13 @@ func run() -> void:
 	quit()
 
 
-## The camp's environment after every pass (the gorge has only ever been seen
-## through it).
+## The camp's environment (the gorge has only ever been seen through it): the
+## code-built camp's after every pass, as the camp's bake saved it (phase 7).
 func camp_environment() -> Environment:
-	var game: Node = (load("res://main.tscn") as PackedScene).instantiate()
-	root.add_child(game)
-	for _i: int in 3:
-		await process_frame
-	var environment: Environment = (game.world.environment as Environment).duplicate(true)
-	game.queue_free()
-	for _i: int in 3:
-		await process_frame
+	var camp: Node = (load("res://rooms/camp/camp.tscn") as PackedScene).instantiate()
+	var env: WorldEnvironment = camp.find_children("*", "WorldEnvironment", false, false)[0]
+	var environment: Environment = env.environment.duplicate(true)
+	camp.free()
 	return environment
 
 
@@ -141,9 +137,7 @@ func generate(layout: GorgeLayout, extras: Array[Dictionary], lamps: PackedVecto
 	vista_script.skip_sanctum_tiers = true
 	vista_script.walkable_overlook = true     # the balcony opens onto the stair (step 2)
 	vista_script.extra_lamps = lamps
-	var world_script: GDScript = load("res://scripts/world.gd")
-	world_script.scenery_only = true
-	var owner: Node3D = world_script.new()
+	var owner: Node3D = load("res://scripts/gorge_host.gd").new()
 	owner.name = "Generated"
 	root.add_child(owner)
 	owner.art = load("res://scripts/asset_factory.gd").new(owner)
@@ -168,14 +162,13 @@ func generate(layout: GorgeLayout, extras: Array[Dictionary], lamps: PackedVecto
 	for n: Node in owner.find_children("*", "MeshInstance3D", true, false):
 		if not (n as MeshInstance3D).visible:
 			n.free()
-	# A plain node: world.gd as the saved root's script would build the camp on load.
+	# A plain node: the host's script isn't wanted in the saved scene.
 	var out := Node3D.new()
 	out.name = "Generated"
 	for c: Node in owner.get_children():
 		owner.remove_child(c)
 		out.add_child(c)
 	owner.queue_free()
-	world_script.scenery_only = false
 	adopt(out, out)
 	return out
 

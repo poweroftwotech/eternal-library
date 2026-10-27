@@ -1,5 +1,7 @@
 extends SceneTree
-## Exercises physical exploration and the small gathering/cooking scaffold.
+## Exercises physical exploration and the small gathering/cooking scaffold in
+## the camp the game starts in: the camp baked from kit pieces (phase 7).
+##   godot --path . --script res://tests/playtest.gd
 var game
 var checks: int = 0
 var failures: Array[String] = []
@@ -22,6 +24,7 @@ func run() -> void:
 	game = load("res://main.tscn").instantiate()
 	root.add_child(game)
 	await settle(12)
+	check(game.world is CampRoom, "The game starts in the camp baked from kit pieces")
 	check(game.player.is_on_floor(),"Arrival stands on a collision-enabled floor")
 	check(not game.hud.modal_open,"Environment is visible immediately on launch")
 	var start: Vector3 = game.player.position
@@ -81,28 +84,25 @@ func run() -> void:
 	Input.action_release("forward")
 	check(game.player.position.y>2.0 and game.player.position.z< -9.3,"The upper gallery is reachable by walking up the stairs")
 	check(game.visited_gallery,"Reaching the gallery records the exploration landmark")
-	# Walk through the actual gallery opening and corridor, not a teleport to the vista.
+	# The gallery's doorway is the door to the Gorge (phase 7 step 4): walking
+	# in reaches its trigger. (It doesn't travel here: that would write your
+	# save; tests/persist_test.gd crosses it for real.)
+	var door: Threshold = game.world.get_node_or_null("Threshold_gorge")
+	check(door != null and door.to == "gorge","The gallery doorway is the door to the Gorge")
+	if door != null:
+		door.crossed = true
 	game.player.teleport(Vector3(-1,2.25,-11.1),0,0)
 	await settle(6)
 	Input.action_press("forward")
-	await settle(270)
+	await settle(120)
 	Input.action_release("forward")
-	check(game.player.position.z< -23 and game.player.position.y>2.1,"Gallery doorway and passage lead to the balcony on foot")
-	check(game.visited_balcony,"Walking onto the balcony discovers the Eternal Library overlook")
-	Input.action_press("forward")
-	await settle(150)
-	Input.action_press("jump")
-	await settle(45)
-	Input.action_release("jump")
-	Input.action_release("forward")
-	check(game.player.position.z> -27.7 and game.player.position.y>2,"Balcony front guard contains walking and jumping")
-	game.player.teleport(Vector3(-6.5,2.25,-24),PI/2,0)
-	await settle(5)
-	Input.action_press("forward")
-	await settle(80)
-	Input.action_release("forward")
-	check(game.player.position.x> -6.85,"Balcony side guard prevents leaving the playable area")
-	for p in [Vector3(0,1,5),Vector3(-1,1,-4),Vector3(8,1,-5),Vector3(-1,3,-24)]:
+	check(door != null and door.overlaps_body(game.player) and game.player.position.y>2.1,"Walking into the gallery doorway reaches the door to the Gorge (%s)" % game.player.position)
+	await camp_checks()
+
+
+## The checks of the camp's shell and gameplay.
+func camp_checks() -> void:
+	for p in [Vector3(0,1,5),Vector3(-1,1,-4),Vector3(8,1,-5)]:
 		var query = PhysicsRayQueryParameters3D.create(p,p+Vector3(0,30,0),1)
 		var hit = game.world.get_world_3d().direct_space_state.intersect_ray(query)
 		check(not hit.is_empty(),"A physical ceiling closes the interior above %s" % p)
@@ -110,11 +110,6 @@ func run() -> void:
 		var p = Vector3(-1,1.6,-4)
 		var hit = game.world.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(p,p+offset,1))
 		check(not hit.is_empty(),"Upper garden walls close the roof seam in direction %s" % offset)
-	check(game.world.vista.extent>260 and game.world.vista.extent<350 and game.world.vista.bank_count==8,"Eight overlapping banks form a compact library gorge")
-	check(game.world.vista.shelf_bays>600,"Inhabited ledges carry dense three-dimensional book arcades")
-	check(game.world.vista.bridge_count==7 and game.world.vista.portal_count==2 and game.world.vista.waterfall_count==14,"The exterior has six aqueducts, a flying crossing from a rock-cut gate in the throat, a second gate under the right colossus, and stepped falls (four cascades of three drops plus two through aqueduct arches)")
-	check(game.world.vista.tier_count>100 and game.world.vista.max_tier_height<12 and game.world.vista.profile_variation>5,"Short tiers change their footprints instead of forming long straight shafts")
-	check(game.world.library_dressing.case_count>=15 and game.world.library_dressing.art_count>=6,"Interior walls carry high collections and framed art")
 	# Check movement cannot walk through the tree's visible trunk.
 	game.player.teleport(Vector3(-4,.08,-4.6),0,0)
 	await settle(4)
@@ -125,16 +120,6 @@ func run() -> void:
 	game.show_notes()
 	check(game.hud.modal_text.text.contains("Amberroot"),"Field notes describe ingredients and the route")
 	game.close_panel()
-	check(game.world.art.batch_count>3000,"Detailed books and foliage use shared instance batches")
-	var merged: int = 0
-	for child in game.world.get_children():
-		if str(child.name).begins_with("MergedStatic_"):
-			merged += 1
-	# Interior, exterior and distant enclosure are separate light layers.
-	# Shared materials therefore form additional groups instead of leaking fill light.
-	check(merged>10 and merged<100,"Static geometry remains merged with isolated exterior light layers")
-	print("Static material/layer groups: %d" % merged)
-	check(game.world.get_node("ExteriorVaultBounce").light_cull_mask==2,"Vault bounce is restricted to exterior geometry")
 	game.queue_free()
 	await settle(20)
 	if failures.is_empty():

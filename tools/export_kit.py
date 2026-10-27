@@ -47,11 +47,14 @@ def export_open_file():
         for o in descendants(root):
             o.hide_set(False)
             o.select_set(True)
+        # Pieces cut from the code-built camp (kit_camp.blend) carry their instanced
+        # books' and leaves' colours as a colour attribute (kit_vertex_colors).
+        colors = {"export_vertex_color": "ACTIVE"} if root.get("kit_vertex_colors") else {}
         bpy.ops.export_scene.gltf(
             filepath=path, export_format="GLB", use_selection=True, export_extras=True,
             export_yup=True, export_apply=True, export_lights=False, export_cameras=False,
             export_texcoords=True, export_normals=True, export_materials="EXPORT",
-            export_animations=False)
+            export_animations=False, **colors)
         root.matrix_world = saved
         count += 1
         print("export_kit:", os.path.relpath(path, ROOT))

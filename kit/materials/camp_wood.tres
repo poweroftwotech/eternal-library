@@ -1,0 +1,19 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/wood.png" id="1_turbd"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/wood_normal.png" id="2_h7hl7"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/wood_rough.png" id="3_aq7as"]
+
+[resource]
+resource_name = "camp_wood"
+albedo_texture = ExtResource("1_turbd")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_aq7as")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_h7hl7")
+uv1_scale = Vector3(1, 0.5, 1)
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 0.5, 1)

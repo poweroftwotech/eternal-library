@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/cloth.png" id="1_dc2yv"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/cloth_normal.png" id="2_2bwmb"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/cloth_rough.png" id="3_m6qr1"]
+
+[resource]
+resource_name = "camp_cloth"
+albedo_texture = ExtResource("1_dc2yv")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_m6qr1")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_2bwmb")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

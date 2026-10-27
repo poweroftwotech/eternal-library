@@ -4,13 +4,17 @@ func _initialize() -> void:
 	call_deferred("capture")
 
 func capture() -> void:
+	var args = OS.get_cmdline_user_args()
+	var mode: String = args[1] if args.size()>1 else "camp"
+	# The gorge's views are the Gorge area's since the camp stopped drawing it
+	# (phase 7 step 4); the Overlook stands where the camp's balcony stood.
+	if mode.begins_with("vista") or mode.begins_with("balcony") or mode == "passage_end":
+		(load("res://scripts/main.gd") as GDScript).set("room_override", "area:gorge")
 	var game = load("res://main.tscn").instantiate()
 	root.add_child(game)
 	await process_frame
 	game.player.blocked = true
 	game.hud.toast_time = 0
-	var args = OS.get_cmdline_user_args()
-	var mode: String = args[1] if args.size()>1 else "camp"
 	if mode == "concept":
 		# Matches design/Campfire in the Eternal Library.png framing (v0.11).
 		game.player.teleport(Vector3(-1.05,.08,9.0))
@@ -110,7 +114,8 @@ func capture() -> void:
 		game.inventory = {"root":1,"herb":1,"mushroom":1}
 		game.hud.update_values(game.inventory,game.nourishment,game.warmth)
 		game.show_pot()
-	game.world.elapsed = 1.3
+	if "elapsed" in game.world:
+		game.world.elapsed = 1.3
 	# Volumetric fog / SSIL reproject over frames; 12 frames was not converged.
 	var settle: int = int(args[2]) if args.size()>2 else 90
 	for i in range(settle):
@@ -119,7 +124,7 @@ func capture() -> void:
 	var destination: String = args[0] if args.size() else "user://reading_garden.png"
 	var result: Error = root.get_texture().get_image().save_png(destination)
 	print("Viewport saved: %s (result=%d)" % [destination,result])
-	print("Rendering: %s fps, %s visible draw calls, %s batched instances" % [Engine.get_frames_per_second(),Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),game.world.art.batch_count])
+	print("Rendering: %s fps, %s visible draw calls, %s batched instances" % [Engine.get_frames_per_second(),Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),game.world.art.batch_count if game.world.get("art") != null else 0])
 	game.queue_free()
 	for i in range(8):
 		await process_frame

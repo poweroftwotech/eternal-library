@@ -1,6 +1,8 @@
 extends StaticBody3D
-var interaction_id: String = ""
-var title: String = ""
+## A camp interaction (the cooking pot, a gatherable patch): what the ray finds
+## and what the HUD calls it. Exported so a baked camp keeps them (phase 7).
+@export var interaction_id: String = ""
+@export var title: String = ""
 
 func get_interaction_id() -> String:
 	return interaction_id

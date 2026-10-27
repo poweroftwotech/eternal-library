@@ -6,6 +6,267 @@
 script = ExtResource("1_wnug1")
 modules = Array[Dictionary]([{
 "edge": "",
+"family": "camp",
+"name": "camp_arch_wall",
+"scene": "res://kit/modules/camp/camp_arch_wall.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_archive",
+"scene": "res://kit/modules/camp/camp_archive.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_back",
+"scene": "res://kit/modules/camp/camp_back.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_bedroll",
+"scene": "res://kit/modules/camp/camp_bedroll.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_bookcase",
+"scene": "res://kit/modules/camp/camp_bookcase.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_channel",
+"scene": "res://kit/modules/camp/camp_channel.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_floor_archive",
+"scene": "res://kit/modules/camp/camp_floor_archive.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_floor_garden",
+"scene": "res://kit/modules/camp/camp_floor_garden.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_floor_hall",
+"scene": "res://kit/modules/camp/camp_floor_hall.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_fungi",
+"scene": "res://kit/modules/camp/camp_fungi.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_gallery",
+"scene": "res://kit/modules/camp/camp_gallery.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_garden",
+"scene": "res://kit/modules/camp/camp_garden.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_hall",
+"scene": "res://kit/modules/camp/camp_hall.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_hall_east",
+"scene": "res://kit/modules/camp/camp_hall_east.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_hall_front",
+"scene": "res://kit/modules/camp/camp_hall_front.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_hall_roof",
+"scene": "res://kit/modules/camp/camp_hall_roof.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_hall_west",
+"scene": "res://kit/modules/camp/camp_hall_west.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_hearth",
+"scene": "res://kit/modules/camp/camp_hearth.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_lantern_books",
+"scene": "res://kit/modules/camp/camp_lantern_books.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_lightwell",
+"scene": "res://kit/modules/camp/camp_lightwell.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_mug",
+"scene": "res://kit/modules/camp/camp_mug.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_pack",
+"scene": "res://kit/modules/camp/camp_pack.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_passage",
+"scene": "res://kit/modules/camp/camp_passage.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_planter",
+"scene": "res://kit/modules/camp/camp_planter.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_provisions",
+"scene": "res://kit/modules/camp/camp_provisions.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_rest",
+"scene": "res://kit/modules/camp/camp_rest.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_rug",
+"scene": "res://kit/modules/camp/camp_rug.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_stair",
+"scene": "res://kit/modules/camp/camp_stair.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "camp",
+"name": "camp_tree",
+"scene": "res://kit/modules/camp/camp_tree.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("camp", "dressing"),
+"weight": 1.0
+}, {
+"edge": "",
 "family": "dressing",
 "name": "aqueduct_landing",
 "scene": "res://kit/modules/dressing/aqueduct_landing.tscn",

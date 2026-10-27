@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/foliage_wind.gdshader" id="1_1y6es"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/fern.png" id="2_0xh83"]
+
+[resource]
+resource_name = "camp_foliage_fern"
+render_priority = 0
+shader = ExtResource("1_1y6es")
+shader_parameter/leaf_texture = ExtResource("2_0xh83")
+shader_parameter/tint = Color(0.9, 0.94, 0.88, 1)
+shader_parameter/simulation_time = 0.14760533333333334
+shader_parameter/wind_strength = 0.035

@@ -1,0 +1,15 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/ceramic.png" id="1_7auso"]
+[ext_resource type="Texture2D" path="res://assets/textures/ceramic_normal.png" id="2_cjgxs"]
+[ext_resource type="Texture2D" path="res://assets/textures/ceramic_rough.png" id="3_exde7"]
+
+[resource]
+resource_name = "camp_ceramic"
+albedo_texture = ExtResource("1_7auso")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_exde7")
+normal_enabled = true
+normal_scale = 0.75
+normal_texture = ExtResource("2_cjgxs")
+texture_filter = 2

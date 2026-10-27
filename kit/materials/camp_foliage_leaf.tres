@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/foliage_wind.gdshader" id="1_goye8"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/leaf.png" id="2_fk5x5"]
+
+[resource]
+resource_name = "camp_foliage_leaf"
+render_priority = 0
+shader = ExtResource("1_goye8")
+shader_parameter/leaf_texture = ExtResource("2_fk5x5")
+shader_parameter/tint = Color(0.65, 0.73, 0.61, 1)
+shader_parameter/simulation_time = 0.14760533333333334
+shader_parameter/wind_strength = 0.035

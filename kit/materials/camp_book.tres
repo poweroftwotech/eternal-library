@@ -1,0 +1,16 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/book.png" id="1_fapbq"]
+[ext_resource type="Texture2D" path="res://assets/textures/book_normal.png" id="2_oowqd"]
+[ext_resource type="Texture2D" path="res://assets/textures/book_rough.png" id="3_7fkwj"]
+
+[resource]
+resource_name = "camp_book"
+vertex_color_use_as_albedo = true
+albedo_texture = ExtResource("1_fapbq")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_7fkwj")
+normal_enabled = true
+normal_scale = 0.75
+normal_texture = ExtResource("2_oowqd")
+texture_filter = 2

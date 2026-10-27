@@ -1,0 +1,9 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "camp_book_gilt"
+albedo_color = Color(0.7019608, 0.5411765, 0.3019608, 1)
+metallic = 0.3
+metallic_specular = 0.65
+roughness = 0.64
+texture_filter = 2

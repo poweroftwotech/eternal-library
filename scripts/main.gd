@@ -1,5 +1,4 @@
 extends Node3D
-const World = preload("res://scripts/world.gd")
 const Player = preload("res://scripts/player.gd")
 const Hud = preload("res://scripts/hud.gd")
 var world
@@ -15,18 +14,20 @@ var warmth: float = 65
 var prepared_meal: String = ""
 var meals_eaten: int = 0
 var visited_gallery: bool = false
-var visited_balcony: bool = false
 var mute: bool = false
 var audio: AudioStreamPlayer
 var elapsed: float = 0
 var modal_context: String = ""
 
-## Authored rooms you can visit instead of the code-built camp (ENVIRONMENT_PLAN.md
+## Authored rooms you can visit instead of the camp (ENVIRONMENT_PLAN.md
 ## phase 1 step 6). Pick one with `-- --room=<res path>` or from the Esc menu.
 const READING_ROOM: String = "res://rooms/authored/reading_room.tscn"
 ## R01 with a generated R02 Stack Gallery off its west door (ENVIRONMENT_PLAN.md
 ## phase 2). `-- --gen-seed=N` (or the menu's reseed) picks the corridor.
 const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
+## The camp, baked from kit pieces (phase 7): where the game starts ("camp").
+## Its gallery doorway is the door to the Gorge (Threshold_gorge, step 4).
+const KIT_CAMP: String = "res://rooms/camp/camp.tscn"
 ## Areas you can walk (phase-4-design.md 8.1.3): `-- --area=<id>` or the Esc
 ## menu; "area:<id>" wherever a room path goes (room_override, the save's scene).
 const AREAS: Dictionary = {"library": "res://gen/recipes/library_wing.tres", "lower_stacks": "res://gen/recipes/lower_stacks.tres", "gorge": "res://gen/recipes/gorge.tres"}
@@ -67,8 +68,11 @@ func _ready() -> void:
 	var arrive: Dictionary = ws().data.get("arrive", {})
 	ws().data.erase("arrive")     # used once: the next start resumes where you are
 	ws().saving.connect(_on_saving)
+	if room_path == KIT_CAMP:
+		room_path = ""     # the camp by its path is the camp
+		scene_path = "camp"
 	if room_path.is_empty():
-		world = World.new()
+		world = (load(KIT_CAMP) as PackedScene).instantiate()
 	elif room_path.begins_with(AREA_PREFIX):
 		world = Area.new()
 		world.recipe = load(AREAS[room_path.trim_prefix(AREA_PREFIX)])
@@ -99,6 +103,11 @@ func _ready() -> void:
 		# v0.11: spawn on the concept-art framing (see tests/capture.gd 'concept').
 		player.teleport(Vector3(-1.05,.08,9.2))
 		look_toward(Vector3(-1.1,1.4,-2.4))
+		# Through a door from an area: just inside the camp's door back, facing in.
+		var door: Threshold = _door_to(str(arrive.get("from", ""))) if not resuming else null
+		if door != null:
+			var at: Transform3D = door.global_transform
+			player.teleport(at * Vector3(0, .1, Area.ARRIVE_IN), (at.basis * Basis(Vector3.UP, PI)).get_euler().y)
 	var pose: Dictionary = ws().data.get("player", {})
 	if resuming and (pose.get("pos", []) as Array).size() == 3:
 		var p: Array = pose["pos"]
@@ -145,6 +154,8 @@ func requested_room() -> String:
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("--room=") or arg.begins_with("--area="):
 			var path: String = arg.trim_prefix("--room=") if arg.begins_with("--room=") else AREA_PREFIX + arg.trim_prefix("--area=")
+			if path == "camp":
+				return ""
 			if _exists(path):
 				return path
 			push_warning("main: no room or area at %s, starting the camp" % path)
@@ -187,14 +198,24 @@ func travel(path: String) -> void:
 			await get_tree().process_frame
 	get_tree().reload_current_scene()
 
-## Through a threshold (phase-6-design.md 5.7.6) into area `to`: you arrive
-## at its door back to this area.
+## Through a threshold (phase-6-design.md 5.7.6) into area `to`, or "camp":
+## you arrive at its door back to where you were (an area's id, or "camp").
 func cross(to: String) -> void:
-	if not AREAS.has(to) or not world is Area:
+	var from: String = (world as Area).recipe.id if world is Area else ("camp" if world is CampRoom else "")
+	if from == "" or not (AREAS.has(to) or to == "camp"):
 		return
-	ws().data["arrive"] = {"from": (world as Area).recipe.id}
+	ws().data["arrive"] = {"from": from}
 	Area.seed_override = -1     # each area plans from its own seed
-	travel(AREA_PREFIX + to)
+	travel(AREA_PREFIX + to if to != "camp" else "camp")
+
+## The camp's door to `to` (an area id), or null.
+func _door_to(to: String) -> Threshold:
+	if to == "" or not world is CampRoom:
+		return null
+	for n: Node in (world as Node).find_children("*", "Threshold", true, false):
+		if (n as Threshold).to == to:
+			return n as Threshold
+	return null
 
 ## Just before every save: where the player is, so the next start resumes there.
 func _on_saving() -> void:
@@ -250,9 +271,6 @@ func interact(target) -> void:
 	var id: String = target.get_interaction_id()
 	if id == "pot":
 		show_pot()
-	elif id == "vista":
-		visited_gallery = true
-		hud.notify("Towers, bridges, and thousands of warm windows. The cavern roof closes over the Eternal Library.")
 	else:
 		var kind: String = world.harvest(id)
 		if not kind.is_empty():
@@ -321,7 +339,7 @@ func show_notes() -> void:
 	if in_room():
 		open_panel("Field notes","[color=#dfbd7b]%s[/color]\nA two-storey hall of shelf recesses under a tiled vault. Stairs at the far end of each side climb to a gallery that runs round to the entrance wall. A tiled iwan closes the hall; what stands in it changes from visit to visit.\n\nVases and the things on the tables can be pushed (E) or walked into; a vase that falls hard breaks. The library remembers what you knock over, even after you quit.\n\nEsc → Return to the camp." % room_title().capitalize() + satchel_text(),satchel_options(),"notes")
 		return
-	open_panel("Field notes","[color=#dfbd7b]The reading garden[/color]\nA cooking fire, a tree growing through the archive, and a stair to the upper gallery. Water still follows the old irrigation channel.\n\n[color=#dfbd7b]Ingredients[/color]\nAmberroot grows beside the garden's water. Filling.\nHearthleaf grows in sunny patches. Aromatic and warming.\nShelf mushrooms grow in the damp archive. Good roasted.\n\n[color=#dfbd7b]A route worth trying[/color]\nThe stairs east of the tree lead to the upper bookshelves. Follow the lamp-lit doorway through the gallery to the balcony. The Eternal Library continues far below the cavern roof." + satchel_text(),satchel_options(),"notes")
+	open_panel("Field notes","[color=#dfbd7b]The reading garden[/color]\nA cooking fire, a tree growing through the archive, and a stair to the upper gallery. Water still follows the old irrigation channel.\n\n[color=#dfbd7b]Ingredients[/color]\nAmberroot grows beside the garden's water. Filling.\nHearthleaf grows in sunny patches. Aromatic and warming.\nShelf mushrooms grow in the damp archive. Good roasted.\n\n[color=#dfbd7b]A route worth trying[/color]\nThe stairs east of the tree lead to the upper bookshelves. The glowing doorway at the back of the gallery opens onto the Overlook. The Eternal Library continues far below the cavern roof." + satchel_text(),satchel_options(),"notes")
 
 ## The satchel section of the field notes (ENVIRONMENT_PLAN.md 6.5.8 step 3).
 func satchel_text() -> String:
@@ -478,11 +496,6 @@ func _process(delta: float) -> void:
 		return
 	var cold: bool = player.position.x > 5 and player.position.z < 0
 	hud.zone_label.text = "THE DAMP ARCHIVE" if cold else "THE READING GARDEN"
-	if player.position.z < -20:
-		hud.zone_label.text = "THE ETERNAL LIBRARY · OVERLOOK"
-		if not visited_balcony:
-			visited_balcony = true
-			hud.notify("The Eternal Library. Towers and bridges disappear into the depths.")
 	# Deliberately gentle pressure for this visual exploration milestone; no death.
 	nourishment = maxf(0,nourishment-delta*.013)
 	if player.position.distance_to(world.hearth) < 3.1:

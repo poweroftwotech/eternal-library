@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_hb8ro"]
+[ext_resource type="PackedScene" path="res://assets/kit/camp/camp_garden.glb" id="2_c4awk"]
+
+[node name="camp_garden" type="Node3D" unique_id=1819655878]
+script = ExtResource("1_hb8ro")
+family = "camp"
+tags = PackedStringArray("camp", "dressing")
+source_glb = "res://assets/kit/camp/camp_garden.glb"
+
+[node name="Mesh" parent="." unique_id=2032090862 instance=ExtResource("2_c4awk")]

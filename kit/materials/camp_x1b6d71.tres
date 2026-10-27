@@ -1,0 +1,6 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "camp_x1b6d71"
+albedo_color = Color(0.6156863, 0.42745098, 0.5882353, 1)
+roughness = 0.7

@@ -11,11 +11,15 @@ extends Area3D
 ## gorge's door bay (gorge_bay_doorway) gets a lit door card of the gorge's
 ## windows set inside its arch ring, in front of the cliff face (on some
 ## tiers the face stands proud of the piece's own card).
+##
+## A door out of the camp (phase 7 step 4) is the same glowing doorway, saved
+## in the camp's scene; its door back, in the Overlook's loggia, is the bronze
+## door already there (look "door": the trigger and the wall, nothing drawn).
 
-## The area id it leads to.
+## The area id it leads to, or "camp" (the Overlook's door back, phase 7 step 4).
 @export var to: String = ""
 ## "glow": the glowing doorway (a door inside the library); "card": the
-## gorge door bay's lit door.
+## gorge door bay's lit door; "door": nothing drawn (a door piece is there).
 @export var look: String = "glow"
 
 ## The trigger: the doorway, from just inside it to the wall behind.

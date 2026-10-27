@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/rug.png" id="1_eemsf"]
+[ext_resource type="Texture2D" path="res://assets/textures/rug_normal.png" id="2_w71i3"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/rug_rough.png" id="3_4exgj"]
+
+[resource]
+resource_name = "camp_rug"
+albedo_texture = ExtResource("1_eemsf")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_4exgj")
+normal_scale = 0.75
+normal_texture = ExtResource("2_w71i3")
+texture_filter = 4

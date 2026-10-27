@@ -17,6 +17,9 @@ slot_id = "overlook"
 display_name = "The Overlook"
 scene = ExtResource("3_overlook")
 pinned = true
+thresholds = {
+&"SNAP_door_camp": "camp"
+}
 
 [sub_resource type="Resource" id="Resource_span"]
 script = ExtResource("2_slot")

@@ -158,14 +158,10 @@ stonework, cookware, fruit, books, ivy and planting details remain in place.
 | File | Responsibility |
 |---|---|
 | `scripts/vista.gd` | Compact gorge, changing tier footprints, book arcades, sanctuary, bridges, enclosure, balcony |
-| `scripts/atmosphere.gd` | Animated lights, wind materials, ripples and streambed |
-| `scripts/organic_pass.gd` | v0.9 sculpted paving, fractures, rock forms, clustered planting and trailing ivy |
-| `scripts/benchmark_pass.gd` | v0.8 local lighting, masonry, camp details, reflection and planting |
-| `scripts/world.gd` | Interior layout, lighting, camp, stairs and gatherables |
-| `scripts/interior_pass.gd` | Interior vault, lightwell, mouldings and planted joints |
-| `scripts/library_dressing.gd` | Full-height interior collections and art |
-| `scripts/set_dressing.gd` | Tree, plants, stones, roof detail and provisions |
-| `scripts/asset_factory.gd` | Geometry, materials, merging and instancing |
+| `rooms/camp/camp.tscn` | The camp, baked from kit pieces (phase 7) and edited by hand: layout, lights, gatherables, its door to the Gorge |
+| `scripts/camp/camp_room.gd` | The camp's animated lights, wind, water ripples, steam and flames; foraging |
+| `scripts/gorge_host.gd` | The helpers `vista.gd` builds into for the gorge's bake (`tools/bake_gorge.gd`) |
+| `scripts/asset_factory.gd` | Geometry, materials, merging and instancing (the gorge's bake) |
 | `scripts/main.gd` | Inventory, recipes, eating, menus and discovery |
 | `scripts/player.gd` | Walking, camera, collision and interaction ray |
 | `scripts/hud.gd` | HUD and cooking/notes panels |

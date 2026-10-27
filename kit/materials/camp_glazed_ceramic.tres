@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/glazed_ceramic.png" id="1_8av0a"]
+[ext_resource type="Texture2D" path="res://assets/textures/glazed_ceramic_normal.png" id="2_gb10e"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/glazed_ceramic_rough.png" id="3_1blhb"]
+
+[resource]
+resource_name = "camp_glazed_ceramic"
+albedo_texture = ExtResource("1_8av0a")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_1blhb")
+normal_scale = 0.75
+normal_texture = ExtResource("2_gb10e")
+texture_filter = 4

@@ -1,0 +1,14 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/earthenware.png" id="1_3yq7f"]
+[ext_resource type="Texture2D" path="res://assets/textures/earthenware_normal.png" id="2_8s7xe"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/earthenware_rough.png" id="3_qcmv0"]
+
+[resource]
+resource_name = "camp_earthenware"
+albedo_texture = ExtResource("1_3yq7f")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_qcmv0")
+normal_scale = 0.75
+normal_texture = ExtResource("2_8s7xe")
+texture_filter = 4
