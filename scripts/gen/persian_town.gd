@@ -56,6 +56,10 @@ var slot_z: bool = false              # this bank uses SLOT_Z instead
 var teal_lights: Array[Vector3] = []   # where the fungal beds' lights stand
 var ornament: float = 0.0             # 0 by the camp .. 1 at the furthest bank (GorgeGrammar.ornament)
 var iwans: Array[Vector3] = []         # where this bank's iwans stand
+var stair_feet: Array[Vector3] = []    # each stair flight's middle, on the terrace it stands on
+var clearings: Array[Dictionary] = []  # {t, p (its roof's middle), xf (its roof at the face)}
+var forced: Dictionary = {}            # "t:x,y:side" of a clearing's first bay -> its bays
+var reserved: Dictionary = {}          # "t:x,y:side": a clearing's bays (no stair, no iwan)
 
 
 func _init(grammar: GorgeGrammar) -> void:
@@ -80,6 +84,7 @@ func bank(bank_tiers: Array[Dictionary], seed_value: int) -> Array[Dictionary]:
 		# More the further from the camp: one by it, four at the furthest bank.
 		for n: int in roundi(1.0 + ornament * 3.0):
 			_iwan()
+	_clearings()     # after the iwans, clear of them
 	if "fall" in program:
 		_cascade()
 	if "shaft" in program:
@@ -318,6 +323,19 @@ func _cut_for_monument(t: int, top_xf: Transform3D, span: int, fit: Dictionary) 
 	var grand: bool = fit["dome"] == "grand"
 	var dome_c := Vector2(w * .5, -MON_BACK - (7.0 if grand else 4.0))
 	var dome_r: float = 6.6 if grand else 5.0
+	_cut_above(t, top_xf, func(l: Vector3) -> bool:
+		var in_x: bool = l.x > -1.0 and l.x < w + 1.0
+		# Over the garden and anything hanging out in front of it: a house
+		# overhanging the garden hid the monument (your report).
+		var in_garden: bool = in_x and l.z > -MON_BACK and l.z < MON_SIGHT
+		var in_body: bool = in_x and l.z > -MON_BACK - depth - 1.0 and l.z <= -MON_BACK
+		var in_dome: bool = Vector2(l.x, l.z).distance_to(dome_c) < dome_r
+		return in_garden or in_body or in_dome)
+
+
+## Every tier above t loses the cells any of whose points `inside` (in
+## `top_xf`'s frame) holds, all the way up, and the small pieces that leaves.
+func _cut_above(t: int, top_xf: Transform3D, inside: Callable) -> void:
 	var inv: Transform3D = top_xf.affine_inverse()
 	for u: int in range(t + 1, tiers.size()):
 		var cells: Dictionary = tiers[u]["cells"]
@@ -325,14 +343,7 @@ func _cut_for_monument(t: int, top_xf: Transform3D, span: int, fit: Dictionary) 
 		var gone: Dictionary = {}
 		for cell: Vector2i in cells:
 			for k: Vector2 in [Vector2(.2, .2), Vector2(3.8, .2), Vector2(.2, 3.8), Vector2(3.8, 3.8), Vector2(2, 2)]:
-				var l: Vector3 = inv * (frame * Vector3(cell.x * BAY + k.x, 0, -cell.y * BAY - k.y))
-				var in_x: bool = l.x > -1.0 and l.x < w + 1.0
-				# Over the garden and anything hanging out in front of it: a house
-				# overhanging the garden hid the monument (your report).
-				var in_garden: bool = in_x and l.z > -MON_BACK and l.z < MON_SIGHT
-				var in_body: bool = in_x and l.z > -MON_BACK - depth - 1.0 and l.z <= -MON_BACK
-				var in_dome: bool = Vector2(l.x, l.z).distance_to(dome_c) < dome_r
-				if in_garden or in_body or in_dome:
+				if inside.call(inv * (frame * Vector3(cell.x * BAY + k.x, 0, -cell.y * BAY - k.y))):
 					gone[cell] = true
 					break
 		if gone.is_empty():
@@ -346,8 +357,10 @@ func _cut_for_monument(t: int, top_xf: Transform3D, span: int, fit: Dictionary) 
 				for cell: Vector2i in part:
 					cells.erase(cell)
 					gone[cell] = true
-		cut[u] = gone
-		runs[u] = _runs(tiers[u], gone)
+		var all: Dictionary = cut.get(u, {})
+		all.merge(gone)
+		cut[u] = all
+		runs[u] = _runs(tiers[u], all)
 
 
 ## A footprint's connected parts (cells sharing a side).
@@ -454,7 +467,8 @@ func _iwan() -> void:
 				continue
 			for k: int in range(1, r["cells"].size() - 2):
 				var xf: Transform3D = _xf(t, r["cells"][k], r["side"], 0)
-				if _shut(xf.origin, xf * Vector3(4, 4, 0), 6.0) or taken.has(_key(t, r["cells"][k], r["side"], 0)) or taken.has(_key(t, r["cells"][k + 1], r["side"], 0)):
+				if _shut(xf.origin, xf * Vector3(4, 4, 0), 6.0) or taken.has(_key(t, r["cells"][k], r["side"], 0)) or taken.has(_key(t, r["cells"][k + 1], r["side"], 0)) \
+						or reserved.has(_key(t, r["cells"][k], r["side"])) or reserved.has(_key(t, r["cells"][k + 1], r["side"])):
 					continue
 				if _in_garden(xf * Vector3(4, 0, 5)) or _in_garden(xf * Vector3(4, 0, -2)):
 					continue     # the monument or its garden is here
@@ -640,6 +654,7 @@ func _height01(t: int) -> float:
 	return (float(tiers[t]["bottom"]) - low) / maxf(top - low, 1.0)
 const WALK_SIGHT: float = 90.0
 const FOREGROUND: GDScript = preload("res://scripts/vista_foreground.gd")
+const CAVERN: GDScript = preload("res://scripts/cavern.gd")
 static var _all_tiers: Array[Dictionary] = []
 static var _eyes: Array[Vector3] = []
 
@@ -648,6 +663,8 @@ func _seen_fraction(xf: Transform3D, storeys: int = 3) -> float:
 	if _all_tiers.is_empty():
 		_all_tiers = g.keep_out(load("res://gen/gorge/gorge_layout.tres"))
 	var n: Vector3 = xf.basis.z.normalized()
+	if _walk_blind():
+		return clampf(n.dot(Vector3(-signf(xf.origin.x), 0, 0)) * 1.25, 0.0, 1.0)
 	var seen: int = 0
 	for x: float in [1.0, 4.0, 7.0]:
 		for y: float in [.17, .5, .83]:
@@ -658,6 +675,34 @@ func _seen_fraction(xf: Transform3D, storeys: int = 3) -> float:
 					seen += 1
 					break
 	return seen / 9.0
+
+
+## The far banks (bank 6 on): no walkway reaches or sees them, and the
+## Overlook sees them only between the nearer banks; their faces toward the
+## Overlook look into the gap by the nearer banks and the cavern's rock, so
+## their features face the gorge's open middle (x = 0) instead.
+## Whether this bank is one: no walkway sees any bay at the middle of its
+## runs.
+var _blind: int = -1
+
+
+func _walk_blind() -> bool:
+	if _blind < 0:
+		_blind = 1
+		for t: int in range(1, tiers.size() - 1, 2):
+			for r: Dictionary in runs[t]:
+				if r["inner"] or r["eye"] < .3:
+					continue
+				var xf: Transform3D = _xf(t, r["cells"][r["cells"].size() / 2], r["side"], 0)
+				var p: Vector3 = xf * Vector3(2, tiers[t]["storeys"] * BAY * .5, .6)
+				var n: Vector3 = xf.basis.z.normalized()
+				for e: Vector3 in _walk_eyes():
+					var d: float = p.distance_to(e)
+					if d < WALK_SIGHT and n.dot(e - p) > .3 * d and _sight(e, p):
+						_blind = 0
+						return false
+	return _blind == 1
+
 
 
 ## Where you stand on the walkways, at eye height: each bay of every
@@ -866,7 +911,7 @@ func _shaft() -> void:
 			for k: int in range(1, list.size() - 1):
 				var xf: Transform3D = _xf(t, list[k], r["side"], tiers[t]["storeys"])
 				var at: Vector3 = xf * Vector3(2, 0, -3.5)
-				if _shut(at, at, 8.0) or r["inner"] or not _on_roof(t, at) or not _open_above(t, at) or _blocked(at, 8.0) or _in_garden(at) or _zone(at) != "dark":
+				if _shut(at, at, 8.0) or r["inner"] or not _on_roof(t, at) or not _open_above(t, at) or _blocked(at, 8.0) or _in_garden(at) or _zone(at) != "dark" or _in_clearing(at, 8.0):
 					continue
 				if not (_on_roof(t, xf * Vector3(-3, 0, -3.5)) and _on_roof(t, xf * Vector3(7, 0, -3.5)) and _on_roof(t, xf * Vector3(-2, 0, -6.0)) and _on_roof(t, xf * Vector3(6, 0, -6.0)) and _on_roof(t, xf * Vector3(2, 0, -1.2))):
 					continue
@@ -980,12 +1025,14 @@ func _stair(i: int) -> void:
 	for r: Dictionary in runs[i]:
 		var cells: Array = r["cells"]
 		var side: int = r["side"]
+		if r["inner"] and ornament > 0.0:
+			continue     # not up a clearing's sides, onto its roof
 		for k: int in range(0, cells.size() - storeys + 1):
 			var ok: bool = true
 			var clear: Array[bool] = []      # per bay: its flight has headroom
 			for b: int in range(k, k + storeys):
 				var xf: Transform3D = _xf(i, cells[b], side, 0)
-				ok = ok and not taken.has(_key(i, cells[b], side, 0))
+				ok = ok and not taken.has(_key(i, cells[b], side, 0)) and not reserved.has(_key(i, cells[b], side))
 				for p: Vector3 in [Vector3(.4, -.2, .4), Vector3(3.6, -.2, .4), Vector3(.4, -.2, 1.6), Vector3(3.6, -.2, 1.6)]:
 					ok = ok and _on_roof(i - 1, xf * p)
 				for p: Vector3 in [Vector3(0, 0, .9), Vector3(4, 0, .9)]:
@@ -1019,6 +1066,7 @@ func _stair(i: int) -> void:
 	for s: int in storeys:
 		var cell: Vector2i = r["cells"][best[1] + s]
 		var at: Transform3D = _xf(i, cell, r["side"], s)
+		stair_feet.append(_xf(i, cell, r["side"], 0) * Vector3(2, 0, .8))
 		if full:
 			# The top flight's parapet closes its far end (your walk: it ended in a drop).
 			_put("persian_stair_flight_top" if s == storeys - 1 else "persian_stair_flight", at)
@@ -1080,14 +1128,35 @@ func _tier(t: int, seed_value: int) -> void:
 	for r: Dictionary in runs[t]:
 		var list: Array = r["cells"]
 		var side: int = r["side"]
-		var is_monument: bool = false     # the monument builds its own front (_build_monument)
+		var grand_p: float = _grand_share() if r["eye"] > GRAND_EYE and storeys >= 2 else 0.0
 		var b: int = 0
 		var building: int = 0
 		var tops: Array[Dictionary] = []
 		while b < list.size():
 			var h: float = GorgeGrammar._hash01(Vector3(frame.origin.x + b, tier["bottom"], frame.origin.z + side * 7.0))
 			var length: int = mini(1 + int(h * 3.0), list.size() - b)
-			var kind: String = "monument" if is_monument else ("carved" if fposmod(h * 13.7, 1.0) < carved_p else "house")
+			# Most faces have the tier above flush over them, no roof for a dome:
+			# where there is one, more of them are grand.
+			var glen: int = mini(GRAND_MIN + int(fposmod(h * 5.3, 1.0) * 3.0), list.size() - b)
+			var grand: bool = grand_p > 0.0 and glen >= GRAND_MIN and (fposmod(h * 23.1, 1.0) < grand_p
+				or (fposmod(h * 29.0, 1.0) < grand_p * 3.0 and _roof_depth(t, list, side, b, glen) >= GRAND_ROOF))
+			# A clearing's building starts where it was chosen; the one before
+			# it ends there.
+			var clearing: bool = forced.has(_key(t, list[b], side))
+			if clearing:
+				grand = true
+				glen = mini(forced[_key(t, list[b], side)], list.size() - b)
+			else:
+				for j: int in range(b + 1, b + maxi(length, glen if grand else 0)):
+					if j < list.size() and forced.has(_key(t, list[j], side)):
+						length = j - b
+						glen = j - b
+						grand = grand and glen >= GRAND_MIN
+						break
+			if grand:
+				length = glen
+				_grand_portal(t, list, side, b, length)
+			var kind: String = "monument" if grand else ("carved" if fposmod(h * 13.7, 1.0) < carved_p else "house")
 			var tint: String = _tint(fposmod(h * 7.3, 1.0))
 			var door_bay: int = b + length / 2
 			# Buildings stand a little in or out of the run (their side walls show),
@@ -1095,11 +1164,239 @@ func _tier(t: int, seed_value: int) -> void:
 			var off: float = WALL_PROUD if kind == "monument" else [WALL_PROUD, .45, .2][int(fposmod(h * 31.0, 1.0) * 3.0)]
 			for k: int in range(b, b + length):
 				tops.append(_bay(t, list[k], side, kind, tint, k == door_bay, below, above, crowned, off))
+			if grand:
+				_grand_roof(t, list, side, b, length, h, clearing)
 			b += length
 			building += 1
 		_joins(t, list, side, tops)
 		_roof_life(t, r, above)
 	_decks(t, frame, cells, storeys, above, below)
+
+
+## The grand buildings (your direction: the further a bank, the more
+## ornamental, the furthest mostly monuments and grand buildings): from
+## GRAND_FROM on a share of the buildings on runs the walkways see wear the
+## monument's front (brick arcades, orosi, the crown), GRAND_MAX of them at
+## the furthest bank; on a three-storey tier a long one has a portal rising
+## above its roof, and their roofs carry a dome and minarets where there is
+## room to walk round them.
+const GRAND_FROM: float = .45
+const GRAND_MAX: float = .85
+const GRAND_EYE: float = .2          # runs that look this squarely toward the Overlook or more
+const GRAND_MIN: int = 2             # bays
+const GRAND_WALK: float = 3.0        # roof kept to walk behind a dome or minaret
+## [piece, radius, height]: the plain dome over three bays and more, the small
+## one over two.
+const GRAND_DOMES: Array = [["persian_dome", 4.6, 17.0], ["persian_dome_small", 2.6, 7.5]]
+const MINARET_R: float = 1.5
+const MINARET_TOP: float = 26.0
+
+
+const GRAND_ROOF: float = 9.4        # roof the small dome needs, with the walk behind it
+
+
+## The clearings (your call, bank 5): over the grand buildings the walkways
+## see best, the tiers above are cut away as over bank 1's monument, so their
+## domes and minarets stand mid-stack, open to the cavern; one at the first
+## grand bank, CLEAR_MORE more by the furthest. A clearing is CLEAR_BAYS wide
+## and CLEAR_DEPTH deep on its tier's roof (the plain dome, minarets either
+## side, a walk behind), open CLEAR_SIGHT out in front (as the monument), CLEAR_SPACING apart,
+## clear of the frontage slots the links reach at any height above it (the
+## link table sees the uncut tiers).
+const CLEAR_BAYS: int = 4           # the plain dome with a minaret either side
+const CLEAR_DEPTH: float = 14.0
+const CLEAR_SIGHT: float = 16.0       # as MON_SIGHT: tiers above can jut 13 m past the face (bank 6)
+const CLEAR_SPACING: float = 30.0
+const CLEAR_MORE: float = 4.0
+const CLEAR_LOWEST: float = -70.0    # its roof above the thick of the mist
+
+
+func _clearings() -> void:
+	var share: float = _grand_share()
+	if share <= 0.0:
+		return
+	var w: float = CLEAR_BAYS * BAY
+	for n: int in 1 + roundi(share / GRAND_MAX * CLEAR_MORE):
+		var best: Array = []
+		var best_score: float = -INF
+		for t: int in range(1, tiers.size() - 1):
+			var storeys: int = tiers[t]["storeys"]
+			if storeys < 2 or _top(t) < CLEAR_LOWEST:
+				continue
+			for r: Dictionary in runs[t]:
+				if r["inner"] or r["eye"] < .3 or r["cells"].size() < CLEAR_BAYS:
+					continue
+				for k: int in range(0, r["cells"].size() - CLEAR_BAYS + 1):
+					var top_xf: Transform3D = _xf(t, r["cells"][k], r["side"], storeys)
+					var base: float = r["eye"] - absf(_top(t) - MON_HEIGHT) * .012
+					if base + 2.0 <= best_score or not _clear_fits(t, r, k, top_xf, w):
+						continue
+					var seen: float = _seen_fraction(_xf(t, r["cells"][k], r["side"], 0) * Transform3D(Basis(), Vector3(2, 0, 0)), storeys)
+					if seen < IWAN_SEEN:
+						continue
+					if base + seen * 2.0 > best_score:
+						best_score = base + seen * 2.0
+						best = [t, r, k]
+		if best.is_empty():
+			return
+		var t: int = best[0]
+		var r: Dictionary = best[1]
+		var k: int = best[2]
+		var top_xf: Transform3D = _xf(t, r["cells"][k], r["side"], tiers[t]["storeys"])
+		_cut_above(t, top_xf, func(l: Vector3) -> bool:
+			return l.x > -1.0 and l.x < w + 1.0 and l.z > -CLEAR_DEPTH - 1.0 and l.z < CLEAR_SIGHT)
+		forced[_key(t, r["cells"][k], r["side"])] = CLEAR_BAYS
+		for j: int in range(k, k + CLEAR_BAYS):
+			reserved[_key(t, r["cells"][j], r["side"])] = true
+		clearings.append({"t": t, "p": top_xf * Vector3(w * .5, 0, -CLEAR_DEPTH * .5), "xf": top_xf})
+
+
+## Whether p (in plan) is inside a cavern spur's quarried drum, grown by
+## `margin`: it rises to the bank's top and hides what stands in it (bank 6's
+## first clearing).
+func _in_spur(p: Vector3, margin: float) -> bool:
+	for s: Array in CAVERN.SPURS:
+		if Vector2(p.x - float(s[0]), p.z - float(s[1])).length() < float(s[2]) * CAVERN.QUARRIED_RADIUS + margin:
+			return true
+	return false
+
+
+## Whether p is on a clearing's roof or within `margin` of it.
+func _in_clearing(p: Vector3, margin: float) -> bool:
+	for c: Dictionary in clearings:
+		var l: Vector3 = (c["xf"] as Transform3D).affine_inverse() * p
+		if absf(l.y) < 6.0 and l.x > -margin and l.x < CLEAR_BAYS * BAY + margin and l.z > -CLEAR_DEPTH - margin and l.z < margin:
+			return true
+	return false
+
+
+## Whether a clearing can stand on bays k.. of run r on tier t: its tier's
+## roof runs CLEAR_DEPTH back, its bays are free, no garden is there, no
+## other clearing is near or would be cut by it, and no frontage slot stands
+## in the column it opens.
+func _clear_fits(t: int, r: Dictionary, k: int, top_xf: Transform3D, w: float) -> bool:
+	for j: int in range(k, k + CLEAR_BAYS):
+		for s: int in tiers[t]["storeys"]:
+			if taken.has(_key(t, r["cells"][j], r["side"], s)):
+				return false
+	for x: float in [.5, w * .5, w - .5]:
+		for d: float in [.5, CLEAR_DEPTH * .5, CLEAR_DEPTH - .5]:
+			if not g._covered(tiers[t], top_xf * Vector3(x, 0, -d)):
+				return false
+	var mid: Vector3 = top_xf * Vector3(w * .5, 0, -CLEAR_DEPTH * .5)
+	if _in_garden(mid, 8.0):
+		return false
+	# A spur's drum may close its back (bank 5), not stand on its dome's place
+	# or in front of it (bank 6's first try).
+	if _in_spur(top_xf * Vector3(w * .5, 0, -6.0), 0.0):
+		return false
+	for x: float in [-1.0, w * .5, w + 1.0]:
+		for d: float in [1.0, CLEAR_SIGHT * .5, CLEAR_SIGHT]:
+			if _in_spur(top_xf * Vector3(x, 0, d), 1.0):
+				return false
+	var inv: Transform3D = top_xf.affine_inverse()
+	var in_column := func(p: Vector3, margin: float) -> bool:
+		var l: Vector3 = inv * p
+		return l.y > -1.0 and l.x > -1.0 - margin and l.x < w + 1.0 + margin and l.z > -CLEAR_DEPTH - 1.0 - margin and l.z < CLEAR_SIGHT + margin
+	for c: Dictionary in clearings:
+		if (c["p"] as Vector3).distance_to(mid) < CLEAR_SPACING or in_column.call(c["p"], 4.0):
+			return false
+	for q: Vector3 in iwans:
+		for x: float in [0.0, 4.0, 8.0]:
+			if in_column.call(q + Vector3(x, 0, 0), 4.0) or in_column.call(q + Vector3(-x, 0, 0), 4.0):
+				return false     # an iwan's tier stands over it
+	for s: FrontageSlot in slots:
+		for x: int in range(0, s.width * 4 + 1, 2):
+			for z: float in [0.0, -2.0, -4.0]:
+				if in_column.call(s.xf * Vector3(x, 0, z), 3.0):
+					return false
+	return not slot_z
+
+
+func _grand_share() -> float:
+	return clampf((ornament - GRAND_FROM) / (1.0 - GRAND_FROM), 0.0, 1.0) * GRAND_MAX
+
+
+## How deep the open roof is behind the middle of bays b..b+length (metres).
+func _roof_depth(t: int, list: Array, side: int, b: int, length: int) -> float:
+	var a: Transform3D = _xf(t, list[b], side, tiers[t]["storeys"])
+	var d: float = 0.0
+	while d < 20.0 and _on_roof(t, a * Vector3(length * BAY * .5, 0, -d - .25)) and _open_above(t, a * Vector3(length * BAY * .5, 0, -d - .25)):
+		d += .5
+	return d
+
+
+## The pishtaq (persian_portal, 12 x 16 m, 1.5 m proud) over a grand
+## building's middle three bays on a three-storey tier: its screen on the
+## terrace in front, with a way past it, and open roof behind its top.
+func _grand_portal(t: int, list: Array, side: int, b: int, length: int) -> void:
+	if tiers[t]["storeys"] != 3 or length < 3 or t == 0:
+		return
+	var k: int = b + (length - 3) / 2
+	for j: int in range(k, k + 3):
+		for s: int in 3:
+			var key: String = _key(t, list[j], side, s)
+			if taken.has(key) or plain.has(key) or doors.has(key):
+				return
+	var xf: Transform3D = _xf(t, list[k], side, 0)
+	var top: Transform3D = _xf(t, list[k], side, 3)
+	for x: float in [.5, 6.0, 11.5]:
+		for d: float in [1.0, 3.5]:
+			var p: Vector3 = xf * Vector3(x, -.2, d)
+			if not _on_roof(t - 1, p) or not _open_above(t, p) or _in_garden(p, 6.0) or _blocked(p + Vector3(0, 8, 0), 2.0):
+				return
+		var q: Vector3 = top * Vector3(x, 0, -2.2)
+		if not _on_roof(t, q) or not _open_above(t, q):
+			return
+	_put("persian_portal", xf, 16.0)
+	for j: int in range(k, k + 3):
+		_take(t, list[j], side, range(3))
+		no_edge[_key(t, list[j], side)] = true
+
+
+## A grand building's roof: a dome on it, set in from its face, with roof to
+## walk behind it, and a minaret at either end of the longer ones, all clear
+## of the tiers above, gardens and stairs. Its size from a hash `h`.
+func _grand_roof(t: int, list: Array, side: int, b: int, length: int, h: float, clearing: bool = false) -> void:
+	var storeys: int = tiers[t]["storeys"]
+	var a: Transform3D = _xf(t, list[b], side, storeys)
+	var w: float = length * BAY
+	var room := func(p: Vector3, r: float) -> bool:
+		if not _on_roof(t, p) or not _open_above(t, p) or _in_garden(p, 6.0) or _blocked(p, r) or (r > 0.0 and _in_spur(p, r * .5)):     # a dome may graze a drum, not stand in it
+			return false
+		for f: Vector3 in stair_feet:
+			if absf(f.y - p.y) < 1.0 and Vector2(f.x - p.x, f.z - p.z).length() < r + 2.5:
+				return false
+		return true
+	var dome_r: float = 0.0
+	var found: Array[Dictionary] = []
+	for dome: Array in GRAND_DOMES:
+		var r: float = dome[1]
+		if 2.0 * r + 1.0 > w:
+			continue
+		var c: Vector3 = a * Vector3(w * .5, 0, -r - 1.2)
+		var ok: bool = room.call(c, r)
+		for x: float in [-r, 0.0, r]:
+			ok = ok and room.call(c + a.basis * Vector3(x, 0, -r - GRAND_WALK), 0.0)
+		for k: int in 8:
+			ok = ok and room.call(c + Basis(Vector3.UP, k * PI * .25) * Vector3(r + .3, 0, 0), 0.0)
+		if ok:
+			_put(dome[0], Transform3D(a.basis, c), dome[2])
+			found.append({"p": c, "r": r + 1.0, "kind": "monument"})
+			dome_r = r
+			break
+	if length >= 3 and (clearing or fposmod(h * 41.0, 1.0) < .7):
+		for x: float in [MINARET_R + .1, w - MINARET_R - .1]:
+			if dome_r > 0.0 and absf(x - w * .5) < dome_r + MINARET_R + .2:
+				continue     # the dome fills the roof
+			var c: Vector3 = a * Vector3(x, 0, -MINARET_R - .5)
+			var ok: bool = room.call(a * Vector3(x, 0, -MINARET_R * 2.0 - .5 - GRAND_WALK), 0.0)
+			for k: int in 8:
+				ok = ok and room.call(c + Basis(Vector3.UP, k * PI * .25) * Vector3(MINARET_R, 0, 0), 0.0)
+			if ok:
+				_put("persian_minaret", Transform3D(a.basis, c), MINARET_TOP)
+				found.append({"p": c, "r": MINARET_R + .5, "kind": "monument"})
+	zones.append_array(found)
 
 
 ## One bay of a building, all its storeys, and its top edge.

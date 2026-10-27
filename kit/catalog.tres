@@ -1078,6 +1078,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "persian",
+"name": "persian_dome_small",
+"scene": "res://kit/modules/persian/persian_dome_small.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 2, 1),
+"tags": PackedStringArray("scenery", "persian", "monument", "dome"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "persian",
 "name": "persian_fountain",
 "scene": "res://kit/modules/persian/persian_fountain.tscn",
 "shape": "free",

@@ -238,10 +238,15 @@ func triangle(surface: SurfaceTool, corners: Array, normals: Array, level: bool 
 		surface.set_uv((Vector2(p.x, p.z) if level else Vector2(p.x + p.z, p.y)) * .05)
 		surface.add_vertex(p)
 
+## The spurs: [x, z, radius]. Inside a bank each is a quarried drum
+## QUARRIED_RADIUS wider (PersianTown keeps its clearings off them).
+const SPURS: Array = [[-74, -178, 21], [80, -199, 23], [-96, -120, 15], [104, -150, 16]]
+
+
 func build_spurs(surface: SurfaceTool) -> void:
 	# Two staggered spurs rise out of the banks behind their facades and merge
 	# into the vault: the gorge narrows into a throat before the far hall.
-	for data: Array in [[-74, -178, 21], [80, -199, 23], [-96, -120, 15], [104, -150, 16]]:
+	for data: Array in SPURS:
 		var top: float = vault_height(data[0], data[1]) + 6.0
 		var cut: Dictionary = {}
 		for gate: Array in PORTALS:

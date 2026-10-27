@@ -1038,6 +1038,7 @@ MODULES = WALL_SET + [
     ("M_persian_portal_grand", props("edge", [4, 5, 0], "solid", "scenery,persian,monument,portal,door,light"),
      portal_of(16.0, 21.0, (5.6, 0.0, 9.4, 7.6), door=(2.0, 4.0, 1.8), glass=(6.4, 12.8))),
     ("M_persian_dome_grand", props("free", [3, 4, 3], "", "scenery,persian,monument,dome"), dome_of(5.0, 1.3)),
+    ("M_persian_dome_small", props("free", [1, 2, 1], "", "scenery,persian,monument,dome"), dome_of(1.6, 0.55)),     # on a grand building's roof (bank 5 on)
     ("M_persian_windcatcher", props("free", [0, 1, 0], "", "scenery,persian,house,roof"), windcatcher),
     ("M_persian_carved_door", props("edge", [1, 1, 0], "solid", "scenery,persian,carved,door,light"), carved_door(True)),
     ("M_persian_carved_door_dark", props("edge", [1, 1, 0], "solid", "scenery,persian,carved,door"), carved_door(False)),
@@ -1089,6 +1090,7 @@ for _n in ("M_persian_stair_flight", "M_persian_iwan_tier"):
 REVS["M_persian_glowmoss"] = 8     # rev 8: fungal vines in place of the moss's spray (bank 2's fly-by)
 REVS["M_persian_stair_landing"] = 8     # new: a stair ending at a door
 REVS["M_persian_iwan_tier2"] = 8     # new: the iwan two storeys tall (bank 2)
+REVS["M_persian_dome_small"] = 8     # new: the grand buildings' domes (bank 5)
 
 
 

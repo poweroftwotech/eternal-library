@@ -390,3 +390,27 @@ From bank 3 on, an iwan goes only on a tier in the top quarter of its bank (`IWA
 | Bank 4 | y -48 and y -68 | y 12 and y 4 |
 
 Verified: route 8, span 485, network 790 (worst plan 5.1 s), kit 6,295, all passing. Pictures: `previews/p8_bank4/b4_iwan_a.png`, `b4_iwan_b.png`, `b4_iwans_far.png`, `b3_iwan_high.png`, `b3_iwan_far.png`.
+
+## Bank 5: grand buildings and clearings (2026-10-27, walked: looks good; uncommitted)
+
+Level 0.60, the first bank where the **grand buildings** start (`PersianTown._grand_share`: none below level 0.45, about 23% of the buildings on seen faces at bank 5, 85% at bank 8). A grand building wears the monument's front: brick arcades, orosi glass on the second storey, the crown along its top. On a three-storey tier with a terrace in front, a long one gets the portal (`persian_portal`, rising above its roof); where its roof is open, a dome (the plain one, or the new `persian_dome_small` over two bays) and a minaret at either end, with roof left to walk behind them.
+
+**Why clearings:** about 85% of the seen faces on banks 5 to 8 have under 4 m of open roof (the tier above is flush or overhangs), so on the first try bank 5 had one dome. Your call: cut **clearings** as over bank 1's monument. Over the grand buildings the walkways see best, every tier above is cut away for 4 bays by 14 m (and 8 m out in front), so the building's plain dome and two minarets stand mid-stack, open to the cavern. One clearing at level 0.45, five at the furthest bank (`CLEAR_*`), at least 30 m apart, above the thick mist (roof over y -70), never over an iwan or a frontage slot the links reach (the link table sees the uncut tiers). Stairs keep off a clearing's bays and its sides.
+
+`PERSIAN_BANKS[5] = ["iwan", "shaft"]` (no monument: one in a view). Bank 5 now has its iwan at y 8, two clearings (plain domes at y -24 and -12, four minarets), a portal, two small domes, seven minarets in all and the light shaft, with 20 lights. Banks 1 to 4 are unchanged.
+
+- To look at: the clearings' tall back walls read as plain masonry.
+- To look at in step 4: in the box-art view draw calls rose from 1,399 to 1,826, and planning seed 3 now takes 6.8 s.
+
+Verified: route 8, span 485, network 790, kit 6,312, all passing; box art passes (far depth 0.89, mist 1.29). Pictures in `previews/p8_bank5/` (`b5_clearings`, `b5_clearing_a`, `b5_clearing_b`).
+
+## Bank 6 (2026-10-27, first pass, uncommitted)
+
+Level 0.73: about 43% of the seen buildings grand, two iwans (two storeys, y -8), a clearing with a plain dome and two minarets at y 8, domes on the top tier, the light shaft (`PERSIAN_BANKS[6] = ["iwan", "shaft"]`: no great fall fits its sheer faces; the gorge keeps three), 17 lights.
+
+What bank 6 needed that the nearer banks didn't:
+- **No walkway sees it.** It has no frontage slot, and from every walkway point the nearer banks stand in the way, so every "seen from the walkways" test failed and it first came out with no iwans and no clearings. For such a bank (`_walk_blind`), features now face the gorge's open middle. Facing the Overlook put them in the narrow gap by bank 4 and the cavern's rock.
+- **The cavern's spurs.** Where a spur (the rock columns up into the vault) passes through a bank, it is a quarried stone drum up to the bank's top, 27 to 30 m across (`Cavern.SPURS`, now one list). Bank 6's first clearing stood behind one, so its dome was there but hidden; bank 5's clearings have one as their back wall. A clearing's dome and the space in front of it, and every grand dome, now keep out of the drums. Bank 5 comes out as you walked it, less one small dome that stood inside a drum.
+- **Tiers jut out further.** Bank 6's tiers above a clearing stood 13 m out past its face, so a clearing now opens 16 m out in front, as the monument's does.
+
+Verified: route 8, span 485, network 790 (worst plan 5.3 s), kit 6,312, all passing; box art passes (far depth 0.89, mist 1.29; 1,752 draw calls). Pictures in `previews/p8_bank6/`.
