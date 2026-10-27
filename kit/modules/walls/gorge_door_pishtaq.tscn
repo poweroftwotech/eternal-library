@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_pvrun"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gorge_door_pishtaq.glb" id="2_w2y0p"]
+
+[node name="gorge_door_pishtaq" type="Node3D" unique_id=1956620316]
+script = ExtResource("1_pvrun")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "gorge", "facade", "door")
+source_glb = "res://assets/kit/walls/gorge_door_pishtaq.glb"
+
+[node name="Mesh" parent="." unique_id=980432013 instance=ExtResource("2_w2y0p")]

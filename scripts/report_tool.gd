@@ -173,6 +173,8 @@ func snapshot() -> Dictionary:
 		"window": [DisplayServer.window_get_size().x, DisplayServer.window_get_size().y],
 		"preset": GraphicsPreset.requested(),     # "" = the project settings
 	}
+	if game.player.get("flying"):
+		entry["flying"] = true     # fly mode (V): the feet are wherever you hovered
 	if game.world is Area:
 		var area: Area = game.world
 		entry["area"] = area.recipe.id

@@ -23,3 +23,6 @@ extends Resource
 ## span takes their place (phase 6 Q9; the near one, 20 m under the balcony).
 ## The camp's own view keeps them all.
 @export var walked: PackedInt32Array = [0]
+## Aqueducts left out of the Gorge altogether (fly-mode walk, 2026-10-26: the
+## one into the corner by the sanctum went nowhere that made sense).
+@export var removed: PackedInt32Array = [5]

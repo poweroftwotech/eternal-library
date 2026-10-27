@@ -12,6 +12,10 @@ const CROWN: Array = [
 	Vector2(-215, 50), Vector2(-245, 74), Vector2(-292, 76), Vector2(-318, 54), Vector2(-336, 24)]
 const SIDE_DROP: float = 46.0        # how far the vault falls toward the outer walls
 const CLEARANCE: float = 8.0         # rock never comes closer than this above a terrace
+## The tops of the baked kit pieces by FLOOR_CELL cell (Vector2i -> y), set by
+## the gorge's bake before the vault is built; empty: the old terraces only.
+static var kit_floor: Dictionary = {}
+const FLOOR_CELL: float = 8.0
 const MIN_TIP: float = 22.0          # bridges and their pavilions stay clear
 const SIGHTLINE_X: float = 20.0      # keep the throat centre open toward the sanctum
 const SANCTUM: Vector3 = Vector3(8, 0, -256)
@@ -86,6 +90,14 @@ func crown(z: float) -> float:
 ## Lowest y rock may reach at (x, z): above every terrace and the sanctum.
 func floor_at(x: float, z: float) -> float:
 	var y: float = -INF
+	# The kit's pieces as baked (tools/bake_gorge.gd sets kit_floor: their tops
+	# per FLOOR_CELL cell): walked, the kit towers' corners and crowns stood out
+	# of the vault, which only knew the old terraces' ellipses.
+	if not kit_floor.is_empty():
+		var at := Vector2i(floori(x / FLOOR_CELL), floori(z / FLOOR_CELL))
+		for dx: int in [-1, 0, 1]:
+			for dz: int in [-1, 0, 1]:
+				y = maxf(y, float(kit_floor.get(at + Vector2i(dx, dz), -INF)) + CLEARANCE)
 	for ledge: Dictionary in vista.ledges:
 		var c: Vector2 = ledge.center
 		var dx: float = (x - c.x) / (ledge.rx * 1.12 + 4.0)
@@ -155,7 +167,11 @@ func hang(surface: SurfaceTool, top: Vector3, radius: float, length: float, flat
 ## A rock pillar rising from deep below into the vault, with a noisy profile.
 ## `cut` (optional, from quarry()) dresses a flat quarried face into the pillar
 ## where a rock-cut gate sits; the pillar is then built finer.
-func column(surface: SurfaceTool, base: Vector2, radius: float, bottom: float, top: float, cut: Dictionary = {}) -> void:
+## How high a capped column's top cone rises to its centre.
+const CAP_RISE: float = 1.2
+## `cap_top`: close the top ring (a pier standing free, not one reaching the
+## vault: its open top showed from the span, fly-mode walk).
+func column(surface: SurfaceTool, base: Vector2, radius: float, bottom: float, top: float, cut: Dictionary = {}, cap_top: bool = false) -> void:
 	var rings: Array = []
 	var centres: Array = []
 	var count: int = maxi(4, int((top - bottom) / (3.0 if cut else 9.0)))
@@ -180,6 +196,16 @@ func column(surface: SurfaceTool, base: Vector2, radius: float, bottom: float, t
 		rings.append(row)
 		centres.append(centre)
 	emit_tube(surface, rings, centres, 0.0)
+	if cap_top:
+		# A low cone up to the centre, under whatever stands on it, shaded as
+		# the sides are: the rock's light comes from the mist and the terraces,
+		# below and beside it, so a face looking up stayed black (read as a hole).
+		var ring_top: Array = rings[-1]
+		var peak: Vector3 = centres[-1] + Vector3.UP * CAP_RISE
+		for i in range(ring_top.size() - 1):
+			var n0: Vector3 = ((ring_top[i] - centres[-1]) * Vector3(1, 0, 1)).normalized()
+			var n1: Vector3 = ((ring_top[i + 1] - centres[-1]) * Vector3(1, 0, 1)).normalized()
+			triangle(surface, [peak, ring_top[i], ring_top[i + 1]], [(n0 + n1).normalized(), n0, n1], true)
 
 func emit_tube(surface: SurfaceTool, rings: Array, centres: Array, droop: float) -> void:
 	for ring in range(rings.size() - 1):
@@ -199,7 +225,9 @@ func emit_tube(surface: SurfaceTool, rings: Array, centres: Array, droop: float)
 ## Godot treats clockwise triangles as front faces and, with culling off,
 ## flips the normal of back faces. Wind each triangle so its front side
 ## matches the shading normal, or the rock renders black.
-func triangle(surface: SurfaceTool, corners: Array, normals: Array) -> void:
+## `level`: a near-level face (a cap), textured from above (the walls' mapping,
+## x + z by height, smeared it to one dark colour).
+func triangle(surface: SurfaceTool, corners: Array, normals: Array, level: bool = false) -> void:
 	var order: Array = [0, 1, 2]
 	var facing: Vector3 = (corners[2] - corners[0]).cross(corners[1] - corners[0])
 	if facing.dot(normals[0] + normals[1] + normals[2]) < 0.0:
@@ -207,7 +235,7 @@ func triangle(surface: SurfaceTool, corners: Array, normals: Array) -> void:
 	for k: int in order:
 		var p: Vector3 = corners[k]
 		surface.set_normal(normals[k])
-		surface.set_uv(Vector2(p.x + p.z, p.y) * .05)
+		surface.set_uv((Vector2(p.x, p.z) if level else Vector2(p.x + p.z, p.y)) * .05)
 		surface.add_vertex(p)
 
 func build_spurs(surface: SurfaceTool) -> void:
@@ -219,7 +247,15 @@ func build_spurs(surface: SurfaceTool) -> void:
 		for gate: Array in PORTALS:
 			if is_equal_approx(gate[0], data[0]):
 				cut = quarry(portal_sill(gate), Vector3(gate[4], 0, 0), gate[3] + PORTAL_HEIGHT + 3.0)
-		column(surface, Vector2(data[0], data[1]), data[2], -176.0, top, cut)
+		# Walkable (second fly-mode walk: "the way the walls intersect the rock
+		# doesn't look right"): inside a bank, the pillar is quarried, coursed
+		# stone up to the bank's top, and the rock rises from there.
+		var foot: float = -176.0
+		var bank_top: float = _bank_top_at(Vector2(data[0], data[1])) if vista.get_script().walkable_overlook else -INF
+		if bank_top > foot:
+			quarried(Vector2(data[0], data[1]), data[2] * QUARRIED_RADIUS, foot, bank_top)
+			foot = bank_top - 1.0
+		column(surface, Vector2(data[0], data[1]), data[2], foot, top, cut)
 	# Curtains hang across the throat's shoulders.
 	for i in range(10):
 		var side: float = -1.0 if i % 2 == 0 else 1.0
@@ -228,6 +264,68 @@ func build_spurs(surface: SurfaceTool) -> void:
 		var top: float = vault_height(x, z)
 		var tip: float = maxf(maxf(floor_at(x, z), MIN_TIP), top - rng.randf_range(16.0, 26.0))
 		hang(surface, Vector3(x, top, z), rng.randf_range(5.0, 9.0), top - tip, .55)
+
+## The gate dressed as a pishtaq (fly-mode walk, 2026-10-26: "a proper arch
+## with pishtaq and door"): a tiled field round the opening on the frame's
+## face, a stone border and cornice round it, and in the opening a pair of
+## wooden doors, iron-banded, the lamplit tunnel glowing over them as a
+## fanlight. In the frame's own space (x along 0..PORTAL_WIDTH, y -PORTAL_HEIGHT
+## at the sill to 0, +z out: its face is at z 2).
+func pishtaq(frame: MeshInstance3D) -> void:
+	var w: float = PORTAL_WIDTH
+	var h: float = PORTAL_HEIGHT
+	var pier: float = 2.5
+	var bay: PackedVector2Array = vista.arch_bay(w, h, pier, true)
+	var opening: PackedVector2Array = bay.slice(1, bay.size() - 3)     # its foot, up the arch, down to the other foot
+	var spring: float = opening[1].y
+	var field := PackedVector2Array([Vector2(.7, -h)])
+	field.append_array(opening)
+	field.append_array([Vector2(w - .7, -h), Vector2(w - .7, -.9), Vector2(.7, -.9)])
+	_on_frame(frame, field, 2.0, 2.2, "exterior_faience")
+	for r: Rect2 in [Rect2(0, -h, .7, h), Rect2(w - .7, -h, .7, h), Rect2(0, -.9, w, .9)]:
+		_on_frame(frame, _rect(r), 2.0, 2.5, "sandstone")                    # the border
+	_on_frame(frame, _rect(Rect2(-.3, 0, w + .6, .5)), 2.0, 2.8, "sandstone")   # cornice
+	_on_frame(frame, _rect(Rect2(pier, -h, w - 2 * pier, spring + h)), .4, .5, "wood")      # the doors
+	for r: Rect2 in [Rect2(pier, spring - .15, w - 2 * pier, .2), Rect2(w * .5 - .06, -h, .12, spring + h)]:
+		_on_frame(frame, _rect(r), .5, .62, "wood")                          # transom, where the leaves meet
+	for y: float in [1.4, 3.6, 5.6]:
+		_on_frame(frame, _rect(Rect2(pier, -h + y, w - 2 * pier, .15)), .5, .56, "brass")   # bands
+
+
+func _on_frame(frame: MeshInstance3D, outline: PackedVector2Array, z0: float, z1: float, material: String) -> void:
+	var part: MeshInstance3D = art.extrude(outline, z1 - z0, art.mat(material), Vector3.ZERO)
+	part.transform = frame.transform * Transform3D(Basis(), Vector3(0, 0, (z0 + z1) * .5))
+
+
+static func _rect(r: Rect2) -> PackedVector2Array:
+	return PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
+
+
+## How much wider than its rock a quarried pillar's drum is (the rock's
+## ring wanders and bulges by about a third).
+const QUARRIED_RADIUS: float = 1.3
+
+## The top (kit storeys) of the bank whose footprint holds `c`, or -INF.
+func _bank_top_at(c: Vector2) -> float:
+	var layout: GorgeLayout = load("res://gen/gorge/gorge_layout.tres")
+	for b: PackedFloat32Array in layout.banks:
+		if pow((c.x - b[0]) / b[2], 2.0) + pow((c.y - b[1]) / b[3], 2.0) < 1.0:
+			return GorgeGrammar.BASE_Y + GorgeGrammar.BAY * roundf((b[4] - GorgeGrammar.BASE_Y) / GorgeGrammar.BAY)
+	return -INF
+
+
+## A pillar dressed as quarried stone: a sixteen-sided drum of the banks'
+## coursed stone from `bottom` to `top`, a sandstone cornice round its top.
+func quarried(c: Vector2, radius: float, bottom: float, top: float) -> void:
+	var drum := PackedVector2Array()
+	var cap := PackedVector2Array()
+	for i: int in 16:
+		var a: float = TAU * i / 16.0
+		drum.append(c + Vector2(cos(a), sin(a)) * radius)
+		cap.append(c + Vector2(cos(a), sin(a)) * (radius + .5))
+	vista.prism(drum, bottom, top - bottom, art.mat("gorge_stone_clean"))
+	vista.prism(cap, top - .6, .8, art.mat("sandstone"))
+
 
 ## Rock-cut iwans (after Naqsh-e Rostam) in the throat spurs, each the end of
 ## a flying crossing: the city tunnels on through the rock.
@@ -279,8 +377,11 @@ func portal(sill: Vector3, normal: Vector3, stone: String = "limestone") -> void
 	glow.size = Vector2(PORTAL_WIDTH - 5.0, PORTAL_HEIGHT - 1.6)
 	var inner: MeshInstance3D = art.mesh_node(glow, sill + normal * .3 + Vector3(0, glow.size.y * .5, 0), art.mat("gorge_portal"))
 	inner.rotation.y = yaw
-	# Faience lintel across the top of the frame, and a landing in front.
-	vista.block(sill + normal * 2.1 + Vector3(0, PORTAL_HEIGHT - .5, 0), Vector3(.6, .8, PORTAL_WIDTH + 1.0), "exterior_faience").rotation.y = yaw - PI * .5
+	if vista.get_script().walkable_overlook:
+		pishtaq(frame)
+	else:
+		# Faience lintel across the top of the frame (walked, a pishtaq's frame).
+		vista.block(sill + normal * 2.1 + Vector3(0, PORTAL_HEIGHT - .5, 0), Vector3(.6, .8, PORTAL_WIDTH + 1.0), "exterior_faience").rotation.y = yaw - PI * .5
 	var landing: Vector3 = sill + normal * 3.5
 	if vista.get_script().walkable_overlook:
 		# Seen from the walk: a stone-paved platform (tile is for walls), its

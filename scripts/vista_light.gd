@@ -5,16 +5,16 @@ extends RefCounted
 ## Runs last in vista.build(), after the cavern. Every tuning number is here.
 
 const LAMP_CLUSTER_FREQUENCY: float = .035   # size of an inhabited stretch (~30 m)
-const LAMP_CLUSTER_CUTOFF: float = .05       # higher = fewer, tighter clusters
+const LAMP_CLUSTER_CUTOFF: float = .22       # higher = fewer, tighter clusters (.05 until the fly-mode walk: too many lamps; GorgeGrammar matches)
 const LAMP_COLOR: Color = Color("ffb35c")
 const LAMP_GLOW: float = 3.2
 
 const CLUSTER_CELL: float = 14.0             # metres; lamps in one cell share a light
 const CLUSTER_MIN_LAMPS: int = 4
-const CLUSTER_LIGHT_LIMIT: int = 56
+const CLUSTER_LIGHT_LIMIT: int = 36            # 56 until the fly-mode walk (too evenly lit: darker stretches now)
 const CLUSTER_REACH: float = 170.0           # only clusters this close get a light
 const CLUSTER_COLOR: Color = Color("ff9d4a")
-const CLUSTER_ENERGY: float = 5.0             # 6.0 until slice 7
+const CLUSTER_ENERGY: float = 4.2             # 6.0 until slice 7, 5.0 until the fly-mode walk
 const CLUSTER_RANGE: float = 20.0
 
 const FAR_HAZE_DENSITY: float = .007

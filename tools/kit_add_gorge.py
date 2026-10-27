@@ -319,11 +319,59 @@ def bay_stack_window(near=False):
     return build
 
 
-def bay_doorway(r):
-    arch_frame(r, "gorge_bay_doorway", BASE)
-    window_card(r, "gorge_bay_doorway", 2.0, BASE + 0.15, 2.4, 3.15)
-    solid("gorge_bay_doorway__step", r, ["gorge_sandstone"], lambda bm: add_box(bm, 0.4, 3.6, -1.09, -0.19, 0.0, BASE + 0.1))
+DOOR_OPEN = (1.15, 2.0, 1.0)   # a pishtaq's door: half width, spring and rise over BASE
+PISHTAQ_TOP = 3.35             # its frame's top over BASE (the cornice over it)
+
+
+def pishtaq(r, name, back, place=None):
+    """Rev 4 (fly-mode walk, 2026-10-26: "a proper arch with pishtaq and
+    door"): a stone frame round a tiled field, the pointed arch's ring in it,
+    a cornice over all; in the arch a pair of wooden doors with iron bands, a
+    lit fanlight over them, a step before them. `back`: its own back plate, to
+    stand proud of a face (a gallery's door, gorge_door_pishtaq), not on a wall."""
+    half, spring, rise = DOOR_OPEN
+    inner = arch(half, spring, rise, 0.0)
+    outer = arch(half + 0.2, spring, rise + 0.2, 0.0)
+    e = 1.62
+    field = [(-e, 0.0), (-e, PISHTAQ_TOP), (e, PISHTAQ_TOP), (e, 0.0)] + list(reversed(outer))
+    solid(name + "__field", r, ["gorge_faience"], lambda bm: front_prism(bm, field, 2.0, BASE, -0.3, -0.05))
+
+    def stone(bm):
+        front_prism(bm, outer + list(reversed(inner)), 2.0, BASE, -0.42, -0.05)          # the arch's ring
+        for x0 in (0.2, 3.62):
+            front_box(bm, x0, x0 + 0.18, -0.45, -0.05, 0.0, BASE + PISHTAQ_TOP + 0.25)   # the frame's sides
+        front_box(bm, 0.2, 3.8, -0.45, -0.05, BASE + PISHTAQ_TOP, BASE + PISHTAQ_TOP + 0.25)
+        front_box(bm, 0.1, 3.9, -0.6, -0.05, BASE + PISHTAQ_TOP + 0.25, BASE + PISHTAQ_TOP + 0.4)   # cornice
+        front_box(bm, 0.4, 3.6, -1.09, -0.05, 0.0, BASE + 0.1)                           # step
+        if back:
+            add_box(bm, 0.1, 3.9, -0.05, 0.0, 0.0, BASE + PISHTAQ_TOP + 0.4)
+    solid(name + "__frame", r, ["gorge_sandstone"], stone)
+
+    def doors(bm):
+        front_box(bm, 2.0 - half, 2.0 + half, -0.12, -0.05, BASE, BASE + spring)
+        front_box(bm, 1.98, 2.02, -0.15, -0.12, BASE, BASE + spring)                     # where the leaves meet
+        front_box(bm, 2.0 - half, 2.0 + half, -0.15, -0.08, BASE + spring, BASE + spring + 0.08)   # transom
+    solid(name + "__doors", r, ["gorge_wood"], doors)
+    solid(name + "__bands", r, ["gorge_brass"], lambda bm: [front_box(bm, 2.0 - half, 2.0 + half, -0.14, -0.12, BASE + z, BASE + z + 0.06) for z in (0.45, 1.5)])
+    bm = bmesh.new()
+    fan = pointed(half, spring, rise, 6)[1:-1]
+    bm.faces.new([bm.verts.new((2.0 + x, -0.08, BASE + z)) for (x, z) in reversed(fan)])
+    mesh_object(name + "__glow", bm, ["gorge_window_glow"], r, recalc=False)
+    if place is not None:
+        for o in [c for c in r.children if c.name.startswith(name + "__")]:
+            if o.type == "MESH":
+                o.data.transform(place)
+            else:
+                o.location = place @ o.location
     marker("ANCHOR_figure__door", r, (2.0, -0.34, BASE + 0.1))
+
+
+def bay_doorway(r):
+    pishtaq(r, "gorge_bay_doorway", False)
+
+
+def door_pishtaq(r):
+    pishtaq(r, "gorge_door_pishtaq", True)
 
 
 def bay_stack(ladder, near=False):
@@ -346,6 +394,112 @@ def bay_stack(ladder, near=False):
                 for k in range(7):
                     z = BASE + 0.35 + k * 0.45
                     add_box(bm, 2.33, 2.77, -0.215, -0.165, z, z + 0.05)
+            solid(name + "__ladder", r, ["gorge_wood"], rungs)
+    return build
+
+
+# --- flush bays (phase 6 step 6) ---------------------------------------------------
+# Walked in fly mode (2026-10-26): the bays' frames stood 0.5 to 0.9 m out from
+# the wall and up close read as boxes stuck on it. These sit in an opening
+# through their wall (gorge_wall_*_arch, _rect: the wall's own stone, its back
+# closed RECESS in): the frame only a few centimetres proud, the window's glow,
+# the stacks and their lattice set back into the wall, as into a room.
+RECESS = 0.42      # the opening's depth (the wall is 0.5 thick)
+STACK_OPEN = (0.55, 3.45, 3.4)     # a stack's rectangular opening: x0, x1, height over BASE
+
+
+def wall_open(material, shape):
+    """A tier wall with a bay's opening through it: `arch` (OPEN, its foot at
+    the sill) or `rect` (STACK_OPEN), closed at the back by a plate."""
+    def build(r):
+        def body(bm):
+            if shape == "arch":
+                half, spring, rise = OPEN
+                foot = BASE + SILL
+                x0, x1, top = 2.0 - half, 2.0 + half, BASE + spring + rise
+                add_box(bm, 0.0, 4.0, 0.0, 0.5, 0.0, foot)
+                add_box(bm, 0.0, x0, 0.0, 0.5, foot, H)
+                add_box(bm, x1, 4.0, 0.0, 0.5, foot, H)
+                crown = pointed(half, spring, rise, 6)[1:-1] + [(half, H - BASE), (-half, H - BASE)]
+                add_prism(bm, crown, 2.0, BASE, 0.0, 0.5)
+            else:
+                x0, x1, height = STACK_OPEN
+                foot, top = BASE, BASE + height
+                add_box(bm, 0.0, 4.0, 0.0, 0.5, 0.0, foot)
+                add_box(bm, 0.0, x0, 0.0, 0.5, foot, H)
+                add_box(bm, x1, 4.0, 0.0, 0.5, foot, H)
+                add_box(bm, x0, x1, 0.0, 0.5, top, H)
+            add_box(bm, x0, x1, RECESS, 0.5, foot, top)     # the back plate
+        solid(r.name[2:] + "__body", r, [material], body)
+    return build
+
+
+def flush_surround(root, name, opening, foot):
+    """surround()'s alfiz, border, ring and hood, a few centimetres proud of
+    the wall round its opening (the wall's reveal is the ring's depth)."""
+    half, spring, rise = opening
+    inner = arch(half, spring, rise, foot)
+    outer = arch(half + 0.16, spring, rise + 0.16, foot)
+    bottom = foot - 0.12
+    e, top = FRAME_HALF - 0.08, FRAME_TOP - 0.08
+    bottom_in = bottom + 0.03
+    panel = [(-e, bottom_in), (-e, top), (e, top), (e, bottom_in)] \
+        + [(x, z if z > foot else bottom_in) for (x, z) in reversed(arch(half + 0.17, spring, rise + 0.17, foot))]
+    solid(name + "__panel", root, ["gorge_faience"], lambda bm: front_prism(bm, panel, 2.0, BASE, -0.03, 0.0))
+
+    def stone(bm):
+        front_prism(bm, outer + list(reversed(inner)), 2.0, BASE, -0.07, 0.0)
+        for x0 in (-FRAME_HALF, FRAME_HALF - 0.16):
+            front_box(bm, 2.0 + x0, 2.0 + x0 + 0.16, -0.06, 0.0, BASE + bottom, BASE + FRAME_TOP)
+        front_box(bm, 2.0 - FRAME_HALF, 2.0 + FRAME_HALF, -0.06, 0.0, BASE + FRAME_TOP - 0.16, BASE + FRAME_TOP)
+        front_box(bm, 2.0 - FRAME_HALF - 0.1, 2.0 + FRAME_HALF + 0.1, -0.16, 0.0, BASE + FRAME_TOP, BASE + FRAME_TOP + 0.12)   # hood
+        front_box(bm, 2.0 - FRAME_HALF, 2.0 + FRAME_HALF, -0.14, 0.0, BASE + SILL - 0.12, BASE + SILL)                     # sill
+    solid(name + "__frame", root, ["gorge_sandstone"], stone)
+
+
+def bay_window_flush(r):
+    name = r.name[2:]
+    flush_surround(r, name, OPEN, SILL)
+    half, spring, rise = OPEN
+    bm = bmesh.new()
+    bm.faces.new([bm.verts.new((2.0 + x, RECESS - 0.02, BASE + z)) for (x, z) in reversed(arch(half, spring, rise, SILL))])
+    mesh_object(name + "__glow", bm, ["gorge_window_glow"], r, recalc=False)
+    lattice(r, name, BASE, OPEN, SILL, 0.14)
+
+
+def bay_stack_window_flush(near=False):
+    def build(r):
+        name = r.name[2:]
+        flush_surround(r, name, OPEN, SILL)
+        half, spring, rise = OPEN
+        solid(name + "__books", r, ["gorge_stacks_near" if near else "gorge_stacks"],
+              lambda bm: front_box(bm, 2.0 - half, 2.0 + half, RECESS - 0.06, RECESS, BASE + SILL, BASE + spring + rise))
+        lattice(r, name, BASE, OPEN, SILL, 0.06, 0.05)
+    return build
+
+
+def bay_stack_flush(ladder, near=False):
+    def build(r):
+        name = r.name[2:]
+        x0, x1, height = STACK_OPEN
+        solid(name + "__books", r, ["gorge_stacks_near" if near else "gorge_stacks"],
+              lambda bm: front_box(bm, x0, x1, RECESS - 0.06, RECESS, BASE, BASE + height))
+
+        def frames(bm):
+            for side in (-1, 1):
+                x = 2.0 + side * 1.6
+                front_box(bm, x - 0.16, x + 0.16, -0.06, 0.0, 0.0, BASE + height + 0.1)
+            front_box(bm, 0.225, 3.775, -0.08, 0.0, BASE + height, BASE + height + 0.25)     # lintel
+            front_box(bm, 0.1, 3.9, -0.18, 0.0, BASE + height + 0.25, BASE + height + 0.4)   # cornice
+        solid(name + "__frames", r, ["gorge_sandstone"], frames)
+        if ladder:
+            def rungs(bm):
+                for side in (-1, 1):
+                    x = 2.55 + side * 0.22
+                    add_box(bm, x - 0.03, x + 0.03, 0.12, 0.18, BASE, BASE + height)
+                for k in range(7):
+                    z = BASE + 0.35 + k * 0.45
+                    add_box(bm, 2.33, 2.77, 0.125, 0.175, z, z + 0.05)
             solid(name + "__ladder", r, ["gorge_wood"], rungs)
     return build
 
@@ -385,24 +539,36 @@ def deck(r):
     paved("gorge_deck", r, 0.0, 4.0, 0.0, 4.0)
 
 
-def overhang(bm_name, r, crowned):
+def overhang(bm_name, r, crowned, length=4.0):
     """The overhang's slab and the gold band under its lip."""
-    paved(bm_name, r, 0.0, 4.0, -OVER, 0.0)
-    solid(bm_name + "__band", r, ["gorge_gold"], lambda bm: add_box(bm, 0.0, 4.0, -OVER - 0.02, -OVER + 0.18, DECK_TOP - 0.98, DECK_TOP - 0.78))
+    paved(bm_name, r, 0.0, length, -OVER, 0.0)
+    solid(bm_name + "__band", r, ["gorge_gold"], lambda bm: add_box(bm, 0.0, length, -OVER - 0.02, -OVER + 0.18, DECK_TOP - 0.98, DECK_TOP - 0.78))
 
 
-def deck_edge(variant):
+## Inner corners (fly-mode walk, 2026-10-26). Where a face ends against the next
+## face round an inside corner (_inner), its overhang stops where that face's
+## overhang begins (4 - OVER): the paving isn't doubled. The face starting
+## there (_inner_start) keeps its paving (it fills the corner square) but its
+## rail starts OVER in, where the other's ends: the two rails meet in an L
+## instead of crossing. A one-bay face with inside corners at both ends:
+## _inner_both, no rail of its own.
+INNER = 4.0 - OVER
+
+
+def deck_edge(variant, length=4.0, rail_from=0.0):
     def build(r):
         name = r.name[2:]
-        overhang(name, r, False)
+        overhang(name, r, False, length)
+        if rail_from >= length:
+            return
 
         def rails(bm):
-            add_box(bm, 0.0, 4.0, -OVER - 0.05, -OVER + 0.05, 1.15 - 0.055, 1.15 + 0.055)
-            add_box(bm, 0.0, 4.0, -OVER - 0.08, -OVER + 0.08, -0.2 - 0.09, -0.2 + 0.09)
+            add_box(bm, rail_from, length, -OVER - 0.05, -OVER + 0.05, 1.15 - 0.055, 1.15 + 0.055)
+            add_box(bm, rail_from, length, -OVER - 0.08, -OVER + 0.08, -0.2 - 0.09, -0.2 + 0.09)
         solid(name + "__rails", r, ["gorge_gold"], rails)
 
         def balusters(bm):
-            for x in (1.0, 3.0):
+            for x in (x for x in (1.0, 3.0) if rail_from < x < length):
                 add_box(bm, x - 0.085, x + 0.085, -OVER - 0.085, -OVER + 0.085, DECK_TOP, 1.1)
         solid(name + "__balusters", r, ["gorge_sandstone"], balusters)
         if variant == "streaked":
@@ -422,13 +588,13 @@ def merlon(bm, x, steps):
         add_box(bm, x - w / 2, x + w / 2, -OVER - 0.21, -OVER + 0.21, z - 0.21, z + 0.21)
 
 
-def crown_edge(variant):
+def crown_edge(variant, length=4.0, rail_from=0.0):
     def build(r):
         name = r.name[2:]
-        overhang(name, r, True)
-        xs = (0.67, 2.0, 3.33)
+        overhang(name, r, True, length)
+        xs = (0.67, 2.0, 3.33) if length >= 4.0 and rail_from == 0.0 else ((rail_from + length) / 2, length, length)     # an inner corner's: one merlon (the others filtered out)
         steps = {"": (3, 3, 3), "worn": (2, 3, 3), "broken": (3, 0, 3)}[variant]
-        solid(name + "__merlons", r, ["gorge_sandstone"], lambda bm: [merlon(bm, x, s) for (x, s) in zip(xs, steps) if s > 0])
+        solid(name + "__merlons", r, ["gorge_sandstone"], lambda bm: [merlon(bm, x, s) for (x, s) in zip(xs, steps) if s > 0 and rail_from < x < length])
         if variant == "worn":
             solid(name + "__repair", r, ["gorge_repair"], lambda bm: merlon(bm, 3.33 + 0.0, 1))
     return build
@@ -620,6 +786,26 @@ def aqueduct_landing(r):
           lambda bm: add_ngon_prism(bm, 12, 4.3, -PAVING, 0.0))
 
 
+## An aqueduct's end (fly-mode walk, 2026-10-26: the decks ran into the banks'
+## walls): a gatehouse facing back along the deck, its door a pishtaq; the
+## deck arrives on its landing (X along the deck, -X toward it; the gatehouse
+## behind, +X, set into the bank).
+def aqueduct_gate(r):
+    name = "aqueduct_gate"
+    solid(name + "__landing", r, ["gorge_sandstone"], lambda bm: add_box(bm, -3.0, 0.0, -2.6, 2.6, -0.6, 0.0))
+    solid(name + "__fascia", r, ["gorge_faience"], lambda bm: add_box(bm, -3.05, 0.0, -2.65, 2.65, -1.3, -0.6))
+
+    def house(bm):
+        add_box(bm, 0.0, 6.0, -3.2, 3.2, -1.3, 6.4)                 # the block, back into the bank
+        add_box(bm, -0.25, 6.0, -3.4, 3.4, 6.4, 6.75)               # its cornice
+        for y in (-3.0, 2.6):
+            add_box(bm, -0.3, 0.3, y, y + 0.4, 0.0, 6.4)            # corner piers
+    solid(name + "__house", r, ["gorge_stone_clean"], house)
+    # The door on the block's face (x 0), facing -X: the pishtaq's frame (built
+    # along X 0..4 facing -Y) turned a quarter and centred on the deck.
+    pishtaq(r, name + "_door", False, Matrix.Translation((0.0, 2.0, 0.0)) @ Matrix.Rotation(-math.pi / 2, 4, "Z"))
+
+
 def wall_faience(r):
     solid("gorge_wall_4m_faience__body", r, ["gorge_pier"], lambda bm: add_box(bm, 0.0, 4.0, 0.0, 0.5, 0.0, H))
 
@@ -649,6 +835,12 @@ MODULES = [
     ("M_gorge_crown_edge", props("edge", [1, 0, 0], "none", "scenery,gorge,crown"), crown_edge("")),
     ("M_gorge_crown_edge_worn", props("edge", [1, 0, 0], "none", "scenery,gorge,crown"), crown_edge("worn")),
     ("M_gorge_crown_edge_broken", props("edge", [1, 0, 0], "none", "scenery,gorge,crown"), crown_edge("broken")),
+    ("M_gorge_deck_edge_inner", props("edge", [1, 0, 0], "none", "scenery,gorge,deck,rail"), deck_edge("", INNER)),
+    ("M_gorge_crown_edge_inner", props("edge", [1, 0, 0], "none", "scenery,gorge,crown"), crown_edge("", INNER)),
+    ("M_gorge_deck_edge_inner_start", props("edge", [1, 0, 0], "none", "scenery,gorge,deck,rail"), deck_edge("", 4.0, OVER)),
+    ("M_gorge_crown_edge_inner_start", props("edge", [1, 0, 0], "none", "scenery,gorge,crown"), crown_edge("", 4.0, OVER)),
+    ("M_gorge_deck_edge_inner_both", props("edge", [1, 0, 0], "none", "scenery,gorge,deck"), deck_edge("", INNER, INNER)),
+    ("M_gorge_crown_edge_inner_both", props("edge", [1, 0, 0], "none", "scenery,gorge,crown"), crown_edge("", INNER, INNER)),
     ("M_gorge_deck_corner", props("post", [0, 0, 0], "", "scenery,gorge,deck"), corner(False)),
     ("M_gorge_crown_corner", props("post", [0, 0, 0], "", "scenery,gorge,crown"), corner(True)),
     ("M_gorge_figure", props("free", [0, 0, 0], "", "scenery,gorge,figure", family="dressing"), figure),
@@ -663,6 +855,19 @@ MODULES = [
     ("M_gorge_lamp", props("free", [0, 0, 0], "", "scenery,gorge,lamp", family="dressing"), lamp(0.14)),
     ("M_gorge_lamp_big", props("free", [0, 0, 0], "", "scenery,gorge,lamp", family="dressing"), lamp(0.3)),
     ("M_gorge_wall_4m_faience", props("edge", [1, 1, 0], "solid", "scenery,stone,gorge,wall"), wall_faience),
+    # Flush bays in openings through their walls (phase 6 step 6, fly-mode walk).
+    *[("M_%s_%s" % (wall_name, shape), props("edge", [1, 1, 0], "solid", "scenery,stone,gorge,wall"), wall_open(mat, shape))
+      for (wall_name, mat) in (("gorge_wall_4m", "gorge_stone"), ("gorge_wall_4m_aged", "gorge_stone_aged"),
+                               ("gorge_wall_4m_clean", "gorge_stone_clean"), ("gorge_wall_4m_faience", "gorge_pier"))
+      for shape in ("arch", "rect")],
+    ("M_gorge_door_pishtaq", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,door"), door_pishtaq),
+    ("M_gorge_bay_window_flush", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,window,light"), bay_window_flush),
+    ("M_gorge_bay_stack_window_flush", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books,window"), bay_stack_window_flush()),
+    ("M_gorge_bay_stack_window_flush_near", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books,window"), bay_stack_window_flush(True)),
+    ("M_gorge_bay_stack_flush", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books"), bay_stack_flush(False)),
+    ("M_gorge_bay_stack_flush_near", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books"), bay_stack_flush(False, True)),
+    ("M_gorge_bay_stack_ladder_flush", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books"), bay_stack_flush(True)),
+    ("M_gorge_bay_stack_ladder_flush_near", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books"), bay_stack_flush(True, True)),
     ("M_gorge_tower_wall", props("edge", [1, 1, 0], "solid", "scenery,gorge,tower"), tower_wall(False)),
     ("M_gorge_tower_window", props("edge", [1, 1, 0], "solid", "scenery,gorge,tower,window"), tower_wall(True)),
     ("M_gorge_tower_wall_stone", props("edge", [1, 1, 0], "solid", "scenery,gorge,tower"), tower_wall(False, "gorge_stone_clean")),
@@ -675,10 +880,11 @@ MODULES = [
     ("M_aqueduct_lower_12m", props("cell", [3, 5, 1], "", "scenery,gorge,aqueduct"), aqueduct_lower),
     ("M_aqueduct_pier_20m", props("post", [0, 5, 0], "", "scenery,gorge,aqueduct"), aqueduct_pier),
     ("M_aqueduct_deck_12m", props("cell", [3, 0, 1], "", "scenery,gorge,aqueduct,rail"), aqueduct_deck),
+    ("M_aqueduct_gate", props("free", [2, 2, 2], "", "scenery,gorge,aqueduct,door", family="dressing"), aqueduct_gate),
     ("M_aqueduct_landing", props("free", [2, 0, 2], "", "scenery,gorge,aqueduct", family="dressing"), aqueduct_landing),
 ]
 
-REBUILD = [("M_gorge_bay_window", 9), ("M_gorge_bay_balcony", 10), ("M_gorge_bay_doorway", 3),
+REBUILD = [("M_gorge_bay_window", 9), ("M_gorge_bay_balcony", 10), ("M_gorge_bay_doorway", 4),
            ("M_gorge_bay_stack_window", 5), ("M_gorge_bay_stack_window_near", 5)]   # rev 2: pointed arches; rev 3: the glow fits inside the arch; window 4, balcony 5: lit edge to edge, bars; window 5: a framed window, balcony 6: a patio door; window 6, balcony 7, stack window 2: no faces against the wall (lighter); window 7, balcony 8, stack window 3: no z-fighting under the arch, doors shut, books further back; then lighter again (6-segment arches); then the panel inside the border (z-fighting)
 # rev 2: stone paving on the decks (tile reads as a wall or ceiling, not a floor)
 REBUILD += [(n, 2) for n in ("M_gorge_deck", "M_gorge_deck_edge", "M_gorge_deck_edge_streaked", "M_gorge_deck_edge_mossy",

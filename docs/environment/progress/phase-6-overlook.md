@@ -18,7 +18,155 @@ network of 4–6 cliff galleries on both cliffs, joined by spans across and
 stairs along the cliffs, different by seed. You walked it once (14 reports,
 fixed); waiting for your next walk. Step 5 is built: two of the galleries
 have a door, one into the Lower Stacks and one into the library wing, and
-each of those areas has a door back.
+each of those areas has a door back. Step 6, the gorge scenery clean-up
+pass, has started: first a fly mode, so you can reach any part of the gorge
+to report it.
+
+---
+
+## Step 6: the gorge scenery clean-up pass (started 2026-10-26)
+
+What it's for: the gaps, clipping and extra geometry the walkable gorge
+shows close up (bank 1's and bank 3's slits and hollow tiers from step 4's
+walk, and anything else you find), then the Gorge's frame testing, which
+waits for this pass, as you asked.
+
+### Your fly-mode walk: 15 reports (2026-10-26)
+
+Retaken in `previews/p6_step6/fly1/` (your screenshots are in `reports/`).
+Re-baking the gorge takes about 15 s.
+
+**Fixed (8 reports):**
+
+| Report | Fix |
+|---|---|
+| 19-47-15: bits of the colossi's wings and head float | The colossus model (`tools/build_props.py` lamassu): each feather is now placed along its wing row's own slope, half sunk into the row's top edge. Placed by fixed world steps, they had drifted off the row, and the model's smoothing pulled them further away. The tiara's rim of blocks is sunk into the drum. |
+| 19-57-34: rails clipping | Inside corners, where two terrace faces meet, used to put both faces' 4 m deck edges into the corner, so the overhangs overlapped, the rails crossed and the paving doubled. There are three new kit pieces, each in a deck and a crowned version (`kit_gorge.blend`): `_inner` (the face ending at the corner stops 2.2 m short), `_inner_start` (the face starting there keeps its paving but starts its rail 2.2 m in) and `_inner_both` (a one-bay face between two such corners). The rails now meet in an L. The terrace cypresses (2.6 m either side of a run's middle) now grow only on runs of two or more bays; on one-bay runs they stood in the next face's rails. |
+| 19-49-41, 19-59-57: gaps | Every tier now has a stone core: a plain box per cell, 0.45 m behind the walls on every open side, up under the deck. Faces that don't look at the gorge were never built, so behind the facades the tiers were hollow, with slits through them wherever a run turned away. The core is in the tier's own wall stone, merged per stone, about 12 triangles a cell. |
+| 19-59-30: the top of the rock | The gate colossus's rock pier was an open tube, its top 13 m across and wider than the plinth. It's now capped by a low cone up under the plinth, shaded like the rock's sides. A cap facing up stayed black, because the rock's light comes from the mist and the terraces below and beside it. |
+| 19-58-10: tile on the cave walls | The far walls' faience bands and rows of lit windows are gone in the walkable gorge, which keeps only the rock strata. |
+| 19-51-06, 19-52-15: too many lamps | Lamps now burn on about a quarter of the deck edges, in tighter clusters with dark stretches between (cluster cutoff 0.05 → 0.22, in both `GorgeGrammar` and `vista_light.gd`): 2,663 lamps → 1,726. Cluster lights 56 → 36 at 4.2 energy (was 5), and a face's own warm light every 18th run (was every 9th). **Partly done:** the terrace in 19-52-15 is still warm. What lights it is the near network's own lamp posts and the lit windows, not these. Say if you want those cut too. |
+
+**Checks:** box art from the balcony passes every region (vault 0.94, focal
+glow 0.80, far depth 0.87, near flanks 0.94, mist 1.08); a 240-frame run in
+the Gorge is clean. Network, span and route tests weren't re-run: the tiers'
+outline (`keep_out`) didn't change.
+
+**Proposed next round (7 reports), each a change of design, so your call on
+the approach:**
+
+| Report | Proposal |
+|---|---|
+| 19-48-25: spans running into walls | Where an aqueduct meets a bank, end it at a gate: a pishtaq portal in the face, or a landing on a pier against the terrace, never a bare join into the wall. |
+| 19-58-53: the door is too plain | The gallery door bay (`gorge_bay_doorway`) rebuilt as a proper pishtaq: a tall frame round a pointed arch, tiled spandrels and a moulded border, with the door set back in it. |
+| 19-49-19: messy, overlapping geometry (the sanctum) | An overlap audit of the sanctum's pieces (banners over rails, pavilion posts through rails, panels into soffits), then fixes in its grammar. |
+| 19-56-14: windows pop out | Windows and stack windows with flush frames and the books recessed into the wall, as in a room: lighter, and calmer up close. This changes the look of every facade. |
+| 19-53-05, 19-55-25, 19-54-10: geometry nobody sees | (1) A visibility bake: from points along every walkable route (all seeds), cast rays at the pieces, and drop pieces no view reaches (blocked courts, tier backs, the far side of crowns). (2) Simpler far versions of the facade pieces past about 60 m. Both also cut the triangles before the Gorge's frame testing (today 9–15 million in view, against a 3 million limit). |
+
+### Second round: the seven proposals (built 2026-10-26)
+
+You said go ahead as proposed. All 15 views are retaken in
+`previews/p6_step6/fly2/`, plus the two gallery doors
+(`gallery_door_lower_stacks`, `gallery_door_library`).
+
+| Report | What changed |
+|---|---|
+| 19-56-14: windows pop out | **Flush bays.** Windows, stack windows and stacks now sit in an opening through their wall: new wall pieces `gorge_wall_*_arch` and `_rect`, in each of the four stones. The frame stands only 3–7 cm proud, and the glow, books and lattice are set 0.36–0.42 m back into the wall, as into a room. That's 15 new kit pieces (`_flush` bays, `kit_gorge.blend`). Balconies, doorways and panels are as before. |
+| 19-53-05, 19-54-10, 19-55-25: geometry nobody sees | **A visibility bake** (`tools/gorge_visibility.gd`, on the GPU machine, about 6 minutes). Rays go out in 6,144 directions from 4,795 places a player can stand in any seed: the Overlook's floors, every gallery slot, and along every link the network could build. **16,094 of 66,427 pieces (24%) are never reached**, mostly in the far banks (6–8) and the backs of tiers. They're listed in `gen/gorge/hidden_pieces.json`, which `bake_gorge.gd` leaves out (`-- --no-cull` keeps everything). Pieces within 25 m of a viewpoint, and small ones beside a seen piece, are always kept. |
+| (the same) | **Draws by region.** The kit batcher can now split a mesh with many instances into 128 m regions, each culled on its own. As one batch, a mesh spread across the gorge was drawn whole whenever any of it was in view. Lamps, balusters and figures (under 1.6 m across) are drawn only within 110 m and cast no shadow. The cavern's bounce light uses two shadow cascades, not four (each redraws the scenery). |
+| 19-58-53: the door is too plain | **Pishtaq doors.** The gallery doors (`gorge_door_pishtaq`, standing 0.25 m out from the face) and the facade doorway bays (`gorge_bay_doorway` rev 4) have a stone frame round a tiled field, the pointed arch's ring, a cornice, and a pair of iron-banded wooden doors under a lit fanlight, with a step. The rock gate you reported (bank 2's throat gate) gets the same: a tiled field, a stone border and cornice, and banded doors 5 m wide under the lamplit tunnel's glow. The threshold no longer draws its lit card (look "door": just the trigger and a wall in front of the leaves). |
+| 19-48-25: spans running into walls | **Aqueduct gates.** Each aqueduct now ends at a gatehouse set into the bank, with a pishtaq door facing back along the deck and a landing the deck arrives on (`aqueduct_gate`, in place of the round landing). |
+| 19-49-19: messy, overlapping geometry (the sanctum) | **The sanctum's old front is gone.** The two 15 m fluted columns, the two "wing" hangings and the glowing portal panel were placed for the old code-built sanctum tiers, and the kit tiers' decks ran through them. Its rotunda and light stay. An overlap audit of the sanctum's pieces also found a doorway lamp inside the new pishtaq's frame, now moved out. The network's clearing now judges big pieces (banners, pavilions) by their size: before, a banner whose top was over 6 m from a gallery stayed even though it hung into the gallery. **Open:** a tiled oval over a waterfall still stands in that view. I haven't found which piece makes it yet; say if it bothers you on your next flight. |
+
+**What it costs now** (your 15 views at 1600×900): draw calls 366–1,460 (were
+up to 3,750 before the batches were split; limit 1,500), GPU 1.7–3.1 ms. The
+**triangles are still over**: 4.8–8.7 million in view against the 3 million
+limit. The gorge holds only 3.5 million triangles all told after the cull, so
+most of what's counted is the shadow passes redrawing it. Getting under 3
+million is for the Gorge's frame testing next: fewer shadowed lights at a
+distance, or simpler far versions of the busiest pieces (the flush stack
+window's frame is 0.7 million on its own).
+
+**Checks:**
+
+| Check | Result |
+|---|---|
+| Network | 790 checks, 0 failures (20 seeds) |
+| Route | 8, 0 |
+| Span | 485, 0 |
+| Doors through the Gorge | The Lower Stacks and back pass, the camp and back pass |
+| Box art | Every region: vault 0.93, focal glow 0.80, far depth 0.87, flanks 0.93, mist 1.08 |
+| 240 frames in the Gorge | Clean |
+
+**Two things that broke and were fixed on the way:**
+
+- **The tier cores blocked the network.** The first round's cores went into
+  `generated.scn`, whose masses the network's links keep clear of, so links
+  along the cliffs "ran into" them (170 failures). They're now baked into
+  their own `TierCores` node, which the links ignore. The tiers' keep-out
+  already covers them.
+- **The new door let you walk past its threshold.** The pishtaq has no
+  collision. The "door" threshold now has its own wall in front of the
+  leaves.
+
+### Your second flight: 6 reports (2026-10-26)
+
+Retaken in `previews/p6_step6/fly3/`.
+
+| Report | What changed |
+|---|---|
+| 20-59-02: the aqueduct in the corner | Removed. The layout has a `removed` list (aqueduct 6, from bank 5 toward the sanctum), and it's left out of the bake and the grammar. |
+| 21-00-04: too many terraces at the far end | The sanctum is now four tall tiers (6 storeys each), not nine short ones, with the same height and taper overall. That's a third as many terraces. |
+| 21-02-41: too many details everywhere | Facades are calmer. Balconies are 2% of bays (were 8%), tiled panels 20% (were 14%). Plain stone storeys now come a whole storey of a tier at a time, giving a quiet horizontal band, at 45% of upper storeys from 100 m below the balcony up (were scattered single bays, 35%, only above 40 m below). |
+| 21-01-30: building tops through the cavern roof | The vault's rock now keeps 8 m clear of the kit's actual pieces, from a grid of their tops that the bake gives the cavern (`Cavern.kit_floor`). Before, it only knew the old code's round terraces, and the kit towers' square corners and crowns stood out of it. |
+| 20-58-35: walls meeting the rock | **Your option (a):** inside a bank, the rock pillar is now quarried, coursed stone (a sixteen-sided drum in the banks' clean stone, with a sandstone cornice) up to the bank's top, and the rough rock rises from there (`Cavern.quarried`). |
+| 21-00-40: the dip in the terrace | **Not a gallery after all, so neither option was needed.** The visibility cull had dropped terrace decks that no standing viewpoint reaches (seen only from above or while flying), and the tier's stone core showed 0.6 m lower. Decks, crowns and their edges are now never culled (`gorge_visibility.gd` KEEP). That leaves 12,330 of 64,357 pieces culled (was 15,822). |
+
+
+**Checks:** network 790, span 485, route 8, all passing; box art passes
+(vault 1.07, focal glow 0.80, far depth 0.87, flanks 0.90, mist 1.08); a
+240-frame run in the Gorge is clean.
+
+### Fly mode, for reporting (built 2026-10-26)
+
+**Try it:** anywhere (the Gorge, the camp, the library), press **V**. You
+fly where you look and pass through anything, and doors don't take you
+anywhere.
+
+| Key | Does |
+|---|---|
+| **V** | Fly or land |
+| **Space** | Up |
+| **C** or **Ctrl** | Down |
+| **Shift** | 4× speed |
+| **Mouse wheel** | Speed, 1 to 128 m/s (starts at 8) |
+
+Landing leaves you where you are, falling; land over the void and you're put
+back at the area's start, as any fall is. Report with ` as usual. A report
+made while flying is marked `"flying": true`, and `tests/report_capture.gd`
+retakes it from the same spot in the air. If you quit while flying, you
+resume flying. The controls panel (Esc → Controls & settings) lists the keys.
+
+**What changed:** `scripts/player.gd` (`set_flying`: no gravity, the capsule
+off so walls and thresholds don't see you), `scripts/main.gd` (the keys, the
+HUD line, the save), `scripts/report_tool.gd` (the flag).
+
+**Checks:** a new `tests/fly_test.gd`, 12 checks, all pass:
+
+- Walking stops at a pier, and flying goes through it.
+- Level flight holds its height.
+- Space rises and C sinks.
+- Forward follows the camera, up included.
+- Flying through the gallery's door to the Gorge doesn't set it off.
+- The save records that you were flying.
+- Landing falls back to the floor.
+
+The playtest passes too (33 checks).
+
+**To know:** lights in the Gorge are rationed to the room you're in and the
+rooms you can see into. Flying outside every room, some galleries may be
+darker than they are when you walk them. If something looks dark only
+while flying, say so in the report.
 
 ---
 

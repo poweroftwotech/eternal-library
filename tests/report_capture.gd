@@ -68,8 +68,8 @@ func run() -> void:
 			await RenderingServer.frame_post_draw
 			var path: String = "%s/%s.png" % [out_dir, r["id"]]
 			root.get_viewport().get_texture().get_image().save_png(path)
-			print("  %s: %s at %s \"%s\": draw calls %d, gpu %.2f ms -> %s" % [r["id"], r.get("scene", ""), feet, r.get("note", ""),
-				Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME),
+			print("  %s: %s at %s \"%s\": draw calls %d, triangles %.2f M, gpu %.2f ms -> %s" % [r["id"], r.get("scene", ""), feet, r.get("note", ""),
+				Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000000.0,
 				RenderingServer.viewport_get_measured_render_time_gpu(vp_rid), path])
 		game.queue_free()
 		for _i: int in 3:

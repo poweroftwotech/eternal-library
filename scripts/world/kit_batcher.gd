@@ -20,6 +20,18 @@ extends Node3D
 ## sets 2, its light layer: a saved instance doesn't keep changes to its
 ## pieces' insides, so their own layers can't be relied on.
 @export_flags_3d_render var render_layers: int = 0
+## Batch per region of this size (metres; 0: one batch per mesh across the
+## whole scene). Each batch is then culled on its own: as one batch spanning
+## the gorge, every one of its instances was drawn whenever any was in view
+## (phase 6 step 6: 9-15 million triangles in view).
+@export var chunk_size: float = 0.0
+## Only meshes with at least this many instances are split by region.
+@export var chunk_min: int = 400
+## Meshes smaller than detail_size across (metres) are drawn only within
+## detail_range of the camera (0: always), and cast no shadow: lamps,
+## balusters, figures.
+@export var detail_range: float = 0.0
+@export var detail_size: float = 1.6
 
 ## What the last batch() did: meshes in, MultiMeshes out.
 var stats: Dictionary = {}
@@ -49,11 +61,26 @@ func batch() -> Dictionary:
 		if mi.mesh == null or not mi.is_visible_in_tree() or _kept(mi):
 			continue
 		var layers: int = render_layers if render_layers != 0 else mi.layers
+		var xf: Transform3D = to_local * mi.global_transform
 		var key: String = "%s/%d/%d" % [_signature(mi.mesh, signatures), layers, mi.cast_shadow]
 		if not groups.has(key):
 			groups[key] = {"mesh": mi.mesh, "layers": layers, "shadow": mi.cast_shadow, "xfs": [], "tinted": _tinted(mi.mesh)}
-		(groups[key]["xfs"] as Array).append(to_local * mi.global_transform)
+		(groups[key]["xfs"] as Array).append(xf)
 		batched.append(mi)
+	# Meshes with many instances split by region (chunk_size), each part culled
+	# on its own; the rest stay one batch each (every region a draw call).
+	if chunk_size > 0.0:
+		for key: String in groups.keys():
+			var g: Dictionary = groups[key]
+			if (g["xfs"] as Array).size() < chunk_min:
+				continue
+			groups.erase(key)
+			for xf: Transform3D in g["xfs"]:
+				var part: String = "%s/%s" % [key, Vector3i((xf.origin / chunk_size).floor())]
+				if not groups.has(part):
+					groups[part] = g.duplicate()
+					groups[part]["xfs"] = []
+				(groups[part]["xfs"] as Array).append(xf)
 	var made: int = 0
 	for key: String in groups:
 		var g: Dictionary = groups[key]
@@ -79,6 +106,12 @@ func batch() -> Dictionary:
 		_fill(node)
 		node.layers = g["layers"]
 		node.cast_shadow = g["shadow"]
+		var across: float = (g["mesh"] as Mesh).get_aabb().size.length()     # 0 if unknown (headless): drawn at any range
+		if detail_range > 0.0 and across > 0.0 and across < detail_size:
+			node.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF     # too small to show in the shadow maps
+			node.visibility_range_end = detail_range
+			node.visibility_range_end_margin = detail_range * .1
+			node.visibility_range_fade_mode = GeometryInstance3D.VISIBILITY_RANGE_FADE_SELF
 		add_child(node)
 		made += 1
 	for mi: Node in batched:

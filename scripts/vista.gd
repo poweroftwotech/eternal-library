@@ -460,6 +460,9 @@ func build() -> void:
 	bounce.light_energy = VistaLight.VAULT_BOUNCE_ENERGY
 	bounce.shadow_enabled = true
 	bounce.directional_shadow_max_distance = 330
+	# Two cascades, not four: each redraws the scenery in its range (phase 6
+	# step 6: most of the gorge's triangles in view were these passes).
+	bounce.directional_shadow_mode = DirectionalLight3D.SHADOW_PARALLEL_2_SPLITS
 	bounce.light_angular_distance = 1.0
 	bounce.shadow_blur = 1.5
 	bounce.light_cull_mask = 2
@@ -770,6 +773,12 @@ func sanctum(p: Vector3) -> void:
 		prism(deck,y+10,.7,art.mat("exterior_faience"))
 		ledge_edges(deck,y+10.7,i%2==0,2)
 	rotunda(p+Vector3(0,50,-4),9.4,10)
+	# The front (portal glow, columns, hangings) stood before these tiers; the
+	# kit's tiers (GorgeGrammar.sanctum, skip_sanctum_tiers) are laid out
+	# otherwise and their decks ran through it (fly-mode walk, 2026-10-26).
+	if skip_sanctum_tiers:
+		world.light(p+Vector3(0,9,28),Color("ffd397"),11,47)
+		return
 	var quad = QuadMesh.new()
 	quad.size = Vector2(7.2,12)
 	art.mesh_node(quad,p+Vector3(0,6,18.2),art.mat("gorge_portal"))
@@ -879,7 +888,9 @@ func build_enclosure() -> void:
 		var inward = Vector3(-dir.y,0,dir.x)
 		var wall = block(Vector3(center.x,-50,center.y),Vector3(a.distance_to(b)+2,263,13),"gorge_background")
 		wall.rotation.y = -atan2(dir.y,dir.x)
-		for row in range(17):
+		# Walked (fly mode), the faience bands and windows read as tile on the
+		# cave: the walkable gorge's walls are rock strata only.
+		for row in range(0 if walkable_overlook else 17):
 			var y: float = -175+row*15.0+(i%3)*2
 			var aa = Vector3(a.x,y,a.y)+inward*7.5
 			var bb = Vector3(b.x,y,b.y)+inward*7.5

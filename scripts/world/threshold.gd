@@ -28,6 +28,9 @@ const TRIGGER := AABB(Vector3(-1.2, 0.0, -0.7), Vector3(2.4, 2.6, 1.4))
 const WALL := AABB(Vector3(-1.8, 0.0, -1.1), Vector3(3.6, 4.0, 0.4))
 ## ... and the gorge door's, just behind its card.
 const CARD_WALL := AABB(Vector3(-1.8, 0.0, -0.3), Vector3(3.6, 4.0, 0.4))
+## ... and a door piece's (a gallery's pishtaq, its leaves 0.37 m out from the
+## connector; the Overlook's bronze door): in front of the leaves.
+const DOOR_WALL := AABB(Vector3(-1.8, 0.0, -0.3), Vector3(3.6, 4.0, 0.7))
 const GLOW_Z: float = -1.4
 const GLOW_COLOR := Color(0.5, 0.66, 0.8)
 ## The door card: the doorway piece's opening (its foot over the floor,
@@ -52,7 +55,7 @@ func _ready() -> void:
 	var wall := StaticBody3D.new()
 	wall.name = "Wall"
 	var ws := CollisionShape3D.new()
-	var box: AABB = CARD_WALL if look == "card" else WALL
+	var box: AABB = CARD_WALL if look == "card" else (DOOR_WALL if look == "door" else WALL)
 	ws.shape = BoxShape3D.new()
 	(ws.shape as BoxShape3D).size = box.size
 	ws.position = box.get_center()

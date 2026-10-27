@@ -268,6 +268,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "aqueduct_gate",
+"scene": "res://kit/modules/dressing/aqueduct_gate.tscn",
+"shape": "free",
+"size_cells": Vector3i(2, 2, 2),
+"tags": PackedStringArray("scenery", "gorge", "aqueduct", "door"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "aqueduct_landing",
 "scene": "res://kit/modules/dressing/aqueduct_landing.tscn",
 "shape": "free",
@@ -1555,11 +1564,47 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "none",
 "family": "walls",
+"name": "gorge_bay_stack_flush",
+"scene": "res://kit/modules/walls/gorge_bay_stack_flush.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "facade", "books"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_bay_stack_flush_near",
+"scene": "res://kit/modules/walls/gorge_bay_stack_flush_near.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "facade", "books"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
 "name": "gorge_bay_stack_ladder",
 "scene": "res://kit/modules/walls/gorge_bay_stack_ladder.tscn",
 "shape": "edge",
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("gorge", "facade", "books", "scenery"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_bay_stack_ladder_flush",
+"scene": "res://kit/modules/walls/gorge_bay_stack_ladder_flush.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "facade", "books"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_bay_stack_ladder_flush_near",
+"scene": "res://kit/modules/walls/gorge_bay_stack_ladder_flush_near.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "facade", "books"),
 "weight": 1.0
 }, {
 "edge": "none",
@@ -1591,6 +1636,24 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "none",
 "family": "walls",
+"name": "gorge_bay_stack_window_flush",
+"scene": "res://kit/modules/walls/gorge_bay_stack_window_flush.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "facade", "books", "window"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_bay_stack_window_flush_near",
+"scene": "res://kit/modules/walls/gorge_bay_stack_window_flush_near.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "facade", "books", "window"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
 "name": "gorge_bay_stack_window_near",
 "scene": "res://kit/modules/walls/gorge_bay_stack_window_near.tscn",
 "shape": "edge",
@@ -1605,6 +1668,15 @@ modules = Array[Dictionary]([{
 "shape": "edge",
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("gorge", "facade", "window", "scenery"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_bay_window_flush",
+"scene": "res://kit/modules/walls/gorge_bay_window_flush.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "facade", "window", "light"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -1632,6 +1704,33 @@ modules = Array[Dictionary]([{
 "shape": "edge",
 "size_cells": Vector3i(1, 0, 0),
 "tags": PackedStringArray("gorge", "crown", "scenery"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_crown_edge_inner",
+"scene": "res://kit/modules/walls/gorge_crown_edge_inner.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 0, 0),
+"tags": PackedStringArray("scenery", "gorge", "crown"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_crown_edge_inner_both",
+"scene": "res://kit/modules/walls/gorge_crown_edge_inner_both.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 0, 0),
+"tags": PackedStringArray("scenery", "gorge", "crown"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_crown_edge_inner_start",
+"scene": "res://kit/modules/walls/gorge_crown_edge_inner_start.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 0, 0),
+"tags": PackedStringArray("scenery", "gorge", "crown"),
 "weight": 1.0
 }, {
 "edge": "none",
@@ -1672,6 +1771,33 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "none",
 "family": "walls",
+"name": "gorge_deck_edge_inner",
+"scene": "res://kit/modules/walls/gorge_deck_edge_inner.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 0, 0),
+"tags": PackedStringArray("scenery", "gorge", "deck", "rail"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_deck_edge_inner_both",
+"scene": "res://kit/modules/walls/gorge_deck_edge_inner_both.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 0, 0),
+"tags": PackedStringArray("scenery", "gorge", "deck"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_deck_edge_inner_start",
+"scene": "res://kit/modules/walls/gorge_deck_edge_inner_start.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 0, 0),
+"tags": PackedStringArray("scenery", "gorge", "deck", "rail"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
 "name": "gorge_deck_edge_mossy",
 "scene": "res://kit/modules/walls/gorge_deck_edge_mossy.tscn",
 "shape": "edge",
@@ -1686,6 +1812,15 @@ modules = Array[Dictionary]([{
 "shape": "edge",
 "size_cells": Vector3i(1, 0, 0),
 "tags": PackedStringArray("gorge", "deck", "rail", "scenery"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
+"name": "gorge_door_pishtaq",
+"scene": "res://kit/modules/walls/gorge_door_pishtaq.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "facade", "door"),
 "weight": 1.0
 }, {
 "edge": "none",
@@ -1798,6 +1933,33 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "solid",
 "family": "walls",
+"name": "gorge_wall_4m_aged_arch",
+"scene": "res://kit/modules/walls/gorge_wall_4m_aged_arch.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "stone", "gorge", "wall"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
+"name": "gorge_wall_4m_aged_rect",
+"scene": "res://kit/modules/walls/gorge_wall_4m_aged_rect.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "stone", "gorge", "wall"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
+"name": "gorge_wall_4m_arch",
+"scene": "res://kit/modules/walls/gorge_wall_4m_arch.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "stone", "gorge", "wall"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
 "name": "gorge_wall_4m_clean",
 "scene": "res://kit/modules/walls/gorge_wall_4m_clean.tscn",
 "shape": "edge",
@@ -1807,8 +1969,53 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "solid",
 "family": "walls",
+"name": "gorge_wall_4m_clean_arch",
+"scene": "res://kit/modules/walls/gorge_wall_4m_clean_arch.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "stone", "gorge", "wall"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
+"name": "gorge_wall_4m_clean_rect",
+"scene": "res://kit/modules/walls/gorge_wall_4m_clean_rect.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "stone", "gorge", "wall"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
 "name": "gorge_wall_4m_faience",
 "scene": "res://kit/modules/walls/gorge_wall_4m_faience.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "stone", "gorge", "wall"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
+"name": "gorge_wall_4m_faience_arch",
+"scene": "res://kit/modules/walls/gorge_wall_4m_faience_arch.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "stone", "gorge", "wall"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
+"name": "gorge_wall_4m_faience_rect",
+"scene": "res://kit/modules/walls/gorge_wall_4m_faience_rect.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "stone", "gorge", "wall"),
+"weight": 1.0
+}, {
+"edge": "solid",
+"family": "walls",
+"name": "gorge_wall_4m_rect",
+"scene": "res://kit/modules/walls/gorge_wall_4m_rect.tscn",
 "shape": "edge",
 "size_cells": Vector3i(1, 1, 0),
 "tags": PackedStringArray("scenery", "stone", "gorge", "wall"),

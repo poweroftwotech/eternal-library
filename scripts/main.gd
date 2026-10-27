@@ -112,10 +112,13 @@ func _ready() -> void:
 	if resuming and (pose.get("pos", []) as Array).size() == 3:
 		var p: Array = pose["pos"]
 		player.teleport(Vector3(p[0], p[1], p[2]), float(pose.get("yaw", 0.0)), float(pose.get("pitch", 0.0)))
+		if bool(pose.get("flying", false)):
+			player.set_flying(true)     # quit while flying: resume in the air, still flying
 	player.blocked = false
 	if world is Area and (world as Area).streamer != null:
 		(world as Area).streamer.target = player
 	player.interact_requested.connect(interact)
+	player.fly_status.connect(func(text: String) -> void: hud.notify(text))
 	for k: String in inventory:     # the satchel's ingredients come from the save
 		inventory[k] = ws().item_count(StringName(k))
 	hud = Hud.new()
@@ -232,7 +235,7 @@ func _on_saving() -> void:
 			ws().satchel()["stacks"].erase(k)
 	if player != null and is_instance_valid(player):
 		var p: Vector3 = player.global_position
-		ws().data["player"] = {"pos": [p.x, p.y, p.z], "yaw": player.rotation.y, "pitch": player.camera.rotation.x}
+		ws().data["player"] = {"pos": [p.x, p.y, p.z], "yaw": player.rotation.y, "pitch": player.camera.rotation.x, "flying": player.flying}
 
 ## Shows or hides the stats panel and remembers it (user://settings.cfg, not the save).
 func toggle_stats() -> void:
@@ -245,7 +248,7 @@ func save_and_quit() -> void:
 	get_tree().quit()
 
 func install_inputs() -> void:
-	var actions = {"forward":[KEY_W,KEY_UP],"back":[KEY_S,KEY_DOWN],"left":[KEY_A,KEY_LEFT],"right":[KEY_D,KEY_RIGHT],"interact":[KEY_E],"jump":[KEY_SPACE],"sprint":[KEY_SHIFT],"notes":[KEY_J],"fullscreen":[KEY_F11],"stats":[KEY_F3]}
+	var actions = {"forward":[KEY_W,KEY_UP],"back":[KEY_S,KEY_DOWN],"left":[KEY_A,KEY_LEFT],"right":[KEY_D,KEY_RIGHT],"interact":[KEY_E],"jump":[KEY_SPACE],"sprint":[KEY_SHIFT],"notes":[KEY_J],"fullscreen":[KEY_F11],"stats":[KEY_F3],"fly":[KEY_V],"fly_down":[KEY_C,KEY_CTRL]}
 	for action in actions:
 		if not InputMap.has_action(action):
 			InputMap.add_action(action)
@@ -403,7 +406,7 @@ func show_menu() -> void:
 	open_panel(room_title().capitalize() if in_room() else "The reading garden",text,options,"menu")
 
 func show_controls() -> void:
-	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen     F3 — performance stats\n` — report what you see (a screenshot, where you stand, a note)\n\nMovement pauses while a panel is open.",[
+	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen     F3 — performance stats\n` — report what you see (a screenshot, where you stand, a note)\nV — fly (no-clip): Space up, C or Ctrl down, Shift 4x, mouse wheel for speed\n\nMovement pauses while a panel is open.",[
 		{"text":"Mouse sensitivity: %.4f — cycle" % player.sensitivity,"action":"sensitivity"},
 		{"text":"Invert look: %s" % ("On" if player.invert_y else "Off"),"action":"invert"},
 		{"text":"Music: %s" % ("Off" if mute else "On"),"action":"mute"},

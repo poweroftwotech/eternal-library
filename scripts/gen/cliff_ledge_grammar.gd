@@ -64,7 +64,9 @@ const CONSOLE_W: float = .7
 ## window frames); the guard covers the gap.
 const END_GAP: float = .85
 const GUARD_DEPTH: float = .6
-## The guard's gap in front of a door (along its bay): the doorway's lit card.
+## How far a door's pishtaq stands out from the face.
+const DOOR_PROUD: float = .25
+## The guard's gap in front of a door (along its bay): the door.
 const DOOR_GAP := Vector2(.7, 3.3)
 ## Headroom over the walk kept to the ledge.
 const HEADROOM: float = 3.6
@@ -126,7 +128,10 @@ func at(slot: FrontageSlot, first: int, n: int, seed_value: int, open: Array = [
 		var bay := Transform3D(Basis(Vector3.UP, PI), Vector3(at_x + BAY, 0, 0))
 		var pick: float = rng.randf()
 		if i == door_bay:
-			_piece(out, "walls/gorge_bay_doorway", bay)
+			# A pishtaq standing on its own back plate DOOR_PROUD out from the face
+			# (fly-mode walk: where the face stood proud, a door bay on it was
+			# buried and only the threshold's lit card showed).
+			_piece(out, "walls/gorge_door_pishtaq", bay * Transform3D(Basis(), Vector3(0, 0, DOOR_PROUD)))
 			out["connectors"][StringName("THRESHOLD_" + slot.door)] = Transform3D(Basis(Vector3.UP, PI), Vector3(at_x + BAY * .5, 0, 0))
 			out["door"] = slot.door
 		elif pick < window_chance:

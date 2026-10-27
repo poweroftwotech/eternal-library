@@ -85,7 +85,7 @@ func colossi() -> void:
 		# The gate's colossus stands on its rock pier; the other on its masonry
 		# pedestal alone (the pier's rock reached out to the flight beside it).
 		if i == GATE_COLOSSUS:
-			cavern.column(rock, Vector2(base.x, base.z), PIER_RADIUS, -176.0, COLOSSUS_FLOOR - .8, cut)
+			cavern.column(rock, Vector2(base.x, base.z), PIER_RADIUS, -176.0, COLOSSUS_FLOOR - .8, cut, true)
 		# A dressed plinth course over the rough pier. The plinth is longer than
 		# the pier is wide, so (but where the gate is cut) a masonry pedestal
 		# carries it up out of the mist, a faience band under its course.

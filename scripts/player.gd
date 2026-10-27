@@ -1,5 +1,7 @@
 extends CharacterBody3D
 signal interact_requested(target)
+## Fly mode turned on or off, or its speed changed: a line for the HUD.
+signal fly_status(text: String)
 var camera: Camera3D
 var ray: RayCast3D
 var blocked: bool = true
@@ -14,6 +16,13 @@ var elapsed: float = 0.0
 var respawn_point: Vector3 = Vector3(0, 0.2, 11.5)
 ## Falling below this height puts you back at respawn_point (the area recipe can lower it).
 var fall_limit: float = -8.0
+## No-clip flight for finding faults (V): no gravity, no collision, no doors;
+## you go where you look. Space rises, C or Ctrl sinks, Shift is 4x, the mouse
+## wheel sets the speed (FLY_SPEEDS m/s).
+var flying: bool = false
+var fly_speed: float = 8.0
+const FLY_SPEEDS := Vector2(1.0, 128.0)
+var collider: CollisionShape3D
 
 func _ready() -> void:
 	name = "Player"
@@ -22,7 +31,7 @@ func _ready() -> void:
 	collision_layer = 1 << 3
 	collision_mask = 1 | WorldProp.LAYER_PROPS | (1 << 7)
 	floor_snap_length = 0.3
-	var collider = CollisionShape3D.new()
+	collider = CollisionShape3D.new()
 	var capsule = CapsuleShape3D.new()
 	capsule.radius = 0.32
 	capsule.height = 1.75
@@ -48,6 +57,12 @@ func _unhandled_input(event: InputEvent) -> void:
 		rotate_y(-event.relative.x * sensitivity)
 		var factor: float = -1.0 if invert_y else 1.0
 		camera.rotation.x = clampf(camera.rotation.x - event.relative.y * sensitivity * factor, -1.4, 1.4)
+	if event.is_action_pressed("fly"):
+		set_flying(not flying)
+		return
+	if flying and event is InputEventMouseButton and event.pressed and event.button_index in [MOUSE_BUTTON_WHEEL_UP, MOUSE_BUTTON_WHEEL_DOWN]:
+		fly_speed = clampf(fly_speed * (1.25 if event.button_index == MOUSE_BUTTON_WHEEL_UP else 0.8), FLY_SPEEDS.x, FLY_SPEEDS.y)
+		fly_status.emit("Flying at %.0f m/s (wheel: speed, Shift: 4x)" % fly_speed)
 	if event.is_action_pressed("interact"):
 		var target = get_target()
 		if target != null:
@@ -56,6 +71,14 @@ func _unhandled_input(event: InputEvent) -> void:
 func _physics_process(delta: float) -> void:
 	if blocked:
 		velocity = Vector3.ZERO
+		return
+	if flying:
+		var input_fly: Vector2 = Input.get_vector("left", "right", "forward", "back")
+		var heading: Vector3 = camera.global_basis * Vector3(input_fly.x, 0, input_fly.y)
+		heading.y += (1.0 if Input.is_action_pressed("jump") else 0.0) - (1.0 if Input.is_action_pressed("fly_down") else 0.0)
+		var fly: float = fly_speed * (4.0 if Input.is_action_pressed("sprint") else 1.0)
+		velocity = velocity.lerp(heading.limit_length(1.0) * fly, minf(1.0, 10.0 * delta))
+		position += velocity * delta
 		return
 	if not is_on_floor():
 		velocity.y -= 18.0 * delta
@@ -101,6 +124,14 @@ func get_target():
 ## Where the interaction ray hits (the aimed point on the target).
 func aim_point() -> Vector3:
 	return ray.get_collision_point() if ray.is_colliding() else camera.global_position - camera.global_basis.z * 2.0
+
+## Fly mode on or off (V). Landing leaves you where you are, falling.
+func set_flying(on: bool) -> void:
+	flying = on
+	collider.set_deferred("disabled", on)     # through walls, and doors (thresholds) don't see you
+	velocity = Vector3.ZERO
+	wading = false
+	fly_status.emit("Flying (no-clip) at %.0f m/s: Space up, C down, wheel for speed; V to land" % fly_speed if on else "Landed: walking again")
 
 func teleport(pose: Vector3, yaw: float = 0.0, pitch: float = 0.0) -> void:
 	position = pose

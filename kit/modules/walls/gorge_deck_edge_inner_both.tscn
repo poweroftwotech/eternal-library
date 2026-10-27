@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_w6blu"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gorge_deck_edge_inner_both.glb" id="2_mihw5"]
+
+[node name="gorge_deck_edge_inner_both" type="Node3D" unique_id=545102454]
+script = ExtResource("1_w6blu")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 0, 0)
+edge = "none"
+tags = PackedStringArray("scenery", "gorge", "deck")
+source_glb = "res://assets/kit/walls/gorge_deck_edge_inner_both.glb"
+
+[node name="Mesh" parent="." unique_id=1115930719 instance=ExtResource("2_mihw5")]

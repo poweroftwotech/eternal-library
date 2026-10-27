@@ -39,6 +39,10 @@ static func clear(kit: Node, claims: Array) -> int:
 	for mmi: MultiMeshInstance3D in batches:
 		var mm: MultiMesh = mmi.multimesh
 		var bounds: AABB = modules[module_of(mm.mesh.resource_name)]
+		# A big module (a banner hanging storeys down, a pavilion) meets the
+		# claims further from its origin (fly-mode walk: banners and pavilions
+		# stood in a gallery's rails).
+		var near: AABB = reach.grow(bounds.size.length())
 		var to_global: Transform3D = mmi.global_transform
 		var buffer: PackedFloat32Array = mm.buffer
 		var stride: int = 12 + (4 if mm.use_colors else 0) + (4 if mm.use_custom_data else 0)
@@ -46,7 +50,7 @@ static func clear(kit: Node, claims: Array) -> int:
 		for i: int in mm.instance_count:
 			var o: int = i * stride
 			var at: Vector3 = to_global * Vector3(buffer[o + 3], buffer[o + 7], buffer[o + 11])
-			if not reach.has_point(at):
+			if not near.has_point(at):
 				continue
 			var basis := Basis(Vector3(buffer[o], buffer[o + 4], buffer[o + 8]), Vector3(buffer[o + 1], buffer[o + 5], buffer[o + 9]),
 				Vector3(buffer[o + 2], buffer[o + 6], buffer[o + 10]))

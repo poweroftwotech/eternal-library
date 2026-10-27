@@ -186,7 +186,7 @@ func make_room(r: AreaPlan.Room) -> RoomTemplate:
 			var door := Threshold.new()
 			door.name = "Threshold_" + str(k["to"])
 			door.to = str(k["to"])
-			door.look = "card" if r.kind == "ledge" else ("door" if String(name).begins_with("SNAP_door") else "glow")     # a ledge: its door bay's lit door; a SNAP_door: a door piece stands there
+			door.look = "door" if r.kind == "ledge" or String(name).begins_with("SNAP_door") else "glow"     # a ledge (its pishtaq) or a SNAP_door: a door piece stands there
 			door.transform = r.xf.affine_inverse() * (k["xf"] as Transform3D)
 			room.add_child(door)
 	return room

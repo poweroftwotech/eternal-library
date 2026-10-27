@@ -18,21 +18,35 @@ extends Resource
 const MOD: String = "res://kit/modules/"
 const CAVERN = preload("res://scripts/cavern.gd")
 const BAY: float = 4.0
+## An inner corner's deck edge (gorge_*_edge_inner): the overhang stops where
+## the face round the corner's overhang begins (tools/kit_add_gorge.py INNER).
+const INNER_EDGE: float = BAY - 2.2     # BAY less DECK_OVER (below)
+## A tier's core stands this far behind its faces (a wall body is 0.5 deep),
+## in its walls' stone (tools/kit_add_gorge.py wall()).
+const CORE_INSET: float = .45
+const CORE_STONE: Dictionary = {"gorge_wall_4m": "gorge_stone", "gorge_wall_4m_aged": "gorge_stone_aged", "gorge_wall_4m_clean": "gorge_stone_clean", "gorge_wall_4m_faience": "gorge_pier"}
 ## Every bank starts at the mist floor (vista.gd).
 const BASE_Y: float = -176.0
 ## Facade module mix (vista.gd slice 7), as fractions of bays.
 const FACADE_DOORWAY: float = .12
 const FACADE_WINDOW: float = .22
-const FACADE_BALCONY: float = .08
-const FACADE_PANEL: float = .14
+const FACADE_BALCONY: float = .02     # .08 until the second fly-mode walk: "less is more"
+const FACADE_PANEL: float = .2        # .14 until then (a calm tiled bay)
 const FACADE_LADDER: float = .35
 ## Above UPPER_FROM, this share of a tier's upper storeys are plain stone wall
-## (no bay): walked, bay upon tiled bay up there read as too busy.
-const PLAIN_UPPER: float = .35
-const UPPER_FROM: float = -40.0
+## (no bay): walked, bay upon tiled bay up there read as too busy. Since the
+## second fly-mode walk a whole storey of a tier at once (a calm band, not
+## gaps scattered through it), from lower down.
+const PLAIN_UPPER: float = .45
+const UPPER_FROM: float = -100.0
 ## Lamp clusters (vista_light.gd): a lamp burns where this noise is high.
+## Walked in fly mode (2026-10-26): at .05 about half the edges burned and the
+## fog-lit terraces were lamp-lit too; at .22 the lamps gather in fewer, tighter
+## clusters with dark stretches between.
 const LAMP_CLUSTER_FREQUENCY: float = .035
-const LAMP_CLUSTER_CUTOFF: float = .05
+const LAMP_CLUSTER_CUTOFF: float = .22
+## A face's own warm light, every this many face runs (was 9: too many).
+const FACE_LIGHT_EVERY: int = 18
 ## Weathering (vista.gd slice 8), per deck edge piece.
 const EDGE_MOSSY: float = .35
 const EDGE_STREAKED: float = .8
@@ -118,8 +132,7 @@ func cliff(zones: Array[Rect2], face_z: float) -> Array[Dictionary]:
 			var at := Transform3D(Basis(Vector3.UP, PI), Vector3(zone.position.x + (i + 1) * BAY, zone.position.y, face_z))
 			for s: int in storeys:
 				var xf: Transform3D = at.translated(Vector3(0, s * BAY, 0))
-				out.append(_piece("walls/gorge_wall_4m_clean", xf))
-				_bay(out, xf, s % 2 == 0 and s > 0, s % 2 == 0 and s > 0)
+				_wall_bay(out, "gorge_wall_4m_clean", xf, false, s % 2 == 0 and s > 0, s % 2 == 0 and s > 0)
 				if i == bays - 1:
 					out.append(_piece("walls/" + _pier(xf), xf))
 				if i == 0:
@@ -244,7 +257,7 @@ func gorge(layout: GorgeLayout) -> Array[Dictionary]:
 	out.append_array(sanctum(layout.sanctum))
 	for i: int in layout.aqueducts.size():
 		var a: PackedFloat32Array = layout.aqueducts[i]
-		if layout.walked.has(i):
+		if layout.walked.has(i) or layout.removed.has(i):
 			continue
 		var falls: Array[int] = []
 		for k: int in range(6, a.size()):
@@ -342,15 +355,18 @@ static func _blocks_gate_sightline(c: Vector2, margin: float) -> bool:
 ## and light are generated at the bake.
 func sanctum(p: Vector3) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
-	var heights: Array[int] = [3, 3, 3, 3, 2, 3, 2, 3, 2]
+	# Four tall tiers (nine short ones until the second fly-mode walk: terrace
+	# upon terrace, "less is more"), the same height and taper overall.
+	var heights: Array[int] = [6, 6, 6, 6]
+	var step := Vector2(2.8, 1.9) * 9.0 / heights.size()
 	var prev: Dictionary = {}
 	var bottom: float = p.y - 44.0
 	for i: int in heights.size():
-		var tier: Dictionary = _tier_shape(Vector2(p.x, p.z - i * .7), 38.0 - i * 2.8, 26.0 - i * 1.9, 0.0, bottom, heights[i])
+		var tier: Dictionary = _tier_shape(Vector2(p.x, p.z - i * .7), 38.0 - i * step.x, 26.0 - i * step.y, 0.0, bottom, heights[i])
 		tier.merge({"occupied": i % 2 == 0, "crowned": false, "level": i, "stone": "gorge_wall_4m_faience"})
 		var next: Dictionary = {}
 		if i + 1 < heights.size():
-			next = _tier_shape(Vector2(p.x, p.z - (i + 1) * .7), 38.0 - (i + 1) * 2.8, 26.0 - (i + 1) * 1.9, 0.0, bottom + heights[i] * BAY, heights[i + 1])
+			next = _tier_shape(Vector2(p.x, p.z - (i + 1) * .7), 38.0 - (i + 1) * step.x, 26.0 - (i + 1) * step.y, 0.0, bottom + heights[i] * BAY, heights[i + 1])
 		_tier(out, tier, next, 2, prev)
 		prev = tier
 		bottom += heights[i] * BAY
@@ -358,6 +374,10 @@ func sanctum(p: Vector3) -> Array[Dictionary]:
 
 
 # --- aqueducts (vista.gd bridge) -------------------------------------------------------
+
+## How far an aqueduct's gate stands back from the deck's end (its landing
+## is 3 m deep: the deck's last metre on it).
+const GATE_BACK: float = 2.0
 
 ## A two-tier aqueduct from a to b: 12 m bays in a frame turned along it, each
 ## at its own height under the sloping deck (so the piers stay vertical), the
@@ -407,8 +427,13 @@ func aqueduct(a: Vector3, b: Vector3, falls: Array[int]) -> Array[Dictionary]:
 			out.append({"waterfall": from, "size": Vector2(ChasmGrammar.FALL_WIDTH, from.y + 90.0), "basis": level})
 			for stone: Array in ChasmGrammar.TROUGH:
 				out.append({"stone": face.translated_local(stone[0]), "size": stone[1]})
-	for point: Vector3 in [a, b]:
-		out.append(_piece("dressing/aqueduct_landing", Transform3D(Basis(), point)))
+	# A gatehouse at each end facing back along the deck, its door a pishtaq
+	# (fly-mode walk: the decks ran into the banks' walls), set GATE_BACK back
+	# from the end into the bank, so the deck arrives on its landing.
+	for end: Array in [[a, -flat], [b, flat]]:
+		var out_dir: Vector3 = end[1]
+		var gate := Basis(out_dir, Vector3.UP, out_dir.cross(Vector3.UP))
+		out.append(_piece("dressing/aqueduct_gate", Transform3D(gate, (end[0] as Vector3) + out_dir * GATE_BACK)))
 	return out
 
 
@@ -463,19 +488,27 @@ func _tier(out: Array[Dictionary], tier: Dictionary, above: Dictionary, seed_val
 			var last: bool = not _exposed(cells, _after(cell, side), side)
 			for s: int in storeys:
 				var xf: Transform3D = frame * CellGrid.edge_transform(Vector3i(cell.x, s, cell.y), side)
-				out.append(_piece("walls/" + stone, xf))
-				var plain: bool = s > 0 and xf.origin.y > UPPER_FROM and _hash01(xf.origin * 1.7 + Vector3(0, 0, 11)) < PLAIN_UPPER
-				if not plain:
-					var floor_out: bool = s == 0 and _covered(below, xf * Vector3(BAY * .5, -.2, 1.5))
-					_bay(out, xf, s == 0, floor_out)
+				var plain: bool = s > 0 and xf.origin.y > UPPER_FROM and _hash01(Vector3(frame.origin.x, xf.origin.y, frame.origin.z) * 1.7 + Vector3(0, 0, 11)) < PLAIN_UPPER
+				var floor_out: bool = s == 0 and _covered(below, xf * Vector3(BAY * .5, -.2, 1.5))
+				_wall_bay(out, stone, xf, plain, s == 0, floor_out)
 				if first:
 					out.append(_piece("walls/" + _pier(xf), xf))
 				if last:
 					out.append(_piece("walls/" + _pier(xf), xf * Transform3D(Basis(), Vector3(BAY, 0, 0))))
 			var under: bool = _covered(above, top_xf * Vector3(BAY * .5, .5, 1.1))
 			if not under:
-				out.append(_piece("walls/" + _edge(top_xf, crowned), top_xf))
-				_edge_lamps(out, top_xf, crowned)
+				# At an inside corner whose other face has its edge, the two overhangs
+				# meet instead of crossing (fly-mode walk): the face ending there stops
+				# short (_inner), the face starting there starts its rail DECK_OVER in
+				# (_inner_start), a one-bay face between two such corners has no rail
+				# (_inner_both).
+				var inner_end: bool = last and cells.has(_after(cell, side)) and _inner_face_built(cells, cell, side, frame, storeys, above, true)
+				var inner_start: bool = first and cells.has(_before(cell, side)) and _inner_face_built(cells, cell, side, frame, storeys, above, false)
+				var edge: String = _edge(top_xf, crowned)
+				if inner_end or inner_start:
+					edge = ("gorge_crown_edge_inner" if crowned else "gorge_deck_edge_inner") + ("_both" if inner_end and inner_start else ("" if inner_end else "_start"))
+				out.append(_piece("walls/" + edge, top_xf))
+				_edge_lamps(out, top_xf, crowned, INNER_EDGE if inner_end else BAY, DECK_OVER if inner_start else 0.0)
 				if first and not cells.has(_before(cell, side)):     # a convex corner: the overhang's square
 					out.append(_piece("walls/" + ("gorge_crown_corner" if crowned else "gorge_deck_corner"), top_xf))
 				# A convex corner at the run's end whose face round it isn't built
@@ -488,7 +521,7 @@ func _tier(out: Array[Dictionary], tier: Dictionary, above: Dictionary, seed_val
 				if tier["occupied"] and not under:
 					_dressing(out, cells, cell, side, frame, storeys, run, style)
 				# Some faces' own light (vista.gd facades: every ninth face, above the mist).
-				if bottom > -110.0 and (run + style) % 9 == 0:
+				if bottom > -110.0 and (run + style) % FACE_LIGHT_EVERY == 0:
 					var face: Transform3D = frame * CellGrid.edge_transform(Vector3i(cell.x, 0, cell.y), side)
 					var at: Vector3 = face * Vector3(_run_length(cells, cell, side) * BAY * .5, storeys * BAY * .7, 3.5)
 					out.append({"light": at, "color": Color("ffc790"), "energy": 4.0, "range": 18.0})
@@ -505,6 +538,30 @@ func _tier(out: Array[Dictionary], tier: Dictionary, above: Dictionary, seed_val
 			out.append(_piece("walls/gorge_deck", frame * CellGrid.cell_transform(Vector3i(cell.x, storeys, cell.y), Vector3i(0, 0, 1))))
 		if open_under:
 			out.append(_piece("walls/gorge_soffit", frame * CellGrid.cell_transform(Vector3i(cell.x, 0, cell.y), Vector3i(0, 0, 1))))
+		# The tier's core (fly-mode walk): faces that don't look at the gorge get
+		# no wall, so behind the facades the tier stood hollow, slits through it
+		# where a run turned away. Plain stone, set back behind the walls (their
+		# bodies are CORE_INSET deep) on every open side, up under the deck slab.
+		var lo := Vector2(cell.x * BAY + (CORE_INSET if not cells.has(cell + Vector2i(-1, 0)) else 0.0), cell.y * BAY + (CORE_INSET if not cells.has(cell + Vector2i(0, -1)) else 0.0))
+		var hi := Vector2((cell.x + 1) * BAY - (CORE_INSET if not cells.has(cell + Vector2i(1, 0)) else 0.0), (cell.y + 1) * BAY - (CORE_INSET if not cells.has(cell + Vector2i(0, 1)) else 0.0))
+		var height: float = storeys * BAY - CORE_INSET
+		out.append({"stone": frame * Transform3D(Basis(), Vector3((lo.x + hi.x) * .5, height * .5, -(lo.y + hi.y) * .5)),
+			"size": Vector3(hi.x - lo.x, height, hi.y - lo.y), "material": CORE_STONE.get(stone, "gorge_stone")})
+
+
+## Whether the face across the inside corner at the end (`at_end`) or start of
+## `cell`'s `side` face (the cell along is there but covered on that side) gets
+## its deck edge: it faces the gorge and nothing above covers it.
+func _inner_face_built(cells: Dictionary, cell: Vector2i, side: int, frame: Transform3D, storeys: int, above: Dictionary, at_end: bool) -> bool:
+	var open: Vector2i = _beside(cell, side)
+	var across: Vector2i = _after(open, side) if at_end else _before(open, side)
+	if not cells.has(across):
+		return false
+	for t: int in CellGrid.ALL_SIDES:
+		if _beside(across, t) == open:
+			var xf: Transform3D = frame * CellGrid.edge_transform(Vector3i(across.x, storeys, across.y), t)
+			return _faces_gorge(xf) and not _covered(above, xf * Vector3(BAY * .5, .5, 1.1))
+	return false
 
 
 ## Terrace life on an occupied tier, once per face run (vista.gd ledge_edges):
@@ -515,7 +572,9 @@ func _dressing(out: Array[Dictionary], cells: Dictionary, cell: Vector2i, side: 
 	var mid: float = _run_length(cells, cell, side) * BAY * .5
 	if run % 3 == style % 3:
 		out.append(_piece("dressing/gorge_figure", xf * Transform3D(Basis(), Vector3(mid, .15, 1.3))))
-		for k: int in [-1, 1]:
+		# The cypresses stand 2.6 m either side: on a one-bay run that's past its
+		# ends, in the next face's rails (fly-mode walk).
+		for k: int in ([-1, 1] if _run_length(cells, cell, side) >= 2 else []):
 			var tree: String = CYPRESS[(style + run + k + 2) % CYPRESS.size()]
 			out.append(_piece("dressing/" + tree, xf * Transform3D(Basis(), Vector3(mid + k * 2.6, .15, .6))))
 		if run % 2 == 0:
@@ -526,8 +585,10 @@ func _dressing(out: Array[Dictionary], cells: Dictionary, cell: Vector2i, side: 
 
 ## Lamps on a deck edge where the cluster noise burns (vista.gd lamp()): every
 ## third baluster (2 m apart, so at x = 1 or 3 by the edge's place).
-func _edge_lamps(out: Array[Dictionary], xf: Transform3D, crowned: bool) -> void:
+func _edge_lamps(out: Array[Dictionary], xf: Transform3D, crowned: bool, length: float = BAY, from: float = 0.0) -> void:
 	for x: float in [1.0, 3.0]:
+		if x >= length or x <= from:
+			continue
 		var p: Vector3 = xf * Vector3(x, 1.0 if crowned else 1.37, 2.2)
 		if int(roundf(p.x + p.z * 3.0)) % 3 != 0:
 			continue
@@ -536,14 +597,32 @@ func _edge_lamps(out: Array[Dictionary], xf: Transform3D, crowned: bool) -> void
 		out.append(_piece("dressing/gorge_lamp", Transform3D(xf.basis, p)))
 
 
-## A facade bay and its lamp: a doorway's always burns (vista.gd
-## arch_bay_module), a bay near the overlook may have one where the cluster
-## noise burns.
-func _bay(out: Array[Dictionary], xf: Transform3D, ground_row: bool, floor_out: bool = true) -> void:
-	var kind: String = _facade(xf, ground_row, floor_out)
+## A storey's wall and its bay (none if `plain`). Windows, stack windows and
+## stacks sit flush in an opening through the wall (`stone`'s _arch or _rect;
+## walked in fly mode, standing out from it they read as boxes stuck on), the
+## others in front of the plain wall.
+func _wall_bay(out: Array[Dictionary], stone: String, xf: Transform3D, plain: bool, ground_row: bool, floor_out: bool) -> void:
+	var kind: String = "" if plain else _facade(xf, ground_row, floor_out)
+	var opening: String = _opening(kind)
+	out.append(_piece("walls/" + stone + opening, xf))
+	if not plain:
+		_bay(out, xf, kind if opening == "" else kind.trim_suffix("_near") + "_flush" + ("_near" if kind.ends_with("_near") else ""))
+
+
+## The opening a bay kind sits in: "_arch" (windows), "_rect" (stacks) or "".
+static func _opening(kind: String) -> String:
+	if kind.begins_with("gorge_bay_window") or kind.begins_with("gorge_bay_stack_window"):
+		return "_arch"
+	return "_rect" if kind.begins_with("gorge_bay_stack") else ""
+
+
+## A facade bay (`kind`, a module) and its lamp: a doorway's always burns
+## (vista.gd arch_bay_module), a bay near the overlook may have one where the
+## cluster noise burns.
+func _bay(out: Array[Dictionary], xf: Transform3D, kind: String) -> void:
 	out.append(_piece("walls/" + kind, xf))
 	if kind == "gorge_bay_doorway":
-		out.append(_piece("dressing/gorge_lamp", xf * Transform3D(Basis(), Vector3(3.9, 3.2, .42))))
+		out.append(_piece("dressing/gorge_lamp", xf * Transform3D(Basis(), Vector3(3.9, 3.2, .62))))     # clear of the pishtaq's frame (0.45 out)
 	elif kind != "gorge_bay_panel" and xf.origin.distance_to(EYE) < NEAR_REACH:
 		var p: Vector3 = xf * Vector3(3.62, 2.76, .42)
 		if _noise.get_noise_3dv(p) >= LAMP_CLUSTER_CUTOFF:

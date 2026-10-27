@@ -1,6 +1,6 @@
 extends SceneTree
 ## Bakes the gorge from kit pieces (phase-6-design.md 5.7.2, phase 6 step 1).
-##   godot --headless --path . --script res://tools/bake_gorge.gd
+##   godot --headless --path . --script res://tools/bake_gorge.gd [-- --no-cull]
 ## Writes, all yours to edit afterwards (re-baking overwrites them):
 ##   rooms/baked/gorge/bank_1.scn .. bank_8.scn, sanctum.scn, aqueducts.scn
 ##       GorgeGrammar's kit pieces, one scene per part of the gorge, each piece
@@ -22,7 +22,15 @@ extends SceneTree
 const OUT_DIR: String = "res://rooms/baked/gorge/"
 const MAIN: String = "res://rooms/baked/gorge.tscn"
 const ROOT_ROOM: String = "res://rooms/gorge/overlook.tscn"
+## Pieces no player can see (tools/gorge_visibility.gd), left out unless
+## `-- --no-cull` (which the visibility tool needs: it looks at all of them).
+const HIDDEN: String = "res://gen/gorge/hidden_pieces.json"
+var hidden: Dictionary = {}
+var culled: int = 0
 const LAYOUT: String = "res://gen/gorge/gorge_layout.tres"
+## A kit piece's height over its origin, for the rock's clearance (a storey
+## and a crown's merlons; the deck pieces are thinner).
+const PIECE_TOP: float = 5.0
 ## The overlook (capture.gd vista_concept): where you stand (your feet), what
 ## you face.
 const EYE: Vector3 = Vector3(-1, 2.25, -27.45)
@@ -40,6 +48,9 @@ func run() -> void:
 		print("bake_gorge: rebatched %s" % rebatch(parts.filter(func(p: String) -> bool: return ResourceLoader.exists(OUT_DIR + p + ".scn"))))
 		quit()
 		return
+	if not OS.get_cmdline_user_args().has("--no-cull") and FileAccess.file_exists(HIDDEN):
+		for k: String in (JSON.parse_string(FileAccess.get_file_as_string(HIDDEN)) as Dictionary).get("hidden", []):
+			hidden[k] = true
 	DirAccess.make_dir_recursive_absolute(OUT_DIR)
 	DirAccess.make_dir_recursive_absolute(ROOT_ROOM.get_base_dir())
 	var environment: Environment = camp_environment()
@@ -55,7 +66,7 @@ func run() -> void:
 	var aqueducts: Array[Dictionary] = []
 	for i: int in layout.aqueducts.size():
 		var a: PackedFloat32Array = layout.aqueducts[i]
-		if layout.walked.has(i):
+		if layout.walked.has(i) or layout.removed.has(i):
 			continue          # a walkable span takes its place (phase 6 Q9)
 		var falls: Array[int] = []
 		for k: int in range(6, a.size()):
@@ -71,6 +82,17 @@ func run() -> void:
 	var lamps := PackedVector3Array()
 	for part: String in parts:
 		counts[part] = save_part(part, parts[part], extras, lamps)
+	# The rock keeps clear of the kit's pieces (Cavern.kit_floor): each piece's
+	# origin plus PIECE_TOP, the highest per cell.
+	var floor_grid: Dictionary = {}
+	var cell: float = load("res://scripts/cavern.gd").FLOOR_CELL
+	for part: String in parts:
+		for p: Dictionary in parts[part]:
+			if p.has("xf"):
+				var at: Vector3 = (p["xf"] as Transform3D).origin
+				var k := Vector2i(floori(at.x / cell), floori(at.z / cell))
+				floor_grid[k] = maxf(float(floor_grid.get(k, -INF)), at.y + PIECE_TOP)
+	load("res://scripts/cavern.gd").set("kit_floor", floor_grid)
 	# The generated part.
 	var generated: Node3D = await generate(layout, extras, lamps)
 	var generated_count: int = generated.find_children("*", "VisualInstance3D", true, false).size()
@@ -79,7 +101,7 @@ func run() -> void:
 	# The batched kit, the scene the area adds, and its root room.
 	var batched: Dictionary = rebatch(parts.keys())
 	save_main()
-	print("bake_gorge: %s; generated %d visuals; %d lamps; batched %s; %.1f s -> %s" % [counts, generated_count, lamps.size(), batched, (Time.get_ticks_usec() - t0) / 1000000.0, MAIN])
+	print("bake_gorge: %s; %d unseen left out; generated %d visuals; %d lamps; batched %s; %.1f s -> %s" % [counts, culled, generated_count, lamps.size(), batched, (Time.get_ticks_usec() - t0) / 1000000.0, MAIN])
 	quit()
 
 
@@ -110,6 +132,10 @@ func save_part(part: String, placements: Array[Dictionary], extras: Array[Dictio
 			lamps.append((p["xf"] as Transform3D).origin)
 		elif path.contains("gorge_pavilion"):
 			lamps.append((p["xf"] as Transform3D) * Vector3(0, 3.0, 0))
+		# Unseen (gorge_visibility.gd): left out, its lamp's light kept above.
+		if hidden.has("%s@%s" % [path.get_file().get_basename(), (p["xf"] as Transform3D).origin.snapped(Vector3.ONE * .01)]):
+			culled += 1
+			continue
 		if not scenes.has(path):
 			scenes[path] = load(path)
 		var node: Node3D = (scenes[path] as PackedScene).instantiate()
@@ -145,9 +171,14 @@ func generate(layout: GorgeLayout, extras: Array[Dictionary], lamps: PackedVecto
 	owner.vista = vista
 	vista.build()
 	owner.art.render_layer = 2
+	var cores: Dictionary = {}
 	for p: Dictionary in extras:
 		if p.has("waterfall"):
 			vista.waterfall(p["waterfall"], p["size"], false, p.get("basis", Basis()))
+		elif p.has("material"):   # a tier's core (GorgeGrammar): its own node, below
+			if not cores.has(p["material"]):
+				cores[p["material"]] = []
+			(cores[p["material"]] as Array).append(p)
 		elif p.has("stone"):      # a waterfall's trough (ChasmGrammar.TROUGH), merged with the rest
 			owner.art.box(Vector3.ZERO, p["size"], load("res://kit/materials/gorge_sandstone.tres")).transform = p["stone"]
 		elif p.has("rotunda"):
@@ -162,6 +193,7 @@ func generate(layout: GorgeLayout, extras: Array[Dictionary], lamps: PackedVecto
 	for n: Node in owner.find_children("*", "MeshInstance3D", true, false):
 		if not (n as MeshInstance3D).visible:
 			n.free()
+	owner.add_child(tier_cores(cores))
 	# A plain node: the host's script isn't wanted in the saved scene.
 	var out := Node3D.new()
 	out.name = "Generated"
@@ -171,6 +203,28 @@ func generate(layout: GorgeLayout, extras: Array[Dictionary], lamps: PackedVecto
 	owner.queue_free()
 	adopt(out, out)
 	return out
+
+
+## The tiers' cores (GorgeGrammar: behind the facades, phase 6 step 6), one mesh
+## per stone, in a node of their own: GorgeBackdrop leaves it out (they're
+## inside the tiers, which the network's keep-out already covers).
+func tier_cores(cores: Dictionary) -> Node3D:
+	var holder := Node3D.new()
+	holder.name = "TierCores"
+	for material: String in cores:
+		var st := SurfaceTool.new()
+		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		for p: Dictionary in cores[material]:
+			var box := BoxMesh.new()
+			box.size = p["size"]
+			st.append_from(box, 0, p["stone"])
+		var mi := MeshInstance3D.new()
+		mi.name = material
+		mi.mesh = st.commit()
+		mi.material_override = load("res://kit/materials/%s.tres" % material)
+		mi.layers = 2     # the gorge's light layer
+		holder.add_child(mi)
+	return holder
 
 
 ## Makes `owner` the owner of everything under `node` that a saved scene must
@@ -191,6 +245,9 @@ func rebatch(parts: Array) -> Dictionary:
 	kit.name = "Kit"
 	kit.batch_on_ready = false
 	kit.render_layers = 2     # the gorge's light layer, as vista.gd's
+	kit.chunk_size = 128.0    # the busiest meshes culled per region (phase 6 step 6)
+	kit.chunk_min = 1500
+	kit.detail_range = 110.0  # lamps, balusters, figures: near only
 	root.add_child(kit)
 	for part: String in parts:
 		kit.add_child((load(OUT_DIR + part + ".scn") as PackedScene).instantiate())

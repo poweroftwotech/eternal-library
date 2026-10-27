@@ -22,7 +22,7 @@ static func load_baked() -> void:
 	var root: Node3D = (load(SCENE) as PackedScene).instantiate()
 	for n: Node in root.find_children("*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
-		if mi.mesh == null or not mi.visible or mi.material_override is ShaderMaterial:
+		if mi.mesh == null or not mi.visible or mi.material_override is ShaderMaterial or mi.get_parent().name == "TierCores":     # inside the tiers (keep-out has them)
 			continue
 		var xf: Transform3D = mi.transform
 		var up: Node = mi.get_parent()

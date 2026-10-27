@@ -404,15 +404,24 @@ def lamassu():
         bevel_box(bm, (x, y - .04, .82), (.5, .6, .24), .07, stone)
     tilted_box(bm, (0, 2.0, 2.3), (.2, .5, 1.3), .5, 0, stone)
     # Wings: dark backing first, so the gaps between feather rows read.
+    # Each feather sits on its row along the row's own pitched axis, half sunk
+    # into the row's top edge and its outer face (placed by world steps they
+    # drifted off the row, and the subdivision left them floating: walked in
+    # fly mode, 2026-10-26).
+    pitch = .52
+    cp, sp = math.cos(pitch), math.sin(pitch)
     for side in (-1, 1):
-        tilted_box(bm, (side * .78, .7, 3.6), (.06, 2.9, 1.9), .52, 0, crevice, .02)
+        tilted_box(bm, (side * .78, .7, 3.6), (.06, 2.9, 1.9), pitch, 0, crevice, .02)
         for row in range(4):
             length = 2.9 - row * .35
-            tilted_box(bm, (side * (.84 + row * .05), .55 + row * .12, 3.35 + row * .42),
-                       (.14, length, .5), .52, 0, stone, .05)
-            for k in range(int(length / .32)):
-                tilted_box(bm, (side * (.92 + row * .05), -.6 + row * .12 + k * .3, 3.12 + row * .42 + k * .155),
-                           (.08, .22, .28), .52, 0, stone, .02)
+            cx, cy, cz = side * (.84 + row * .05), .55 + row * .12, 3.35 + row * .42
+            tilted_box(bm, (cx, cy, cz), (.14, length, .5), pitch, 0, stone, .05)
+            count = int(length / .32)
+            for k in range(count):
+                t = -length / 2 + length * (k + .5) / count     # along the row
+                h = .5 / 2 - .06                                 # up its local height: into the top edge
+                tilted_box(bm, (cx + side * .05, cy + t * cp - h * sp, cz + t * sp + h * cp),
+                           (.1, .22, .28), pitch, 0, stone, .02)
     # Head: face, brow ridge, nose, deep-set eyes, ears.
     bevel_box(bm, (0, -1.55, 3.95), (.9, .88, .95), .2, stone)
     bevel_box(bm, (0, -2.0, 4.18), (.78, .16, .14), .05, stone)
@@ -437,9 +446,9 @@ def lamassu():
     drum(bm, (0, -1.5, 4.85), .5, .95, stone)
     for k in range(3):
         drum(bm, (0, -1.5, 4.5 + k * .3), .54, .07, band)
-    for k in range(12):
+    for k in range(12):     # the rim sunk into the drum's top (it floated once subdivided)
         a = k / 12 * math.tau
-        bevel_box(bm, (math.cos(a) * .46, -1.5 + math.sin(a) * .46, 5.38), (.16, .16, .2), .03, stone)
+        bevel_box(bm, (math.cos(a) * .42, -1.5 + math.sin(a) * .42, 5.28), (.16, .16, .22), .03, stone)
     bmesh.ops.recalc_face_normals(bm, faces=bm.faces)
     soften(new_object("Lamassu", bm, materials))
     export("lamassu")

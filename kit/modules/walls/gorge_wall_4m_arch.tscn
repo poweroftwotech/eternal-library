@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_566fx"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/gorge_wall_4m_arch.glb" id="2_p77pp"]
+
+[node name="gorge_wall_4m_arch" type="Node3D" unique_id=1684535]
+script = ExtResource("1_566fx")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("scenery", "stone", "gorge", "wall")
+source_glb = "res://assets/kit/walls/gorge_wall_4m_arch.glb"
+
+[node name="Mesh" parent="." unique_id=914161908 instance=ExtResource("2_p77pp")]
