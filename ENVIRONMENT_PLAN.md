@@ -8,7 +8,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 8 steps 1–3 committed** and bank 1's cost checked (64bf4b6). **Bank 2 built** (uncommitted): the glow at its fall fixed, and your fly-by's five reports and the falls' fog done; its iwan (two storeys) now stands where the span sees it. Then the other banks, then step 4 (the full budget check) | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | Walk bank 2 |
+| **Phase 8 steps 1–3 committed** and bank 1's cost checked (64bf4b6). **Bank 2 committed** (c63c42b): the glow at its fall fixed, and your fly-by's five reports and the falls' fog done; its iwan (two storeys) now stands where the span sees it. Then the other banks, then step 4 (the full budget check) | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | Walk bank 2 |
 | Phase 6 step 6 (the gorge clean-up) is folded into phase 8: the triangles in view and the frame testing are measured on the redesigned bank 1 | [Brief, phase 8](docs/environment/phase-8-approval.md) | Nothing |
 
 ## What's new
