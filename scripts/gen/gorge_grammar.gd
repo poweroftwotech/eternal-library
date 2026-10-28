@@ -68,6 +68,7 @@ const PERSIAN_BANKS: Dictionary = {
 	4: ["iwan", "fall"],
 	5: ["iwan", "shaft"],     # its grand buildings: PersianTown._grand_share
 	6: ["iwan", "shaft"],     # no fall fits its sheer faces (three in all)
+	7: ["iwan"],
 }
 ## How ornamental a bank is, 0 by the camp to 1 at the furthest (your call,
 ## phase 8: more gardens, tiles and iwans the further a bank is, building up

@@ -450,6 +450,25 @@ func _build_monument(t: int, top_xf: Transform3D, span: int, fit: Dictionary) ->
 ## stone, and a garden on that terrace: a pool running out from it, beds
 ## either side, cypresses and pomegranates.
 func _iwan() -> void:
+	var best: Array = _iwan_spot()
+	# On a grand bank whose high tiers no walkway sees (bank 7: the walkways
+	# see only its low faces), as on the banks no walkway sees at all: facing
+	# the gorge's open middle.
+	if best.is_empty() and ornament >= GRAND_FROM and not _walk_blind():
+		_middle = true
+		best = _iwan_spot()
+		_middle = false
+	if best.is_empty():
+		return
+	_build_iwan(best)
+
+
+## Seen fractions measure facing the gorge's open middle (_walk_blind's rule).
+var _middle: bool = false
+
+
+## The best place for an iwan, [t, run, bay], or [].
+func _iwan_spot() -> Array:
 	var best: Array = []
 	var best_score: float = -INF
 	for t: int in range(1, tiers.size() - 1):
@@ -463,7 +482,7 @@ func _iwan() -> void:
 		if ornament > 0.0 and high < IWAN_HIGH:
 			continue
 		for r: Dictionary in runs[t]:
-			if r["inner"] or r["eye"] < .3 or r["cells"].size() < 4:
+			if r["inner"] or maxf(r["eye"], r["axis"] if _middle else -1.0) < .3 or r["cells"].size() < 4:
 				continue
 			for k: int in range(1, r["cells"].size() - 2):
 				var xf: Transform3D = _xf(t, r["cells"][k], r["side"], 0)
@@ -495,8 +514,10 @@ func _iwan() -> void:
 				if score > best_score:
 					best_score = score
 					best = [t, r, k]
-	if best.is_empty():
-		return
+	return best
+
+
+func _build_iwan(best: Array) -> void:
 	var t: int = best[0]
 	var r: Dictionary = best[1]
 	var k: int = best[2]
@@ -663,7 +684,7 @@ func _seen_fraction(xf: Transform3D, storeys: int = 3) -> float:
 	if _all_tiers.is_empty():
 		_all_tiers = g.keep_out(load("res://gen/gorge/gorge_layout.tres"))
 	var n: Vector3 = xf.basis.z.normalized()
-	if _walk_blind():
+	if _walk_blind() or _middle:
 		return clampf(n.dot(Vector3(-signf(xf.origin.x), 0, 0)) * 1.25, 0.0, 1.0)
 	var seen: int = 0
 	for x: float in [1.0, 4.0, 7.0]:
@@ -1217,26 +1238,11 @@ func _clearings() -> void:
 		return
 	var w: float = CLEAR_BAYS * BAY
 	for n: int in 1 + roundi(share / GRAND_MAX * CLEAR_MORE):
-		var best: Array = []
-		var best_score: float = -INF
-		for t: int in range(1, tiers.size() - 1):
-			var storeys: int = tiers[t]["storeys"]
-			if storeys < 2 or _top(t) < CLEAR_LOWEST:
-				continue
-			for r: Dictionary in runs[t]:
-				if r["inner"] or r["eye"] < .3 or r["cells"].size() < CLEAR_BAYS:
-					continue
-				for k: int in range(0, r["cells"].size() - CLEAR_BAYS + 1):
-					var top_xf: Transform3D = _xf(t, r["cells"][k], r["side"], storeys)
-					var base: float = r["eye"] - absf(_top(t) - MON_HEIGHT) * .012
-					if base + 2.0 <= best_score or not _clear_fits(t, r, k, top_xf, w):
-						continue
-					var seen: float = _seen_fraction(_xf(t, r["cells"][k], r["side"], 0) * Transform3D(Basis(), Vector3(2, 0, 0)), storeys)
-					if seen < IWAN_SEEN:
-						continue
-					if base + seen * 2.0 > best_score:
-						best_score = base + seen * 2.0
-						best = [t, r, k]
+		var best: Array = _clear_spot(w)
+		if best.is_empty() and not _walk_blind():
+			_middle = true     # as the iwans (_iwan)
+			best = _clear_spot(w)
+			_middle = false
 		if best.is_empty():
 			return
 		var t: int = best[0]
@@ -1249,6 +1255,32 @@ func _clearings() -> void:
 		for j: int in range(k, k + CLEAR_BAYS):
 			reserved[_key(t, r["cells"][j], r["side"])] = true
 		clearings.append({"t": t, "p": top_xf * Vector3(w * .5, 0, -CLEAR_DEPTH * .5), "xf": top_xf})
+
+
+## The best place for a clearing, [t, run, bay], or [].
+func _clear_spot(w: float) -> Array:
+	var best: Array = []
+	var best_score: float = -INF
+	for t: int in range(1, tiers.size() - 1):
+		var storeys: int = tiers[t]["storeys"]
+		if storeys < 2 or _top(t) < CLEAR_LOWEST:
+			continue
+		for r: Dictionary in runs[t]:
+			var facing: float = maxf(r["eye"], r["axis"] if _middle else -1.0)
+			if r["inner"] or facing < .3 or r["cells"].size() < CLEAR_BAYS:
+				continue
+			for k: int in range(0, r["cells"].size() - CLEAR_BAYS + 1):
+				var top_xf: Transform3D = _xf(t, r["cells"][k], r["side"], storeys)
+				var base: float = facing - absf(_top(t) - MON_HEIGHT) * .012
+				if base + 2.0 <= best_score or not _clear_fits(t, r, k, top_xf, w):
+					continue
+				var seen: float = _seen_fraction(_xf(t, r["cells"][k], r["side"], 0) * Transform3D(Basis(), Vector3(2, 0, 0)), storeys)
+				if seen < IWAN_SEEN:
+					continue
+				if base + seen * 2.0 > best_score:
+					best_score = base + seen * 2.0
+					best = [t, r, k]
+	return best
 
 
 ## Whether p (in plan) is inside a cavern spur's quarried drum, grown by

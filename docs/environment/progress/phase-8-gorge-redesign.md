@@ -391,7 +391,7 @@ From bank 3 on, an iwan goes only on a tier in the top quarter of its bank (`IWA
 
 Verified: route 8, span 485, network 790 (worst plan 5.1 s), kit 6,295, all passing. Pictures: `previews/p8_bank4/b4_iwan_a.png`, `b4_iwan_b.png`, `b4_iwans_far.png`, `b3_iwan_high.png`, `b3_iwan_far.png`.
 
-## Bank 5: grand buildings and clearings (2026-10-27, walked: looks good; uncommitted)
+## Bank 5: grand buildings and clearings (2026-10-27, walked: looks good; committed d69cd0a)
 
 Level 0.60, the first bank where the **grand buildings** start (`PersianTown._grand_share`: none below level 0.45, about 23% of the buildings on seen faces at bank 5, 85% at bank 8). A grand building wears the monument's front: brick arcades, orosi glass on the second storey, the crown along its top. On a three-storey tier with a terrace in front, a long one gets the portal (`persian_portal`, rising above its roof); where its roof is open, a dome (the plain one, or the new `persian_dome_small` over two bays) and a minaret at either end, with roof left to walk behind them.
 
@@ -404,7 +404,7 @@ Level 0.60, the first bank where the **grand buildings** start (`PersianTown._gr
 
 Verified: route 8, span 485, network 790, kit 6,312, all passing; box art passes (far depth 0.89, mist 1.29). Pictures in `previews/p8_bank5/` (`b5_clearings`, `b5_clearing_a`, `b5_clearing_b`).
 
-## Bank 6 (2026-10-27, first pass, uncommitted)
+## Bank 6 (2026-10-27, committed d69cd0a)
 
 Level 0.73: about 43% of the seen buildings grand, two iwans (two storeys, y -8), a clearing with a plain dome and two minarets at y 8, domes on the top tier, the light shaft (`PERSIAN_BANKS[6] = ["iwan", "shaft"]`: no great fall fits its sheer faces; the gorge keeps three), 17 lights.
 
@@ -414,3 +414,12 @@ What bank 6 needed that the nearer banks didn't:
 - **Tiers jut out further.** Bank 6's tiers above a clearing stood 13 m out past its face, so a clearing now opens 16 m out in front, as the monument's does.
 
 Verified: route 8, span 485, network 790 (worst plan 5.3 s), kit 6,312, all passing; box art passes (far depth 0.89, mist 1.29; 1,752 draw calls). Pictures in `previews/p8_bank6/`.
+
+## Bank 7 (2026-10-27, first pass, uncommitted)
+
+Level 0.88: about two thirds of the seen buildings grand, three iwans (two storeys: two at y 24, one at y -4), three clearings with plain domes and minarets (y -24, -16 and 32), `PERSIAN_BANKS[7] = ["iwan"]` (no fall fits; it already shares the gorge's end with the sanctum and bank 8), 19 lights.
+
+- **Its high tiers are seen from nowhere on the walkways,** which see only its low faces, so it isn't a blind bank, yet no high spot passed for an iwan or a clearing. On a grand bank (level 0.45 on), when no seen spot is left, iwans and clearings now fall back to blind banks' rule: they face the gorge's open middle (`_middle`). Banks 1 to 6 come out unchanged.
+- The middle of the gorge here holds the sanctum and bank 8, so bank 7 is seen from the north (the span, the Overlook) and from fly mode.
+
+Verified: route 8, span 485, network 790 (worst plan 7.7 s), kit 6,312, all passing; box art passes (focal glow 0.80, far depth 0.89, mist 1.29; 1,798 draw calls). Pictures in `previews/p8_bank7/`.

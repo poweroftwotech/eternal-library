@@ -8,7 +8,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 8 steps 1–3 committed** and bank 1's cost checked (64bf4b6). **Bank 2 committed** (c63c42b). **Banks 3 and 4 committed** with the new ornament ramp (further banks get more tiles, gardens and iwans), their iwans raised onto the high tiers (1b062ca). **Bank 5 built and walked** (uncommitted): grand buildings, and clearings with domes and minarets mid-stack. **Bank 6 built** (uncommitted). | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | Fly bank 6 |
+| **Phase 8 steps 1–3 committed** and bank 1's cost checked (64bf4b6). **Bank 2 committed** (c63c42b). **Banks 3 and 4 committed** with the new ornament ramp (further banks get more tiles, gardens and iwans), their iwans raised onto the high tiers (1b062ca). **Banks 5 and 6 committed** (d69cd0a): grand buildings, and clearings with domes and minarets mid-stack. **Bank 7 built** (uncommitted). | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | Fly bank 7 |
 | Phase 6 step 6 (the gorge clean-up) is folded into phase 8: the triangles in view and the frame testing are measured on the redesigned bank 1 | [Brief, phase 8](docs/environment/phase-8-approval.md) | Nothing |
 
 ## What's new
