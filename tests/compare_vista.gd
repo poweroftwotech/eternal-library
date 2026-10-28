@@ -20,6 +20,10 @@ const REGIONS: Dictionary = {
 ## the mist floor through the span's arches from the view east of the
 ## centred stair (phase 8 step 3, 2026-10-27: "view is good").
 const ACCEPTED_HIGH: Dictionary = {"mist floor": 1.4}
+## ... and lowest: the far depth band, where the gorge's thinner mist now
+## shows the chasm going down under the second bridge, not a white wall
+## (the mood pass, 2026-10-27: "accept it").
+const ACCEPTED_LOW: Dictionary = {"far depth band": .5}
 const ILLUSTRATION: Rect2 = Rect2(.04, .24, .92, .73)
 
 func _init() -> void:
@@ -42,7 +46,7 @@ func _init() -> void:
 		c[region_name] = stats(concept, REGIONS[region_name][0])
 		r[region_name] = stats(capture, REGIONS[region_name][1])
 		var ratio: float = r[region_name].x / maxf(c[region_name].x, 1.0)
-		var ok: bool = ratio >= .75 and ratio <= float(ACCEPTED_HIGH.get(region_name, 1.25))
+		var ok: bool = ratio >= float(ACCEPTED_LOW.get(region_name, .75)) and ratio <= float(ACCEPTED_HIGH.get(region_name, 1.25))
 		if not ok:
 			fails += 1
 		print("%-24s %8.0f %8.0f %8.2f %s %6.0f/%-6.0f" % [region_name, c[region_name].x, r[region_name].x, ratio, "ok  " if ok else "MISS", c[region_name].y, r[region_name].y])
