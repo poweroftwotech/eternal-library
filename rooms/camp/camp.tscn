@@ -29,7 +29,6 @@
 [ext_resource type="PackedScene" path="res://kit/modules/camp/camp_hall_front.tscn" id="27_anfv4"]
 [ext_resource type="PackedScene" path="res://kit/modules/camp/camp_hall_roof.tscn" id="28_rri7m"]
 [ext_resource type="PackedScene" path="res://kit/modules/camp/camp_hall.tscn" id="29_v23y7"]
-[ext_resource type="PackedScene" path="res://kit/modules/camp/camp_passage.tscn" id="30_r5dea"]
 [ext_resource type="PackedScene" path="res://kit/modules/camp/camp_rest.tscn" id="31_io2qa"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/chasm_parapet_4m.tscn" id="32_toige"]
 [ext_resource type="Material" path="res://kit/materials/gorge_sandstone.tres" id="33_2yvy2"]
@@ -1245,13 +1244,6 @@ script = ExtResource("3_2gwtm")
 family = "camp"
 tags = PackedStringArray("camp", "dressing")
 source_glb = "res://assets/kit/camp/camp_hall.glb"
-
-[node name="camp_passage" type="Node3D" parent="Pieces" unique_id=54194841 instance=ExtResource("30_r5dea")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 2, -20)
-script = ExtResource("3_2gwtm")
-family = "camp"
-tags = PackedStringArray("camp", "dressing")
-source_glb = "res://assets/kit/camp/camp_passage.glb"
 
 [node name="camp_rest" type="Node3D" parent="Pieces" unique_id=1324374208 instance=ExtResource("31_io2qa")]
 script = ExtResource("3_2gwtm")
@@ -2487,7 +2479,7 @@ script = ExtResource("56_4anwq")
 to = "gorge"
 
 [node name="DoorwaySill" type="MeshInstance3D" parent="." unique_id=1278489169]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 2, -13.95)
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 1.97, -13.95)
 material_override = ExtResource("57_4admm")
 mesh = SubResource("BoxMesh_juxx4")
 

@@ -84,19 +84,17 @@ func run() -> void:
 	Input.action_release("forward")
 	check(game.player.position.y>2.0 and game.player.position.z< -9.3,"The upper gallery is reachable by walking up the stairs")
 	check(game.visited_gallery,"Reaching the gallery records the exploration landmark")
-	# The gallery's doorway is the door to the Gorge (phase 7 step 4): walking
-	# in reaches its trigger. (It doesn't travel here: that would write your
-	# save; tests/persist_test.gd crosses it for real.)
-	var door: Threshold = game.world.get_node_or_null("Threshold_gorge")
-	check(door != null and door.to == "gorge","The gallery doorway is the door to the Gorge")
-	if door != null:
-		door.crossed = true
+	# The gallery's doorway opens onto the corridor to the Gorge's loggia
+	# (phase 9, one continuous world): no door to travel through, and walking
+	# in goes on along the corridor. (Crossing into the Gorge, and the save
+	# that writes, is tests/persist_test.gd's camp_cross.)
+	check(game.world.get_node_or_null("Threshold_gorge") == null and game.seamless != null,"The gallery doorway opens onto the corridor to the Gorge")
 	game.player.teleport(Vector3(-1,2.25,-11.1),0,0)
 	await settle(6)
 	Input.action_press("forward")
-	await settle(120)
+	await settle(60)
 	Input.action_release("forward")
-	check(door != null and door.overlaps_body(game.player) and game.player.position.y>2.1,"Walking into the gallery doorway reaches the door to the Gorge (%s)" % game.player.position)
+	check(game.player.position.z < -13.5 and game.player.position.y>2.1,"Walking into the gallery doorway goes on along the corridor (%s)" % game.player.position)
 	await camp_checks()
 
 

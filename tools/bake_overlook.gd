@@ -18,8 +18,8 @@ extends SceneTree
 ##     where it turns, facing across the gorge, where step 3's span starts;
 ##   - its piers in the group "blocker": what the planner keeps the network's
 ##     links clear of, as it does the kit pieces (AreaPlanner);
-##   - a bronze door in the loggia's back wall, the door to the camp (phase 7
-##     step 4: connector SNAP_door_camp, a threshold in the gorge recipe), and
+##   - the passage in the loggia's back wall open onto the camp's corridor (phase 9:
+##     the bronze door and its threshold were phase 7's door to the camp), and
 ##     a safety floor far below.
 
 const OUT: String = "res://rooms/gorge/overlook.tscn"
@@ -240,20 +240,14 @@ func _initialize() -> void:
 			if (c.x + c.y) % 2 == 0 and side != 3:
 				lamps.append(xf * Vector3(0, 0, -.18))     # on the newel at the bay's start (mid-bay, it stood in the balusters)
 
-	# The passage toward the camp: a bronze door in the loggia's back wall (set
-	# back in the passage, the floor stopped short of it), a wall over it and
-	# rock either side, filling the opening. It's the door to the camp (phase 7
-	# step 4): a connector on its face (the piece is 0.6 deep, on its line),
-	# -Z out of the Overlook, toward the camp.
+	# The passage toward the camp: open since phase 9 (one continuous world: the
+	# camp's corridor runs on into the loggia, SeamlessPlaces), a wall over it
+	# and rock either side. (Its door connector went with the door: a connector
+	# leading nowhere fails the plan's check.)
 	var gate: Rect2 = CLIFF.PASSAGE
 	var back: float = CLIFF.LOGGIA_BACK
 	var left: float = gate.position.x + (gate.size.x - 4.0) * .5
-	piece(pieces, "walls/wall_vault_door_4m", Transform3D(Basis(), Vector3(left, gate.position.y, back)))
 	piece(pieces, "walls/wall_plain_4m", Transform3D(Basis(), Vector3(left, gate.position.y + 4.0, back)))
-	var camp_door := Marker3D.new()
-	camp_door.name = "SNAP_door_camp"
-	add(connectors, camp_door)
-	camp_door.transform = Transform3D(Basis(Vector3.UP, PI), Vector3(left + 2.0, gate.position.y, back - .3))
 	# (The passage's brick walls fill its sides: rock there z-fought their faces.)
 	# The landing and the stair are masonry cut down to the stair's base, 20 m
 	# under the balcony (walked: they hung there on nothing): a broad pier under

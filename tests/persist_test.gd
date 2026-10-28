@@ -20,8 +20,8 @@ extends SceneTree
 ## camp_save, camp_load: the camp from kit pieces (phase 7 step 3), where the
 ##           game starts: gather amberroot, walk to the gallery, quit; a new
 ##           process resumes there, the root in the satchel.
-## camp_cross, camp_back: on through the gallery's door to the Gorge's Overlook
-##           and back (phase 7 step 4), in the camp's save file.
+## camp_cross, camp_back: on along the gallery's corridor onto the Overlook's loggia
+##           and back with no loading screen (phase 9), in the camp's save file.
 ## door_save, door_cross, door_back: through the gorge's door into the Lower
 ##           Stacks and back (phase-6-design.md 5.7.6), in their own save file;
 ##           see door_save_mode.
@@ -620,72 +620,60 @@ func camp_load_mode() -> void:
 		"in the gallery, where it quit (%s)" % game.player.global_position)
 	check(int(game.inventory["root"]) == 1 and ws.item_count(&"root") == 1, "the amberroot is still in the satchel")
 
-## Third camp process (phase 7 step 4): resumes in the gallery; walks into
-## its doorway, the door to the Gorge; arrives on the Overlook just inside its
-## door back to the camp, facing in; quits there.
+## Third camp process (phase 9, one continuous world): resumes in the
+## gallery; once the Gorge is built in the background, walks on along the
+## corridor onto the Overlook's loggia, the same game throughout (no loading
+## screen), the Gorge now the place you're in; quits there.
 func camp_cross_mode() -> void:
 	var expect: Dictionary = door_expect()
 	check(game.world is CampRoom and game.player.global_position.distance_to(arr_vec(expect.get("pos", [0, 0, 0]))) < .1, "the game resumes in the camp's gallery (%s)" % game.player.global_position)
-	var door: Threshold = game.call("_door_to", "gorge")
-	check(door != null, "the camp has a door to the Gorge")
-	if door == null:
+	check(game.world.get_node_or_null("Threshold_gorge") == null, "the gallery's doorway is open (no door to travel through)")
+	check(game.seamless != null, "the camp and the Gorge are one place (SeamlessPlaces)")
+	if game.seamless == null:
 		return
-	var old_id: int = game.get_instance_id()
-	game.player.teleport(door.global_transform * Vector3(0, .1, .5), game.player.rotation.y)
-	await until(func() -> bool: return current_scene != null and current_scene.get_instance_id() != old_id and current_scene.get("world") is Area)
-	check(current_scene != null and current_scene.get_instance_id() != old_id, "stepping into the camp's door travels")
-	if current_scene == null or current_scene.get_instance_id() == old_id:
+	await until_ms(func() -> bool: return game.seamless.neighbour != null, 30000)
+	check(game.seamless.neighbour is Area, "the Gorge is built in the background")
+	if game.seamless.neighbour == null:
 		return
-	game = current_scene
-	area = game.world as Area
-	check(area.recipe.id == "gorge", "arrived in the Gorge (%s)" % area.recipe.id)
-	fast_unloads()
-	await until(func() -> bool: return area.room_at(game.player.global_position) != null and not area.streamer.busy())
-	var back: Array = area.plan.threshold("camp")
-	check(not back.is_empty() and (back[0] as AreaPlan.Room).slot_id == "overlook", "the Overlook has the door back to the camp")
-	if back.is_empty():
-		return
-	var facing: Vector3 = -game.player.global_basis.z
-	var inward: Vector3 = ((back[0] as AreaPlan.Room).connectors[back[1]]["xf"] as Transform3D).basis.z
-	check(game.player.global_position.distance_to(area.to_global(arrival(back))) < .15 and facing.dot(inward) > .95,
-		"just inside the Overlook's door to the camp, facing in (%s)" % game.player.global_position)
+	var same: int = game.get_instance_id()
+	game.player.rotation.y = 0.0
+	Input.action_press("forward")
+	await until_ms(func() -> bool: return game.player.global_position.z < -21.0, 8000)
+	Input.action_release("forward")
 	for _i: int in 30:
 		await physics_frame
-	check(game.player.is_on_floor() and game.player.global_position.y > 2.0, "standing on the loggia's floor (%s)" % game.player.global_position)
+	check(current_scene != null and current_scene.get_instance_id() == same, "walked through without a reload")
+	check(game.world is Area and (game.world as Area).recipe.id == "gorge", "the Gorge is the place you're in (%s)" % game.world)
+	check(game.world.name == "Environment" and game.seamless.neighbour is CampRoom, "the camp is now the neighbour")
+	check(game.player.is_on_floor() and game.player.global_position.y > 2.0 and game.player.global_position.z < -20.5,
+		"walked along the corridor onto the loggia (%s)" % game.player.global_position)
 	expect["gorge_pos"] = vec(game.player.global_position)
 	write_door_expect(expect)
 
 
-## Fourth: resumes on the Overlook where it quit; walks into the bronze door
-## and arrives in the camp's gallery just inside its doorway, facing in, the
-## amberroot still in the satchel.
+## Fourth: a new process resumes on the loggia where it quit, in the Gorge;
+## once the camp is built behind it, walks back along the corridor into the
+## camp's gallery, the amberroot still in the satchel.
 func camp_back_mode() -> void:
 	var expect: Dictionary = door_expect()
 	check(area != null and area.recipe.id == "gorge" and game.player.global_position.distance_to(arr_vec(expect.get("gorge_pos", [0, 0, 0]))) < .1,
-		"the game resumes on the Overlook where it quit (%s)" % game.player.global_position)
-	if area == null:
+		"the game resumes on the loggia where it quit (%s)" % game.player.global_position)
+	if area == null or game.seamless == null:
 		return
-	var door: Array = area.plan.threshold("camp")
-	if door.is_empty():
+	await until_ms(func() -> bool: return game.seamless.neighbour != null, 30000)
+	check(game.seamless.neighbour is CampRoom, "the camp is built in the background")
+	if game.seamless.neighbour == null:
 		return
-	var old_id: int = game.get_instance_id()
-	# On foot from where you arrived: turn round and walk into the door (its
-	# trigger must be reachable from the loggia's floor).
-	game.player.rotation.y += PI
+	var same: int = game.get_instance_id()
+	game.player.rotation.y = PI
 	Input.action_press("forward")
-	var leaving: Node = game
-	await until(func() -> bool: return not is_instance_valid(leaving) or leaving.player.blocked)     # the travel has begun
+	await until_ms(func() -> bool: return game.player.global_position.z > -11.5, 8000)
 	Input.action_release("forward")
-	await until(func() -> bool: return current_scene != null and current_scene.get_instance_id() != old_id and current_scene.get("world") is CampRoom)
-	check(current_scene != null and current_scene.get_instance_id() != old_id and current_scene.get("world") is CampRoom, "walking into the bronze door goes to the camp")
-	if current_scene == null or current_scene.get_instance_id() == old_id:
-		return
-	game = current_scene
-	var camp_door: Threshold = game.call("_door_to", "gorge")
-	var want: Vector3 = camp_door.global_transform * Vector3(0, .1, Area.ARRIVE_IN)
-	var facing: Vector3 = -game.player.global_basis.z
-	check(Vector2(game.player.global_position.x - want.x, game.player.global_position.z - want.z).length() < .15 and facing.dot(camp_door.global_basis.z) > .95,
-		"just inside the gallery's doorway, facing in (%s, want %s)" % [game.player.global_position, want])
+	for _i: int in 30:
+		await physics_frame
+	check(current_scene != null and current_scene.get_instance_id() == same, "walked back without a reload")
+	check(game.world is CampRoom and game.world.name == "Environment", "the camp is the place you're in again (%s)" % game.world)
+	check(game.player.is_on_floor() and game.player.global_position.y > 2.0, "in the camp's gallery (%s)" % game.player.global_position)
 	check(int(game.inventory["root"]) == 1, "the amberroot is still in the satchel")
 
 
@@ -904,3 +892,10 @@ func aged_forward(before: Dictionary, after: Dictionary, what: String) -> int:
 			moved += 1
 	check(forward, "%s: every untended lamp is where it was or further along (%s, then %s)" % [what, before, after])
 	return moved
+
+
+## As until(), waiting up to `ms`.
+func until_ms(cond: Callable, ms: int) -> void:
+	var stop_ms: int = Time.get_ticks_msec() + ms
+	while not cond.call() and Time.get_ticks_msec() < stop_ms:
+		await process_frame

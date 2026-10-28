@@ -173,9 +173,14 @@ func build_balcony() -> void:
 		block(Vector3(x,3.0,-13.0+(run_l-.045)*.5),Vector3(.46,.65,-run_l+.045),"tile")
 	# 4.96 wide: at 5.0 its ends were flush with the passage walls' outer faces.
 	block(Vector3(-1,7.25,-13.0+(run_l-.045)*.5),Vector3(4.96,.5,-run_l+.045),"sandstone",true)
-	for z in ([-14,-17] if walkable_overlook else [-14,-17,-20.2]):
+	# Walked, not at -14: there its crown ran into the camp's lintel over the
+	# doorway (the lightwell's brick, down to 6.0 as far as z -15; your walk,
+	# phase 9), and the doorway's own arch frame is there.
+	for z in ([-17] if walkable_overlook else [-14,-17,-20.2]):
 		world.arch(Vector3(-1,2.2,z),1.8,1.8,2.1,.22)
-	for z in ([-15.6] if walkable_overlook else [-15.6,-19.6]):
+	# Walked, no lantern: a dark corridor between the bright camp and gorge (your
+	# walk, phase 9).
+	for z in ([] if walkable_overlook else [-15.6,-19.6]):
 		world.lantern(Vector3(-2.9,4.5,z))
 	# Top at 2.18, just under the passage paving (2.2) where they overlap.
 	block(Vector3(-1,1.79,-24.0),Vector3(13,.78,8.6),"sandstone",true)

@@ -46,6 +46,7 @@ func run() -> void:
 	if OS.get_cmdline_user_args().has("--rebatch"):
 		var parts: Array = ["bank_1", "bank_2", "bank_3", "bank_4", "bank_5", "bank_6", "bank_7", "bank_8", "sanctum", "aqueducts", "cliff"]
 		print("bake_gorge: rebatched %s" % rebatch(parts.filter(func(p: String) -> bool: return ResourceLoader.exists(OUT_DIR + p + ".scn"))))
+		print("bake_gorge: %d pieces" % save_pieces())
 		quit()
 		return
 	if not OS.get_cmdline_user_args().has("--no-cull") and FileAccess.file_exists(HIDDEN):
@@ -101,7 +102,8 @@ func run() -> void:
 	# The batched kit, the scene the area adds, and its root room.
 	var batched: Dictionary = rebatch(parts.keys())
 	save_main()
-	print("bake_gorge: %s; %d unseen left out; generated %d visuals; %d lamps; batched %s; %.1f s -> %s" % [counts, culled, generated_count, lamps.size(), batched, (Time.get_ticks_usec() - t0) / 1000000.0, MAIN])
+	var pieces: int = save_pieces()
+	print("bake_gorge: %s; %d unseen left out; generated %d visuals; %d lamps; batched %s; %d pieces; %.1f s -> %s" % [counts, culled, generated_count, lamps.size(), batched, pieces, (Time.get_ticks_usec() - t0) / 1000000.0, MAIN])
 	quit()
 
 
@@ -378,6 +380,56 @@ func save_main() -> void:
 	spawn.transform = Transform3D(Basis.looking_at(Vector3(FACING.x - EYE.x, 0, FACING.z - EYE.z)), EYE)
 	save_scene(main, MAIN)
 	main.free()
+
+
+## The scenery again as small scenes (phase 9, one continuous world): the
+## generated part's and the batched kit's children PIECE_SIZE at a time, so
+## an area can build its scenery one piece a frame in the background
+## (Area.background; built whole, the merged meshes stalled the frame for
+## 70-200 ms). A kit piece is a KitBatcher of its own, which puts its batches'
+## transforms back when it enters the tree. Listed in PIECES. Returns how many.
+const PIECES: String = "res://rooms/baked/gorge/pieces.tres"
+const PIECE_DIR: String = "res://rooms/baked/gorge/pieces/"
+const PIECE_SIZE: int = 20
+
+
+func save_pieces() -> int:
+	DirAccess.make_dir_recursive_absolute(PIECE_DIR)
+	for f: String in DirAccess.get_files_at(PIECE_DIR):
+		DirAccess.remove_absolute(PIECE_DIR + f)
+	var list := PlacePieces.new()
+	list.environment = load(OUT_DIR + "environment.tres")
+	for part: Array in [["generated", OUT_DIR + "generated.scn"], ["kit", OUT_DIR + "kit_batched.scn"]]:
+		var whole: Node = (load(part[1]) as PackedScene).instantiate()
+		if part[0] == "kit":
+			list.module_bounds = GorgeScenery.module_bounds(whole)
+		var kids: Array[Node] = whole.get_children()
+		for i: int in range(0, kids.size(), PIECE_SIZE):
+			var holder: Node3D = Node3D.new()
+			if part[0] == "kit":
+				var batcher := KitBatcher.new()
+				batcher.batch_on_ready = false
+				holder = batcher
+			holder.name = "%s_%d" % [part[0], i / PIECE_SIZE]
+			for c: Node in kids.slice(i, i + PIECE_SIZE):
+				whole.remove_child(c)
+				holder.add_child(c)
+				adopt_all(c, holder)
+			var path: String = PIECE_DIR + "%s_%03d.scn" % [part[0], i / PIECE_SIZE]
+			save_scene(holder, path)
+			holder.free()
+			(list.generated if part[0] == "generated" else list.kit).append(path)
+		whole.free()
+	ResourceSaver.save(list, PIECES)
+	return list.generated.size() + list.kit.size()
+
+
+## Makes `owner` the owner of `node` and of everything under it a saved scene
+## must hold (as adopt, from the node itself).
+func adopt_all(node: Node, owner: Node) -> void:
+	node.owner = owner
+	if node.scene_file_path == "":
+		adopt(node, owner)
 
 
 

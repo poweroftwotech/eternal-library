@@ -44,6 +44,29 @@ var _env: WorldEnvironment
 const KIT_WATER: ShaderMaterial = preload("res://kit/materials/cistern_water.tres")
 var _water_time: float = 0.0
 
+## Built in the background (phase 9, one continuous world) while you are in
+## a neighbouring place: the plan given (`prepared_plan`, made on a worker
+## thread), the scenery built one piece a frame from recipe.scenery_pieces
+## (built whole, it stalled the frame), the rooms streamed in within the
+## streamer's budget, nothing at once. Not `active` until activate(): the
+## save's changes and the floor wear stay the active place's. `built` once
+## the scenery and the rooms around the start are in.
+var background: bool = false
+var prepared_plan: AreaPlan
+var active: bool = true
+var is_built: bool = false
+## False when SeamlessPlaces blends the environments of the camp and this
+## area: activate() leaves its own WorldEnvironments off.
+var owns_environment: bool = true
+signal built
+## Scenery pieces built (or shown) a frame in the background.
+const PIECES_A_FRAME: int = 1
+## The kit's clearing in the background: about this much a frame (ms).
+const CLEAR_BUDGET_MS: float = 2.0
+var _claims: Array = []
+var _start_slot: String = ""
+var _reveal_token: int = 0
+
 
 func _process(delta: float) -> void:
 	_water_time += delta
@@ -64,10 +87,12 @@ func _ready() -> void:
 		push_error("Area: no recipe")
 		return
 	var t0: int = Time.get_ticks_usec()
+	if background:
+		active = false
 	var ws: Node = get_node_or_null("/root/WorldState")
-	if ws != null:
+	if ws != null and active:
 		ws.call("enter_area", recipe.id, recipe.version)
-	plan = AreaPlanner.plan(recipe, area_seed())
+	plan = prepared_plan if prepared_plan != null else AreaPlanner.plan(recipe, area_seed())
 	for e: String in plan.check():
 		push_warning("Area %s (seed %d): %s" % [recipe.id, plan.area_seed, e])
 	if arrive_from != "":
@@ -85,7 +110,12 @@ func _ready() -> void:
 		_env.name = "AreaEnvironment"
 		_env.environment = recipe.atmosphere.build_environment()
 		add_child(_env)
-	if recipe.scenery != null:
+	if recipe.scenery != null and background and recipe.scenery_pieces != null:
+		for r: AreaPlan.Room in plan.rooms:
+			for c: Dictionary in r.span.get("claims", []):
+				_claims.append({"xf": global_transform * r.xf * Transform3D(Basis(), c["at"]), "size": c["size"]})
+		_build_scenery.call_deferred()
+	elif recipe.scenery != null:
 		var scenery: Node = recipe.scenery.instantiate()
 		scenery.name = "Scenery"
 		add_child(scenery)
@@ -108,8 +138,8 @@ func _ready() -> void:
 	light_budget.light_fade_m = settings.light_fade_m
 	light_budget.seen_rooms = seen_rooms
 	add_child(light_budget)
-	var b: AABB = plan.bounds()
-	FloorWear.fixed_rect = Rect2(b.position.x - 2.0, b.position.z - 2.0, b.size.x + 4.0, b.size.z + 4.0)
+	if active:
+		_wear_rect()
 	if streaming:
 		streamer = AreaStreamer.new()
 		streamer.name = "Streamer"
@@ -118,18 +148,176 @@ func _ready() -> void:
 		var at: AreaPlan.Room = plan.room_at(start_point) if start_point != Vector3.INF else null
 		if at == null and start_room != "":
 			at = plan.room(start_room)
-		streamer.start(at.slot_id if at != null else plan.rooms[0].slot_id)
-		add_child(streamer)
+		if background:
+			_start_slot = at.slot_id if at != null else plan.rooms[0].slot_id     # started once its rooms are prebuilt (_build_scenery)
+		else:
+			streamer.start(at.slot_id if at != null else plan.rooms[0].slot_id)
+			add_child(streamer)
 	else:
 		for r: AreaPlan.Room in plan.rooms:
 			build_room(r)
-	var tw: int = Time.get_ticks_usec()
-	FloorWear.rebuild_now()
-	timings["wear_ms"] = (Time.get_ticks_usec() - tw) / 1000.0
+	if active:
+		var tw: int = Time.get_ticks_usec()
+		FloorWear.rebuild_now()
+		timings["wear_ms"] = (Time.get_ticks_usec() - tw) / 1000.0
 	timings["total_ms"] = (Time.get_ticks_usec() - t0) / 1000.0
+	if not background:
+		is_built = true
+
+
+func _wear_rect() -> void:
+	var b: AABB = plan.bounds()
+	FloorWear.fixed_rect = Rect2(b.position.x - 2.0, b.position.z - 2.0, b.size.x + 4.0, b.size.z + 4.0)
+
+
+## The scenery from recipe.scenery_pieces, one piece a frame (background):
+## as the whole scene's, Scenery/Environment, Generated and Kit; the kit
+## cleared where the network's rooms stand piece by piece. Then waits for the
+## streamer's rooms round the start and says it's built.
+func _build_scenery() -> void:
+	var t0: int = Time.get_ticks_usec()
+	var pieces: PlacePieces = recipe.scenery_pieces
+	var scenery := Node3D.new()
+	scenery.name = "Scenery"
+	add_child(scenery)
+	var env := WorldEnvironment.new()
+	env.name = "Environment"
+	env.environment = pieces.environment if active else null     # a neighbour's would take over the place you're in (activate)
+	scenery.add_child(env)
+	var cleared: int = 0
+	for part: Array in [["Generated", pieces.generated], ["Kit", pieces.kit]]:
+		var holder := Node3D.new()
+		holder.name = part[0]
+		scenery.add_child(holder)
+		var n: int = 0
+		for path: String in part[1]:
+			var piece: Node = (load(path) as PackedScene).instantiate()
+			holder.add_child(piece)
+			if part[0] == "Kit" and not _claims.is_empty():
+				# Its batches cleared a budget a frame (one piece: up to 37 ms).
+				var reach: AABB = GorgeScenery.claims_reach(_claims)
+				var start: int = Time.get_ticks_usec()
+				for m: Node in piece.get_children():
+					if m is MultiMeshInstance3D:
+						cleared += GorgeScenery.clear_batch(m as MultiMeshInstance3D, _claims, reach, pieces.module_bounds)
+						if Time.get_ticks_usec() - start > CLEAR_BUDGET_MS * 1000.0:
+							await get_tree().process_frame
+							start = Time.get_ticks_usec()
+			elif recipe.network != null:
+				GorgeScenery.lift_mist(piece, recipe.network.mist_glow)
+			n += 1
+			if n % PIECES_A_FRAME == 0:
+				await get_tree().process_frame
+	timings["scenery_ms"] = (Time.get_ticks_usec() - t0) / 1000.0
+	timings["cleared"] = cleared
+	# The network's rooms are built by the streamer (2-17 ms each); the first
+	# build of each of their kit scenes made its meshes (50-90 ms a link), so
+	# each is built once here first, one a frame. (Built on a worker thread, the
+	# rooms' meshes slowed every other frame for seconds.)
+	var seen: Dictionary = {}
+	for r: AreaPlan.Room in plan.rooms:
+		for p: Dictionary in r.span.get("pieces", []):
+			if not seen.has(p["scene"]):
+				seen[p["scene"]] = true
+				(load(p["scene"]) as PackedScene).instantiate().free()
+				await get_tree().process_frame
+	for path: String in [ChasmGrammar.MOD + "dressing/chasm_lamp_post.tscn"]:
+		(load(path) as PackedScene).instantiate().free()
+	if streamer != null:
+		streamer.start_background(_start_slot)
+		add_child(streamer)
+	while streamer != null and streamer.busy():
+		await get_tree().process_frame
+	is_built = true
+	built.emit()
+
+
+## Makes this the place you're in (phase 9): the save's changes go to it and
+## the floor wear is its own.
+func activate() -> void:
+	if active:
+		return
+	active = true
+	var ws: Node = get_node_or_null("/root/WorldState")
+	if ws != null:
+		ws.call("enter_area", recipe.id, recipe.version)
+	if owns_environment:
+		_show_environment(true)
+	_wear_rect()
+	FloorWear.rebuild_now()
+
+
+## The place you're in is now another one.
+func deactivate() -> void:
+	if not active:
+		return
+	active = false
+	var ws: Node = get_node_or_null("/root/WorldState")
+	if ws != null:
+		ws.call("leave_area")
+	_show_environment(false)
+
+
+## The area's WorldEnvironments (its own and its scenery's) on or off: two in
+## the tree, the last one in takes over the view.
+func _show_environment(on: bool) -> void:
+	for n: Node in find_children("*", "WorldEnvironment", true, false):
+		var we := n as WorldEnvironment
+		if on and we.environment == null and we.has_meta("environment"):
+			we.environment = we.get_meta("environment")
+		elif not on and we.environment != null:
+			we.set_meta("environment", we.environment)
+			we.environment = null
+	if on and _env == null and recipe.scenery_pieces != null:
+		var scenery_env: WorldEnvironment = get_node_or_null("Scenery/Environment")
+		if scenery_env != null and scenery_env.environment == null:
+			scenery_env.environment = recipe.scenery_pieces.environment
+
+
+## The environment this area shows when you're in it.
+func environment() -> Environment:
+	if _env != null:
+		return _env.environment if _env.environment != null else _env.get_meta("environment", null)
+	var scenery_env: WorldEnvironment = get_node_or_null("Scenery/Environment")
+	if scenery_env == null:
+		return null
+	if scenery_env.environment != null:
+		return scenery_env.environment
+	return scenery_env.get_meta("environment", recipe.scenery_pieces.environment if recipe.scenery_pieces != null else null)
+
+
+## Shows this area one scenery piece a frame (phase 9: shown at once, the
+## first frame took 17 ms), from hidden.
+func reveal(per_frame: int = PIECES_A_FRAME) -> void:
+	_reveal_token += 1
+	var token: int = _reveal_token
+	var pieces: Array[Node3D] = []
+	var scenery: Node = get_node_or_null("Scenery")
+	for part: String in ["Generated", "Kit"]:
+		var holder: Node = scenery.get_node_or_null(part) if scenery != null else null
+		if holder != null:
+			for c: Node in holder.get_children():
+				if c is Node3D:
+					(c as Node3D).visible = false
+					pieces.append(c as Node3D)
+	visible = true
+	for i: int in pieces.size():
+		if token != _reveal_token:
+			return     # hidden (or shown again) meanwhile: the newer call finishes
+		pieces[i].visible = true
+		if (i + 1) % per_frame == 0:
+			await get_tree().process_frame
+
+
+## Hides the area at once (a reveal under way stops).
+func conceal() -> void:
+	_reveal_token += 1
+	visible = false
 
 
 func _exit_tree() -> void:
+	if not active:
+		return     # a neighbour going: the place you're in keeps its own
 	FloorWear.fixed_rect = Rect2()
 	var ws: Node = get_node_or_null("/root/WorldState")
 	if ws != null:

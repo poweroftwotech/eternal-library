@@ -11,7 +11,7 @@ Things noticed while building phase 8 and left for another pass over the gorge. 
 ## Smaller items seen along the way
 
 - **Dark rock behind some clearings.** Where a quarried rock pillar closes a clearing's back, the back wall is plain dark rock.
-- **Old-style waterfall ribbons in the camp's own view.** The camp's code-built view of the gorge (not the walkable gorge) still uses the old narrow waterfall ribbons and the old rock gate.
+- **Dead camp-view code in `vista.gd`.** Its branches for the old code-built camp's view (old waterfall ribbons, old rock gate, used only when `walkable_overlook` is off) are no longer run by anything: the game uses the kit camp, which draws no gorge. Phase 9 step 1 removes them.
 - **The box-art far depth band** is accepted at 0.5 (`tests/compare_vista.gd` `ACCEPTED_LOW`) after the thinner mist; revisit if the mist changes again.
 - **Network planning time.** The slowest plan in the network test is about 7–9 s (seed 3). Fine at load, but worth a look if areas start planning during play.
 

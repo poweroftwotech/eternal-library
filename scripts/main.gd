@@ -41,6 +41,8 @@ static var booted: bool = false
 ## What this boot loaded: a room scene path, or "camp".
 var scene_path: String = "camp"
 var resuming: bool = false
+## The camp and the Gorge as one place (phase 9), when one of them is loaded.
+var seamless: SeamlessPlaces
 
 func _ready() -> void:
 	install_inputs()
@@ -149,6 +151,15 @@ func _ready() -> void:
 	hud.notify("WASD explore  ·  E interact  ·  J field notes  ·  Esc menu")
 	if in_room():
 		hud.zone_label.text = room_title()
+	# The camp and the Gorge stream into each other along the corridor from
+	# the gallery to the loggia (phase 9): the one you're not in is warmed now
+	# and built in the background.
+	var place: String = "camp" if world is CampRoom else ((world as Area).recipe.id if world is Area else "")
+	if SeamlessPlaces.applies(place) and not OS.get_cmdline_user_args().has("--no-seamless"):
+		seamless = SeamlessPlaces.new()
+		seamless.name = "SeamlessPlaces"
+		add_child(seamless)
+		seamless.setup(self, place)
 
 ## "" = the camp. The menu's choice wins over the command line.
 func requested_room() -> String:

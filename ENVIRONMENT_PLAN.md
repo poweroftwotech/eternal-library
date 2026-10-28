@@ -8,6 +8,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
+| **Phase 9 step 1 committed**: the camp and the Gorge are one place. Walk from the camp's gallery down the corridor onto the Overlook's loggia and back with no loading screen; the Gorge builds in the background while you're in the camp. Next: step 2, the Gorge's doors to the Library Wing and the Lower Stacks | [Progress, phase 9](docs/environment/progress/phase-9-continuous-world.md) | Nothing yet |
 | **Phase 8 is complete** (last commit 0479835): all eight banks and the sanctum in the Persian look, the mood pass, the Overlook's gate and soffit, the new span waterfalls, and the budget check (the gorge has its own, less strict budget). Things to revisit in a later pass over the gorge are noted. | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md); [the gorge: for a later pass](docs/environment/gorge-later.md) | Choose what comes next |
 | The gorge clean-up pass (from phase 6 step 6), the overlapping link waterfalls and the far banks' missing clearings are noted for a later pass over the gorge | [The gorge: for a later pass](docs/environment/gorge-later.md) | Nothing for now |
 
@@ -139,7 +140,8 @@ relevant, the route audit and the two-process persistence test.
 | **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–4 committed (4bce7c1, 8f789de, b65d383, f90ee72; step 4 after three walks, 19 reports fixed); step 5 (thresholds) committed 4670712; step 6 is now the gorge scenery clean-up pass (the camp link moved to phase 7) |
 | **7. The camp from kit pieces** | Every camp element as a kit piece (existing ones where they fit, new ones in `kit_camp.blend` in the same style); a bake tool to `rooms/camp/camp.tscn`; the gameplay moved onto it; a closed door to the gorge; the old camp code retired | The camp looks as today side by side (box-art comparison from the spawn), `playtest` passes, it passes the frame gate by itself, and its door leads into the Gorge. |
 | **8. The gorge redesigned** | The Persian kit (reusable), bank 1 in direction C, the camp's front, a budget check; then the other banks | Bank 1 walks as houses and carved rooms on terraces with stairs, an iwan garden, fungal terraces, a shaft garden and a great fall, and the Overlook view is within the frame limits |
-| 9. The navigation map (proposed) | The map drawn from the areas' plans, floor by floor, revealed as you visit (architecture §2.1) | You can find your way back to any room you've been to. |
+| **9. One continuous world** | Doors between places become passages; the next place loads in the background; only the place you're in is drawn ([brief](docs/environment/phase-9-approval.md)) | Walk from the camp through the Gorge into both interiors and back with no loading screen, within the frame limits |
+| 10. The navigation map (proposed) | The map drawn from the areas' plans, floor by floor, revealed as you visit (architecture §2.1) | You can find your way back to any room you've been to. |
 
 ## The documents
 
@@ -157,8 +159,9 @@ relevant, the route audit and the two-process persistence test.
 | [Phase 6 design](docs/environment/phase-6-design.md) | Technical detail behind the brief (§5.7) | Optional |
 | [Phase 8 approval brief](docs/environment/phase-8-approval.md) | Plain-language: the gorge redesigned, the steps, your answers | Approved; reference |
 | [Phase 8 design](docs/environment/phase-8-design.md) | Technical detail behind the brief (§8.1–8.7) | Optional |
+| [Phase 9 approval brief](docs/environment/phase-9-approval.md) | Plain-language: one continuous world, the measurements, the steps, the decisions | Now |
 | [The gorge: for a later pass](docs/environment/gorge-later.md) | What to revisit in the next pass over the gorge | Before that pass |
-| Progress logs in `docs/environment/progress/` | What was built, how it was verified, caveats: [phase 0](docs/environment/progress/phase-0-kit.md), [phase 1](docs/environment/progress/phase-1-reading-room.md), [R01 weathering](docs/environment/progress/r01-weathering.md), [R01 polish](docs/environment/progress/r01-polish.md), [phase 2](docs/environment/progress/phase-2-stack-gallery.md), [phase 3](docs/environment/progress/phase-3-props.md), [phase 4](docs/environment/progress/phase-4-areas.md), [phase 5](docs/environment/progress/phase-5-kit-breadth.md), [phase 6](docs/environment/progress/phase-6-overlook.md), [phase 7](docs/environment/progress/phase-7-camp.md), [phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | When you want the detail of a finished step |
+| Progress logs in `docs/environment/progress/` | What was built, how it was verified, caveats: [phase 0](docs/environment/progress/phase-0-kit.md), [phase 1](docs/environment/progress/phase-1-reading-room.md), [R01 weathering](docs/environment/progress/r01-weathering.md), [R01 polish](docs/environment/progress/r01-polish.md), [phase 2](docs/environment/progress/phase-2-stack-gallery.md), [phase 3](docs/environment/progress/phase-3-props.md), [phase 4](docs/environment/progress/phase-4-areas.md), [phase 5](docs/environment/progress/phase-5-kit-breadth.md), [phase 6](docs/environment/progress/phase-6-overlook.md), [phase 7](docs/environment/progress/phase-7-camp.md), [phase 8](docs/environment/progress/phase-8-gorge-redesign.md), [phase 9](docs/environment/progress/phase-9-continuous-world.md) | When you want the detail of a finished step |
 
 Room types and their mocks are in `design/room-atlas.html`. The look is in
 `ART_DIRECTION.md`.

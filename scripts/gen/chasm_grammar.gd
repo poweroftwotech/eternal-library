@@ -618,24 +618,22 @@ static func build_room(span: Dictionary) -> RoomTemplate:
 		fall.seed_value = float(i + 1) * 7.13
 		fall.transform = (f["xf"] as Transform3D).translated_local(FALL_FROM)
 		room.add_child(fall)
-	var troughs := SurfaceTool.new()
-	var waters := SurfaceTool.new()
-	var culverts := SurfaceTool.new()
+	# The troughs' stones, culverts and water as scaled copies of one box and
+	# one plane (ChasmMasonry.instances: merging read each back from the GPU).
+	var troughs: Array[Transform3D] = []
+	var waters: Array[Transform3D] = []
+	var culverts: Array[Transform3D] = []
 	for f: Dictionary in span["falls"]:
-		var hole := BoxMesh.new()
-		hole.size = CULVERT[1]
-		culverts.append_from(hole, 0, (f["xf"] as Transform3D).translated_local(CULVERT[0]))
+		var at: Transform3D = f["xf"]
+		culverts.append(_scaled(at.translated_local(CULVERT[0]), CULVERT[1]))
 		for s: Array in TROUGH:
-			var box := BoxMesh.new()
-			box.size = s[1]
-			troughs.append_from(box, 0, (f["xf"] as Transform3D).translated_local(s[0]))
-		var plane := PlaneMesh.new()
-		plane.size = TROUGH_WATER[1]
-		waters.append_from(plane, 0, (f["xf"] as Transform3D).translated_local(TROUGH_WATER[0]))
+			troughs.append(_scaled(at.translated_local(s[0]), s[1]))
+		var w: Vector2 = TROUGH_WATER[1]
+		waters.append(_scaled(at.translated_local(TROUGH_WATER[0]), Vector3(w.x, 1.0, w.y)))
 	if not (span["falls"] as Array).is_empty():
-		_mesh(room, "troughs", troughs.commit(), load(TROUGH_MATERIAL))
-		_mesh(room, "culverts", culverts.commit(), load(CULVERT_MATERIAL)).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-		_mesh(room, "trough_water", waters.commit(), load("res://kit/materials/cistern_water.tres")).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		ChasmMasonry.instances(room, "troughs", ChasmMasonry.unit_box(), troughs, load(TROUGH_MATERIAL))
+		ChasmMasonry.instances(room, "culverts", ChasmMasonry.unit_box(), culverts, load(CULVERT_MATERIAL)).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		ChasmMasonry.instances(room, "trough_water", _unit_plane(), waters, load("res://kit/materials/cistern_water.tres")).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var holder := Node3D.new()
 	holder.name = "Connectors"
 	room.add_child(holder)
@@ -661,10 +659,8 @@ static func _newels(room: RoomTemplate, span: Dictionary, scenes: Dictionary) ->
 				break
 		if not found:
 			groups.append([p])
-	var cap_box := BoxMesh.new()
-	cap_box.size = Vector3(NEWEL + .1, .1, NEWEL + .1)
 	var posts: Array = []
-	var caps := SurfaceTool.new()
+	var caps: Array[Transform3D] = []
 	var lamp_path: String = MOD + "dressing/chasm_lamp_post.tscn"
 	# Lamp posts drawn in one batch, casting no shadow (three meshes a post).
 	var lamps := KitBatcher.new()
@@ -682,7 +678,7 @@ static func _newels(room: RoomTemplate, span: Dictionary, scenes: Dictionary) ->
 		elif absf(at.y) < .2 and absf(at.z) < NEWEL_MERGE and absf(absf(at.x) - 1.82) < NEWEL_MERGE:
 			continue      # the start ledge's newel
 		posts.append({"at": at + Vector3(0, .45, 0), "size": Vector3(NEWEL, 1.4, NEWEL), "turn": 0.0, "mat": "gorge_sandstone"})
-		caps.append_from(cap_box, 0, Transform3D(Basis(), at + Vector3(0, 1.2, 0)))
+		caps.append(_scaled(Transform3D(Basis(), at + Vector3(0, 1.2, 0)), Vector3(NEWEL + .1, .1, NEWEL + .1)))
 		for l: Vector3 in span["lamps"]:
 			if l.distance_to(at) < NEWEL_MERGE:
 				if not scenes.has(lamp_path):
@@ -695,8 +691,25 @@ static func _newels(room: RoomTemplate, span: Dictionary, scenes: Dictionary) ->
 				lamps.add_child(post)
 				n += 1
 				break
-	_mesh(room, "newel_caps", caps.commit(), load("res://kit/materials/gorge_limestone.tres")).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+	if not caps.is_empty():
+		ChasmMasonry.instances(room, "newel_caps", ChasmMasonry.unit_box(), caps, load("res://kit/materials/gorge_limestone.tres")).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	return posts
+
+
+## `xf` with its basis scaled by `size` (a unit box or plane made that size).
+static func _scaled(xf: Transform3D, size: Vector3) -> Transform3D:
+	return Transform3D(xf.basis * Basis.from_scale(size), xf.origin)
+
+
+static var _plane: PlaneMesh
+
+
+## A plane 1 m each way, facing up.
+static func _unit_plane() -> PlaneMesh:
+	if _plane == null:
+		_plane = PlaneMesh.new()
+		_plane.size = Vector2.ONE
+	return _plane
 
 
 static func _mesh(room: Node, name: String, mesh: Mesh, material: Material) -> MeshInstance3D:

@@ -5,14 +5,14 @@
 [ext_resource type="PackedScene" path="res://rooms/baked/gorge/kit_batched.scn" id="3_oc2ng"]
 [ext_resource type="Script" path="res://scripts/world/kit_batcher.gd" id="4_hgjda"]
 
-[node name="Gorge" type="Node3D" unique_id=24947693]
+[node name="Gorge" type="Node3D" unique_id=1326475529]
 
-[node name="Environment" type="WorldEnvironment" parent="." unique_id=1291959628]
+[node name="Environment" type="WorldEnvironment" parent="." unique_id=243754411]
 environment = ExtResource("1_ewx03")
 
-[node name="Generated" type="Node3D" parent="." unique_id=1414515411 instance=ExtResource("2_kp8xa")]
+[node name="Generated" type="Node3D" parent="." unique_id=1300224244 instance=ExtResource("2_kp8xa")]
 
-[node name="Kit" type="Node3D" parent="." unique_id=1819936670 instance=ExtResource("3_oc2ng")]
+[node name="Kit" type="Node3D" parent="." unique_id=1887360856 instance=ExtResource("3_oc2ng")]
 script = ExtResource("4_hgjda")
 batch_on_ready = false
 render_layers = 2
@@ -20,5 +20,5 @@ chunk_size = 128.0
 chunk_min = 300
 detail_range = 110.0
 
-[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=1282489058]
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=953091257]
 transform = Transform3D(0.99920684, 0, -0.039822258, 0, 1.0000001, 0, 0.039822258, 0, 0.99920684, -1, 2.25, -27.45)

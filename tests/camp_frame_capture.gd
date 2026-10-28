@@ -49,6 +49,14 @@ func capture() -> void:
 	DisplayServer.window_set_vsync_mode(DisplayServer.VSYNC_DISABLED)
 	var vp_rid: RID = root.get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(vp_rid, true)
+	# The Gorge, built behind the camp in the background (phase 9), is part of
+	# what the camp costs once it's in: measured with it.
+	if game.seamless != null:
+		var stop: int = Time.get_ticks_msec() + 30000
+		while game.seamless.neighbour == null and Time.get_ticks_msec() < stop:
+			await process_frame
+		for _i: int in 120:
+			await process_frame
 	var world: Node3D = game.world
 	var lights: Array = world.find_children("*", "Light3D", true, false)
 	var lines: PackedStringArray = ["view,frame,ms,gpu_ms,draw_calls,triangles,lights_in_reach,vram_mb"]

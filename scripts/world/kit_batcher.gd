@@ -47,8 +47,19 @@ func _ready() -> void:
 
 
 static func _fill(node: MultiMeshInstance3D) -> void:
-	node.multimesh.instance_count = int(node.get_meta("kit_count"))
-	node.multimesh.buffer = node.get_meta("kit_buffer")
+	# Every copy of a saved scene shares its MultiMesh (the resource cache):
+	# filled already, and not changed since (GorgeScenery.clear takes the mark
+	# off), it needn't be again (phase 9: 28 ms a piece of the gorge's kit).
+	var mm: MultiMesh = node.multimesh
+	if mm.has_meta(FRESH) and mm.instance_count == int(node.get_meta("kit_count")):
+		return
+	mm.instance_count = int(node.get_meta("kit_count"))
+	mm.buffer = node.get_meta("kit_buffer")
+	mm.set_meta(FRESH, true)
+
+
+## On a MultiMesh filled from its saved transforms and not changed since.
+const FRESH: StringName = &"kit_fresh"
 
 
 func batch() -> Dictionary:

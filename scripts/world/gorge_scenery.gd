@@ -19,55 +19,85 @@ const REMOVABLE: PackedStringArray = ["gorge_bay_", "gorge_lamp", "gorge_banner_
 static func clear(kit: Node, claims: Array) -> int:
 	if claims.is_empty():
 		return 0
+	var reach: AABB = claims_reach(claims)
+	var modules: Dictionary = module_bounds(kit)
+	var hidden: int = 0
+	for n: Node in kit.find_children("*", "MultiMeshInstance3D", true, false):
+		hidden += clear_batch(n as MultiMeshInstance3D, claims, reach, modules)
+	return hidden
+
+
+## Where the claims are, grown a little: what's further isn't looked at.
+static func claims_reach(claims: Array) -> AABB:
 	var reach := AABB()
 	for i: int in claims.size():
 		var c: Dictionary = claims[i]
 		var b: AABB = (c["xf"] as Transform3D) * AABB(-(c["size"] as Vector3) * .5, c["size"])
 		reach = b if i == 0 else reach.merge(b)
-	reach = reach.grow(6.0)
-	# Each removable module's bounds (the union of its meshes, in its frame).
+	return reach.grow(6.0)
+
+
+## Each removable module's bounds under `kit` (the union of its meshes, in its
+## frame): module -> AABB. The bake keeps the whole kit's (PlacePieces), so a
+## module whose meshes are in different pieces is cleared the same in each.
+static func module_bounds(kit: Node) -> Dictionary:
 	var modules: Dictionary = {}
-	var batches: Array[MultiMeshInstance3D] = []
 	for n: Node in kit.find_children("*", "MultiMeshInstance3D", true, false):
 		var mmi := n as MultiMeshInstance3D
-		if mmi.multimesh == null or mmi.multimesh.mesh == null:
-			continue
-		var module: String = module_of(mmi.multimesh.mesh.resource_name)
-		if module == "" or not Array(REMOVABLE).any(func(p: String) -> bool: return module.begins_with(p)):
-			continue
-		var aabb: AABB = mmi.multimesh.mesh.get_aabb()
-		modules[module] = aabb if not modules.has(module) else (modules[module] as AABB).merge(aabb)
-		batches.append(mmi)
+		var module: String = _removable(mmi)
+		if module != "":
+			var aabb: AABB = mmi.multimesh.mesh.get_aabb()
+			modules[module] = aabb if not modules.has(module) else (modules[module] as AABB).merge(aabb)
+	return modules
+
+
+## The removable module a batch draws, or "".
+static func _removable(mmi: MultiMeshInstance3D) -> String:
+	if mmi.multimesh == null or mmi.multimesh.mesh == null:
+		return ""
+	var module: String = module_of(mmi.multimesh.mesh.resource_name)
+	if module == "" or not Array(REMOVABLE).any(func(p: String) -> bool: return module.begins_with(p)):
+		return ""
+	return module
+
+
+## Hides the instances of one batch that meet the claims (see clear). How many.
+static func clear_batch(mmi: MultiMeshInstance3D, claims: Array, reach: AABB, modules: Dictionary) -> int:
+	var module: String = _removable(mmi)
+	if module == "" or not modules.has(module):
+		return 0
 	var hidden: int = 0
-	for mmi: MultiMeshInstance3D in batches:
-		var mm: MultiMesh = mmi.multimesh
-		var bounds: AABB = modules[module_of(mm.mesh.resource_name)]
-		# A big module (a banner hanging storeys down, a pavilion) meets the
-		# claims further from its origin (fly-mode walk: banners and pavilions
-		# stood in a gallery's rails).
-		var near: AABB = reach.grow(bounds.size.length())
-		var to_global: Transform3D = mmi.global_transform
-		var buffer: PackedFloat32Array = mm.buffer
-		var stride: int = 12 + (4 if mm.use_colors else 0) + (4 if mm.use_custom_data else 0)
-		var changed: bool = false
-		for i: int in mm.instance_count:
-			var o: int = i * stride
-			var at: Vector3 = to_global * Vector3(buffer[o + 3], buffer[o + 7], buffer[o + 11])
-			if not near.has_point(at):
-				continue
-			var basis := Basis(Vector3(buffer[o], buffer[o + 4], buffer[o + 8]), Vector3(buffer[o + 1], buffer[o + 5], buffer[o + 9]),
-				Vector3(buffer[o + 2], buffer[o + 6], buffer[o + 10]))
-			var xf: Transform3D = to_global * Transform3D(basis, Vector3(buffer[o + 3], buffer[o + 7], buffer[o + 11]))
-			for c: Dictionary in claims:
-				if boxes_meet(xf, bounds, c["xf"], (c["size"] as Vector3) * .5):
-					for k: int in [0, 1, 2, 4, 5, 6, 8, 9, 10]:      # its basis to nothing: it draws nothing
-						buffer[o + k] = 0.0
-					hidden += 1
-					changed = true
-					break
-		if changed:
-			mm.buffer = buffer
-			mmi.set_meta("network_cleared", true)
+	var mm: MultiMesh = mmi.multimesh
+	var bounds: AABB = modules[module]
+	# A big module (a banner hanging storeys down, a pavilion) meets the
+	# claims further from its origin (fly-mode walk: banners and pavilions
+	# stood in a gallery's rails).
+	var near: AABB = reach.grow(bounds.size.length())
+	var to_global: Transform3D = mmi.global_transform
+	# The saved copy (KitBatcher) where there is one: reading mm.buffer reads
+	# it back from the GPU, 3-7 ms a batch whatever its size (phase 9).
+	var buffer: PackedFloat32Array = mmi.get_meta("kit_buffer") if mmi.has_meta("kit_buffer") else mm.buffer
+	var stride: int = 12 + (4 if mm.use_colors else 0) + (4 if mm.use_custom_data else 0)
+	var changed: bool = false
+	for i: int in mm.instance_count:
+		var o: int = i * stride
+		var at: Vector3 = to_global * Vector3(buffer[o + 3], buffer[o + 7], buffer[o + 11])
+		if not near.has_point(at):
+			continue
+		var basis := Basis(Vector3(buffer[o], buffer[o + 4], buffer[o + 8]), Vector3(buffer[o + 1], buffer[o + 5], buffer[o + 9]),
+			Vector3(buffer[o + 2], buffer[o + 6], buffer[o + 10]))
+		var xf: Transform3D = to_global * Transform3D(basis, Vector3(buffer[o + 3], buffer[o + 7], buffer[o + 11]))
+		for c: Dictionary in claims:
+			if boxes_meet(xf, bounds, c["xf"], (c["size"] as Vector3) * .5):
+				for k: int in [0, 1, 2, 4, 5, 6, 8, 9, 10]:      # its basis to nothing: it draws nothing
+					buffer[o + k] = 0.0
+				hidden += 1
+				changed = true
+				break
+	if changed:
+		mm.buffer = buffer
+		mm.remove_meta(KitBatcher.FRESH)     # filled again on the next load (KitBatcher._fill)
+		mmi.set_meta("network_cleared", true)
 	return hidden
 
 

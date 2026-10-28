@@ -1,0 +1,68 @@
+[gd_resource type="Resource" script_class="PlacePieces" format=3]
+
+[ext_resource type="Environment" path="res://rooms/baked/gorge/environment.tres" id="1_422cn"]
+[ext_resource type="Script" path="res://scripts/world/place_pieces.gd" id="2_jex2l"]
+
+[resource]
+script = ExtResource("2_jex2l")
+generated = PackedStringArray("res://rooms/baked/gorge/pieces/generated_000.scn", "res://rooms/baked/gorge/pieces/generated_001.scn", "res://rooms/baked/gorge/pieces/generated_002.scn", "res://rooms/baked/gorge/pieces/generated_003.scn", "res://rooms/baked/gorge/pieces/generated_004.scn", "res://rooms/baked/gorge/pieces/generated_005.scn", "res://rooms/baked/gorge/pieces/generated_006.scn", "res://rooms/baked/gorge/pieces/generated_007.scn", "res://rooms/baked/gorge/pieces/generated_008.scn", "res://rooms/baked/gorge/pieces/generated_009.scn", "res://rooms/baked/gorge/pieces/generated_010.scn", "res://rooms/baked/gorge/pieces/generated_011.scn", "res://rooms/baked/gorge/pieces/generated_012.scn", "res://rooms/baked/gorge/pieces/generated_013.scn", "res://rooms/baked/gorge/pieces/generated_014.scn", "res://rooms/baked/gorge/pieces/generated_015.scn", "res://rooms/baked/gorge/pieces/generated_016.scn", "res://rooms/baked/gorge/pieces/generated_017.scn", "res://rooms/baked/gorge/pieces/generated_018.scn", "res://rooms/baked/gorge/pieces/generated_019.scn", "res://rooms/baked/gorge/pieces/generated_020.scn", "res://rooms/baked/gorge/pieces/generated_021.scn", "res://rooms/baked/gorge/pieces/generated_022.scn", "res://rooms/baked/gorge/pieces/generated_023.scn", "res://rooms/baked/gorge/pieces/generated_024.scn")
+kit = PackedStringArray("res://rooms/baked/gorge/pieces/kit_000.scn", "res://rooms/baked/gorge/pieces/kit_001.scn", "res://rooms/baked/gorge/pieces/kit_002.scn", "res://rooms/baked/gorge/pieces/kit_003.scn", "res://rooms/baked/gorge/pieces/kit_004.scn", "res://rooms/baked/gorge/pieces/kit_005.scn", "res://rooms/baked/gorge/pieces/kit_006.scn", "res://rooms/baked/gorge/pieces/kit_007.scn", "res://rooms/baked/gorge/pieces/kit_008.scn", "res://rooms/baked/gorge/pieces/kit_009.scn", "res://rooms/baked/gorge/pieces/kit_010.scn", "res://rooms/baked/gorge/pieces/kit_011.scn", "res://rooms/baked/gorge/pieces/kit_012.scn", "res://rooms/baked/gorge/pieces/kit_013.scn", "res://rooms/baked/gorge/pieces/kit_014.scn", "res://rooms/baked/gorge/pieces/kit_015.scn", "res://rooms/baked/gorge/pieces/kit_016.scn", "res://rooms/baked/gorge/pieces/kit_017.scn", "res://rooms/baked/gorge/pieces/kit_018.scn", "res://rooms/baked/gorge/pieces/kit_019.scn", "res://rooms/baked/gorge/pieces/kit_020.scn", "res://rooms/baked/gorge/pieces/kit_021.scn", "res://rooms/baked/gorge/pieces/kit_022.scn", "res://rooms/baked/gorge/pieces/kit_023.scn", "res://rooms/baked/gorge/pieces/kit_024.scn", "res://rooms/baked/gorge/pieces/kit_025.scn", "res://rooms/baked/gorge/pieces/kit_026.scn", "res://rooms/baked/gorge/pieces/kit_027.scn", "res://rooms/baked/gorge/pieces/kit_028.scn", "res://rooms/baked/gorge/pieces/kit_029.scn", "res://rooms/baked/gorge/pieces/kit_030.scn", "res://rooms/baked/gorge/pieces/kit_031.scn", "res://rooms/baked/gorge/pieces/kit_032.scn", "res://rooms/baked/gorge/pieces/kit_033.scn", "res://rooms/baked/gorge/pieces/kit_034.scn", "res://rooms/baked/gorge/pieces/kit_035.scn", "res://rooms/baked/gorge/pieces/kit_036.scn", "res://rooms/baked/gorge/pieces/kit_037.scn", "res://rooms/baked/gorge/pieces/kit_038.scn", "res://rooms/baked/gorge/pieces/kit_039.scn", "res://rooms/baked/gorge/pieces/kit_040.scn", "res://rooms/baked/gorge/pieces/kit_041.scn", "res://rooms/baked/gorge/pieces/kit_042.scn", "res://rooms/baked/gorge/pieces/kit_043.scn", "res://rooms/baked/gorge/pieces/kit_044.scn", "res://rooms/baked/gorge/pieces/kit_045.scn", "res://rooms/baked/gorge/pieces/kit_046.scn", "res://rooms/baked/gorge/pieces/kit_047.scn", "res://rooms/baked/gorge/pieces/kit_048.scn", "res://rooms/baked/gorge/pieces/kit_049.scn", "res://rooms/baked/gorge/pieces/kit_050.scn", "res://rooms/baked/gorge/pieces/kit_051.scn", "res://rooms/baked/gorge/pieces/kit_052.scn", "res://rooms/baked/gorge/pieces/kit_053.scn")
+environment = ExtResource("1_422cn")
+module_bounds = {
+"gorge_banner_0": AABB(-1, -3.3, 0, 2, 3.3, 1e-05),
+"gorge_banner_1": AABB(-1, -3.3, 0, 2, 3.3, 1e-05),
+"gorge_banner_2": AABB(-1, -3.3, 0, 2, 3.3, 1e-05),
+"gorge_cypress_6": AABB(-0.6767662, 0, -0.73232085, 1.4279201, 6.3, 1.4646417),
+"gorge_figure": AABB(-0.33335847, 0.075, -0.36072332, 0.7033585, 1.615, 0.72144663),
+"gorge_lamp": AABB(-0.07, -0.112, -0.07, 0.14, 0.224, 0.14),
+"persian_awning": AABB(1, 2, 0.05, 2, 0.78999996, 1.2800001),
+"persian_bed": AABB(-2, 0, -0.8, 4, 0.79999995, 1.6),
+"persian_bed_fungal": AABB(-1.8114777, 0.38, -1.0920243, 4.0244994, 0.8523141, 2.1920242),
+"persian_cornice": AABB(0, 3.45, 0, 4, 0.54999995, 0.24),
+"persian_fungus_cluster": AABB(-0.81602186, -0.0033357153, -0.8677202, 1.1351125, 0.80815923, 1.6747781),
+"persian_fungus_giant_6": AABB(-2.16, -0.024407173, -2.7, 5.04, 7.0828075, 5.04),
+"persian_fungus_giant_9": AABB(-3.24, -0.03661076, -4.05, 7.5600004, 10.62421, 7.5600004),
+"persian_fungus_jelly": AABB(-1.2, -0.007562965, -1.25, 2.4, 4.2875633, 2.4),
+"persian_fungus_small": AABB(-1.034, -0.008900279, -0.9667762, 2.634, 2.59698, 1.9262199),
+"persian_glowmoss": AABB(-0.42034104, -3.2073233, -0.09147098, 0.90820014, 3.2113643, 0.20294195),
+"persian_lamp_bracket": AABB(-0.14, -0.5, 0, 0.28, 0.65, 0.67124355),
+"persian_oriel": AABB(0.7, 0.15, 0, 2.6, 3.07, 1.15),
+"persian_parapet": AABB(0, 0, -0.4, 4, 0.76, 0.4),
+"persian_parapet_banai": AABB(0, 0, -0.4, 4, 0.76, 0.4),
+"persian_parapet_corner": AABB(-0.06, 0, -0.46, 0.52, 0.8, 0.52),
+"persian_parapet_lime": AABB(0, 0, -0.4, 4, 0.76, 0.4),
+"persian_parapet_rock": AABB(0, 0, -0.4, 4, 0.76, 0.4),
+"persian_pomegranate": AABB(-0.8625353, -0.011459548, -1.05883, 1.981472, 2.927911, 1.9555197),
+"persian_stair_flight": AABB(-0.03, 0, 0, 4.03, 4.85, 1.8),
+"persian_stair_flight_top": AABB(3.8, 4, 0, 0.20000005, 0.8499999, 1.8),
+"persian_stair_landing": AABB(0, -0.3, 0, 4, 1.1500001, 1.8),
+"persian_stair_pier": AABB(0, 0, 0, 4, 4, 1.92),
+"persian_wall_banai": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_banai_door": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_banai_window": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_banai_window2_dark": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_brick": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_brick_arcade": AABB(0, 0, -1.2, 4, 4.15, 1.3000001),
+"persian_wall_brick_arcade_dark": AABB(1.7, 2.6, -0.9, 0.5999999, 0.5500002, 0.01999998),
+"persian_wall_brick_orosi": AABB(0, 0, -0.5, 4, 4, 0.68),
+"persian_wall_lime": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_lime_door": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_lime_window": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_lime_window2_dark": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_plaster": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_plaster_door": AABB(0, 0, -0.5, 4, 4, 0.95),
+"persian_wall_plaster_window": AABB(1.5, 1.45, -0.355, 1, 1.5999999, 1.001358e-05),
+"persian_wall_plaster_window2": AABB(0.65, 1.45, -0.355, 1, 1.5999999, 1.001358e-05),
+"persian_wall_plaster_window2_dark": AABB(0, 0, -0.5, 4, 4, 0.62),
+"persian_wall_plaster_window_dark": AABB(0, 0, -0.5, 4, 4, 0.62),
+"persian_wall_rock": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_rock_door": AABB(1.3, 0, -1.19, 1.4000001, 2.5, 1e-05),
+"persian_wall_rock_door_dark": AABB(0, 0, -1.4, 4, 4, 1.8),
+"persian_wall_rock_window": AABB(1.5, 1.3, -1.19, 1, 1.5, 1.001358e-05),
+"persian_wall_rock_window_dark": AABB(0, 0, -1.4, 4, 4, 1.4),
+"persian_wall_tile": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_tile_door": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_tile_window2": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_wall_tile_window_dark": AABB(0, 0, -0.5, 4, 4, 0.5),
+"persian_windcatcher": AABB(-1.02, 0, -1.02, 2.04, 4, 2.04)
+}

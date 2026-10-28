@@ -25,6 +25,9 @@ extends Resource
 ## A cavern area's scenery (phase-6-design.md 5.7.2): a scene the area adds
 ## once, before its rooms; not planned, never streamed (the baked gorge).
 @export var scenery: PackedScene
+## The same scenery as small scenes (phase 9), for building it in the
+## background one piece a frame (Area.background); null: only the whole scene.
+@export var scenery_pieces: PlacePieces
 ## Below this height a falling player is put back at the spawn (the camp and
 ## the rooms: -8 m). The Gorge walks far below that, to its safety floor.
 @export var fall_limit: float = -8.0

@@ -69,6 +69,17 @@ func start(start_slot: String) -> void:
 	stats = {"frames": 0, "max_frame_ms": 0.0, "last_frame_ms": 0.0, "loads": 0, "unloads": 0, "rooms": {}}     # count the walk, not the start
 
 
+## As start(), but nothing at once (phase 9, a neighbouring place built in
+## the background): the rooms round `start_slot` are queued and built within
+## the budget as you walk elsewhere, and none is prepared ahead.
+func start_background(start_slot: String) -> void:
+	player_room = start_slot
+	for r: AreaPlan.Room in area.plan.rooms:
+		states[r.slot_id] = RoomState.UNLOADED
+	_refresh_queue()
+	stats = {"frames": 0, "max_frame_ms": 0.0, "last_frame_ms": 0.0, "loads": 0, "unloads": 0, "rooms": {}}
+
+
 ## True while a room is being built or taken apart, or one is waiting to be built.
 func busy() -> bool:
 	return not queue.is_empty() or not _job.is_empty() or not _leaving.is_empty()
