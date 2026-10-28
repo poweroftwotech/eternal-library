@@ -339,8 +339,8 @@ func rebatch(parts: Array) -> Dictionary:
 	kit.name = "Kit"
 	kit.batch_on_ready = false
 	kit.render_layers = 2     # the gorge's light layer, as vista.gd's
-	kit.chunk_size = 128.0    # the busiest meshes culled per region (phase 6 step 6)
-	kit.chunk_min = 1500
+	kit.chunk_size = 128.0    # the busier meshes culled per region, distant regions on their LODs (phase 6 step 6; phase 8's budget check: 300, was 1500)
+	kit.chunk_min = 300
 	kit.detail_range = 110.0  # lamps, balusters, figures: near only
 	root.add_child(kit)
 	for part: String in parts:

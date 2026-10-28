@@ -463,3 +463,24 @@ Pictures, before and after: `previews/p8_mood/`.
 Verified: kit 6,348 checks, route 8, all passing; box art as before (the far depth band still waiting on your call). Pictures in `previews/p8_gate/`.
 - **Your next two reports:** the gate's colossus and its plinth now face the way the gate does, toward the Overlook (walked only; it was turned about 15 degrees off). The landing's edge "z-fighting" was the faience texture stretched over the 0.73 m fascia, its texels showing as big blocks. The fascia is now sandstone, and the landing reaches 4 cm past the balustrades' plinths.
 - **The span and aqueduct waterfalls** (your walk: still the old narrow ribbons) are the banks' great fall (`GreatFall`, 2.6 m wide, arcing 2 m out, no mist or light at their feet far down in the mist floor), on the walkable spans and links (`ChasmGrammar.build_room`) and on the baked aqueducts (`GorgeGrammar.aqueduct`). Their mouth is a spillway's: a Persian-stone channel twice as wide with low cheeks and water running out to the lip, on a stepped corbel, out of a dark culvert under a stone lintel in the arcade's face (`TROUGH`, `TROUGH_WATER`, `CULVERT`, new `kit/materials/culvert_dark.tres`). The old ribbon (`waterfall_mesh`, the bake's `waterfall` extra) is gone from the gorge; the camp's own view keeps its ribbons. Route 8, span 485, network 790 (worst plan 7.4 s), all passing; box art as before. Pictures in `previews/p8_falls/`.
+
+## Step 4: the budget check (2026-10-27, committed)
+
+Your call: the gorge, large and central, gets a less strict gate than the interiors; optimise it, but not at the cost of its look. Measured at six views (the box art, the span, the east ledge, down the chasm, the far end, back to the camp) at Medium and Ultra, 1080p, RTX 5090, vsync off.
+
+| | before | after |
+|---|---|---|
+| GPU, Medium (six views) | 2.36–2.91 ms | 1.84–2.62 ms |
+| Frame (wall), Medium | 3.24–3.59 ms | 2.51–3.31 ms |
+| Triangles in view | 5.4–7.9 M | 3.3–4.0 M |
+| Draw calls in view | 761–1,508 | 1,202–2,355 |
+
+- **The tier cores** (the stone inside every tier, behind the facades) were one box per cell: 579,000 triangles, all drawn again in both shadow cascades. Cells that meet are now merged into larger boxes (`PersianTown._merge_rects`): 21,700 triangles. Nothing of them is seen.
+- **The kit's batches** split by 128 m region from 300 instances a mesh, not 1,500, so more of the town is culled out of view and distant regions draw on their lower LODs. That trades triangles for draw calls (a finer split, 96 m from 150, cut triangles further but doubled draw calls and render CPU).
+- **The vault bounce's shadow reach** stays at 330 m: at 250 or 200 m it saved little GPU and changed the far banks' shading.
+- **Lights:** 247 in the gorge, the light budget turning on only the nearest; none dropped.
+- **The look:** the box-art view differs from the committed bake in 0.43% of pixels: the waterfalls' motion and a few far windows on their LODs. The box-art check passes.
+- **The gorge's budget line** in the F3 panel (`StatsOverlay.AREA_BUDGETS`): 2,600 draw calls and 4.5 M triangles a view, up from the interiors' 1,500 and 3 M.
+- **Base spec, estimated:** with the 4× GPU and 2× CPU factors (architecture.md 8.2), an RTX 3060 at Medium 1080p would take about 7.5–10.5 ms GPU and 5–7 ms CPU here: about 95–130 fps, comfortably over 60. That's an estimate, not a measurement.
+
+Verified: route 8 passing, the headless gate clean, box art passes.

@@ -16,6 +16,10 @@ const WINDOW_S: float = 2.0
 const BUDGET_DRAWS: int = 1500
 const BUDGET_TRIS: int = 3000000
 const BUDGET_VRAM_MB: float = 6144.0
+## Open areas' own budgets, [draws, triangles] (your call, phase 8's budget
+## check: the gorge is large and central, a less strict gate, measured at
+## Medium 1080p; optimised without losing its look).
+const AREA_BUDGETS: Dictionary = {"gorge": [2600, 4500000]}
 const OK_COLOUR := Color("cfc8b0")
 const OVER_COLOUR := Color("e8a14a")
 const HEAD_COLOUR := Color("dfbd7b")
@@ -149,8 +153,9 @@ func _update_text() -> void:
 	var draws: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME))
 	var tris: int = int(Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME))
 	var vram: float = Performance.get_monitor(Performance.RENDER_VIDEO_MEM_USED) / 1048576.0
-	_show("draws", "draw calls %d / %d · objects %d" % [draws, BUDGET_DRAWS, int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME))], draws > BUDGET_DRAWS)
-	_show("tris", "triangles %.0f k / %.0f k" % [tris / 1000.0, BUDGET_TRIS / 1000.0], tris > BUDGET_TRIS)
+	var budget: Array = AREA_BUDGETS.get(area.recipe.id if area != null and is_instance_valid(area) and area.recipe != null else "", [BUDGET_DRAWS, BUDGET_TRIS])
+	_show("draws", "draw calls %d / %d · objects %d" % [draws, budget[0], int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME))], draws > int(budget[0]))
+	_show("tris", "triangles %.0f k / %.0f k" % [tris / 1000.0, float(budget[1]) / 1000.0], tris > int(budget[1]))
 	_show("vram", "video memory %.0f / %.0f MB" % [vram, BUDGET_VRAM_MB], vram > BUDGET_VRAM_MB)
 	var st: AreaStreamer = area.streamer if area != null and is_instance_valid(area) else null
 	_stream_box.visible = st != null

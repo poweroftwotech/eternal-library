@@ -1647,6 +1647,7 @@ func _roof_life(t: int, r: Dictionary, above: Dictionary) -> void:
 ## Roofs on a tier's open cells, soffits where it overhangs the tier below,
 ## and its stone core (GorgeGrammar._tier's rules), but not behind an iwan.
 func _decks(t: int, frame: Transform3D, cells: Dictionary, storeys: int, above: Dictionary, below: Dictionary) -> void:
+	var rects: Array = []     # the core's cells: [lo, hi] in the tier's plan
 	for cell: Vector2i in cells:
 		var corners: Array[Vector3] = []
 		for k: Vector2 in [Vector2(.05, .05), Vector2(3.95, .05), Vector2(.05, 3.95), Vector2(3.95, 3.95)]:
@@ -1665,9 +1666,42 @@ func _decks(t: int, frame: Transform3D, cells: Dictionary, storeys: int, above: 
 		var inset: float = GorgeGrammar.CORE_INSET
 		var lo := Vector2(cell.x * BAY + (inset if not cells.has(cell + Vector2i(-1, 0)) else 0.0), cell.y * BAY + (inset if not cells.has(cell + Vector2i(0, -1)) else 0.0))
 		var hi := Vector2((cell.x + 1) * BAY - (inset if not cells.has(cell + Vector2i(1, 0)) else 0.0), (cell.y + 1) * BAY - (inset if not cells.has(cell + Vector2i(0, 1)) else 0.0))
-		var height: float = storeys * BAY - inset
+		rects.append([lo, hi])
+	# Cells that meet merged into larger boxes (the budget check: a box a cell
+	# was 48,000 boxes, drawn three times with the shadows); the faces between
+	# them were never seen.
+	var height: float = storeys * BAY - GorgeGrammar.CORE_INSET
+	for r: Array in _merge_rects(rects):
+		var lo: Vector2 = r[0]
+		var hi: Vector2 = r[1]
 		out.append({"stone": frame * Transform3D(Basis(), Vector3((lo.x + hi.x) * .5, height * .5, -(lo.y + hi.y) * .5)),
 			"size": Vector3(hi.x - lo.x, height, hi.y - lo.y), "material": "gorge_stone"})
+
+
+## Rectangles [lo, hi] merged where two share a whole edge: along x first
+## (same y extent, meeting), then along y (same x extent, meeting).
+static func _merge_rects(rects: Array) -> Array:
+	var merged: Array = rects.duplicate()
+	for axis: int in [0, 1]:
+		var other: int = 1 - axis
+		merged.sort_custom(func(a: Array, b: Array) -> bool:
+			if not is_equal_approx(a[0][other], b[0][other]):
+				return a[0][other] < b[0][other]
+			if not is_equal_approx(a[1][other], b[1][other]):
+				return a[1][other] < b[1][other]
+			return a[0][axis] < b[0][axis])
+		var out: Array = []
+		for r: Array in merged:
+			if not out.is_empty():
+				var last: Array = out[-1]
+				if is_equal_approx(last[0][other], r[0][other]) and is_equal_approx(last[1][other], r[1][other]) and is_equal_approx(last[1][axis], r[0][axis]):
+					var hi: Vector2 = last[1]
+					hi[axis] = r[1][axis]
+					out[-1] = [last[0], hi]
+					continue
+			out.append([r[0], r[1]])
+		merged = out
+	return merged
 
 
 # ---------------------------------------------------------- the camp's cliff
