@@ -8,8 +8,8 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 8 steps 1–3 committed** and bank 1's cost checked (64bf4b6). **Bank 2 committed** (c63c42b). **Banks 3 and 4 committed** with the new ornament ramp (further banks get more tiles, gardens and iwans), their iwans raised onto the high tiers (1b062ca). **Banks 5 and 6 committed** (d69cd0a): grand buildings, and clearings with domes and minarets mid-stack. **Bank 7 committed** (b9e6d2b). **Bank 8 committed**, the last bank, with your fly-by's four fixes: the sanctum rebuilt in the Persian look, aqueduct 3 landing on bank 5, fewer span lamps, nothing facing into the sanctum. The gorge's mood pass, the Overlook's gate and soffit and the new span waterfalls committed; then the budget (step 4). | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | Phase 8 complete: what next |
-| Phase 6 step 6 (the gorge clean-up) is folded into phase 8: the triangles in view and the frame testing are measured on the redesigned bank 1 | [Brief, phase 8](docs/environment/phase-8-approval.md) | Nothing |
+| **Phase 8 is complete** (last commit 0479835): all eight banks and the sanctum in the Persian look, the mood pass, the Overlook's gate and soffit, the new span waterfalls, and the budget check (the gorge has its own, less strict budget). Things to revisit in a later pass over the gorge are noted. | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md); [the gorge: for a later pass](docs/environment/gorge-later.md) | Choose what comes next |
+| The gorge clean-up pass (from phase 6 step 6), the overlapping link waterfalls and the far banks' missing clearings are noted for a later pass over the gorge | [The gorge: for a later pass](docs/environment/gorge-later.md) | Nothing for now |
 
 ## What's new
 
@@ -121,7 +121,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 | **5. Kit breadth** | More room types, mostly from data | ✅ Done 2026-10-25 |
 | **6. The Overlook and the Chasm Spans** | Walk out into the gorge: the Overlook, generated spans, doors into the library | Approved 2026-10-25 (Q2: rebuild from kit pieces); steps 1–4 committed (4bce7c1, 8f789de, b65d383, f90ee72; step 4 after three walks, 19 reports fixed); step 5 (thresholds) committed 4670712; step 6 (the gorge scenery clean-up pass) started 2026-10-26 with a fly mode (V) for reporting |
 | **7. The camp from kit pieces** | The Reading Garden camp rebuilt from kit pieces: same look, faster, editable, with its door to the gorge | Approved 2026-10-26 as recommended ([brief](docs/environment/camp-rebuild-approval.md)); step 1 (the hearth corner) settled; step 2 (the whole camp baked) approved after two walks; step 3 (gameplay moved, the game starts there) walked, 3 reports fixed; step 4 (the door to the Gorge, the old camp retired) built; all committed 9e1346a: **complete** |
-| **8. The gorge redesigned** | Direction C: a Persian hill town with carved rooms round a few monuments, great falls, gardens by light; a reusable Persian kit | Approved 2026-10-26 as recommended ([brief](docs/environment/phase-8-approval.md)); step 1 (the Persian kit), step 2 (bank 1, six walks) and step 3 (the camp's front, four walks) committed b58f86c 2026-10-27; the cost check on bank 1 done; the other banks next, then step 4 (the budget check) |
+| **8. The gorge redesigned** | Direction C: a Persian hill town with carved rooms round a few monuments, great falls, gardens by light; a reusable Persian kit | ✅ Done 2026-10-27 (0479835); a later pass noted in [the gorge: for a later pass](docs/environment/gorge-later.md) |
 
 ## 10. Roadmap (each phase is a playable slice)
 
@@ -157,6 +157,7 @@ relevant, the route audit and the two-process persistence test.
 | [Phase 6 design](docs/environment/phase-6-design.md) | Technical detail behind the brief (§5.7) | Optional |
 | [Phase 8 approval brief](docs/environment/phase-8-approval.md) | Plain-language: the gorge redesigned, the steps, your answers | Approved; reference |
 | [Phase 8 design](docs/environment/phase-8-design.md) | Technical detail behind the brief (§8.1–8.7) | Optional |
+| [The gorge: for a later pass](docs/environment/gorge-later.md) | What to revisit in the next pass over the gorge | Before that pass |
 | Progress logs in `docs/environment/progress/` | What was built, how it was verified, caveats: [phase 0](docs/environment/progress/phase-0-kit.md), [phase 1](docs/environment/progress/phase-1-reading-room.md), [R01 weathering](docs/environment/progress/r01-weathering.md), [R01 polish](docs/environment/progress/r01-polish.md), [phase 2](docs/environment/progress/phase-2-stack-gallery.md), [phase 3](docs/environment/progress/phase-3-props.md), [phase 4](docs/environment/progress/phase-4-areas.md), [phase 5](docs/environment/progress/phase-5-kit-breadth.md), [phase 6](docs/environment/progress/phase-6-overlook.md), [phase 7](docs/environment/progress/phase-7-camp.md), [phase 8](docs/environment/progress/phase-8-gorge-redesign.md) | When you want the detail of a finished step |
 
 Room types and their mocks are in `design/room-atlas.html`. The look is in
