@@ -60,6 +60,8 @@ static var skip_sanctum_tiers: bool = false
 ## stair's side walls and landing, vista_foreground.gd; the cliff face's foot,
 ## vista_cliff.gd).
 static var walkable_overlook: bool = false
+## Walked, lumen crystals hang from the Overlook's mirror soffit here.
+const OVERLOOK_CRYSTALS: Array[Vector3] = [Vector3(-4.0, 7.0, -24.0), Vector3(-1.0, 6.6, -24.0), Vector3(2.0, 7.0, -24.0)]
 ## Walked, the balcony's front parapet stops for the stair from x .x to .y
 ## (where the stair's own parapets cross its line; the stair arrives on the
 ## camp door's line).
@@ -370,9 +372,21 @@ func balcony_details() -> void:
 			fluted_column(Vector3(x,2.3,z),.35,5.8)
 			panel(Vector3(x-side*.04,5.8,z+.36),Vector2(.75,1.15),"wing_relief")
 	# Decorated soffit, physically attached to the canopy. No sky above the player.
+	# Walked, the iwans' mirror mosaic (aineh-kari) with lumen crystals hung
+	# from it on brass rods (your walk, 2026-10-27).
+	var soffit: String = "exterior_faience"
+	if walkable_overlook:
+		soffit = "persian_mirror"
+		for kit_mat in ["persian_mirror","emit_lumen","brass"]:
+			art.materials[kit_mat] = load("res://kit/materials/%s.tres" % kit_mat)
 	for x in range(-6,5,2):
 		for z in [-22.0,-24.0,-26.0]:
-			block(Vector3(x,8.43,z),Vector3(1.8,.07,1.8),"exterior_faience")
+			block(Vector3(x,8.43,z),Vector3(1.8,.07,1.8),soffit)
+	if walkable_overlook:
+		for at in OVERLOOK_CRYSTALS:
+			art.cylinder(at+Vector3(0,(8.4-at.y)*.5,0),.025,8.4-at.y,art.mat("brass"))
+			art.mesh_node(crystal_mesh(.9),at,art.mat("emit_lumen"))
+			world.light(at+Vector3(0,-.3,0),Color(1.0,.93,.78),1.2,8)
 	for x in [-6.4,4.4]:
 		world.light(Vector3(x,5.7,-26.3),Color("ffd09b"),2.5,9)
 	# A few hanging leaves frame the city without blocking the route.
@@ -1175,3 +1189,21 @@ func weather_edge(a: Vector3, b: Vector3, normal: Vector3) -> void:
 	if hash01(a*.37)<MOSS_CHANCE:
 		var mid: Vector3 = (a+b)*.5
 		art.batch_box("gorge_moss",mid-normal*.25+Vector3.UP*.17,Vector3(length*.8,.06,.3),art.mat("moss"),yaw)
+
+## A lumen crystal (as the lumen stone's gem): an octahedron `size` tall,
+## longer up and down than across.
+func crystal_mesh(size: float) -> ArrayMesh:
+	var s: float = size * .5
+	var tips: Array[Vector3] = [Vector3(0, s, 0), Vector3(0, -s, 0)]
+	var ring: Array[Vector3] = [Vector3(s * .55, 0, 0), Vector3(0, 0, s * .55), Vector3(-s * .55, 0, 0), Vector3(0, 0, -s * .55)]
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for i: int in 4:
+		var a: Vector3 = ring[i]
+		var b: Vector3 = ring[(i + 1) % 4]
+		for tri: Array in [[tips[0], b, a], [tips[1], a, b]]:
+			for v: Vector3 in tri:
+				st.set_uv(Vector2(v.x + v.z, v.y) / size + Vector2(.5, .5))
+				st.add_vertex(v)
+	st.generate_normals()
+	return st.commit()

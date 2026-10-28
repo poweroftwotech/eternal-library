@@ -86,12 +86,29 @@ const COURSE: float = 1.0
 ## [centre, size] (a floor and two cheeks), where the fall hangs from (in the
 ## trough, between the cheeks) and its width there (it spreads by half as it
 ## falls). Also the baked aqueducts' (GorgeGrammar.aqueduct).
-const TROUGH_OUT: float = 1.4
-const TROUGH: Array = [[Vector3(0, -.85, TROUGH_OUT * .5), Vector3(1.5, .3, TROUGH_OUT)],
-	[Vector3(-.675, -.525, TROUGH_OUT * .5), Vector3(.15, .35, TROUGH_OUT)],
-	[Vector3(.675, -.525, TROUGH_OUT * .5), Vector3(.15, .35, TROUGH_OUT)]]
-const FALL_FROM: Vector3 = Vector3(0, -.62, TROUGH_OUT - .3)
-const FALL_WIDTH: float = 1.2
+## Since your walk (2026-10-27: the old narrow ribbons) the banks' great fall
+## (GreatFall) from a spillway's mouth (persian_spillway): a stone channel
+## with low cheeks and its water running out to the lip, on a stepped corbel
+## in the arcade's face.
+const TROUGH_OUT: float = 1.6
+const TROUGH: Array = [[Vector3(0, -.85, TROUGH_OUT * .5), Vector3(3.0, .3, TROUGH_OUT)],
+	[Vector3(-1.425, -.55, TROUGH_OUT * .5), Vector3(.15, .3, TROUGH_OUT)],
+	[Vector3(1.425, -.55, TROUGH_OUT * .5), Vector3(.15, .3, TROUGH_OUT)],
+	[Vector3(0, -1.2, TROUGH_OUT * .35), Vector3(2.6, .4, TROUGH_OUT * .7)],
+	[Vector3(0, -1.6, TROUGH_OUT * .2), Vector3(2.0, .4, TROUGH_OUT * .4)],
+	[Vector3(0, .02, .15), Vector3(3.0, .22, .3)]]     # the lintel over the culvert
+const TROUGH_MATERIAL: String = "res://kit/materials/persian_stone.tres"
+## The culvert the water runs out of, dark in the arcade's face over the
+## channel (your walk: the water came from nowhere).
+const CULVERT: Array = [Vector3(0, -.38, .01), Vector3(2.7, .6, .04)]
+const CULVERT_MATERIAL: String = "res://kit/materials/culvert_dark.tres"
+## The water on the channel's floor (its top at -0.7), in the trough's frame:
+## centre and size (x, z).
+const TROUGH_WATER: Array = [Vector3(0, -.62, TROUGH_OUT * .5), Vector2(2.7, TROUGH_OUT)]
+## The fall hangs from the lip (the channel floor's front edge).
+const FALL_FROM: Vector3 = Vector3(0, -.66, TROUGH_OUT)
+const FALL_WIDTH: float = 2.6
+const FALL_ARC: float = 2.0
 const UPPER_H: float = 12.0
 const LOWER_H: float = 20.6        # 0.6 m faience course and the 20 m arcade
 const ARCADE_HALF: float = 1.6     # the upper arcade's half width
@@ -587,25 +604,38 @@ static func build_room(span: Dictionary) -> RoomTemplate:
 		stone.append({"at": p["at"], "size": p["size"], "turn": 0.0, "mat": "gorge_sandstone"})
 	stone.append_array(_newels(room, span, scenes))
 	ChasmMasonry.build(room, span, stone)
-	var water: Shader = load("res://shaders/waterfall.gdshader")
 	for i: int in (span["falls"] as Array).size():
 		var f: Dictionary = span["falls"][i]
-		var material := ShaderMaterial.new()
-		material.shader = water
-		material.set_shader_parameter("seed", float(i + 1) * 7.13)
-		# The ribbon from the trough, its width along the run, bending out
-		# over the gorge away from the arcade.
-		var fall := _mesh(room, "waterfall_%d" % i, waterfall_mesh(f["size"]), material)
+		# The banks' great fall from the trough's lip, its sheet along the run,
+		# arcing out over the gorge; no mist or light at its foot, far down in
+		# the mist floor.
+		var fall := GreatFall.new()
+		fall.name = "waterfall_%d" % i
+		fall.width = FALL_WIDTH
+		fall.height = (f["size"] as Vector2).y
+		fall.arc_out = FALL_ARC
+		fall.mist = false
+		fall.seed_value = float(i + 1) * 7.13
 		fall.transform = (f["xf"] as Transform3D).translated_local(FALL_FROM)
-		fall.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		room.add_child(fall)
 	var troughs := SurfaceTool.new()
+	var waters := SurfaceTool.new()
+	var culverts := SurfaceTool.new()
 	for f: Dictionary in span["falls"]:
+		var hole := BoxMesh.new()
+		hole.size = CULVERT[1]
+		culverts.append_from(hole, 0, (f["xf"] as Transform3D).translated_local(CULVERT[0]))
 		for s: Array in TROUGH:
 			var box := BoxMesh.new()
 			box.size = s[1]
 			troughs.append_from(box, 0, (f["xf"] as Transform3D).translated_local(s[0]))
+		var plane := PlaneMesh.new()
+		plane.size = TROUGH_WATER[1]
+		waters.append_from(plane, 0, (f["xf"] as Transform3D).translated_local(TROUGH_WATER[0]))
 	if not (span["falls"] as Array).is_empty():
-		_mesh(room, "troughs", troughs.commit(), load("res://kit/materials/gorge_sandstone.tres"))
+		_mesh(room, "troughs", troughs.commit(), load(TROUGH_MATERIAL))
+		_mesh(room, "culverts", culverts.commit(), load(CULVERT_MATERIAL)).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
+		_mesh(room, "trough_water", waters.commit(), load("res://kit/materials/cistern_water.tres")).cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	var holder := Node3D.new()
 	holder.name = "Connectors"
 	room.add_child(holder)
@@ -677,20 +707,3 @@ static func _mesh(room: Node, name: String, mesh: Mesh, material: Material) -> M
 	room.add_child(mi)
 	return mi
 
-
-## The scenery's waterfall ribbon (vista.gd waterfall): two bent layers that
-## spread toward the foot, `size` (width, drop), hanging from the origin, its
-## bend toward +Z.
-static func waterfall_mesh(size: Vector2) -> ArrayMesh:
-	var surface := SurfaceTool.new()
-	surface.begin(Mesh.PRIMITIVE_TRIANGLES)
-	for layer: int in 2:
-		for y: int in 28:
-			for x: int in 10:
-				for corner: Vector2i in [Vector2i(0, 0), Vector2i(1, 0), Vector2i(0, 1), Vector2i(1, 0), Vector2i(1, 1), Vector2i(0, 1)]:
-					var uv := Vector2(float(x + corner.x) / 10, float(y + corner.y) / 28)
-					var spread: float = 1 + pow(uv.y, 3) * .5
-					surface.set_uv(uv)
-					surface.set_normal(Vector3.FORWARD)
-					surface.add_vertex(Vector3((uv.x - .5) * size.x * spread, -uv.y * size.y, sin(uv.y * 4) * 2.7 + pow(uv.y, 2) * 5 + layer * .55))
-	return surface.commit()

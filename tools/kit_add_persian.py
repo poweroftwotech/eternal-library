@@ -39,6 +39,7 @@ from the storey's floor. Free pieces stand on their origin.
   carved
     persian_carved_door[_dark]            edge: a door cut in a dressed panel
     persian_carved_window[_dark]          edge: a window cut in the rock
+    persian_iwan_door                     edge: the tier iwan with a door, no spring
     persian_iwan_great                    free: a 10 m iwan cut into the cliff,
                                           mirror-lined hood, relief, spring
     persian_rock_path                     edge: a rock-cut ledge path
@@ -694,8 +695,8 @@ def stair_pier(r):
     solid(name + "__sill", r, [STONE], lambda bm: front_box(bm, 2.0 - half - 0.12, 2.0 + half + 0.12, -1.92, -1.35, foot - 0.1, foot))
 
 
-def iwan_tier_of(storeys):
-    return lambda r: iwan_tier(r, storeys)
+def iwan_tier_of(storeys, door=False):
+    return lambda r: iwan_tier(r, storeys, door)
 
 
 # Per storeys: the arch (half, spring, rise), the columns' height, the relief's
@@ -704,7 +705,7 @@ def iwan_tier_of(storeys):
 IWAN_SIZES = {3: ((3.0, 4.6, 4.4), 7.6, 4.4, 6.8), 2: ((2.8, 3.0, 3.0), 5.2, 2.9, 4.9)}
 
 
-def iwan_tier(r, storeys=3):
+def iwan_tier(r, storeys=3, door=False):
     """An iwan cut into a tier of rock, 8 m wide and 12 tall (two bays,
     three storeys): the hood 3.5 m deep (inside the bays' own cells), lined
     with mirror mosaic, a relief at the back, carved columns, a spring in a
@@ -712,7 +713,9 @@ def iwan_tier(r, storeys=3):
     Its front is a pishtaq (your walk: it still read as bare rock): a tiled
     field round the arch, a stone ring and frame, a banai band near the top;
     inside, the hood's walls and back are the monument's brick. The
-    two-storey one (persian_iwan_tier2) is the same 8 m tall."""
+    two-storey one (persian_iwan_tier2) is the same 8 m tall. With `door`
+    (persian_iwan_door: the gates cut in the gorge's rock, your walk) a timber
+    door in a stone ring at the back under the relief, no spring."""
     name = r.name[2:]
     (half, spring, rise), col_h, rel_lo, rel_hi = IWAN_SIZES[storeys]
     foot = 0.0
@@ -743,6 +746,20 @@ def iwan_tier(r, storeys=3):
             add_box(bm, x, x + 0.5, -0.3, 0.0, 0.0, col_h)
             add_box(bm, x - 0.1, x + 0.6, -0.42, 0.0, col_h, col_h + 0.35)
     solid(name + "__columns", r, [STONE], columns)
+    if door:
+        # The door under the relief (its frame's foot rel_lo - 0.2): two timber
+        # leaves in a pointed stone ring, brass bands, a step before it.
+        dh, ds, dr = 1.3, 2.5, 1.0
+        arch_face(r, name + "__door", WOOD, dh, 0.0, ds, dr, 3.4, cx=4.0, n=10)
+        solid(name + "__door_ring", r, [STONE], lambda bm: arch_band(bm, pointed(dh + 0.25, ds, dr + 0.25, 10), pointed(dh, ds, dr, 10), 4.0, 0.0, 3.2, 3.42))
+
+        def bands(bm):
+            for z in (0.7, 1.6, 2.4):
+                add_box(bm, 4.0 - dh + 0.05, 4.0 + dh - 0.05, 3.32, 3.38, z, z + 0.12)
+            add_box(bm, 3.96, 4.04, 3.32, 3.38, 0.0, ds + dr - 0.15)
+        solid(name + "__door_bands", r, ["brass"], bands)
+        solid(name + "__step-col", r, [STONE], lambda bm: add_box(bm, 2.4, 5.6, 2.6, 3.4, 0.0, 0.16))
+        return
     solid(name + "__basin-col", r, [STONE], lambda bm: add_box(bm, 2.6, 5.4, 2.3, 3.5, 0.0, 0.5))
     bm = bmesh.new()
     for (x0, x1, y0, y1, z) in ((2.75, 5.25, 2.45, 3.45, 0.44), (3.75, 4.25, -0.6, 2.3, 0.04)):
@@ -1078,6 +1095,7 @@ MODULES = WALL_SET + [
     ("M_persian_stair_landing", props("edge", [1, 1, 0], "none", "scenery,persian,vertical,stair"), stair_landing),
     ("M_persian_iwan_tier", props("edge", [2, 3, 0], "solid", "scenery,persian,carved,iwan,water"), iwan_tier_of(3)),
     ("M_persian_iwan_tier2", props("edge", [2, 2, 0], "solid", "scenery,persian,carved,iwan,water"), iwan_tier_of(2)),
+    ("M_persian_iwan_door", props("edge", [2, 3, 0], "solid", "scenery,persian,carved,iwan,door"), iwan_tier_of(3, True)),
 ]
 
 KIT_REV = 7     # rev 7: hidden faces left out of walls and arch crowns, fewer cornice brackets (the cost check; every module rebuilt)
@@ -1091,6 +1109,7 @@ REVS["M_persian_glowmoss"] = 8     # rev 8: fungal vines in place of the moss's 
 REVS["M_persian_stair_landing"] = 8     # new: a stair ending at a door
 REVS["M_persian_iwan_tier2"] = 8     # new: the iwan two storeys tall (bank 2)
 REVS["M_persian_dome_small"] = 8     # new: the grand buildings' domes (bank 5)
+REVS["M_persian_iwan_door"] = 8     # new: the gorge's rock-cut gates (your walk, 2026-10-27)
 
 
 

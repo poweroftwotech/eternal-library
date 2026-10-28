@@ -431,10 +431,13 @@ func aqueduct(a: Vector3, b: Vector3, falls: Array[int], gates: Array = [true, t
 			# From a trough on the arcade's face (ChasmGrammar.TROUGH; walked:
 			# through the arch it fell through the lower arcade's course).
 			var face := Transform3D(level, Vector3(start.x, top, start.z) + flat * span * .5 + across * ChasmGrammar.ARCADE_HALF)
-			var from: Vector3 = face * ChasmGrammar.FALL_FROM
-			out.append({"waterfall": from, "size": Vector2(ChasmGrammar.FALL_WIDTH, from.y + 90.0), "basis": level})
+			# The banks' great fall from it (your walk, 2026-10-27), as the spans'.
+			var lip: Transform3D = face.translated_local(ChasmGrammar.FALL_FROM)
+			out.append({"fall": lip, "width": ChasmGrammar.FALL_WIDTH, "height": lip.origin.y + 90.0, "arc": ChasmGrammar.FALL_ARC, "mist": false})
 			for stone: Array in ChasmGrammar.TROUGH:
-				out.append({"stone": face.translated_local(stone[0]), "size": stone[1]})
+				out.append({"stone": face.translated_local(stone[0]), "size": stone[1], "stone_material": ChasmGrammar.TROUGH_MATERIAL})
+			out.append({"trough_water": face.translated_local(ChasmGrammar.TROUGH_WATER[0]), "size": ChasmGrammar.TROUGH_WATER[1]})
+			out.append({"stone": face.translated_local(ChasmGrammar.CULVERT[0]), "size": ChasmGrammar.CULVERT[1], "stone_material": ChasmGrammar.CULVERT_MATERIAL})
 	# A gatehouse at each end facing back along the deck, its door a pishtaq
 	# (fly-mode walk: the decks ran into the banks' walls), set GATE_BACK back
 	# from the end into the bank, so the deck arrives on its landing; none

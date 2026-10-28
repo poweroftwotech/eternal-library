@@ -88,6 +88,10 @@ func colossi() -> void:
 			var sill := Vector3(base.x, GATE_SILL, base.z) + toward * PIER_RADIUS * GATE_DEPTH
 			cut = Cavern.quarry(sill, toward, COLOSSUS_FLOOR - .8)
 			cavern.portal(sill, toward, "vista_colossus")
+			# Walked, it and its plinth face as the gate below does (your walk,
+			# 2026-10-27: turned 15 degrees off it); the camp's view keeps its turn.
+			if vista.get_script().walkable_overlook:
+				yaw = atan2(toward.x, toward.z)
 		# The gate's colossus stands on its rock pier; the other on its masonry
 		# pedestal alone (the pier's rock reached out to the flight beside it).
 		if i == GATE_COLOSSUS:

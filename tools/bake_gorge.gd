@@ -13,7 +13,7 @@ extends SceneTree
 ##       lamps), the aqueducts' waterfalls and bank 4's rotunda, merged by
 ##       material as the camp merges its own;
 ##   rooms/baked/gorge/environment.tres
-##       the camp's environment (fog, glow, grade), so the view matches;
+##       the camp's environment (fog, glow, grade) with the gorge's MOOD over it;
 ##   rooms/baked/gorge.tscn
 ##       the scene the Gorge area adds: the environment, the generated part,
 ##       the kit parts under a KitBatcher (drawn in batches when it loads), and
@@ -53,7 +53,7 @@ func run() -> void:
 			hidden[k] = true
 	DirAccess.make_dir_recursive_absolute(OUT_DIR)
 	DirAccess.make_dir_recursive_absolute(ROOT_ROOM.get_base_dir())
-	var environment: Environment = camp_environment()
+	var environment: Environment = gorge_mood(camp_environment())
 	ResourceSaver.save(environment, OUT_DIR + "environment.tres")
 	# The kit parts.
 	var layout: GorgeLayout = load(LAYOUT)
@@ -113,6 +113,73 @@ func camp_environment() -> Environment:
 	var environment: Environment = env.environment.duplicate(true)
 	camp.free()
 	return environment
+
+
+## The gorge's own mood over the camp's environment (your call, 2026-10-27:
+## see further down the chasm, and more contrast between lit and unlit, an
+## "HDR" look without more bloom or black shadows). The camp keeps its own.
+const MOOD: Dictionary = {
+	"fog_density": 0.0009,              # camp 0.0012
+	"fog_height_density": 0.007,        # camp 0.015: the white floor 60 m down
+	"volumetric_fog_density": 0.002,    # camp 0.003
+	"volumetric_fog_ambient_inject": 0.12,   # camp 0.22: unlit haze darker
+	"ambient_light_energy": 0.09,       # camp 0.22: shadows darker (0.13 at the first look)
+	"ssao_intensity": 2.6,              # camp 2.2
+	"tonemap_exposure": 1.08,           # camp 0.97: lit faces brighter
+	"adjustment_contrast": 1.16,        # camp 1.06
+	"glow_hdr_threshold": 1.05,         # camp 0.95: no more bloom for the brighter lights
+	"sdfgi_energy": 0.75,               # camp 1.0: less even bounce into the shade
+}
+## The mist volumes (vista.gd mist) are this much thinner in the gorge, and
+## the low mist floor (Cavern, GorgeMistFloor) sits this much lower.
+const MIST_SCALE: float = 0.55
+const MIST_DROP: float = 20.0
+## The light: the vault's even bounce weaker; local lights (lamps, lumen
+## stones, fungus glow: reach under LOCAL_REACH) brighter, the big fill
+## lights (mist, rims) dimmer; both more so by the camp, banks 1 to 4 (your
+## second look: more contrast there, the far banks' natural light about as it
+## was); and the far end of the sightline (the far hall, the sanctum's key,
+## past FAR_Z) brighter: it is the view's focal glow.
+const BOUNCE_SCALE: float = 0.6
+const LOCAL_REACH: float = 40.0
+const NEAR_Z: float = -185.0
+const NEAR_LOCAL: float = 1.6
+const NEAR_FILL: float = 0.6
+## Fill lights above this (the vault's rims) keep their light: the rock overhead
+## is the box art's.
+const RIM_Y: float = 20.0
+const FAR_LOCAL: float = 1.25
+const FAR_FILL: float = 1.0
+const FAR_Z: float = -205.0
+const FAR_SCALE: float = 1.3
+
+
+func gorge_mood(environment: Environment) -> Environment:
+	for k: String in MOOD:
+		environment.set(k, MOOD[k])
+	return environment
+
+
+## The mood's mist and light under `node` (the generated part's).
+func gorge_mood_lights(node: Node) -> void:
+	for fog: Node in node.find_children("*", "FogVolume", true, false):
+		var m: FogMaterial = (fog as FogVolume).material as FogMaterial
+		if m != null:
+			m.density *= MIST_SCALE
+		if fog.name == "GorgeMistFloor":
+			(fog as FogVolume).position.y -= MIST_DROP
+	for n: Node in node.find_children("*", "Light3D", true, false):
+		var l: Light3D = n as Light3D
+		var reach: float = (l as OmniLight3D).omni_range if l is OmniLight3D else ((l as SpotLight3D).spot_range if l is SpotLight3D else INF)
+		var near: bool = l.global_position.z > NEAR_Z
+		if l is DirectionalLight3D:
+			l.light_energy *= BOUNCE_SCALE
+		elif l.global_position.z < FAR_Z and reach >= 90.0:
+			l.light_energy *= FAR_SCALE
+		elif reach < LOCAL_REACH:
+			l.light_energy *= NEAR_LOCAL if near else FAR_LOCAL
+		else:
+			l.light_energy *= NEAR_FILL if near and l.global_position.y < RIM_Y else FAR_FILL
 
 
 ## One part's kit pieces as their own scene; collects its generated extras
@@ -194,26 +261,32 @@ func generate(layout: GorgeLayout, extras: Array[Dictionary], lamps: PackedVecto
 			shaft.haze = p.get("haze", 0.14)     # the gallery's 0.035 default barely showed at gorge distances
 			owner.add_child(shaft)
 			shaft.position = p["shaft"]
-		elif p.has("waterfall"):
-			vista.waterfall(p["waterfall"], p["size"], false, p.get("basis", Basis()))
 		elif p.has("material"):   # a tier's core (GorgeGrammar): its own node, below
 			if not cores.has(p["material"]):
 				cores[p["material"]] = []
 			(cores[p["material"]] as Array).append(p)
 		elif p.has("stone"):      # a waterfall's trough (ChasmGrammar.TROUGH), merged with the rest
-			owner.art.box(Vector3.ZERO, p["size"], load("res://kit/materials/gorge_sandstone.tres")).transform = p["stone"]
+			owner.art.box(Vector3.ZERO, p["size"], load(p.get("stone_material", "res://kit/materials/gorge_sandstone.tres"))).transform = p["stone"]
+		elif p.has("trough_water"):     # the water running out along it to the lip
+			var water := PlaneMesh.new()
+			water.size = p["size"]
+			var plane: MeshInstance3D = owner.art.mesh_node(water, Vector3.ZERO, load("res://kit/materials/cistern_water.tres"))
+			plane.transform = p["trough_water"]
+			plane.set_meta("dynamic", true)     # its own material, not merged
 		elif p.has("rotunda"):
 			vista.rotunda(p["rotunda"], p["radius"], p["height"])
 		elif p.has("light"):
 			owner.light(p["light"], p["color"], p["energy"], p["range"])
+	gorge_mood_lights(owner)
 	owner.art.render_layer = 1
 	owner.art.flush_batches()
 	owner.art.merge_static_geometry()
 	await process_frame
 	# The merge hides what it merged; those copies aren't needed in the bake.
-	for n: Node in owner.find_children("*", "MeshInstance3D", true, false):
-		if not (n as MeshInstance3D).visible:
-			n.free()
+	var merged: Array = owner.find_children("*", "MeshInstance3D", true, false).filter(func(m: Node) -> bool: return not (m as MeshInstance3D).visible)
+	for i: int in merged.size():
+		if is_instance_valid(merged[i]):     # nested ones (a kit piece's) went with their parent
+			(merged[i] as Node).free()
 	owner.add_child(tier_cores(cores))
 	# A plain node: the host's script isn't wanted in the saved scene.
 	var out := Node3D.new()

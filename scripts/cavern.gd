@@ -21,6 +21,10 @@ const SIGHTLINE_X: float = 20.0      # keep the throat centre open toward the sa
 const SANCTUM: Vector3 = Vector3(8, 0, -256)
 const PORTAL_WIDTH: float = 10.0
 const PORTAL_HEIGHT: float = 12.0
+## The walked gorge's gates: the kit iwan with a door, its front this far out
+## from the quarried face (its block 3.9 m deep).
+const GATE_IWAN: String = "res://kit/modules/persian/persian_iwan_door.tscn"
+const GATE_IWAN_DEPTH: float = 3.9
 const PORTAL_LIGHT_ENERGY: float = 6.0
 ## Rock-cut gates in the throat spurs open off bank top decks, where the spurs
 ## rise clear of the buildings: [spur centre x, z, spur radius, sill y, facing
@@ -270,41 +274,6 @@ func build_spurs(surface: SurfaceTool) -> void:
 		var tip: float = maxf(maxf(floor_at(x, z), MIN_TIP), top - rng.randf_range(16.0, 26.0))
 		hang(surface, Vector3(x, top, z), rng.randf_range(5.0, 9.0), top - tip, .55)
 
-## The gate dressed as a pishtaq (fly-mode walk, 2026-10-26: "a proper arch
-## with pishtaq and door"): a tiled field round the opening on the frame's
-## face, a stone border and cornice round it, and in the opening a pair of
-## wooden doors, iron-banded, the lamplit tunnel glowing over them as a
-## fanlight. In the frame's own space (x along 0..PORTAL_WIDTH, y -PORTAL_HEIGHT
-## at the sill to 0, +z out: its face is at z 2).
-func pishtaq(frame: MeshInstance3D) -> void:
-	var w: float = PORTAL_WIDTH
-	var h: float = PORTAL_HEIGHT
-	var pier: float = 2.5
-	var bay: PackedVector2Array = vista.arch_bay(w, h, pier, true)
-	var opening: PackedVector2Array = bay.slice(1, bay.size() - 3)     # its foot, up the arch, down to the other foot
-	var spring: float = opening[1].y
-	var field := PackedVector2Array([Vector2(.7, -h)])
-	field.append_array(opening)
-	field.append_array([Vector2(w - .7, -h), Vector2(w - .7, -.9), Vector2(.7, -.9)])
-	_on_frame(frame, field, 2.0, 2.2, "exterior_faience")
-	for r: Rect2 in [Rect2(0, -h, .7, h), Rect2(w - .7, -h, .7, h), Rect2(0, -.9, w, .9)]:
-		_on_frame(frame, _rect(r), 2.0, 2.5, "sandstone")                    # the border
-	_on_frame(frame, _rect(Rect2(-.3, 0, w + .6, .5)), 2.0, 2.8, "sandstone")   # cornice
-	_on_frame(frame, _rect(Rect2(pier, -h, w - 2 * pier, spring + h)), .4, .5, "wood")      # the doors
-	for r: Rect2 in [Rect2(pier, spring - .15, w - 2 * pier, .2), Rect2(w * .5 - .06, -h, .12, spring + h)]:
-		_on_frame(frame, _rect(r), .5, .62, "wood")                          # transom, where the leaves meet
-	for y: float in [1.4, 3.6, 5.6]:
-		_on_frame(frame, _rect(Rect2(pier, -h + y, w - 2 * pier, .15)), .5, .56, "brass")   # bands
-
-
-func _on_frame(frame: MeshInstance3D, outline: PackedVector2Array, z0: float, z1: float, material: String) -> void:
-	var part: MeshInstance3D = art.extrude(outline, z1 - z0, art.mat(material), Vector3.ZERO)
-	part.transform = frame.transform * Transform3D(Basis(), Vector3(0, 0, (z0 + z1) * .5))
-
-
-static func _rect(r: Rect2) -> PackedVector2Array:
-	return PackedVector2Array([r.position, Vector2(r.end.x, r.position.y), r.end, Vector2(r.position.x, r.end.y)])
-
 
 ## How much wider than its rock a quarried pillar's drum is (the rock's
 ## ring wanders and bulges by about a third).
@@ -373,18 +342,38 @@ func portal(sill: Vector3, normal: Vector3, stone: String = "limestone") -> void
 	vista.portal_count += 1
 	var along: Vector3 = Vector3.UP.cross(normal)
 	var yaw: float = atan2(normal.x, normal.z)
-	# Pointed opening in a frame 4 m deep, half of it proud of the rock.
-	var frame: MeshInstance3D = art.extrude(vista.arch_bay(PORTAL_WIDTH, PORTAL_HEIGHT, 2.5, true), 4.0, art.mat(stone), sill + Vector3(0, PORTAL_HEIGHT, 0) - along * PORTAL_WIDTH * .5)
-	frame.basis = Basis(along, Vector3.UP, along.cross(Vector3.UP))
-	# Warm lamplit tunnel: just in front of the quarried face, recessed 1.7 m
-	# inside the frame's reveal.
-	var glow := QuadMesh.new()
-	glow.size = Vector2(PORTAL_WIDTH - 5.0, PORTAL_HEIGHT - 1.6)
-	var inner: MeshInstance3D = art.mesh_node(glow, sill + normal * .3 + Vector3(0, glow.size.y * .5, 0), art.mat("gorge_portal"))
-	inner.rotation.y = yaw
-	if vista.get_script().walkable_overlook:
-		pishtaq(frame)
+	var walked: bool = vista.get_script().walkable_overlook
+	if walked:
+		# The banks' iwan with a door (persian_iwan_door; your walk, 2026-10-27:
+		# the old gate in the town's place), its back on the quarried face, so
+		# its hood (3.5 m) is clear of the rock.
+		# Its meshes copied out as plain nodes on the gorge's light layer (2, as
+		# the kit's pieces): saved as an instance, the layer went back to the
+		# piece's own and the gate's light (2 | 4) missed it.
+		var piece: Node3D = (load(GATE_IWAN) as PackedScene).instantiate()
+		# The kit piece opens toward its +Z, its x from 0 to 8.
+		var at := Transform3D(Basis(along, Vector3.UP, normal), sill + normal * GATE_IWAN_DEPTH - along * 4.0)
+		var iwan := Node3D.new()
+		iwan.name = "GateIwan"
+		iwan.set_meta("dynamic", true)     # its materials are its meshes': not for the factory's merge
+		world.add_child(iwan)
+		for m: Node in piece.find_children("*", "MeshInstance3D", true, false):
+			var copy := MeshInstance3D.new()
+			copy.mesh = (m as MeshInstance3D).mesh
+			copy.transform = at * _under(piece, m as Node3D)
+			copy.layers = 2
+			iwan.add_child(copy)
+		piece.free()
 	else:
+		# Pointed opening in a frame 4 m deep, half of it proud of the rock.
+		var frame: MeshInstance3D = art.extrude(vista.arch_bay(PORTAL_WIDTH, PORTAL_HEIGHT, 2.5, true), 4.0, art.mat(stone), sill + Vector3(0, PORTAL_HEIGHT, 0) - along * PORTAL_WIDTH * .5)
+		frame.basis = Basis(along, Vector3.UP, along.cross(Vector3.UP))
+		# Warm lamplit tunnel: just in front of the quarried face, recessed 1.7 m
+		# inside the frame's reveal.
+		var glow := QuadMesh.new()
+		glow.size = Vector2(PORTAL_WIDTH - 5.0, PORTAL_HEIGHT - 1.6)
+		var inner: MeshInstance3D = art.mesh_node(glow, sill + normal * .3 + Vector3(0, glow.size.y * .5, 0), art.mat("gorge_portal"))
+		inner.rotation.y = yaw
 		# Faience lintel across the top of the frame (walked, a pishtaq's frame).
 		vista.block(sill + normal * 2.1 + Vector3(0, PORTAL_HEIGHT - .5, 0), Vector3(.6, .8, PORTAL_WIDTH + 1.0), "exterior_faience").rotation.y = yaw - PI * .5
 	var landing: Vector3 = sill + normal * 3.5
@@ -394,9 +383,13 @@ func portal(sill: Vector3, normal: Vector3, stone: String = "limestone") -> void
 		var half := Vector2(4.0, PORTAL_WIDTH * .55)
 		var turn: float = atan2(normal.z, normal.x)
 		var outline := PackedVector2Array()
+		# 4 cm past the balustrades' plinths (0.36 m in): flush, their outer
+		# faces and the landing's edge fought (your walk, 2026-10-27).
 		for v: Vector2 in [Vector2(half.x, half.y), Vector2(-half.x, half.y), Vector2(-half.x, -half.y), Vector2(half.x, -half.y)]:
-			outline.append(Vector2(landing.x, landing.z) + v.rotated(turn))
-		vista.prism(outline, sill.y - .8, .73, art.mat("exterior_faience"))
+			outline.append(Vector2(landing.x, landing.z) + (v + v.sign() * .04).rotated(turn))
+		# Sandstone, not faience: on a 0.73 m band the tile texture stretched to
+		# big blocks of single texels that read as z-fighting (your walk).
+		vista.prism(outline, sill.y - .8, .73, art.mat("sandstone"))
 		vista.prism(outline, sill.y - .07, .07, art.mat("sandstone"))
 		var front: Vector3 = landing + normal * (half.x - .36)
 		var side: Vector3 = along * (half.y - .36)
@@ -412,9 +405,13 @@ func portal(sill: Vector3, normal: Vector3, stone: String = "limestone") -> void
 		var at: Vector3 = sill + normal * (reach - .5) * .5
 		vista.prism(vista.tower_outline(Vector2(at.x, at.z), (reach + .5) * .5, PORTAL_WIDTH * .5 - k * .9, atan2(normal.z, normal.x)), sill.y - .8 - (k + 1) * 1.1, 1.1, art.mat(stone))
 	for side: float in [-1.0, 1.0]:
-		vista.lamp(sill + normal * 2.6 + along * side * (PORTAL_WIDTH * .5 - 1.0) + Vector3(0, 3.2, 0), .35, true)
+		if walked:     # on the landing, either side of the iwan's columns
+			vista.lamp(sill + normal * (GATE_IWAN_DEPTH + .4) + along * side * 4.6 + Vector3(0, 3.2, 0), .35, true)
+		else:
+			vista.lamp(sill + normal * 2.6 + along * side * (PORTAL_WIDTH * .5 - 1.0) + Vector3(0, 3.2, 0), .35, true)
 	# Lights the landing, the rock around the opening (layer 4) and the mist.
-	var light: OmniLight3D = vista.big_light(sill + normal * 6.0 + Vector3(0, 6.0, 0), Color("ffb066"), PORTAL_LIGHT_ENERGY, 30, 2 | 4)
+	# Walked, out past the landing so it falls on the iwan's front, not only grazes it.
+	var light: OmniLight3D = vista.big_light(sill + normal * (GATE_IWAN_DEPTH + 9.0 if walked else 6.0) + Vector3(0, 6.0, 0), Color("ffb066"), PORTAL_LIGHT_ENERGY, 30, 2 | 4)
 	light.light_volumetric_fog_energy = 1.5
 
 func build_apse(surface: SurfaceTool) -> void:
@@ -487,3 +484,14 @@ func build_lights() -> void:
 			var glow: OmniLight3D = vista.big_light(Vector3(ledge.center.x, ledge.height + 3.0, ledge.center.y), Color("ffbf7a"), CITY_GLOW_ENERGY, 55)
 			glow.light_cull_mask = 4
 			glow.light_volumetric_fog_energy = 0.0
+
+
+## `node`'s transform relative to `top` (outside the tree, where global
+## transforms aren't kept).
+static func _under(top: Node3D, node: Node3D) -> Transform3D:
+	var xf: Transform3D = Transform3D()
+	var n: Node = node
+	while n != top and n is Node3D:
+		xf = (n as Node3D).transform * xf
+		n = n.get_parent()
+	return xf

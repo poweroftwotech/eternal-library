@@ -1148,6 +1148,15 @@ modules = Array[Dictionary]([{
 "tags": PackedStringArray("scenery", "persian", "fungus", "dark"),
 "weight": 1.0
 }, {
+"edge": "solid",
+"family": "persian",
+"name": "persian_iwan_door",
+"scene": "res://kit/modules/persian/persian_iwan_door.tscn",
+"shape": "edge",
+"size_cells": Vector3i(2, 3, 0),
+"tags": PackedStringArray("scenery", "persian", "carved", "iwan", "door"),
+"weight": 1.0
+}, {
 "edge": "",
 "family": "persian",
 "name": "persian_iwan_great",
