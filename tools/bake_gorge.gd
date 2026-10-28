@@ -71,7 +71,7 @@ func run() -> void:
 		var falls: Array[int] = []
 		for k: int in range(6, a.size()):
 			falls.append(int(a[k]))
-		aqueducts.append_array(grammar.aqueduct(Vector3(a[0], a[1], a[2]), Vector3(a[3], a[4], a[5]), falls))
+		aqueducts.append_array(grammar.aqueduct(Vector3(a[0], a[1], a[2]), Vector3(a[3], a[4], a[5]), falls, [not layout.open_ends.has(i * 2), not layout.open_ends.has(i * 2 + 1)]))
 	parts["aqueducts"] = aqueducts
 	# The near cliff round the loggia, a cliff village in the Persian look
 	# (phase 8 step 3; walked only: the camp's view never turns round to it).

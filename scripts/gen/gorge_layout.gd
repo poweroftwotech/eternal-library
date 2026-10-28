@@ -17,7 +17,7 @@ extends Resource
 ## Aqueducts: from x, y, z, to x, y, z, then the bays a waterfall pours through.
 @export var aqueducts: Array[PackedFloat32Array] = [
 	PackedFloat32Array([-37, -19, -89, 41, -26, -116, 3]), PackedFloat32Array([-29, -58, -141, 34, -63, -172]),
-	PackedFloat32Array([-37, -105, -91, 38, -100, -133]), PackedFloat32Array([-26, -20, -211, 30, -12, -231, 2]),
+	PackedFloat32Array([-37, -105, -91, 38, -100, -133]), PackedFloat32Array([-38.7, -24, -206.5, 30, -12, -231, 3]),
 	PackedFloat32Array([-32, -132, -192, 36, -124, -222]), PackedFloat32Array([-47, 14, -205, -11, 8, -249])]
 ## Aqueducts (indices) the Gorge area leaves out of its scenery: a walkable
 ## span takes their place (phase 6 Q9; the near one, 20 m under the balcony).
@@ -26,3 +26,7 @@ extends Resource
 ## Aqueducts left out of the Gorge altogether (fly-mode walk, 2026-10-26: the
 ## one into the corner by the sanctum went nowhere that made sense).
 @export var removed: PackedInt32Array = [5]
+## Aqueduct ends that land on a terrace (aqueduct * 2, + 1 for its far end):
+## no gatehouse there, the deck arrives on the terrace (your walk, 2026-10-27:
+## aqueduct 3 ended at a gatehouse standing alone in the gorge).
+@export var open_ends: PackedInt32Array = [6]

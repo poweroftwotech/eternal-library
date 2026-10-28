@@ -58,6 +58,8 @@ var ornament: float = 0.0             # 0 by the camp .. 1 at the furthest bank 
 var iwans: Array[Vector3] = []         # where this bank's iwans stand
 var stair_feet: Array[Vector3] = []    # each stair flight's middle, on the terrace it stands on
 var clearings: Array[Dictionary] = []  # {t, p (its roof's middle), xf (its roof at the face)}
+var sanctum: bool = false             # building the sanctum (GorgeGrammar.SANCTUM), not a bank
+var others: Array[Dictionary] = []     # the sanctum's tiers, which a bank's features must not face into
 var forced: Dictionary = {}            # "t:x,y:side" of a clearing's first bay -> its bays
 var reserved: Dictionary = {}          # "t:x,y:side": a clearing's bays (no stair, no iwan)
 
@@ -71,11 +73,19 @@ func bank(bank_tiers: Array[Dictionary], seed_value: int) -> Array[Dictionary]:
 	for t: Dictionary in tiers:
 		runs.append(_runs(t))
 	slot_z = seed_value in SLOT_Z_BANKS
-	ornament = GorgeGrammar.ornament(load("res://gen/gorge/gorge_layout.tres"), seed_value)
+	var layout: GorgeLayout = load("res://gen/gorge/gorge_layout.tres")
+	ornament = GorgeGrammar.ornament(layout, seed_value)
+	sanctum = seed_value == GorgeGrammar.SANCTUM
+	if not sanctum:
+		others = g.sanctum_tiers(layout.sanctum)
 	if ResourceLoader.exists(FRONTAGE):
 		for s: FrontageSlot in (load(FRONTAGE) as GorgeFrontage).slots:
 			if s.bank == seed_value:
 				slots.append(s)
+	for p: Vector3 in OPEN_EDGES:
+		for t: int in tiers.size():
+			if absf(_top(t) - p.y) < 1.0 and g._covered(tiers[t], p):
+				_open_edge(p)
 	# This bank's landmarks (GorgeGrammar.PERSIAN_BANKS).
 	var program: Array = GorgeGrammar.PERSIAN_BANKS.get(seed_value, [])
 	if "monument" in program:
@@ -84,7 +94,8 @@ func bank(bank_tiers: Array[Dictionary], seed_value: int) -> Array[Dictionary]:
 		# More the further from the camp: one by it, four at the furthest bank.
 		for n: int in roundi(1.0 + ornament * 3.0):
 			_iwan()
-	_clearings()     # after the iwans, clear of them
+	if not program.is_empty():
+		_clearings()     # after the iwans, clear of them (the sanctum keeps its shape)
 	if "fall" in program:
 		_cascade()
 	if "shaft" in program:
@@ -501,6 +512,12 @@ func _iwan_spot() -> Array:
 						deep = deep and _on_roof(t - 1, xf * Vector3(x, -.2, d))
 				if not deep:
 					continue
+				var shut_in: bool = false
+				for d: float in [6.0, 12.0]:
+					for x: float in [1.0, 7.0]:
+						shut_in = shut_in or _fronted(xf * Vector3(x, 2.0, d)) or _fronted(xf * Vector3(x, 8.0, d))
+				if shut_in:
+					continue     # it would look into the sanctum's walls
 				var score: float = r["eye"] - (xf.origin - GorgeGrammar.EYE).length() * .002
 				if not slot_z:
 					# Seen from the walkways (your call: bank 2's stood behind the camp's
@@ -1003,13 +1020,17 @@ func _open_edge(p: Vector3) -> void:
 			no_edge[_key(t, cell, side)] = true
 
 
-## Where other structures cross bank 1's terraces: the Overlook's west bridge,
-## its deck at -12 on an arch down to -25, from the Overlook's arcade to bank
-## 1's face (tools/bake_overlook.gd; measured from rooms/gorge/overlook.tscn).
-## Nothing of the town stands in it: a stair ran up beside its landing, and
-## the shaft garden's cypresses grew up through its deck (your walks).
-## [from, to, half width, bottom, top].
-const KEEP_CLEAR: Array = [[Vector3(-27.0, 0, -80.8), Vector3(-47.5, 0, -72.6), 4.5, -27.0, -6.0]]
+## Where other structures cross the banks' terraces: the Overlook's west
+## bridge, its deck at -12 on an arch down to -25, from the Overlook's arcade
+## to bank 1's face (tools/bake_overlook.gd; measured from
+## rooms/gorge/overlook.tscn); aqueduct 3's landing on bank 5's terrace at -24
+## (GorgeLayout.open_ends). Nothing of the town stands in them: a stair ran up
+## beside the bridge's landing, and the shaft garden's cypresses grew up
+## through its deck (your walks). [from, to, half width, bottom, top].
+const KEEP_CLEAR: Array = [[Vector3(-27.0, 0, -80.8), Vector3(-47.5, 0, -72.6), 4.5, -27.0, -6.0],
+	[Vector3(-37.8, 0, -206.8), Vector3(-45.3, 0, -204.1), 3.5, -25.0, -12.0]]
+## Where a deck arrives over a terrace's edge, which has no parapet there.
+const OPEN_EDGES: Array[Vector3] = [Vector3(-38.9, -24.0, -206.4)]
 
 
 ## Whether something of radius r at p stands in a KEEP_CLEAR volume.
@@ -1149,7 +1170,8 @@ func _tier(t: int, seed_value: int) -> void:
 	for r: Dictionary in runs[t]:
 		var list: Array = r["cells"]
 		var side: int = r["side"]
-		var grand_p: float = _grand_share() if r["eye"] > GRAND_EYE and storeys >= 2 else 0.0
+		# The sanctum stands mid-gorge, seen from every side.
+		var grand_p: float = _grand_share() if (r["eye"] > GRAND_EYE or sanctum) and storeys >= 2 else 0.0
 		var b: int = 0
 		var building: int = 0
 		var tops: Array[Dictionary] = []
@@ -1185,7 +1207,7 @@ func _tier(t: int, seed_value: int) -> void:
 			var off: float = WALL_PROUD if kind == "monument" else [WALL_PROUD, .45, .2][int(fposmod(h * 31.0, 1.0) * 3.0)]
 			for k: int in range(b, b + length):
 				tops.append(_bay(t, list[k], side, kind, tint, k == door_bay, below, above, crowned, off))
-			if grand:
+			if grand and not (sanctum and crowned):     # the sanctum's top carries its rotunda
 				_grand_roof(t, list, side, b, length, h, clearing)
 			b += length
 			building += 1
@@ -1293,6 +1315,13 @@ func _in_spur(p: Vector3, margin: float) -> bool:
 	return false
 
 
+## Whether p is inside the sanctum's tiers or within a metre of them: a
+## feature facing into them is hidden (your walk: bank 8's first clearing
+## sank among its terraces).
+func _fronted(p: Vector3) -> bool:
+	return GorgeGrammar.solid_at(others, p, 1.0)
+
+
 ## Whether p is on a clearing's roof or within `margin` of it.
 func _in_clearing(p: Vector3, margin: float) -> bool:
 	for c: Dictionary in clearings:
@@ -1324,8 +1353,13 @@ func _clear_fits(t: int, r: Dictionary, k: int, top_xf: Transform3D, w: float) -
 		return false
 	for x: float in [-1.0, w * .5, w + 1.0]:
 		for d: float in [1.0, CLEAR_SIGHT * .5, CLEAR_SIGHT]:
-			if _in_spur(top_xf * Vector3(x, 0, d), 1.0):
+			if _in_spur(top_xf * Vector3(x, 0, d), 1.0) or _fronted(top_xf * Vector3(x, .5, d)) or _fronted(top_xf * Vector3(x, 10.0, d)):
 				return false
+	for y: float in [2.0, 10.0, 18.0, 26.0]:     # its dome and minarets, not in or under the sanctum
+		for x: float in [-1.0, w * .5, w + 1.0]:
+			for d: float in [-1.0, -6.0, -CLEAR_DEPTH + 1.0]:
+				if _fronted(top_xf * Vector3(x, y, d)):
+					return false
 	var inv: Transform3D = top_xf.affine_inverse()
 	var in_column := func(p: Vector3, margin: float) -> bool:
 		var l: Vector3 = inv * p
@@ -1394,7 +1428,8 @@ func _grand_roof(t: int, list: Array, side: int, b: int, length: int, h: float, 
 	var a: Transform3D = _xf(t, list[b], side, storeys)
 	var w: float = length * BAY
 	var room := func(p: Vector3, r: float) -> bool:
-		if not _on_roof(t, p) or not _open_above(t, p) or _in_garden(p, 6.0) or _blocked(p, r) or (r > 0.0 and _in_spur(p, r * .5)):     # a dome may graze a drum, not stand in it
+		if not _on_roof(t, p) or not _open_above(t, p) or _in_garden(p, 6.0) or _blocked(p, r) or (r > 0.0 and _in_spur(p, r * .5)) \
+				or _fronted(p + Vector3(0, 2.0, 0)) or _fronted(p + Vector3(0, 10.0, 0)):     # a dome may graze a drum, not stand in it (nor in the sanctum)
 			return false
 		for f: Vector3 in stair_feet:
 			if absf(f.y - p.y) < 1.0 and Vector2(f.x - p.x, f.z - p.z).length() < r + 2.5:

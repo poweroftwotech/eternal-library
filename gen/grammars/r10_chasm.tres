@@ -13,6 +13,6 @@ drop_storeys_max = 3
 head_side_bays = Vector2i(1, 2)
 face_clearance = 1.0
 falls_every = 3
-lamp_every_bays = 3
+lamp_every_bays = 12
 pier_foot = -120.0
 gorge_layout = ExtResource("2_layout")

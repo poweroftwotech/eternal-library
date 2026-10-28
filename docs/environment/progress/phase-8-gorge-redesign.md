@@ -415,7 +415,7 @@ What bank 6 needed that the nearer banks didn't:
 
 Verified: route 8, span 485, network 790 (worst plan 5.3 s), kit 6,312, all passing; box art passes (far depth 0.89, mist 1.29; 1,752 draw calls). Pictures in `previews/p8_bank6/`.
 
-## Bank 7 (2026-10-27, first pass, uncommitted)
+## Bank 7 (2026-10-27, committed b9e6d2b)
 
 Level 0.88: about two thirds of the seen buildings grand, three iwans (two storeys: two at y 24, one at y -4), three clearings with plain domes and minarets (y -24, -16 and 32), `PERSIAN_BANKS[7] = ["iwan"]` (no fall fits; it already shares the gorge's end with the sanctum and bank 8), 19 lights.
 
@@ -423,3 +423,22 @@ Level 0.88: about two thirds of the seen buildings grand, three iwans (two store
 - The middle of the gorge here holds the sanctum and bank 8, so bank 7 is seen from the north (the span, the Overlook) and from fly mode.
 
 Verified: route 8, span 485, network 790 (worst plan 7.7 s), kit 6,312, all passing; box art passes (focal glow 0.80, far depth 0.89, mist 1.29; 1,798 draw calls). Pictures in `previews/p8_bank7/`.
+
+## Bank 8 (2026-10-27, committed with your fly-by's fixes)
+
+Level 1.0, the last bank: `PERSIAN_BANKS[8] = ["iwan", "fall", "shaft"]`. Its walls run brick and tile, nearly all grand fronts. Two high iwans (y 28), the light shaft, three clearings with plain domes and minarets (y -24, -12 and 48), 22 lights. No fall fits, so the gorge keeps its three.
+
+- **Clearings:** the ramp asks for five at level 1.0, but only three fit the bank's faces. The spacing between them and the iwans, the frontage slots and the spur drums leave no room for more. No second monument: bank 1's stays the only one in a view.
+- **The top clearing** (y 48) stands open against the cavern roof above the gardens. **The low one** (y -12) sits in a deep court between tiled walls and minarets.
+- Banks 1 to 7 come out unchanged.
+
+Verified: route 8, span 485, network 790 (worst plan 7.4 s), kit 6,312, all passing; box art passes (1,811 draw calls). Pictures in `previews/p8_bank8/`.
+
+## Your fly-by of bank 8 (2026-10-27, four reports, committed)
+
+- **The sanctum** kept the old kit's windows, bookshelves and one blue tile wall. It is now built by the Persian town at full ornament (`GorgeGrammar.SANCTUM`, `sanctum_tiers`): the same four tapering tiers, each as two of three storeys, with grand brick fronts, tile and plaster houses, stained glass, banners and roof gardens. Its top keeps the bake's rotunda (no grand domes there), and it gets no clearings, so its silhouette holds.
+- **Aqueduct 3** ended at its gatehouse, alone in the gorge: bank 5's face had moved in the rebuild. It now runs on to bank 5 and lands on its terrace at y -24, from (-38.7, -24, -206.5). There's no gatehouse at that end (`GorgeLayout.open_ends`), no parapet where the deck arrives (`OPEN_EDGES`), and the town keeps clear of the landing (`KEEP_CLEAR`). Its waterfall moved to bay 3, so it pours where it did before.
+- **Lamps on the network's spans and links:** one post every 12 bays instead of every 3 (`r10_chasm.tres lamp_every_bays`, `ChasmLink.LAMP_EVERY`); the span heads keep theirs. The Overlook's own lamps stay.
+- **Bank 8's dome and short minarets sunk in the ground:** the clearing faced straight into the sanctum's lower terraces. Clearings, iwans and grand-roof domes and minarets now need the space in front of and above them clear of the sanctum (`_fronted`). Bank 8 keeps two iwans (y 28 and 20) and two clearings (y 36 and 48). Bank 7 lost the two iwans and the clearing that looked into the sanctum: it keeps one iwan and two clearings (y -16 and 44). Banks 1 to 6 come out unchanged.
+
+Verified: route 8, span 485, network 790 (worst plan 8.9 s), kit 6,312, all passing; box art passes (1,704 draw calls). The four views retaken, and the sanctum and the landing, in `previews/p8_round9/`.

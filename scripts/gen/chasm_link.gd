@@ -25,6 +25,9 @@ const BAY: float = 4.0
 const GROUP: int = 3
 ## The level run's balustrade comes in lengths of about this (newels between).
 const RAIL_STEP: float = 4.0
+## A lamp post every this many balustrade lengths, alternating sides (every
+## third until your walk, 2026-10-27: the ambient light is enough).
+const LAMP_EVERY: int = 12
 ## Under a span's walk its faience course is as deep as the kit deck's.
 const COURSE: float = .55
 ## The made slab and its course under the walk; the corbel's steps under that
@@ -122,7 +125,7 @@ static func join(grammar: ChasmGrammar, a: Transform3D, b: Transform3D, seed_val
 				ChasmMasonry.rail(out, Vector3(side * 1.82, 0, z0), Vector3(side * 1.82, 0, z1))
 				(out["joints"] as Array).append(Vector3(side * 1.82, 0, z0))
 				(out["joints"] as Array).append(Vector3(side * 1.82, 0, z1))
-				if (k + 1) % 3 == 0 and ((k + 1) / 3) % 2 == (0 if side > 0 else 1):
+				if (k + 1) % LAMP_EVERY == 0 and ((k + 1) / LAMP_EVERY) % 2 == (0 if side > 0 else 1):
 					(out["lamps"] as Array).append(Vector3(side * 1.82, 0, z1))
 		var m: int = maxi(1, ceili(lv / BAY))
 		for j: int in m:

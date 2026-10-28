@@ -69,13 +69,16 @@ const PERSIAN_BANKS: Dictionary = {
 	5: ["iwan", "shaft"],     # its grand buildings: PersianTown._grand_share
 	6: ["iwan", "shaft"],     # no fall fits its sheer faces (three in all)
 	7: ["iwan"],
+	8: ["iwan", "fall", "shaft"],  # the last bank: monuments and grand buildings
 }
 ## How ornamental a bank is, 0 by the camp to 1 at the furthest (your call,
 ## phase 8: more gardens, tiles and iwans the further a bank is, building up
 ## to a last bank of monuments and grand buildings): its centre's distance
 ## from the Overlook between the nearest's and the furthest's. Banks 1 and 2
 ## stay as you approved them (0).
-const ORNAMENT_FIXED: Dictionary = {1: 0.0, 2: 0.0}
+const ORNAMENT_FIXED: Dictionary = {1: 0.0, 2: 0.0, SANCTUM: 1.0}
+## The sanctum's seed for PersianTown (not a bank: no landmarks of its own).
+const SANCTUM: int = 9
 
 
 static func ornament(layout: GorgeLayout, seed_value: int) -> float:
@@ -264,7 +267,7 @@ func gorge(layout: GorgeLayout) -> Array[Dictionary]:
 		var falls: Array[int] = []
 		for k: int in range(6, a.size()):
 			falls.append(int(a[k]))
-		out.append_array(aqueduct(Vector3(a[0], a[1], a[2]), Vector3(a[3], a[4], a[5]), falls))
+		out.append_array(aqueduct(Vector3(a[0], a[1], a[2]), Vector3(a[3], a[4], a[5]), falls, [not layout.open_ends.has(i * 2), not layout.open_ends.has(i * 2 + 1)]))
 	return out
 
 
@@ -352,27 +355,30 @@ static func _blocks_gate_sightline(c: Vector2, margin: float) -> bool:
 
 # --- the sanctum (vista.gd sanctum) ----------------------------------------------------
 
-## The sanctum's nine terraced tiers of gorge_pier stone, narrowing as they
-## rise (24 storeys, today 94.5 m); their rotunda, portal, columns, hangings
-## and light are generated at the bake.
-func sanctum(p: Vector3) -> Array[Dictionary]:
-	var out: Array[Dictionary] = []
-	# Four tall tiers (nine short ones until the second fly-mode walk: terrace
-	# upon terrace, "less is more"), the same height and taper overall.
+## The sanctum's tiers: four tall ones (nine short ones until the second
+## fly-mode walk: terrace upon terrace, "less is more"), narrowing as they
+## rise (94.5 m), each built as two of three storeys on the same footprint
+## (the Persian town's fronts and portals are three storeys tall).
+func sanctum_tiers(p: Vector3) -> Array[Dictionary]:
+	var tiers: Array[Dictionary] = []
 	var heights: Array[int] = [6, 6, 6, 6]
 	var step := Vector2(2.8, 1.9) * 9.0 / heights.size()
-	var prev: Dictionary = {}
 	var bottom: float = p.y - 44.0
 	for i: int in heights.size():
-		var tier: Dictionary = _tier_shape(Vector2(p.x, p.z - i * .7), 38.0 - i * step.x, 26.0 - i * step.y, 0.0, bottom, heights[i])
-		tier.merge({"occupied": i % 2 == 0, "crowned": false, "level": i, "stone": "gorge_wall_4m_faience"})
-		var next: Dictionary = {}
-		if i + 1 < heights.size():
-			next = _tier_shape(Vector2(p.x, p.z - (i + 1) * .7), 38.0 - (i + 1) * step.x, 26.0 - (i + 1) * step.y, 0.0, bottom + heights[i] * BAY, heights[i + 1])
-		_tier(out, tier, next, 2, prev)
-		prev = tier
-		bottom += heights[i] * BAY
-	return out
+		for half: int in 2:
+			var storeys: int = heights[i] / 2
+			var tier: Dictionary = _tier_shape(Vector2(p.x, p.z - i * .7), 38.0 - i * step.x, 26.0 - i * step.y, 0.0, bottom, storeys)
+			tier.merge({"occupied": false, "crowned": i == heights.size() - 1 and half == 1, "level": tiers.size(), "stone": "gorge_wall_4m_faience", "over": 0.0})
+			tiers.append(tier)
+			bottom += storeys * BAY
+	return tiers
+
+
+## The sanctum in the Persian look at the furthest bank's ornament (your
+## walk, 2026-10-27: the old windows and bookshelves, one blue tile wall):
+## its rotunda, portal light and hangings are generated at the bake.
+func sanctum(p: Vector3) -> Array[Dictionary]:
+	return PersianTown.new(self).bank(sanctum_tiers(p), SANCTUM)
 
 
 # --- aqueducts (vista.gd bridge) -------------------------------------------------------
@@ -385,10 +391,10 @@ const GATE_BACK: float = 2.0
 ## at its own height under the sloping deck (so the piers stay vertical), the
 ## upper arcade, a faience course and the taller lower arcade, a plain pier
 ## under every other bay down into the mist; the deck in sloped 12 m pieces
-## with lamps and readers; a landing at each end (no pavilion: it clipped the
-## banks' balustrades beside it); waterfalls
+## with lamps and readers; a gatehouse at each end that `gates` asks for
+## (no pavilion: it clipped the banks' balustrades beside it); waterfalls
 ## through the `falls` bays' upper arches.
-func aqueduct(a: Vector3, b: Vector3, falls: Array[int]) -> Array[Dictionary]:
+func aqueduct(a: Vector3, b: Vector3, falls: Array[int], gates: Array = [true, true]) -> Array[Dictionary]:
 	var out: Array[Dictionary] = []
 	var flat := Vector3(b.x - a.x, 0, b.z - a.z)
 	var run: float = flat.length()
@@ -431,8 +437,11 @@ func aqueduct(a: Vector3, b: Vector3, falls: Array[int]) -> Array[Dictionary]:
 				out.append({"stone": face.translated_local(stone[0]), "size": stone[1]})
 	# A gatehouse at each end facing back along the deck, its door a pishtaq
 	# (fly-mode walk: the decks ran into the banks' walls), set GATE_BACK back
-	# from the end into the bank, so the deck arrives on its landing.
-	for end: Array in [[a, -flat], [b, flat]]:
+	# from the end into the bank, so the deck arrives on its landing; none
+	# where the deck lands on a terrace (`gates`, GorgeLayout.open_ends).
+	for end: Array in [[a, -flat, gates[0]], [b, flat, gates[1]]]:
+		if not end[2]:
+			continue
 		var out_dir: Vector3 = end[1]
 		var gate := Basis(out_dir, Vector3.UP, out_dir.cross(Vector3.UP))
 		out.append(_piece("dressing/aqueduct_gate", Transform3D(gate, (end[0] as Vector3) + out_dir * GATE_BACK)))
