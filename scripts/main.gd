@@ -78,6 +78,8 @@ func _ready() -> void:
 	elif room_path.begins_with(AREA_PREFIX):
 		world = Area.new()
 		world.recipe = load(AREAS[room_path.trim_prefix(AREA_PREFIX)])
+		if SeamlessPlaces.applies(room_path.trim_prefix(AREA_PREFIX)) and not OS.get_cmdline_user_args().has("--no-seamless"):
+			world.open_doors = SeamlessPlaces.open_doors_for(room_path.trim_prefix(AREA_PREFIX))
 		if not resuming:
 			world.arrive_from = str(arrive.get("from", ""))
 		var saved_pos: Array = (ws().data.get("player", {}) as Dictionary).get("pos", [])
@@ -245,8 +247,11 @@ func _on_saving() -> void:
 		else:
 			ws().satchel()["stacks"].erase(k)
 	if player != null and is_instance_valid(player):
-		var p: Vector3 = player.global_position
-		ws().data["player"] = {"pos": [p.x, p.y, p.z], "yaw": player.rotation.y, "pitch": player.camera.rotation.x, "flying": player.flying}
+		# In the place you're in's own frame (phase 9: it may stand off the
+		# origin, placed by SeamlessPlaces; the next start puts it at the origin).
+		var p: Vector3 = (world as Node3D).to_local(player.global_position) if world is Node3D else player.global_position
+		var yaw: float = player.rotation.y - ((world as Node3D).global_rotation.y if world is Node3D else 0.0)
+		ws().data["player"] = {"pos": [p.x, p.y, p.z], "yaw": yaw, "pitch": player.camera.rotation.x, "flying": player.flying}
 
 ## Shows or hides the stats panel and remembers it (user://settings.cfg, not the save).
 func toggle_stats() -> void:

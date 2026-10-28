@@ -1,93 +1,165 @@
 class_name SeamlessPlaces
 extends Node
-## Places that share one frame and stream into each other without a loading
-## screen (phase 9, one continuous world; docs/environment/phase-9-approval.md).
-## The camp (rooms/camp/camp.tscn) and the Gorge do: the camp's gallery
-## doorway opens onto the book-lined corridor that runs on into the
-## Overlook's loggia, and they don't overlap, so both are drawn once both are
-## built (your call: straight through, the camp looking out at the gorge).
+## The camp, the Gorge and the interiors behind its doors as one world you
+## walk through without a loading screen (phase 9, one continuous world;
+## docs/environment/phase-9-approval.md). A child of the game
+## (scripts/main.gd), set up at the end of its _ready.
 ##
-## While you're in one, the other is built in the background: its files
-## loaded and its pieces built once behind the start-up screen (warm), then
-## the Gorge planned on a worker thread and built hidden a piece a frame
-## (Area.background), or the camp instanced, and shown. Walking along the
-## corridor past SWAP_Z makes the other the place you're in (`game.world`:
-## the save, the HUD, the fall limit), and the two places' environments
-## blend along it.
+## Links (LINKS), each between two places:
+## - the camp and the Gorge share one frame: the camp's gallery doorway
+##   opens onto the corridor that runs on into the Overlook's loggia; they
+##   don't overlap, so both are drawn (step 1, your call: straight through);
+## - the Gorge and each interior (the Library Wing, the Lower Stacks) meet at
+##   a door: the Gorge's threshold on a ledge (its pishtaq open) and the
+##   interior's door back (Area.open_doors), joined by a Vestibule, a dog-leg
+##   passage; the interior is placed so its door meets the vestibule's end.
+##   They overlap in space (the interior inside the bank, and beyond), so
+##   only the place you're in is shown and has collision (the other hidden
+##   and dormant), and the change happens in the vestibule's middle, where
+##   you see neither end (step 2).
 ##
-## A child of the game (scripts/main.gd), set up at the end of its _ready.
+## The place you're in and its neighbours (one link away) are kept: each
+## neighbour warmed behind the start-up screen and built in the background
+## (an area planned on a worker thread, then Area.background a piece a frame;
+## the camp instanced). The place the game started in stands at the origin,
+## the others where their links put them (`_frames`, in the Gorge's frame).
+## Walking a link's middle makes the other end the place you're in
+## (`game.world`: the save, the HUD, the fall limit); places no longer a link
+## away go. The two places' environments blend along a link, darker in its
+## middle.
 
-## Each place's neighbour through the corridor.
-const NEIGHBOUR: Dictionary = {"camp": "gorge", "gorge": "camp"}
-## The corridor (x, z): from the camp's gallery doorway to the loggia.
+const KIT_CAMP: String = "res://rooms/camp/camp.tscn"
+const RECIPES: Dictionary = {"gorge": "res://gen/recipes/gorge.tres", "library": "res://gen/recipes/library_wing.tres",
+	"lower_stacks": "res://gen/recipes/lower_stacks.tres"}
+const ROOT_ROOM: String = "res://rooms/gorge/overlook.tscn"
+## [a, b, kind]: "corridor" (the camp and the Gorge) or "door" (the Gorge and
+## an interior, b).
+const LINKS: Array = [["camp", "gorge", "corridor"], ["gorge", "library", "door"], ["gorge", "lower_stacks", "door"]]
+
+## The corridor (x, z, the Gorge's frame): from the camp's gallery doorway to
+## the loggia.
 const CORRIDOR_X: Vector2 = Vector2(-4.0, 2.0)
 const CAMP_END_Z: float = -13.2
 const GORGE_END_Z: float = -18.4
-## Past this (toward the Gorge) you're in the Gorge.
-const SWAP_Z: float = -15.8
 ## The camp (rooms/camp/camp.tscn: its pieces.json boxes).
 const CAMP_BOUNDS: AABB = AABB(Vector3(-11.0, -1.0, -13.2), Vector3(26.0, 20.0, 26.0))
-## How much of the ambient light is gone in the corridor's middle, and which
-## of the environment's values that is.
-const CORRIDOR_DARK: float = .7
-const DARKENED: Array[String] = ["ambient_light_energy", "volumetric_fog_ambient_inject"]
 ## The camp's door to the Gorge, which the corridor replaces.
 const CAMP_DOOR: String = "Threshold_gorge"
-const KIT_CAMP: String = "res://rooms/camp/camp.tscn"
-const GORGE_RECIPE: String = "res://gen/recipes/gorge.tres"
-const ROOT_ROOM: String = "res://rooms/gorge/overlook.tscn"
+## How much of the ambient light is gone in a link's middle, and which of the
+## environment's values that is.
+const LINK_DARK: float = .7
+const DARKENED: Array[String] = ["ambient_light_energy", "volumetric_fog_ambient_inject"]
+## From the camp the Gorge shows only through the gallery doorway: drawn
+## behind the camp's walls it cost the camp 0.8 ms GPU and 4,000 draw calls.
+## Shown while the doorway is (nearly) in view, REVEAL_PER_FRAME pieces a
+## frame (shown at once, a 7-10 ms frame).
+const DOORWAY: Array[Vector3] = [Vector3(-2.35, 2.2, -13.2), Vector3(0.35, 2.2, -13.2), Vector3(-2.35, 6.2, -13.2), Vector3(0.35, 6.2, -13.2)]
+const VIEW_MARGIN_DEG: float = 25.0
+const REVEAL_PER_FRAME: int = 6
+## The camp's and the Gorge's world static layer: the interiors (on layer 1,
+## with their props) stand where the Gorge's banks are, so the player walks
+## on one or the other (_set_player_mask), and none leaves the physics.
+const OPEN_LAYER: int = 1 << 8
 
 var game: Node
-## The place you're not in, once built (an Area or the CampRoom); null before.
-var neighbour: Node3D
-var neighbour_id: String = ""
+## The place you're in ("camp" or an area id).
 var place_id: String = ""
-## Resources kept loaded (the warm-up's), so they stay in the cache.
+## Places built: id -> Node3D (the place you're in is game.world).
+var places: Dictionary = {}
+## Each place's frame in the Gorge's (camp and Gorge: identity).
+var _frames: Dictionary = {}
+var _boot_id: String = ""
+## Interiors' vestibules: interior id -> Vestibule.
+var vestibules: Dictionary = {}
+var _building: Dictionary = {}
 var _keep: Array[Resource] = []
 var _env_node: WorldEnvironment
 var _env: Dictionary = {}          # place id -> Environment
 var _mix: Environment
-var _mix_props: Array[Dictionary] = []    # [{name, a, b}]: numbers and colours that differ
-var _switches: Array[Dictionary] = []     # [{name, a, b}]: switches and modes that differ
+var _pair: Array = []              # [a, b] the blend is between
+var _mix_props: Array[Dictionary] = []
+var _switches: Array[Dictionary] = []
 var _side: int = -1
 var _last_t: float = -1.0
-var _plan: AreaPlan
+var _gorge_shown: bool = true
+var _waiting: bool = false
 
 
-## Whether `id` (the game's place: "camp" or an area id) has a neighbour here.
+## The game's place ("camp" or an area id) is one of these.
 static func applies(id: String) -> bool:
-	return NEIGHBOUR.has(id)
+	return id == "camp" or RECIPES.has(id)
 
 
-## Takes over: the place's door to its neighbour removed (the corridor
-## replaces it), the neighbour warmed now (the start-up's wait), and built
-## from the next frame.
+## The doors of area `id` walked through here (Area.open_doors), set before
+## it's built.
+static func open_doors_for(id: String) -> PackedStringArray:
+	var out: PackedStringArray = []
+	for l: Array in LINKS:
+		if l[2] == "door" and (l[0] == id or l[1] == id):
+			out.append(l[1] if l[0] == id else l[0])
+	return out
+
+
+## The places one link from `id`.
+static func neighbours_of(id: String) -> Array[String]:
+	var out: Array[String] = []
+	for l: Array in LINKS:
+		if l[0] == id:
+			out.append(l[1])
+		elif l[1] == id:
+			out.append(l[0])
+	return out
+
+
+static func _link_kind(a: String, b: String) -> String:
+	for l: Array in LINKS:
+		if (l[0] == a and l[1] == b) or (l[0] == b and l[1] == a):
+			return l[2]
+	return ""
+
+
 func setup(main: Node, id: String) -> void:
 	game = main
 	place_id = id
-	neighbour_id = NEIGHBOUR[id]
-	var world: Node = game.get("world")
+	_boot_id = id
+	var world: Node3D = game.get("world")
+	places[id] = world
+	if id == "gorge":
+		(world as Area).world_layer = OPEN_LAYER
+		(world as Area).relayer(world)     # behind the start-up screen
+	elif id == "camp":
+		_relayer_camp(world)
+	_set_player_mask()
+	if id == "camp" or id == "gorge":
+		_frames[id] = Transform3D()
 	_open_door(world)
 	_take_environment(world, id)
-	_warm(neighbour_id)
-	_build.call_deferred()
+	_watch_lights(world)
+	for n: String in neighbours_of(id):
+		_warm(n)
+	_build_neighbours.call_deferred()
 
 
-## The camp's door to the Gorge goes (the Gorge's own door back was taken
-## out of its recipe and bake).
+## Where frame `f` (the Gorge's) stands in the world: the place the game
+## started in at the origin.
+func _placed(f: Transform3D) -> Transform3D:
+	return (_frames[_boot_id] as Transform3D).affine_inverse() * f
+
+
 func _open_door(world: Node) -> void:
 	var door: Node = world.get_node_or_null(CAMP_DOOR) if world is CampRoom else null
 	if door != null:
 		door.free()
 
 
-## Builds the neighbour's resources once and throws them away (behind the
-## start-up screen): built for the first time, its meshes cost 18-35 ms a
-## piece and its kit's batches 28 ms (phase 9 spike).
+## A place's resources built once and thrown away (behind the start-up
+## screen): built for the first time, the Gorge's meshes cost 18-35 ms a
+## piece and its kit's batches 28 ms (phase 9 spike). An interior's rooms are
+## warmed as it builds (Area._build_scenery).
 func _warm(id: String) -> void:
 	var t0: int = Time.get_ticks_usec()
 	if id == "gorge":
-		var recipe: AreaRecipe = load(GORGE_RECIPE)
+		var recipe: AreaRecipe = load(RECIPES["gorge"])
 		_keep.append(recipe)
 		for path: String in Array(recipe.scenery_pieces.generated) + Array(recipe.scenery_pieces.kit):
 			var scene: PackedScene = load(path)
@@ -104,44 +176,130 @@ func _warm(id: String) -> void:
 		var camp: PackedScene = load(KIT_CAMP)
 		_keep.append(camp)
 		camp.instantiate().free()
+	else:
+		_keep.append(load(RECIPES[id]))
 	print("SeamlessPlaces: warmed %s in %.0f ms" % [id, (Time.get_ticks_usec() - t0) / 1000.0])
 
 
-## Builds the neighbour in the background, hidden, and shows it.
-func _build() -> void:
-	if neighbour_id == "gorge":
-		var recipe: AreaRecipe = load(GORGE_RECIPE)
-		var seed_value: int = _area_seed(recipe)
-		var task: int = WorkerThreadPool.add_task(func() -> void: _plan = AreaPlanner.plan(recipe, seed_value))
+func _build_neighbours() -> void:
+	# The Gorge first: an interior's frame comes from its plan.
+	var todo: Array[String] = neighbours_of(place_id)
+	todo.sort_custom(func(a: String, b: String) -> bool: return a == "gorge" and b != "gorge")
+	for n: String in todo:
+		if not neighbours_of(place_id).has(n):
+			continue     # you moved on meanwhile
+		if not places.has(n) and not _building.has(n):
+			_building[n] = true
+			await _build(n)
+			_building.erase(n)
+
+
+## Builds place `id` in the background, hidden, and places it.
+func _build(id: String) -> void:
+	if id == "camp":
+		# Built on a worker thread (the scene loaded at warm): on the main thread
+		# it was a 0.5-1 s pause walking back into the Gorge.
+		var scene: PackedScene = load(KIT_CAMP)
+		var made: Array = [null]
+		var task: int = WorkerThreadPool.add_task(func() -> void: made[0] = scene.instantiate())
 		while not WorkerThreadPool.is_task_completed(task):
 			await get_tree().process_frame
 		WorkerThreadPool.wait_for_task_completion(task)
-		var area := Area.new()
-		area.recipe = recipe
-		area.background = true
-		area.prepared_plan = _plan
-		area.visible = false
-		area.name = "Neighbour"
-		game.add_child(area)
-		while not area.is_built:
-			await get_tree().process_frame
-		area.streamer.target = game.get("player")
-		neighbour = area
-		_take_environment(area, "gorge")
-		_shown = false
-		_update_visibility()
-	else:
-		var camp: Node3D = (load(KIT_CAMP) as PackedScene).instantiate()
-		camp.name = "Neighbour"
+		var camp: Node3D = made[0]
+		_unlight(camp)
+		camp.name = "Place_camp"
+		_relayer_camp(camp)
 		_open_door(camp)
-		camp.visible = false
+		camp.transform = _placed(Transform3D())
 		game.add_child(camp)
-		neighbour = camp
+		places["camp"] = camp
 		_take_environment(camp, "camp")
-		camp.visible = true
+		return
+	var recipe: AreaRecipe = load(RECIPES[id])
+	var plan: AreaPlan = await _plan_on_worker(recipe, _area_seed(recipe))
+	if id != place_id and not neighbours_of(place_id).has(id):
+		return     # you moved on while it was planning
+	# Its frame: the Gorge's door and the interior's door back meet at the
+	# vestibule's ends. Started in an interior, the Gorge is placed by it.
+	if id == "gorge":
+		_frames["gorge"] = Transform3D()
+		_frames["camp"] = Transform3D()
+		if not _frames.has(place_id):
+			_frames[place_id] = _interior_frame(plan, (places[place_id] as Area).plan, place_id)
+	else:
+		if not places.has("gorge") or (places["gorge"] as Area).plan.threshold(id).is_empty():
+			return     # no door to it on this seed's ledges
+		_frames[id] = _interior_frame((places["gorge"] as Area).plan, plan, id)
+	var overlaps: bool = false     # every place stays awake, the player's mask choosing which it walks on
+	var area := Area.new()
+	area.recipe = recipe
+	area.background = true
+	area.prepared_plan = plan
+	area.open_doors = open_doors_for(id)
+	area.arrive_from = "gorge" if id != "gorge" else (place_id if place_id != "camp" else "")
+	area.visible = false
+	area.name = "Place_" + id
+	area.transform = _placed(_frames[id])
+	if id == "gorge":
+		area.world_layer = OPEN_LAYER
+	area.owns_environment = false
+	game.add_child(area)
+	if overlaps:
+		area.set_dormant(true)
+	while not area.is_built:
+		await get_tree().process_frame
+	if id != place_id and not neighbours_of(place_id).has(id):
+		_free_slowly(area)     # you moved on while it was building
+		return
+	area.streamer.target = game.get("player")
+	places[id] = area
+	_watch_lights(area)
+	_take_environment(area, id)
+	_add_vestibule(id if id != "gorge" else place_id)
+	if id == "gorge" and place_id == "camp":
+		_gorge_shown = false
+		_update_visibility()
 
 
-## The seed an area plans from (Area.area_seed, before the area exists).
+func _plan_on_worker(recipe: AreaRecipe, seed_value: int) -> AreaPlan:
+	var out: Array = [null]
+	var task: int = WorkerThreadPool.add_task(func() -> void: out[0] = AreaPlanner.plan(recipe, seed_value))
+	while not WorkerThreadPool.is_task_completed(task):
+		await get_tree().process_frame
+	WorkerThreadPool.wait_for_task_completion(task)
+	return out[0]
+
+
+## The interior's frame (in the Gorge's) for the Gorge's plan and the
+## interior's: its door back meets the end of the vestibule from the
+## Gorge's door to it, facing back along it.
+static func _interior_frame(gorge_plan: AreaPlan, plan: AreaPlan, id: String) -> Transform3D:
+	var g: Transform3D = _door_xf(gorge_plan, id)
+	var i: Transform3D = _door_xf(plan, "gorge")
+	return g * Vestibule.EXIT * Transform3D(Basis(Vector3.UP, PI), Vector3.ZERO) * i.affine_inverse()
+
+
+## A plan's threshold connector to `to`, in the plan's frame (-Z out through
+## the door).
+static func _door_xf(plan: AreaPlan, to: String) -> Transform3D:
+	var d: Array = plan.threshold(to)
+	if d.is_empty():
+		push_warning("SeamlessPlaces: no door to %s" % to)
+		return Transform3D()
+	return ((d[0] as AreaPlan.Room).connectors[d[1]]["xf"] as Transform3D)
+
+
+func _add_vestibule(id: String) -> void:
+	if id == "camp" or vestibules.has(id) or not places.has("gorge") or not places.has(id):
+		return
+	var v := Vestibule.new()
+	v.name = "Vestibule_" + id
+	v.transform = _placed(_door_xf((places["gorge"] as Area).plan, id))
+	game.add_child(v)
+	vestibules[id] = v
+	(v.get_node("Collision") as CollisionObject3D).collision_layer = 1 | OPEN_LAYER     # walked from either side
+
+
 static func _area_seed(recipe: AreaRecipe) -> int:
 	if Area.seed_override >= 0:
 		return Area.seed_override
@@ -170,160 +328,231 @@ func _take_environment(place: Node, id: String) -> void:
 		_env_node = WorldEnvironment.new()
 		_env_node.name = "PlaceEnvironment"
 		game.add_child(_env_node)
-	_mix_props = []
 	_last_t = -1.0
-	_blend(_t())
+	_pair = []
 
 
 func _process(_delta: float) -> void:
 	var player: Node3D = game.get("player") if game != null else null
-	if player == null or neighbour == null:
-		return
-	_update_visibility()
-	var p: Vector3 = player.global_position
-	var in_corridor: bool = p.x > CORRIDOR_X.x and p.x < CORRIDOR_X.y and p.z < CAMP_END_Z + 1.0 and p.z > GORGE_END_Z - 1.0
-	# Along the corridor at SWAP_Z; elsewhere (fly mode, a respawn, a teleport)
-	# by which side of it you're on.
-	var want: String = place_id
-	if in_corridor:
-		want = "gorge" if p.z < SWAP_Z else "camp"
-	elif p.z < GORGE_END_Z:
-		want = "gorge"
-	elif CAMP_BOUNDS.has_point(p):
-		want = "camp"
-	if want != place_id:
-		_swap()
-	_blend(_t())
-
-
-## How far along the corridor toward the Gorge you are (0 in the camp, 1 in
-## the Gorge).
-func _t() -> float:
-	var player: Node3D = game.get("player") if game != null else null
 	if player == null:
-		return 0.0 if place_id == "camp" else 1.0
+		return
 	var p: Vector3 = player.global_position
-	if p.x < CORRIDOR_X.x or p.x > CORRIDOR_X.y or p.z > CAMP_END_Z + 1.0 or p.z < GORGE_END_Z - 1.0:
-		return 0.0 if place_id == "camp" else 1.0
-	return clampf(inverse_lerp(CAMP_END_Z, GORGE_END_Z, p.z), 0.0, 1.0)
+	var want: String = place_id
+	var pair: Array = [place_id, place_id]
+	var t: float = 0.0
+	# The corridor (the camp and the Gorge), or which side of it you're on
+	# (fly mode, a respawn).
+	if place_id == "camp" or place_id == "gorge":
+		var corridor: float = _corridor_t(p)
+		if corridor >= 0.0:
+			pair = ["camp", "gorge"]
+			t = corridor
+			want = "gorge" if corridor >= .5 else "camp"
+		else:
+			var g: Vector3 = _gorge_local(p)
+			if g.z < GORGE_END_Z:
+				want = "gorge"
+			elif CAMP_BOUNDS.has_point(g):
+				want = "camp"
+	# A vestibule (the Gorge and an interior).
+	for id: String in vestibules:
+		if place_id != "gorge" and place_id != id:
+			continue
+		var vt: float = Vestibule.progress((vestibules[id] as Node3D).to_local(p))
+		if vt >= 0.0:
+			pair = ["gorge", id]
+			t = vt
+			want = id if vt >= .5 else "gorge"
+	if want != place_id:
+		if places.has(want) and (not places[want] is Area or (places[want] as Area).is_built):
+			_end_wait()
+			_swap(want)
+		elif _link_kind(place_id, want) == "door":
+			_wait()
+	elif _waiting:
+		_end_wait()
+	if pair[0] == pair[1]:
+		t = 0.0
+	_blend(pair, t)
+	_update_visibility()
 
 
-## The environment at `t` along the corridor: the camp's, the Gorge's, or a
-## mix (each number and colour that differs, in between).
-func _blend(t: float) -> void:
-	if _env_node == null or absf(t - _last_t) < .002:
+## How far along the corridor toward the Gorge (0..1), or -1 outside it.
+func _corridor_t(p: Vector3) -> float:
+	var g: Vector3 = _gorge_local(p)
+	if g.x < CORRIDOR_X.x or g.x > CORRIDOR_X.y or g.z > CAMP_END_Z + 1.0 or g.z < GORGE_END_Z - 1.0 or g.y < 0.0 or g.y > 9.0:
+		return -1.0
+	return clampf(inverse_lerp(CAMP_END_Z, GORGE_END_Z, g.z), 0.0, 1.0)
+
+
+## A world point in the Gorge's (and the camp's) frame.
+func _gorge_local(p: Vector3) -> Vector3:
+	if not _frames.has(_boot_id):
+		return Vector3(0, -1000, 0)
+	return (_frames[_boot_id] as Transform3D) * p
+
+
+## The next place isn't built yet (a slow machine): you wait at the swap with
+## a quiet "Loading…" note (your walk: subtle, not the old loading screen).
+func _wait() -> void:
+	if _waiting:
 		return
-	_last_t = t
-	var a: Environment = _env.get("camp")
-	var b: Environment = _env.get("gorge")
-	var first: Environment = a if a != null else b
-	if first == null:
+	_waiting = true
+	game.get("player").set("blocked", true)
+	var hud: Node = game.get("hud")
+	if hud != null:
+		hud.call("notify", "Loading…")
+
+
+func _end_wait() -> void:
+	if not _waiting:
 		return
-	# One Environment throughout, only the values that differ set: swapping the
-	# resource, or setting its switches, restarted its GI (SDFGI), a 200 ms
-	# frame at each end of the corridor.
+	_waiting = false
+	game.get("player").set("blocked", false)
+	var hud: Node = game.get("hud")
+	if hud != null:
+		hud.call("notify", "")
+
+
+## The environment at `t` between pair[0] and pair[1], darker in the middle.
+## One Environment throughout, only the values that differ set: swapping the
+## resource, or setting its switches, restarted its GI (SDFGI), a 200 ms frame.
+func _blend(pair: Array, t: float) -> void:
+	var a: Environment = _env.get(pair[0])
+	var b: Environment = _env.get(pair[1])
+	if a == null:
+		a = b
+	if b == null:
+		b = a
+	if a == null or _env_node == null:
+		return
 	if _mix == null:
-		_mix = first.duplicate()
+		_mix = a.duplicate()
 		_env_node.environment = _mix
-	if a == null or b == null:
-		return
-	if _mix_props.is_empty():
+	if pair != _pair:
+		_pair = pair.duplicate()
+		_mix_props = []
 		_switches = []
 		for prop: Dictionary in a.get_property_list():
 			var name: String = prop["name"]
-			if not (prop["usage"] & PROPERTY_USAGE_STORAGE) or a.get(name) == b.get(name):
+			if not (prop["usage"] & PROPERTY_USAGE_STORAGE):
 				continue
-			if prop["type"] in [TYPE_FLOAT, TYPE_COLOR]:
-				_mix_props.append({"name": name, "a": a.get(name), "b": b.get(name)})
-			elif prop["type"] in [TYPE_BOOL, TYPE_INT]:
-				_switches.append({"name": name, "a": a.get(name), "b": b.get(name)})
+			var va: Variant = a.get(name)
+			var vb: Variant = b.get(name)
+			if prop["type"] in [TYPE_FLOAT, TYPE_COLOR] and (va != vb or _mix.get(name) != va or name in DARKENED):
+				_mix_props.append({"name": name, "a": va, "b": vb})
+			elif prop["type"] in [TYPE_BOOL, TYPE_INT] and (va != vb or _mix.get(name) != va):
+				_switches.append({"name": name, "a": va, "b": vb})
 		_side = -1
+		_last_t = -1.0
+	if absf(t - _last_t) < .002:
+		return
+	_last_t = t
 	t = clampf(t, 0.0, 1.0)
+	var dark: float = 1.0 - LINK_DARK * sin(PI * t) if pair[0] != pair[1] else 1.0
 	for p: Dictionary in _mix_props:
-		_mix.set(p["name"], lerp(p["a"], p["b"], t))
-	# Darker toward the corridor's middle (your walk: a dark corridor between
-	# the bright camp and gorge).
-	var dark: float = 1.0 - CORRIDOR_DARK * sin(PI * t)
-	for name: String in DARKENED:
-		_mix.set(name, lerpf(a.get(name), b.get(name), t) * dark)
+		var v: Variant = lerp(p["a"], p["b"], t)
+		_mix.set(p["name"], v * dark if p["name"] in DARKENED else v)
 	var side: int = 0 if t < .5 else 1
-	if side != _side:     # switches (a mode, on or off) as the nearer place, only when it changes
+	if side != _side:
 		_side = side
 		for p: Dictionary in _switches:
-			_mix.set(p["name"], p["a"] if side == 0 else p["b"])
+			var want: Variant = p["a"] if side == 0 else p["b"]
+			if _mix.get(p["name"]) != want:
+				_mix.set(p["name"], want)
 
 
-## The neighbour becomes the place you're in, and the place you were in its
-## neighbour: the game's world, its name (the tests and reports look for
-## "Environment"), the save's area, the stats panel, the fall limit.
-func _swap() -> void:
+## The neighbour `id` becomes the place you're in.
+## The place's lights leave the vestibules' layer out (Vestibule.LAYER).
+static func _unlight(node: Node) -> void:
+	for n: Node in node.find_children("*", "Light3D", true, false):
+		var l := n as Light3D
+		if not l.get_parent() is Vestibule:
+			l.light_cull_mask &= ~Vestibule.LAYER
+
+
+func _swap(id: String) -> void:
 	var old: Node3D = game.get("world")
-	var now: Node3D = neighbour
-	old.name = "SwapOld"
+	var now: Node3D = places[id]
+	var old_id: String = place_id
+	old.name = "Place_" + old_id
 	now.name = "Environment"
-	old.name = "Neighbour"
 	if old is Area:
 		(old as Area).deactivate()
+	if id == "gorge" and _link_kind(old_id, id) == "door":
+		(now as Area).reveal(REVEAL_PER_FRAME)     # shown at once, a 17 ms frame
+	else:
+		now.visible = true     # before activate: its floor wear is drawn once it's shown
 	if now is Area:
 		(now as Area).activate()
+	if _link_kind(old_id, id) == "door":
+		if old is Area and old_id == "gorge":
+			(old as Area).conceal()
+		else:
+			old.visible = false
 	game.set("world", now)
-	neighbour = old
-	var swap_id: String = place_id
-	place_id = neighbour_id
-	neighbour_id = swap_id
+	place_id = id
+	# The camp shows only beside the Gorge (an interior may stand where it is).
+	if places.has("camp") and id != "camp":
+		(places["camp"] as Node3D).visible = id == "gorge"
+	_set_player_mask()
 	var player: Node = game.get("player")
 	if now is Area:
 		var area := now as Area
 		game.set("scene_path", "area:" + area.recipe.id)
-		player.set("fall_limit", area.recipe.fall_limit)
+		player.set("fall_limit", area.recipe.fall_limit + area.global_position.y)
 		player.set("respawn_point", area.spawn_transform().origin)
 		if area.streamer != null:
 			area.streamer.target = player
 		var hud: Node = game.get("hud")
 		if hud != null:
-			(hud.get("zone_label") as Label).text = area.recipe.display_name.to_upper()     # until you step into one of its rooms
+			(hud.get("zone_label") as Label).text = area.recipe.display_name.to_upper()
 	else:
 		game.set("scene_path", "camp")
-		player.set("fall_limit", -8.0)
+		player.set("fall_limit", -8.0 + now.global_position.y)
 		var spawn: Node3D = now.get_node_or_null("PlayerSpawn")
 		player.set("respawn_point", spawn.global_position if spawn != null else Vector3(0, .2, 11.5))
 	var stats: Node = game.get("stats")
 	if stats != null:
 		stats.set("area", now as Area)
+	# Places no longer a link away go (but the camp and the Gorge, the hub,
+	# stay once built: building the camp again was the pause); new neighbours
+	# are built.
+	var keep: Array[String] = neighbours_of(id)
+	keep.append_array([id, "camp", "gorge"])
+	for other: String in places.keys():
+		if not keep.has(other):
+			_free_slowly(places[other])
+			places.erase(other)
+			_env.erase(other)
+	for v: String in vestibules.keys():
+		if not places.has(v):
+			(vestibules[v] as Node).queue_free()
+			vestibules.erase(v)
+	_build_neighbours.call_deferred()
 	print("SeamlessPlaces: now in %s" % place_id)
 
 
-## From the camp the Gorge shows only through the gallery doorway, and drawn
-## behind the camp's walls it cost the camp 0.8 ms GPU and 4,000 draw calls
-## (phase 9): while you're in the camp it's shown only while the doorway is
-## (nearly) in view, REVEAL_PER_FRAME pieces a frame (shown at once, a 7-10 ms
-## frame), and hidden when you turn away. In the corridor, and from the Gorge
-## (the camp is small), both are shown.
-const DOORWAY: Array[Vector3] = [Vector3(-2.35, 2.2, -13.2), Vector3(0.35, 2.2, -13.2), Vector3(-2.35, 6.2, -13.2), Vector3(0.35, 6.2, -13.2)]
-## How far past the view's edge the doorway counts as in view (degrees).
-const VIEW_MARGIN_DEG: float = 25.0
-const REVEAL_PER_FRAME: int = 6
-var _shown: bool = true
-
-
+## From the camp the Gorge shows only while the gallery doorway is (nearly)
+## in view, or you're in the corridor.
 func _update_visibility() -> void:
-	var gorge: Area = (neighbour if place_id == "camp" else null) as Area
+	if place_id != "camp" or not places.has("gorge"):
+		return
+	var gorge: Area = places["gorge"] as Area
 	if gorge == null or not gorge.is_built:
 		return
 	var player: Node3D = game.get("player")
-	var want: bool = player.global_position.z < CAMP_END_Z + 1.0 or _doorway_in_view(player.get("camera") as Camera3D)
-	if want == _shown:
+	var want: bool = _gorge_local(player.global_position).z < CAMP_END_Z + 1.0 or _doorway_in_view(player.get("camera") as Camera3D)
+	if want == _gorge_shown:
 		return
-	_shown = want
+	_gorge_shown = want
 	if want:
 		gorge.reveal(REVEAL_PER_FRAME)
 	else:
 		gorge.conceal()
 
 
-## Whether a corner of the gallery doorway is within the camera's view
-## widened by VIEW_MARGIN_DEG.
-static func _doorway_in_view(cam: Camera3D) -> bool:
+func _doorway_in_view(cam: Camera3D) -> bool:
 	if cam == null:
 		return true
 	var vp: Viewport = cam.get_viewport()
@@ -332,8 +561,80 @@ static func _doorway_in_view(cam: Camera3D) -> bool:
 	var half_h: float = atan(tan(half_v) * aspect)
 	var limit: float = atan(sqrt(tan(half_v) ** 2 + tan(half_h) ** 2)) + deg_to_rad(VIEW_MARGIN_DEG)
 	var forward: Vector3 = -cam.global_basis.z
+	var to_world: Transform3D = _placed(Transform3D())
 	for c: Vector3 in DOORWAY:
-		var to: Vector3 = c - cam.global_position
+		var to: Vector3 = to_world * c - cam.global_position
 		if to.length() < .01 or forward.angle_to(to) < limit:
 			return true
 	return false
+
+
+## A built neighbour of the place you're in (the first in LINKS), or null:
+## for tests.
+var neighbour: Node3D:
+	get:
+		for n: String in neighbours_of(place_id):
+			if places.has(n) and (not places[n] is Area or (places[n] as Area).is_built):
+				return places[n]
+		return null
+
+
+## The player walks on the Gorge's layer only in the camp and the Gorge (in
+## an interior it stands where the Gorge's banks are).
+func _set_player_mask() -> void:
+	var player: CollisionObject3D = game.get("player")
+	if player == null:
+		return
+	var ray: RayCast3D = player.get("ray")
+	if place_id == "camp" or place_id == "gorge":
+		player.collision_mask = (player.collision_mask & ~1) | OPEN_LAYER
+	else:
+		player.collision_mask = (player.collision_mask & ~OPEN_LAYER) | 1
+	if ray != null:
+		ray.collision_mask |= OPEN_LAYER
+
+
+## The camp's world static bodies onto OPEN_LAYER.
+static func _relayer_camp(camp: Node) -> void:
+	for n: Node in camp.find_children("*", "CollisionObject3D", true, false):
+		var c := n as CollisionObject3D
+		if c.collision_layer & 1:
+			c.collision_layer = (c.collision_layer & ~1) | OPEN_LAYER
+
+
+## Nodes freed a frame when a place is let go (the Lower Stacks' 9,000 at once
+## took a 240 ms frame; 250 a frame, 15 ms frames).
+const FREE_PER_FRAME: int = 50
+
+
+## Lets a place go: hidden and asleep at once, its nodes freed leaves first,
+## FREE_PER_FRAME a frame.
+func _free_slowly(place: Node) -> void:
+	if place is Node3D:
+		(place as Node3D).visible = false
+	place.process_mode = Node.PROCESS_MODE_DISABLED
+	var order: Array[Node] = []
+	var stack: Array[Node] = [place]
+	while not stack.is_empty():
+		var n: Node = stack.pop_back()
+		order.append(n)
+		for c: Node in n.get_children():
+			stack.append(c)
+	order.reverse()     # children before their parents
+	var done: int = 0
+	for n: Node in order:
+		if is_instance_valid(n):
+			n.free()
+		done += 1
+		if done % FREE_PER_FRAME == 0:
+			await get_tree().process_frame
+
+
+## A place's lights leave the vestibules out now and as its rooms stream in.
+func _watch_lights(place: Node) -> void:
+	_unlight(place)
+	if place is Area and (place as Area).streamer != null:
+		var area := place as Area
+		area.streamer.room_loaded.connect(func(slot: String) -> void:
+			if area.rooms.has(slot):
+				_unlight(area.rooms[slot]))

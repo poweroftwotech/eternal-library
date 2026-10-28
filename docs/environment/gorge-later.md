@@ -20,3 +20,7 @@ Things noticed while building phase 8 and left for another pass over the gorge. 
 - Banks, clearings, iwans: `scripts/gen/persian_town.gd` (`_clearings`, `_clear_fits`, `CLEAR_*`).
 - Links and their falls: `scripts/world/area_network.gd`, `scripts/gen/chasm_link.gd`, `scripts/gen/chasm_grammar.gd` (`TROUGH`, `FALL_*`).
 - The bake: `tools/bake_gorge.gd`; progress and history: [phase 8 progress](progress/phase-8-gorge-redesign.md).
+
+## Seen during phase 9
+
+- **A dark plain corner on ledge_2** (seed 433536861, by (49.6, 0, -111)): the bank's stone core shows where the ledge's own clearing took the face bays away. It looks the same with phase 9's system switched off (`--no-seamless`), so it predates it (phase 6's ledge claims).

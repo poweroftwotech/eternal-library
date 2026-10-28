@@ -58,6 +58,11 @@ var is_built: bool = false
 ## False when SeamlessPlaces blends the environments of the camp and this
 ## area: activate() leaves its own WorldEnvironments off.
 var owns_environment: bool = true
+## Doors (the area each leads to) walked through with no loading screen
+## (phase 9, SeamlessPlaces): no Threshold, and a ledge's pishtaq is open.
+## Set before _ready.
+var open_doors: PackedStringArray = []
+const OPEN_DOOR: String = "res://kit/modules/walls/gorge_door_open.tscn"
 signal built
 ## Scenery pieces built (or shown) a frame in the background.
 const PIECES_A_FRAME: int = 1
@@ -108,12 +113,15 @@ func _ready() -> void:
 	if recipe.atmosphere != null:
 		_env = WorldEnvironment.new()
 		_env.name = "AreaEnvironment"
-		_env.environment = recipe.atmosphere.build_environment()
+		var env: Environment = recipe.atmosphere.build_environment()
+		_env.set_meta("environment", env)
+		_env.environment = env if active else null     # a neighbour's would take over the place you're in
 		add_child(_env)
 	if recipe.scenery != null and background and recipe.scenery_pieces != null:
 		for r: AreaPlan.Room in plan.rooms:
 			for c: Dictionary in r.span.get("claims", []):
 				_claims.append({"xf": global_transform * r.xf * Transform3D(Basis(), c["at"]), "size": c["size"]})
+		_claims.append_array(_vestibule_claims())
 		_build_scenery.call_deferred()
 	elif recipe.scenery != null:
 		var scenery: Node = recipe.scenery.instantiate()
@@ -124,8 +132,10 @@ func _ready() -> void:
 		for r: AreaPlan.Room in plan.rooms:
 			for c: Dictionary in r.span.get("claims", []):
 				claims.append({"xf": global_transform * r.xf * Transform3D(Basis(), c["at"]), "size": c["size"]})
+		claims.append_array(_vestibule_claims())
 		if recipe.network != null:
 			GorgeScenery.lift_mist(scenery, recipe.network.mist_glow)
+		_open_cores(scenery)
 		var kit: Node = scenery.get_node_or_null("Kit")
 		if kit != null:
 			var tc: int = Time.get_ticks_usec()
@@ -149,7 +159,9 @@ func _ready() -> void:
 		if at == null and start_room != "":
 			at = plan.room(start_room)
 		if background:
-			_start_slot = at.slot_id if at != null else plan.rooms[0].slot_id     # started once its rooms are prebuilt (_build_scenery)
+			_start_slot = at.slot_id if at != null else plan.rooms[0].slot_id     # started once its scenery is in (_build_scenery)
+			if recipe.scenery == null or recipe.scenery_pieces == null:
+				_build_scenery.call_deferred()     # no scenery: the rooms only
 		else:
 			streamer.start(at.slot_id if at != null else plan.rooms[0].slot_id)
 			add_child(streamer)
@@ -166,7 +178,7 @@ func _ready() -> void:
 
 
 func _wear_rect() -> void:
-	var b: AABB = plan.bounds()
+	var b: AABB = global_transform * plan.bounds()     # placed by SeamlessPlaces, turned
 	FloorWear.fixed_rect = Rect2(b.position.x - 2.0, b.position.z - 2.0, b.size.x + 4.0, b.size.z + 4.0)
 
 
@@ -177,6 +189,32 @@ func _wear_rect() -> void:
 func _build_scenery() -> void:
 	var t0: int = Time.get_ticks_usec()
 	var pieces: PlacePieces = recipe.scenery_pieces
+	if pieces != null:
+		await _build_pieces(pieces, t0)
+	# Each room's scenes built once and thrown away, one a frame, so the
+	# streamer's first build of them doesn't make their meshes then.
+	var seen: Dictionary = {}
+	for r: AreaPlan.Room in plan.rooms:
+		var scenes: Array = r.span.get("pieces", []).map(func(p: Dictionary) -> String: return p["scene"])
+		if r.scene != null:
+			scenes.append(r.scene.resource_path)
+		for path: String in scenes:
+			if not seen.has(path):
+				seen[path] = true
+				(load(path) as PackedScene).instantiate().free()
+				await get_tree().process_frame
+	if pieces != null:
+		(load(ChasmGrammar.MOD + "dressing/chasm_lamp_post.tscn") as PackedScene).instantiate().free()
+	if streamer != null:
+		streamer.start_background(_start_slot)
+		add_child(streamer)
+	while streamer != null and streamer.busy():
+		await get_tree().process_frame
+	is_built = true
+	built.emit()
+
+
+func _build_pieces(pieces: PlacePieces, t0: int) -> void:
 	var scenery := Node3D.new()
 	scenery.name = "Scenery"
 	add_child(scenery)
@@ -193,6 +231,7 @@ func _build_scenery() -> void:
 		for path: String in part[1]:
 			var piece: Node = (load(path) as PackedScene).instantiate()
 			holder.add_child(piece)
+			relayer(piece)
 			if part[0] == "Kit" and not _claims.is_empty():
 				# Its batches cleared a budget a frame (one piece: up to 37 ms).
 				var reach: AABB = GorgeScenery.claims_reach(_claims)
@@ -208,28 +247,9 @@ func _build_scenery() -> void:
 			n += 1
 			if n % PIECES_A_FRAME == 0:
 				await get_tree().process_frame
+	_open_cores(scenery)
 	timings["scenery_ms"] = (Time.get_ticks_usec() - t0) / 1000.0
 	timings["cleared"] = cleared
-	# The network's rooms are built by the streamer (2-17 ms each); the first
-	# build of each of their kit scenes made its meshes (50-90 ms a link), so
-	# each is built once here first, one a frame. (Built on a worker thread, the
-	# rooms' meshes slowed every other frame for seconds.)
-	var seen: Dictionary = {}
-	for r: AreaPlan.Room in plan.rooms:
-		for p: Dictionary in r.span.get("pieces", []):
-			if not seen.has(p["scene"]):
-				seen[p["scene"]] = true
-				(load(p["scene"]) as PackedScene).instantiate().free()
-				await get_tree().process_frame
-	for path: String in [ChasmGrammar.MOD + "dressing/chasm_lamp_post.tscn"]:
-		(load(path) as PackedScene).instantiate().free()
-	if streamer != null:
-		streamer.start_background(_start_slot)
-		add_child(streamer)
-	while streamer != null and streamer.busy():
-		await get_tree().process_frame
-	is_built = true
-	built.emit()
 
 
 ## Makes this the place you're in (phase 9): the save's changes go to it and
@@ -243,8 +263,8 @@ func activate() -> void:
 		ws.call("enter_area", recipe.id, recipe.version)
 	if owns_environment:
 		_show_environment(true)
-	_wear_rect()
-	FloorWear.rebuild_now()
+	var b: AABB = global_transform * plan.bounds()
+	FloorWear.retarget(Rect2(b.position.x - 2.0, b.position.z - 2.0, b.size.x + 4.0, b.size.z + 4.0))
 
 
 ## The place you're in is now another one.
@@ -350,7 +370,13 @@ func make_room(r: AreaPlan.Room) -> RoomTemplate:
 		g.inherit_style_groups = []
 		room = g
 	elif r.kind in ["span", "ledge", "link"]:
-		room = ChasmGrammar.build_room(r.span)
+		var span: Dictionary = r.span
+		if open_doors.has(str(span.get("door", ""))):
+			# Its door opens onto a vestibule (phase 9, SeamlessPlaces): the open pishtaq.
+			span = span.duplicate()
+			span["pieces"] = (span["pieces"] as Array).map(func(p: Dictionary) -> Dictionary:
+				return {"scene": OPEN_DOOR, "xf": p["xf"]} if str(p["scene"]).ends_with('/gorge_door_pishtaq.tscn') else p)
+		room = ChasmGrammar.build_room(span)
 	else:
 		room = r.scene.instantiate() as RoomTemplate
 		room.area_seed = r.seed_value
@@ -370,7 +396,7 @@ func make_room(r: AreaPlan.Room) -> RoomTemplate:
 	room.set_meta("area_slot", r.slot_id)
 	for name: StringName in r.connectors:
 		var k: Dictionary = r.connectors[name]
-		if str(k["cap"]) == "threshold":
+		if str(k["cap"]) == "threshold" and not open_doors.has(str(k["to"])):
 			var door := Threshold.new()
 			door.name = "Threshold_" + str(k["to"])
 			door.to = str(k["to"])
@@ -389,6 +415,9 @@ func enter_room(r: AreaPlan.Room, room: RoomTemplate) -> void:
 ## The rest of entering, once all of the room's parts are in the tree (the
 ## streamer adds a big room's parts over several frames, phase 5 step 4).
 func finish_entering(r: AreaPlan.Room, room: RoomTemplate) -> void:
+	relayer(room)
+	if dormant:
+		room.process_mode = Node.PROCESS_MODE_DISABLED
 	_clear_recesses(r, room)
 	rooms[r.slot_id] = room
 	light_budget.add_room(room, r.slot_id)
@@ -550,3 +579,101 @@ func room_at(world_point: Vector3) -> AreaPlan.Room:
 func live_room_at(world_point: Vector3) -> RoomTemplate:
 	var r: AreaPlan.Room = room_at(world_point)
 	return rooms.get(r.slot_id) if r != null else null
+
+
+## Asleep (phase 9, SeamlessPlaces: a place you're not in that stands where
+## another is): its rooms and scenery stop processing, which takes their
+## collision out of the world (CollisionObject3D's disable mode), so they
+## don't stop you walking through the place you're in. Its streamer and light
+## budget run on.
+var dormant: bool = false
+
+
+func set_dormant(on: bool) -> void:
+	dormant = on
+	for c: Node in get_children():
+		if c == streamer or c == light_budget:
+			continue
+		c.process_mode = Node.PROCESS_MODE_DISABLED if on else Node.PROCESS_MODE_INHERIT
+
+
+## While a background area's streamer builds its rooms, the save's changes
+## read are its own (WorldState's area): returns what to put back.
+func borrow_world_state() -> String:
+	if active:
+		return ""
+	var ws: Node = get_node_or_null("/root/WorldState")
+	if ws == null:
+		return ""
+	var was: String = ws.get("area_id")
+	ws.set("area_id", recipe.id)
+	return was
+
+
+func return_world_state(was: String) -> void:
+	if was == "":
+		return
+	var ws: Node = get_node_or_null("/root/WorldState")
+	if ws != null:
+		ws.set("area_id", was)
+
+
+## The world static layer this area's collision is on (phase 9,
+## SeamlessPlaces: each place that stands where another does has its own, so
+## the player walks on the place it's in only, without taking the other out
+## of the physics: putting thousands of bodies back took a 90 ms frame).
+## 1: as everything.
+var world_layer: int = 1
+
+
+## Moves every body under `node` from the world static layer to world_layer,
+## and what collides with it (props) to collide with that instead.
+func relayer(node: Node) -> void:
+	if world_layer == 1:
+		return
+	for n: Node in node.find_children("*", "CollisionObject3D", true, false):
+		var c := n as CollisionObject3D
+		if c.collision_layer & 1:
+			c.collision_layer = (c.collision_layer & ~1) | world_layer
+		if c.collision_mask & 1 and not c is Area3D:
+			c.collision_mask = (c.collision_mask & ~1) | world_layer
+
+
+## The scenery is cleared where an open door's vestibule runs into the bank
+## (phase 9: a lit window of the bank's showed through its wall), as where
+## the network's rooms stand.
+func _vestibule_claims() -> Array:
+	var out: Array = []
+	for to: String in open_doors:
+		var d: Array = plan.threshold(to)
+		if d.is_empty():
+			continue
+		var xf: Transform3D = global_transform * ((d[0] as AreaPlan.Room).connectors[d[1]]["xf"] as Transform3D)
+		var box: AABB = Vestibule.bounds()
+		out.append({"xf": xf * Transform3D(Basis(), box.get_center()), "size": box.size})
+		# ... and the wall bay in the doorway itself, through the face.
+		out.append({"xf": xf * Transform3D(Basis(), Vector3(0, 1.8, -.7)), "size": Vector3(2.2, 3.0, 2.4)})
+	return out
+
+
+## Hides the bank's core cells an open door's vestibule runs through (the bake
+## keeps the cells by a door slot as their own boxes, door_core_*): seen from
+## the ledge, their faces stood in the open doorway.
+func _open_cores(scenery: Node) -> void:
+	if open_doors.is_empty() or scenery == null:
+		return
+	var boxes: Array[AABB] = []
+	for to: String in open_doors:
+		var d: Array = plan.threshold(to)
+		if d.is_empty():
+			continue
+		var xf: Transform3D = global_transform * ((d[0] as AreaPlan.Room).connectors[d[1]]["xf"] as Transform3D)
+		var b: AABB = Vestibule.bounds()
+		boxes.append(xf * AABB(b.position + Vector3(0, .3, 0), b.size + Vector3(0, -.6, 1.6)))     # and through the face; not the storeys above or below
+	for n: Node in scenery.find_children("door_core_*", "MeshInstance3D", true, false):
+		var mi := n as MeshInstance3D
+		var cell: AABB = mi.global_transform * mi.get_aabb()
+		for b: AABB in boxes:
+			if cell.grow(-.05).intersects(b):
+				mi.visible = false
+				break

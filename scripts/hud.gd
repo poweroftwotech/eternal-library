@@ -249,6 +249,8 @@ func notify(text: String) -> void:
 
 ## A plain dark panel over everything with one line of text, while a
 ## travel's next place is built (phase-4-design.md 8.1.8 step 4).
+var loading_cover: Control
+
 func show_loading(text: String) -> void:
 	var cover = PanelContainer.new()
 	cover.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
@@ -259,6 +261,13 @@ func show_loading(text: String) -> void:
 	center.add_child(label(text,20))
 	layer = 10
 	add_child(cover)
+	loading_cover = cover
+
+## Takes the loading cover away (phase 9: a wait for the next place to build).
+func hide_loading() -> void:
+	if loading_cover != null and is_instance_valid(loading_cover):
+		loading_cover.queue_free()
+	loading_cover = null
 
 func open(title: String, text: String, choices: Array) -> void:
 	modal_title.text = title

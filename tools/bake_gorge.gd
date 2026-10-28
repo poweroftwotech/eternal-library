@@ -307,10 +307,25 @@ func generate(layout: GorgeLayout, extras: Array[Dictionary], lamps: PackedVecto
 func tier_cores(cores: Dictionary) -> Node3D:
 	var holder := Node3D.new()
 	holder.name = "TierCores"
+	var n: int = 0
 	for material: String in cores:
 		var st := SurfaceTool.new()
 		st.begin(Mesh.PRIMITIVE_TRIANGLES)
 		for p: Dictionary in cores[material]:
+			if p.get("door_core", false):
+				# A cell by a door, its own node: hidden where a door's passage
+				# runs (Area._open_cores).
+				var cell := MeshInstance3D.new()
+				cell.name = "door_core_%d" % n
+				n += 1
+				var b := BoxMesh.new()
+				b.size = p["size"]
+				cell.mesh = b
+				cell.transform = p["stone"]
+				cell.material_override = load("res://kit/materials/%s.tres" % material)
+				cell.layers = 2
+				holder.add_child(cell)
+				continue
 			var box := BoxMesh.new()
 			box.size = p["size"]
 			st.append_from(box, 0, p["stone"])

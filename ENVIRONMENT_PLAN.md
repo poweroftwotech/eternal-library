@@ -8,7 +8,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | What | Read this | What to do |
 |---|---|---|
-| **Phase 9 step 1 committed**: the camp and the Gorge are one place. Walk from the camp's gallery down the corridor onto the Overlook's loggia and back with no loading screen; the Gorge builds in the background while you're in the camp. Next: step 2, the Gorge's doors to the Library Wing and the Lower Stacks | [Progress, phase 9](docs/environment/progress/phase-9-continuous-world.md) | Nothing yet |
+| **Phase 9 step 2 committed**: the Gorge's doors to the Library Wing and the Lower Stacks open onto short brick passages, and you walk through into each interior and back with no loading screen. The camp and the Gorge stay loaded; the interiors build in the background. Next: step 3, any doors between the interiors and the frame gate along the whole walk | [Progress, phase 9](docs/environment/progress/phase-9-continuous-world.md) | Nothing yet |
 | **Phase 8 is complete** (last commit 0479835): all eight banks and the sanctum in the Persian look, the mood pass, the Overlook's gate and soffit, the new span waterfalls, and the budget check (the gorge has its own, less strict budget). Things to revisit in a later pass over the gorge are noted. | [Progress, phase 8](docs/environment/progress/phase-8-gorge-redesign.md); [the gorge: for a later pass](docs/environment/gorge-later.md) | Choose what comes next |
 | The gorge clean-up pass (from phase 6 step 6), the overlapping link waterfalls and the far banks' missing clearings are noted for a later pass over the gorge | [The gorge: for a later pass](docs/environment/gorge-later.md) | Nothing for now |
 

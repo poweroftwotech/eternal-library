@@ -1666,7 +1666,19 @@ func _decks(t: int, frame: Transform3D, cells: Dictionary, storeys: int, above: 
 		var inset: float = GorgeGrammar.CORE_INSET
 		var lo := Vector2(cell.x * BAY + (inset if not cells.has(cell + Vector2i(-1, 0)) else 0.0), cell.y * BAY + (inset if not cells.has(cell + Vector2i(0, -1)) else 0.0))
 		var hi := Vector2((cell.x + 1) * BAY - (inset if not cells.has(cell + Vector2i(1, 0)) else 0.0), (cell.y + 1) * BAY - (inset if not cells.has(cell + Vector2i(0, 1)) else 0.0))
-		rects.append([lo, hi])
+		var height_c: float = storeys * BAY - GorgeGrammar.CORE_INSET
+		if _by_door(frame, lo, hi, height_c):
+			# Its own box, which the game hides where a door's passage runs
+			# (phase 9: Area._open_cores).
+			# A storey a box (a cell is up to three storeys, 12 m: hidden whole,
+			# it left a hole over the door, your walk).
+			for s: int in storeys:
+				var y0: float = s * BAY
+				var y1: float = minf((s + 1) * BAY, height_c)
+				out.append({"stone": frame * Transform3D(Basis(), Vector3((lo.x + hi.x) * .5, (y0 + y1) * .5, -(lo.y + hi.y) * .5)),
+					"size": Vector3(hi.x - lo.x, y1 - y0, hi.y - lo.y), "material": "gorge_stone", "door_core": true})
+		else:
+			rects.append([lo, hi])
 	# Cells that meet merged into larger boxes (the budget check: a box a cell
 	# was 48,000 boxes, drawn three times with the shadows); the faces between
 	# them were never seen.
@@ -1834,3 +1846,26 @@ func _cliff_windows(bays: int, storeys: int, bay_xf: Callable) -> void:
 			if h > .1 and h < .2 and s > 0:
 				_put("persian_oriel", xf)
 		_put("persian_parapet_rock", bay_xf.call(i, storeys))
+
+
+## Whether a core cell (lo, hi in the tier's plan, `height` tall from the
+## frame's floor) stands where a door slot's passage could run: within
+## DOOR_REACH into the bank behind the slot, along its length and a few metres
+## past, at its storey (phase 9, one continuous world).
+const DOOR_REACH: AABB = AABB(Vector3(-8.0, -1.0, .3), Vector3(16.0, 6.0, 11.0))
+
+
+func _by_door(frame: Transform3D, lo: Vector2, hi: Vector2, height: float) -> bool:
+	for s: FrontageSlot in slots:
+		if s.door == "":
+			continue
+		var reach := AABB(DOOR_REACH.position, DOOR_REACH.size + Vector3(s.width * BAY, 0, 0))
+		var inv: Transform3D = s.xf.affine_inverse() * frame
+		var box := AABB(inv * Vector3(lo.x, 0, -lo.y), Vector3.ZERO)
+		for x: float in [lo.x, hi.x]:
+			for z: float in [lo.y, hi.y]:
+				for y: float in [0.0, height]:
+					box = box.expand(inv * Vector3(x, y, -z))
+		if box.intersects(reach):
+			return true
+	return false

@@ -140,6 +140,12 @@ func wanted(from: String) -> Dictionary:
 
 
 func _process(delta: float) -> void:
+	var was: String = area.borrow_world_state()     # a background area: its own save
+	_stream(delta)
+	area.return_world_state(was)
+
+
+func _stream(delta: float) -> void:
 	var t0: int = Time.get_ticks_usec()
 	_check -= delta
 	if _check <= 0.0:

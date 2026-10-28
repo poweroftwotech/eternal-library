@@ -51,15 +51,22 @@ static func _fill(node: MultiMeshInstance3D) -> void:
 	# filled already, and not changed since (GorgeScenery.clear takes the mark
 	# off), it needn't be again (phase 9: 28 ms a piece of the gorge's kit).
 	var mm: MultiMesh = node.multimesh
-	if mm.has_meta(FRESH) and mm.instance_count == int(node.get_meta("kit_count")):
+	if _fresh.has(mm.get_instance_id()) and mm.instance_count == int(node.get_meta("kit_count")):
 		return
 	mm.instance_count = int(node.get_meta("kit_count"))
 	mm.buffer = node.get_meta("kit_buffer")
-	mm.set_meta(FRESH, true)
+	_fresh[mm.get_instance_id()] = true
 
 
-## On a MultiMesh filled from its saved transforms and not changed since.
-const FRESH: StringName = &"kit_fresh"
+## The MultiMeshes filled from their saved transforms in this run and not
+## changed since. Not a mark on the MultiMesh: the bake saved that with the
+## scene, and a loaded batch was never filled from its own transforms.
+static var _fresh: Dictionary = {}
+
+
+## A MultiMesh's transforms changed: it's filled again on the next load.
+static func changed(mm: MultiMesh) -> void:
+	_fresh.erase(mm.get_instance_id())
 
 
 func batch() -> Dictionary:

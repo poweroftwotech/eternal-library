@@ -101,12 +101,12 @@ func run() -> void:
 ## The checks of the camp's shell and gameplay.
 func camp_checks() -> void:
 	for p in [Vector3(0,1,5),Vector3(-1,1,-4),Vector3(8,1,-5)]:
-		var query = PhysicsRayQueryParameters3D.create(p,p+Vector3(0,30,0),1)
+		var query = PhysicsRayQueryParameters3D.create(p,p+Vector3(0,30,0),game.player.collision_mask)     # the world the player walks on (phase 9: the camp's own layer)
 		var hit = game.world.get_world_3d().direct_space_state.intersect_ray(query)
 		check(not hit.is_empty(),"A physical ceiling closes the interior above %s" % p)
 	for offset in [Vector3(10,12,0),Vector3(-15,12,0),Vector3(0,12,15),Vector3(0,12,-15)]:
 		var p = Vector3(-1,1.6,-4)
-		var hit = game.world.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(p,p+offset,1))
+		var hit = game.world.get_world_3d().direct_space_state.intersect_ray(PhysicsRayQueryParameters3D.create(p,p+offset,game.player.collision_mask))
 		check(not hit.is_empty(),"Upper garden walls close the roof seam in direction %s" % offset)
 	# Check movement cannot walk through the tree's visible trunk.
 	game.player.teleport(Vector3(-4,.08,-4.6),0,0)

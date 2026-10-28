@@ -323,12 +323,15 @@ DOOR_OPEN = (1.15, 2.0, 1.0)   # a pishtaq's door: half width, spring and rise o
 PISHTAQ_TOP = 3.35             # its frame's top over BASE (the cornice over it)
 
 
-def pishtaq(r, name, back, place=None):
+def pishtaq(r, name, back, place=None, open_door=False):
     """Rev 4 (fly-mode walk, 2026-10-26: "a proper arch with pishtaq and
     door"): a stone frame round a tiled field, the pointed arch's ring in it,
     a cornice over all; in the arch a pair of wooden doors with iron bands, a
     lit fanlight over them, a step before them. `back`: its own back plate, to
-    stand proud of a face (a gallery's door, gorge_door_pishtaq), not on a wall."""
+    stand proud of a face (a gallery's door, gorge_door_pishtaq), not on a wall.
+    `open_door` (gorge_door_open, phase 9: the gorge's doors into the library
+    walked through, no loading screen): no leaves or fanlight, the back plate
+    round the arch's opening only."""
     half, spring, rise = DOOR_OPEN
     inner = arch(half, spring, rise, 0.0)
     outer = arch(half + 0.2, spring, rise + 0.2, 0.0)
@@ -342,10 +345,22 @@ def pishtaq(r, name, back, place=None):
             front_box(bm, x0, x0 + 0.18, -0.45, -0.05, 0.0, BASE + PISHTAQ_TOP + 0.25)   # the frame's sides
         front_box(bm, 0.2, 3.8, -0.45, -0.05, BASE + PISHTAQ_TOP, BASE + PISHTAQ_TOP + 0.25)
         front_box(bm, 0.1, 3.9, -0.6, -0.05, BASE + PISHTAQ_TOP + 0.25, BASE + PISHTAQ_TOP + 0.4)   # cornice
-        front_box(bm, 0.4, 3.6, -1.09, -0.05, 0.0, BASE + 0.1)                           # step
-        if back:
+        if not open_door:
+            front_box(bm, 0.4, 3.6, -1.09, -0.05, 0.0, BASE + 0.1)                       # step
+        if back and not open_door:
             add_box(bm, 0.1, 3.9, -0.05, 0.0, 0.0, BASE + PISHTAQ_TOP + 0.4)
+        elif back:
+            # No sill under the opening (walked through: it stood 0.2 m over the
+            # passage floor); a plinth either side under the field instead.
+            for (x0, x1) in ((0.1, 2.0 - half), (2.0 + half, 3.9)):
+                add_box(bm, x0, x1, -0.05, 0.0, 0.0, BASE)
+                front_box(bm, max(x0, 0.38), min(x1, 3.62), -0.3, -0.05, 0.0, BASE)
+            add_box(bm, 0.1, 3.9, -0.05, 0.0, BASE + PISHTAQ_TOP, BASE + PISHTAQ_TOP + 0.4)
+            front_prism(bm, [(-1.9, 0.0), (-1.9, PISHTAQ_TOP), (1.9, PISHTAQ_TOP), (1.9, 0.0)] + list(reversed(inner)), 2.0, BASE, -0.05, 0.0)
     solid(name + "__frame", r, ["gorge_sandstone"], stone)
+    if open_door:
+        marker("ANCHOR_figure__door", r, (2.0, -0.34, BASE + 0.1))
+        return
 
     def doors(bm):
         front_box(bm, 2.0 - half, 2.0 + half, -0.12, -0.05, BASE, BASE + spring)
@@ -372,6 +387,10 @@ def bay_doorway(r):
 
 def door_pishtaq(r):
     pishtaq(r, "gorge_door_pishtaq", True)
+
+
+def door_open(r):
+    pishtaq(r, "gorge_door_open", True, open_door=True)
 
 
 def bay_stack(ladder, near=False):
@@ -861,6 +880,7 @@ MODULES = [
                                ("gorge_wall_4m_clean", "gorge_stone_clean"), ("gorge_wall_4m_faience", "gorge_pier"))
       for shape in ("arch", "rect")],
     ("M_gorge_door_pishtaq", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,door"), door_pishtaq),
+    ("M_gorge_door_open", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,door"), door_open),
     ("M_gorge_bay_window_flush", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,window,light"), bay_window_flush),
     ("M_gorge_bay_stack_window_flush", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books,window"), bay_stack_window_flush()),
     ("M_gorge_bay_stack_window_flush_near", props("edge", [1, 1, 0], "none", "scenery,gorge,facade,books,window"), bay_stack_window_flush(True)),
@@ -891,6 +911,7 @@ REBUILD += [(n, 2) for n in ("M_gorge_deck", "M_gorge_deck_edge", "M_gorge_deck_
                              "M_gorge_crown_edge", "M_gorge_crown_edge_worn", "M_gorge_crown_edge_broken",
                              "M_gorge_deck_corner", "M_gorge_crown_corner", "M_aqueduct_landing")]
 REBUILD = [(n, 3 if n == "M_gorge_deck_corner" else v) for (n, v) in REBUILD]     # rev 3: railed on both open sides
+REBUILD += [("M_gorge_door_open", 2)]     # rev 2: no step or sill (phase 9: walked through)
 
 
 

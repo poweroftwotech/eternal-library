@@ -67,6 +67,8 @@ static var _queued: bool = false
 func _ready() -> void:
 	if not _live.has(self):
 		_live.append(self)
+	if not is_visible_in_tree():
+		return     # a hidden place's (phase 9): drawn when it's the place you're in (retarget)
 	if fixed_rect.has_area() and map_image != null and map_rect == _whole(fixed_rect):
 		queue_region(world_rect())     # an area's map exists: redraw only this room's part
 		set_process(true)
@@ -87,6 +89,27 @@ func _exit_tree() -> void:
 
 func _process(_delta: float) -> void:
 	poll()
+
+
+## The map moved to another area's rect (phase 9, SeamlessPlaces: walking
+## into the next place): blank at once, each live wear's part then drawn on
+## worker threads as rooms' are (rebuild_now took 250 ms in the library).
+static func retarget(rect: Rect2) -> void:
+	fixed_rect = rect
+	var live: Array[FloorWear] = _live_wears()
+	if live.is_empty():
+		clear_map()
+		return
+	_pending.clear()
+	if map_image == null or map_rect != _whole(rect):
+		var bounds: Rect2 = _whole(rect)
+		map_image = Image.create_empty(int(bounds.size.x * TEXEL), int(bounds.size.y * TEXEL), false, Image.FORMAT_R8)
+		map_rect = bounds
+		_make_texture()
+		map_y = _band(live)
+		_publish()
+	for w: FloorWear in live:
+		queue_region(w.world_rect())
 
 
 ## Rebuilds now rather than at the end of the frame (tests, captures).
@@ -153,6 +176,11 @@ static func _make_texture() -> void:
 static func _upload_tiles(region: Rect2) -> void:
 	var t0: Vector2i = Vector2i(((region.position - map_rect.position) * TEXEL).round()) / TILE
 	var t1: Vector2i = (Vector2i(((region.end - map_rect.position) * TEXEL).round()) - Vector2i.ONE) / TILE
+	# Only the map's own tiles: a floor reaching past the place's rect (phase
+	# 9, retarget) asked for tiles it hasn't.
+	var rows: int = ceili(map_image.get_height() / float(TILE))
+	t0 = t0.clamp(Vector2i.ZERO, Vector2i(map_cols - 1, rows - 1))
+	t1 = t1.clamp(Vector2i.ZERO, Vector2i(map_cols - 1, rows - 1))
 	for ty: int in range(t0.y, t1.y + 1):
 		for tx: int in range(t0.x, t1.x + 1):
 			map.update_layer(_tile(tx, ty), ty * map_cols + tx)
@@ -166,11 +194,14 @@ static func _tile(tx: int, ty: int) -> Image:
 
 static func _live_wears() -> Array[FloorWear]:
 	var live: Array[FloorWear] = []
+	var shown: Array[FloorWear] = []
 	for w: FloorWear in _live:
 		if is_instance_valid(w) and w.is_inside_tree():
 			live.append(w)
+			if w.is_visible_in_tree():
+				shown.append(w)
 	_live = live
-	return live
+	return shown     # a hidden place's (phase 9, SeamlessPlaces) isn't on the map
 
 
 static func _band(live: Array[FloorWear]) -> Vector2:

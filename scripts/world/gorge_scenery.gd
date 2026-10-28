@@ -86,6 +86,12 @@ static func clear_batch(mmi: MultiMeshInstance3D, claims: Array, reach: AABB, mo
 			continue
 		var basis := Basis(Vector3(buffer[o], buffer[o + 4], buffer[o + 8]), Vector3(buffer[o + 1], buffer[o + 5], buffer[o + 9]),
 			Vector3(buffer[o + 2], buffer[o + 6], buffer[o + 10]))
+		if basis.determinant() == 0.0:
+			# Hidden in the saved copy already but maybe not in what's drawn
+			# (the passages'
+			# walk: a bank's window sill hung in the library's passage).
+			changed = true
+			continue
 		var xf: Transform3D = to_global * Transform3D(basis, Vector3(buffer[o + 3], buffer[o + 7], buffer[o + 11]))
 		for c: Dictionary in claims:
 			if boxes_meet(xf, bounds, c["xf"], (c["size"] as Vector3) * .5):
@@ -96,7 +102,7 @@ static func clear_batch(mmi: MultiMeshInstance3D, claims: Array, reach: AABB, mo
 				break
 	if changed:
 		mm.buffer = buffer
-		mm.remove_meta(KitBatcher.FRESH)     # filled again on the next load (KitBatcher._fill)
+		KitBatcher.changed(mm)     # filled again on the next load (KitBatcher._fill)
 		mmi.set_meta("network_cleared", true)
 	return hidden
 

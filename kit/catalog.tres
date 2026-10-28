@@ -2563,6 +2563,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "none",
 "family": "walls",
+"name": "gorge_door_open",
+"scene": "res://kit/modules/walls/gorge_door_open.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("scenery", "gorge", "facade", "door"),
+"weight": 1.0
+}, {
+"edge": "none",
+"family": "walls",
 "name": "gorge_door_pishtaq",
 "scene": "res://kit/modules/walls/gorge_door_pishtaq.tscn",
 "shape": "edge",

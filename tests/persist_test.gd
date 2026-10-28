@@ -695,9 +695,10 @@ func door_save_mode() -> void:
 	write_door_expect({"ledge": ledge.slot_id, "seed": area.plan.area_seed, "pos": vec(game.player.global_position)})
 
 
-## Ninth: resumes on that ledge; walks into the door; arrives in the Lower
-## Stacks just inside its door back to the gorge, facing in; walks a little
-## further in and quits.
+## Ninth (phase 9, one continuous world): resumes on that ledge; once the
+## Lower Stacks is built behind its door, walks through the door and along
+## its vestibule into the Lower Stacks, the same game throughout; walks a
+## little further in and quits.
 func door_cross_mode() -> void:
 	var expect: Dictionary = door_expect()
 	check(area != null and area.recipe.id == "gorge" and area.streamer.player_room == expect.get("ledge", ""), "the game resumes in the Gorge on %s" % expect.get("ledge", ""))
@@ -705,30 +706,63 @@ func door_cross_mode() -> void:
 	if area == null:
 		return
 	fast_unloads()
-	if not await through_door("lower_stacks", "gorge"):
+	if not await through_vestibule("lower_stacks"):
 		return
 	var door: Array = area.plan.threshold("gorge")
 	var inward: Vector3 = (door[0] as AreaPlan.Room).connectors[door[1]]["xf"] * Vector3(0, .1, Area.ARRIVE_IN + 3.0)
 	await walk([inward])
 	await until(func() -> bool: return area.room_at(game.player.global_position) != null and area.streamer.player_room == area.room_at(game.player.global_position).slot_id)
-	expect["inside"] = vec(game.player.global_position)
+	expect["inside"] = vec(area.to_local(game.player.global_position))
 	expect["inside_room"] = area.streamer.player_room
 	write_door_expect(expect)
 
 
-## Tenth: resumes inside the Lower Stacks where it quit; walks back out
-## through the door and arrives on the same ledge, facing out.
+## Tenth: a new process resumes inside the Lower Stacks where it quit (the
+## Lower Stacks at the origin now, the Gorge placed by it); walks back out
+## along the vestibule onto the same ledge.
 func door_back_mode() -> void:
 	var expect: Dictionary = door_expect()
 	check(area != null and area.recipe.id == "lower_stacks", "the game resumes in the Lower Stacks")
-	check(area != null and game.player.global_position.distance_to(arr_vec(expect.get("inside", [0, 0, 0]))) < .1, "where it quit, inside the door (%s)" % [game.player.global_position])
+	check(area != null and area.to_local(game.player.global_position).distance_to(arr_vec(expect.get("inside", [0, 0, 0]))) < .1, "where it quit, inside the door (%s)" % [game.player.global_position])
 	if area == null:
 		return
 	fast_unloads()
-	if not await through_door("gorge", "lower_stacks"):
+	if not await through_vestibule("gorge"):
 		return
+	await until(func() -> bool: return area.streamer.player_room == expect.get("ledge", ""))
 	check(area.streamer.player_room == expect.get("ledge", "") and area.plan.area_seed == int(expect.get("seed", -1)),
 		"back on %s of the same Gorge (on %s, seed %d)" % [expect.get("ledge", ""), area.streamer.player_room, area.plan.area_seed])
+
+
+## Waits for `to` to be built behind the place you're in, then walks the
+## vestibule between them (in the vestibule's frame, from the end you're at)
+## and checks `to` is the place you're in, with no reload. Whether it got
+## there.
+func through_vestibule(to: String) -> bool:
+	var sp: SeamlessPlaces = game.seamless
+	check(sp != null, "the places are one world (SeamlessPlaces)")
+	if sp == null:
+		return false
+	var key: String = to if to != "gorge" else area.recipe.id
+	await until_ms(func() -> bool: return sp.vestibules.has(key), 30000)
+	check(sp.vestibules.has(key), "%s is built behind its door, with the passage" % (to if to != "gorge" else "the Gorge"))
+	if not sp.vestibules.has(key):
+		return false
+	var v: Node3D = sp.vestibules[key]
+	var pts: Array[Vector3] = [Vector3(0, .1, 1.5), Vector3(0, .1, -4.5), Vector3(6, .1, -4.5), Vector3(6, .1, -10.0)]
+	if to == "gorge":
+		pts.reverse()
+	var same: int = game.get_instance_id()
+	for p: Vector3 in pts:     # in steps, as walk() does, in the passage's frame
+		game.player.teleport(v.to_global(p) + Vector3(0, .05, 0), v.global_rotation.y + (PI if to == "gorge" else 0.0))
+		for _i: int in 6:
+			await physics_frame
+	for _i: int in 10:
+		await physics_frame
+	check(current_scene != null and current_scene.get_instance_id() == same, "walked through without a reload")
+	area = game.world as Area
+	check(area != null and area.recipe.id == to and game.world.name == "Environment", "%s is the place you're in (%s)" % [to, area.recipe.id if area != null else game.world])
+	return area != null and area.recipe.id == to
 
 
 ## Steps into the current area's door to `to` and waits for the game to
