@@ -17,6 +17,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | Date | Change |
 |---|---|
+| 2026-10-31 | **New room type R21, the Bridge Hall** (your idea), in the [room atlas](design/room-atlas.html#R21): a cavern room with doors in its walls in pairs, one straight bridge per pair (stairs set into the deck if it changes storey). It starts with 2 doors; 4 doors wait for loops, because with one way into each room the second bridge and every room past it can't be reached. Proposed as phase 12 on the roadmap; nothing built. |
 | 2026-10-31 | **Phase 10 approved: the world authoring tool**, with the recommended answers: a dock in the editor, a random world seed per new game, grow rules never past their own maximum, saves keep their room variants, entrance-only rooms stay so for now. The navigation map becomes phase 11 ([brief](docs/environment/phase-10-approval.md)). |
 | 2026-10-31 | **The world authoring tool proposed** from the Strata Board mock we built together: three steps (a seed per world and a board to look at; editing areas; the stratum plan as a data file, with new areas reachable from the Gorge) and six decisions ([brief](docs/environment/phase-10-approval.md)). Found on the way: every new game uses world seed 1, and a grow rule may add more rooms than its own maximum to reach the area's minimum (Q4). |
 | 2026-10-27 | **Bank 4 built** (ornament 0.35): two iwans, the gorge's third great fall, more banai and tile houses; its old pieces gone, so the box-art view's draw calls fell from 1,841 to 1,399 ([progress](docs/environment/progress/phase-8-gorge-redesign.md)). |
@@ -146,6 +147,7 @@ relevant, the route audit and the two-process persistence test.
 | **9. One continuous world** | Doors between places become passages; the next place loads in the background; only the place you're in is drawn ([brief](docs/environment/phase-9-approval.md)) | Walk from the camp through the Gorge into both interiors and back with no loading screen, within the frame limits |
 | **10. The world authoring tool** | The Strata Board in the editor: the stratum side-on, recipes as graphs, any seed's plan from the real planner, a 20-seed sweep, editing that writes the recipes; a world seed per new game; the stratum plan as a data file ([brief](docs/environment/phase-10-approval.md)) | You shape an area on the board, sweep it clean, and walk it; a new area made on the board can be walked into from the Gorge |
 | 11. The navigation map (proposed) | The map drawn from the areas' plans, floor by floor, revealed as you visit (architecture §2.1) | You can find your way back to any room you've been to. |
+| 12. The Bridge Hall, R21 (proposed) | A room-sized piece of the gorge: cavern walls carved into facades, doors in pairs, one straight bridge per pair solved by `ChasmGrammar` with a new mode that puts the stairs in line on the deck. Two doors first; four once the area layout has loops ([atlas](design/room-atlas.html#R21)) | An area grows a Bridge Hall between two rooms and you walk across it; the route audit passes on 20 seeds |
 
 ## The documents
 

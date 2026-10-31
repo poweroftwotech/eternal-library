@@ -120,7 +120,7 @@ summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 <header>
   <p class="eyebrow">The Eternal Library · environment design · draft 0.1 · 2026-10-18</p>
   <h1>Library Room Atlas</h1>
-  <p class="lede">Twenty room types for the Library, in two batches, built from one shared kit of modules on a 4 m grid. Each plate shows a mock of the room, which parts are hand-placed in the Godot editor and which are picked or laid out at generation time, the modules it needs, and a prompt for producing a painted concept.</p>
+  <p class="lede">Twenty-one room types for the Library, in three batches (the third so far just R21), built from one shared kit of modules on a 4 m grid. Each plate shows a mock of the room, which parts are hand-placed in the Godot editor and which are picked or laid out at generation time, the modules it needs, and a prompt for producing a painted concept.</p>
   <p class="lede">The mocks are drawn live in this page at the game's texel scale. <b>Reroll sockets</b> re-seeds the variation points, so each click shows another version of the same room.</p>
   <div class="legend">
     <span class="chip m-authored"><i class="dot"></i>Authored · built by hand, few variants</span>
@@ -169,7 +169,7 @@ summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
       <tr><td>Openings</td><td>Pointed arch (1.2, 2, 3, 4 m spans), round arch, iwan (deep arch), plank door, orosi window, jali screen, taqcheh niche</td><td>All rooms</td></tr>
       <tr><td>Vaults and ceilings</td><td>Barrel vault bay, dome cell on squinches, muqarnas half-dome cap, timber beam ceiling, oculus / light-well cap, cavern ceiling patch</td><td>R01–R05, R08, R09</td></tr>
       <tr><td>Vertical</td><td>Straight stair (one storey over 2 bays), spiral stair run, ladder, gallery slab with balustrade, light-well ring segment</td><td>R01, R05, R06, R09, R10</td></tr>
-      <tr><td>Spans and cliffs</td><td>Bridge deck bay, aqueduct pier (1 and 2 tier), cliff ledge, loggia facade bay, sabat (room over a lane), waterfall emitter</td><td>R06, R10</td></tr>
+      <tr><td>Spans and cliffs</td><td>Bridge deck bay, aqueduct pier (1 and 2 tier), cliff ledge, loggia facade bay, sabat (room over a lane), waterfall emitter, stair flight set into a deck</td><td>R06, R10, R21</td></tr>
       <tr><td>Storage</td><td>Shelf recess (fits a 3 m arch), freestanding case, scroll rack, book pile, collapsed shelf</td><td>R01–R03, R09</td></tr>
       <tr><td>Dressing</td><td>Hanging, wall and table lamps; carpets and hung rugs; pottery and copper; planting beds; water channel; fountain; pennant line</td><td>All rooms</td></tr>
       <tr><td>Water</td><td>Water plane, causeway bay, water steps, pier bay, boathouse bay, boat, pool (3 forms), cascade channel</td><td>R07, R11, R13, R15, R20</td></tr>
@@ -181,8 +181,8 @@ summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 </section>
 
 <section>
-  <h2>The twenty room types</h2>
-  <p class="section-intro">Nine of the twenty are fully generated, seven are hybrid and four are built by hand. The generated layouts reduce to corridors, grids, lanes, rings, terraces or spans, which a grammar can produce without looking random. The authored and hybrid rooms are the ones players will navigate by. Most of the second batch reuses a first-batch generator: the cistern is R03's grid with water, the ossuary is R02's corridor at half scale, and the yard shares R05's courtyard.</p>
+  <h2>The twenty-one room types</h2>
+  <p class="section-intro">Ten of the twenty-one are fully generated, seven are hybrid and four are built by hand. The generated layouts reduce to corridors, grids, lanes, rings, terraces or spans, which a grammar can produce without looking random. The authored and hybrid rooms are the ones players will navigate by. Most of the second batch reuses a first-batch generator: the cistern is R03's grid with water, the ossuary is R02's corridor at half scale, and the yard shares R05's courtyard.</p>
   <div class="table-wrap">
   <table>
     <thead><tr><th>ID</th><th>Room</th><th>Mode</th><th>Role</th><th>Layout</th></tr></thead>
@@ -832,6 +832,49 @@ function sLake(seed){const r=RNG(seed),s=new Scene({F:160,vy:H*.5,haze:'#132230'
   s.post.push(ctx=>{const g=ctx.createLinearGradient(0,H*.4,0,H*.62);g.addColorStop(0,'rgba(150,175,195,0)');g.addColorStop(.6,'rgba(150,175,195,.18)');g.addColorStop(1,'rgba(150,175,195,0)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)});
   s.notes=[`far landings <b>${dest}</b>`,`boats <b>${boats}</b>`,`lit boathouses <b>${lit}/8</b>`];return s}
 
+/* ================= third batch ================= */
+/* ---------- R21 Bridge Hall (doors in pairs, one straight bridge per pair) ---------- */
+function sBridgeHall(seed){const r=RNG(seed),s=new Scene({F:160,vy:H*.5,haze:'#1e2a34',fog:.02,amb:.24,ambCol:'#7f98ae'});
+  const Z1=44,WX=18,base=-40,rise=pick([0,0,4,-4],r),s0=14,s1=22,nb=r()<.5?1:2;
+  const dy=z=>z<s0?0:z>=s1?rise:rise*(Math.floor((z-s0)/.5)+1)/16;
+  let litN=0,cells=0,falls=0;
+  for(const side of[-1,1]){for(let y=-36;y<20;y+=4)for(let z=0;z<Z1;z+=4){const M=sideM(side,WX,y,z),lit=r()<.3;cells++;if(lit)litN++;
+      s.group(z+2.6,()=>{s.poly([M(0,0),M(4,0),M(4,4),M(0,4)],jit('#9a7a58',r,.14));s.poly(archPts(1.3,1.3,.6).map(p=>M(1.35+p[0],.7+p[1],-.01)),lit?'#ffb560':'#17120f',lit?{em:1}:{})})}
+    for(let y=-32;y<20;y+=12)for(let z=0;z<Z1;z+=4)s.group(z+2.55,()=>s.poly([[side*WX,y,z],[side*(WX-.9),y,z],[side*(WX-.9),y,z+4],[side*WX,y,z+4]],y>1.7?'#4a3a2c':'#7a6048'))}
+  for(let k=0;k<12;k++){const side=r()<.5?-1:1;s.lamp([side*(WX-2),-24+r()*40,6+r()*36],'#ffae58',.8,6,0)}
+  if(r()<.6){falls++;const sx=(r()<.5?-1:1)*(WX-.95),zf=10+r()*24;s.poly([[sx,10,zf],[sx,10,zf+1.2],[sx,base,zf+1.8],[sx,base,zf-.6]],'#cfe2f0',{add:1,a:.22})}
+  /* far wall: carved, with the door this bridge leads to */
+  s.poly([[-40,base,Z1],[40,base,Z1],[40,30,Z1],[-40,30,Z1]],'#5a4a3c',{k:150});
+  for(let k=0;k<70;k++){const x=(r()-.5)*32,y=-36+r()*54,lit=r()<.35;if(Math.abs(x)<3&&Math.abs(y-rise)<4)continue;
+    s.poly([[x,y,Z1-.1],[x+.8,y,Z1-.1],[x+.8,y+1.2,Z1-.1],[x,y+1.2,Z1-.1]],lit?'#ffb560':'#2a2018',lit?{em:.9,k:149}:{k:149})}
+  s.poly(archPts(3,2.6,.6).map(p=>[-1.5+p[0],rise+p[1],Z1-.2]),'#ffb868',{em:.95,k:148});s.lamp([0,rise+2,Z1-2],'#ffc070',1.4,6,0);
+  floor(s,-3,3,Z1-2,Z1-.3,1,'#6e5a46',r,.2,rise);
+  /* cavern roof */
+  s.poly([[-40,22,1],[40,22,1],[40,22,Z1],[-40,22,Z1]],'#141a20',{k:200});
+  for(let k=0;k<30;k++){const x=(r()-.5)*26,z=4+r()*38,len=3+r()*8,wd=.8+r()*2;s.poly([[x-wd,22,z],[x+wd,22,z],[x,22-len,z]],jit('#242c32',r,.2))}
+  /* the bridge you stand on: straight from above, stairs set into the deck */
+  for(let z=1;z<Z1-2-1e-6;z+=.5){const y=dy(z),yp=dy(z-.5);
+    s.poly([[-2,y,z],[2,y,z],[2,y,z+.5],[-2,y,z+.5]],jit('#7a6048',r,.12));
+    if(z>1&&y>yp)s.poly([[-2,yp,z],[2,yp,z],[2,y,z],[-2,y,z]],'#5e4a38');
+    for(const sd of[-1,1]){s.poly([[sd*2,y,z],[sd*2,y,z+.5],[sd*2,y+.18,z+.5],[sd*2,y+.18,z]],'#5e4a38');
+      s.poly([[sd*2,y+.92,z],[sd*2,y+.92,z+.5],[sd*2,y+1,z+.5],[sd*2,y+1,z]],'#6a5240');if(z%1===0)s.line([sd*2,y+.18,z+.25],[sd*2,y+.92,z+.25],'#4a3828',1.5)}}
+  lantern(s,-1.9,1.4,2.2,{i:1.2,r:3.5,size:.9});
+  for(let z=8;z<Z1-3;z+=8){const sd=(z/8)%2?1:-1;lantern(s,sd*1.9,dy(z)+1.4,z,{i:.7,r:3.2,size:.9})}
+  const nfg=Math.floor(r()*3);for(let q=0;q<nfg;q++){const z=10+r()*28;figure(s,(r()-.5)*2.4,z,1.7,pick(ROBES,r),dy(z))}
+  /* a second bridge: its own pair of doors, side by side with the first, never joining it */
+  let y2=null;
+  if(nb===2){const sd=r()<.5?-1:1,x0=9,x1=13;y2=pick([-3,5,8],r);const fi=r()<.6?Math.floor(r()*10):-1;
+    for(let z=0;z<Z1;z+=4){const Hh=y2-base,ops=[{u:.6,span:2.8,spring:Hh-1.4-2.5,k:.5,depth:4,open:1}];
+      s.group(z+2.2,()=>{bay(s,sideM(sd,x0,base,z),4,Hh,ops,'#8a6c4c');
+        s.poly([[sd*x0,y2,z],[sd*x1,y2,z],[sd*x1,y2,z+4],[sd*x0,y2,z+4]],y2<1.7?'#7a6048':'#4a3a2c');
+        s.poly([[sd*x0,y2,z],[sd*x0,y2,z+4],[sd*x0,y2+1,z+4],[sd*x0,y2+1,z]],'#6a5240')});
+      if(z/4===fi){falls++;s.poly([[sd*x0,y2-1,z+1.6],[sd*x0,y2-1,z+2.4],[sd*x0,base,z+2.8],[sd*x0,base,z+1.2]],'#cfe2f0',{add:1,a:.2})}
+      if(z%8===4)lantern(s,sd*x0,y2+1.4,z,{i:.5,r:3,size:.9})}
+    s.poly(archPts(3,2.6,.6).map(p=>[sd*11-1.5+p[0],y2+p[1],Z1-.2]),'#ffb868',{em:.9,k:148});s.lamp([sd*11,y2+2,Z1-2],'#ffc070',1.1,5,0)}
+  s.post.push(ctx=>{const g=ctx.createLinearGradient(0,H*.55,0,H);g.addColorStop(0,'rgba(170,195,215,0)');g.addColorStop(.55,'rgba(170,195,215,.24)');g.addColorStop(1,'rgba(170,195,215,.1)');ctx.fillStyle=g;ctx.fillRect(0,0,W,H)});
+  s.notes=[`doors <b>${nb*2}</b>, bridges <b>${nb}</b>`,`your bridge <b>${rise===0?'level':rise>0?'climbs 4 m':'drops 4 m'}</b>`,
+    nb===2?`second bridge at <b>${y2} m</b> (reached only from other rooms: waits for loops)`:`one bridge (the first version)`,`waterfalls <b>${falls}</b>`,`lit windows <b>${litN}/${cells}</b>`];return s}
+
 /* ---------- room data ---------- */
 const STYLE='Painterly concept art for a first-person adventure game, eye-level camera at 1.7 m. Persian architecture (Safavid and Qajar) inside a vast underground cavern library: sandstone, baked brick, plaster, turquoise-and-lapis tilework, pointed four-centred arches. Warm oil-lamp and candle light against cool teal shadows, soft volumetric haze, readable detail. No modern elements: no electric lights or bulbs, no wires, no plastic, no glass display cases, no printed signage or clocks, no modern clothing, no vehicles, no open sky.';
 const ROOMS=[
@@ -1014,7 +1057,16 @@ const ROOMS=[
   gen:'The quay is authored. The shoreline and far landings come from the region\'s water graph; a dark landing means a route is closed.',
   refs:'Box art (haze and water); prototype water material.',
   plan:['~~~~~~~~~~~~~','~~~g~~~~~g~~~','~~~~~~~~~~~~~','SSSS~~~~~.~~~','####~~~~~.~~~','#LL#.....#~~~','#...D....#~~~'],
-  prompt:'A stone quay on the shore of a vast black underground lake. Steps lead down into the still water. On the left, boathouses with wide arches stand over the water, one upper window lit. A long wooden pier with lanterns runs out on the right; small boats with lanterns drift on the lake, their reflections streaking the water. Far across the lake, the lit windows of distant settlements; stalactites overhead, mist low on the water.'}
+  prompt:'A stone quay on the shore of a vast black underground lake. Steps lead down into the still water. On the left, boathouses with wide arches stand over the water, one upper window lit. A long wooden pier with lanterns runs out on the right; small boats with lanterns drift on the lake, their reflections streaking the water. Far across the lake, the lit windows of distant settlements; stalactites overhead, mist low on the water.'},
+ {id:'R21',name:'Bridge Hall',fa:'Talar-e Pol',mode:'generated',role:'A cavern room crossed by bridges between its doors',layout:'Doors in pairs, one straight span per pair',draw:sBridgeHall,
+  facts:['2 doors, 1 bridge to start','spans up to 40 m','a drop into mist under the decks'],
+  desc:'A piece of the gorge sized as a room, so it can sit in any area like the others: a tall cavern hall with its walls carved into storeys of facades and its doors in the walls. Doors come in pairs, and each pair is joined by one bridge. From above every bridge is a straight line from wall to wall; it may climb or drop a storey on stairs set into the deck. Bridges run side by side and never meet, so from one you can see the other but not reach it.',
+  kit:'From R10: bridge deck bay, aqueduct pier, parapet, lamp post, waterfall. From the Persian kit (phase 8): carved facade bays and storey ledges for the walls. New: a stair flight set into the deck, and a cavern wall and roof shell sized to the room.',
+  sockets:'Lit windows per facade bay, waterfalls through arches and down the walls, lamp state, deck traffic, which storey of the wall each door opens on.',
+  gen:'The planner gives the room two doors on opposite walls, and ChasmGrammar solves the bridge between them in the room\'s frame. It needs a new stair mode with the flights in line on the deck, so the bridge stays straight from above. Four doors (two bridges) wait for loops in the area layout: areas grow as a tree with one way into each room, so the second bridge, and every room past its doors, could not be reached. Three doors would need a landing where a bridge branches.',
+  refs:'R10 Chasm Spans and the Gorge as built (phases 6 and 8); box art for the haze and the lit facades.',
+  plan:['#SS#SS#SS#SS#','SxxxxxxxxxxxS','SxxxxxxxxxxxS','D.ggggggggg.D','SxxxxxxxxxxxS','SxxxxxxxxxxxS','#SS#SS#SS#SS#'],
+  prompt:'Standing in a doorway at the start of a stone bridge that runs straight across a tall underground cavern hall to a lit arched door in the far wall. Lanterns on the bridge parapets; partway along, the bridge climbs a short flight of stairs set into its deck. Both side walls are carved into storeys of Persian arched windows, some glowing warm. A second aqueduct bridge, a storey higher or lower, runs parallel off to one side, a waterfall spilling through one of its arches into mist far below. Stalactites hang from the dark cavern roof.'}
 ];
 
 /* ---------- plans ---------- */
@@ -1035,7 +1087,8 @@ for(const R of ROOMS){
   toc.insertAdjacentHTML('beforeend',`<a class="m-${R.mode}" href="#${R.id}">${R.id} ${R.name}</a>`);
   ov.insertAdjacentHTML('beforeend',`<tr><td class="id">${R.id}</td><td><a href="#${R.id}">${R.name}</a></td><td><span class="chip m-${R.mode}"><i class="dot"></i>${MODE[R.mode]}</span></td><td>${R.role}</td><td>${R.layout}</td></tr>`);
   const full=R.prompt+' '+STYLE;
-  if(R.id==='R01'||R.id==='R11')host.insertAdjacentHTML('beforeend',`<h2 class="batch-head">${R.id==='R01'?'First batch · R01–R10':'Second batch · R11–R20'}</h2>`);
+  const BATCH={R01:'First batch · R01–R10',R11:'Second batch · R11–R20',R21:'Third batch · R21'};
+  if(BATCH[R.id])host.insertAdjacentHTML('beforeend',`<h2 class="batch-head">${BATCH[R.id]}</h2>`);
   host.insertAdjacentHTML('beforeend',`
   <article class="room m-${R.mode}" id="${R.id}">
     <div class="room-title"><span class="rid">${R.id}</span><h3>${R.name}</h3><span class="fa">${R.fa}</span><span class="badge">${MODE[R.mode]}</span></div>
@@ -1062,7 +1115,7 @@ for(const R of ROOMS){
 function draw(R){const cv=document.getElementById('cv-'+R.id),s=R.draw(seeds[R.id]);s.render(cv);
   document.getElementById('seed-'+R.id).textContent='seed '+String(seeds[R.id]).padStart(4,'0');
   document.getElementById('notes-'+R.id).innerHTML='This roll: '+s.notes.join(' · ')}
-ROOMS.forEach((R,i)=>{seeds[R.id]=[7,12,5,3,9,4,2,11,6,8,5,3,7,4,9,2,6,8,3,10][i];
+ROOMS.forEach((R,i)=>{seeds[R.id]=[7,12,5,3,9,4,2,11,6,8,5,3,7,4,9,2,6,8,3,10,4][i];
   document.getElementById('roll-'+R.id).addEventListener('click',()=>{seeds[R.id]=(seeds[R.id]*7+13)%9973;draw(R)});
   document.getElementById('cp-'+R.id).addEventListener('click',()=>{const el=document.getElementById('pr-'+R.id),done=document.getElementById('cpd-'+R.id);
     const ok=()=>{done.hidden=false;setTimeout(()=>done.hidden=true,1600)};
