@@ -71,6 +71,11 @@ td a:hover{text-decoration-color:var(--amber)}
 .room-title .rid{font-family:var(--mono);font-size:1.4rem;color:var(--muted)}
 .room-title .fa{font-style:italic;color:var(--muted);font-size:1.05rem}
 .badge{font-family:var(--mono);font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m);border:1px solid var(--m);padding:0 8px;border-radius:2px}
+.built{font-family:var(--mono);font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--bg);background:var(--ink);padding:0 8px;border-radius:2px;white-space:nowrap}
+.when{font-family:var(--mono);font-size:1.05rem;color:var(--muted);white-space:nowrap}
+.ingame{font-size:.98rem;border-left:3px solid var(--ink);padding:4px 0 4px 12px}
+.toc a.is-built{background:var(--panel)}
+.toc a.is-built::after{content:' · built';color:var(--muted)}
 figure{margin:0;display:grid;gap:10px;align-content:start;min-width:0}
 canvas.mock{width:100%;max-width:100%;aspect-ratio:384/216;image-rendering:pixelated;image-rendering:crisp-edges;display:block;background:#0b0e10;border-radius:2px}
 .figbar{display:flex;flex-wrap:wrap;gap:8px 14px;align-items:center}
@@ -182,10 +187,10 @@ summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 <section>
   <h2>The twenty-one room types</h2>
-  <p class="section-intro">Ten of the twenty-one are fully generated, seven are hybrid and four are built by hand. The generated layouts reduce to corridors, grids, lanes, rings, terraces or spans, which a grammar can produce without looking random. The authored and hybrid rooms are the ones players will navigate by. Most of the second batch reuses a first-batch generator: the cistern is R03's grid with water, the ossuary is R02's corridor at half scale, and the yard shares R05's courtyard.</p>
+  <p class="section-intro">Ten of the twenty-one are fully generated, seven are hybrid and four are built by hand. Seven are in the game today (R01, R02, R03, R05, R09, R10, R11), marked <span class="built">In the game</span> here and on their plates. The camp, where the game starts, is not one of these types. The generated layouts reduce to corridors, grids, lanes, rings, terraces or spans, which a grammar can produce without looking random. The authored and hybrid rooms are the ones players will navigate by. Most of the second batch reuses a first-batch generator: the cistern is R03's grid with water, the ossuary is R02's corridor at half scale, and the yard shares R05's courtyard.</p>
   <div class="table-wrap">
   <table>
-    <thead><tr><th>ID</th><th>Room</th><th>Mode</th><th>Role</th><th>Layout</th></tr></thead>
+    <thead><tr><th>ID</th><th>Room</th><th>Mode</th><th>Role</th><th>Layout</th><th>Status</th></tr></thead>
     <tbody id="overview"></tbody>
   </table>
   </div>
@@ -1083,15 +1088,25 @@ const MODE={authored:'Authored',hybrid:'Hybrid',generated:'Generated'};
 /* ---------- build page ---------- */
 const host=document.getElementById('rooms'),ov=document.getElementById('overview'),toc=document.getElementById('toc');
 const seeds={};
+/* which room types are in the game today (keep in step with ENVIRONMENT_PLAN.md) */
+const BUILT={
+  R01:{when:'Phase 1, 2026-10-19',where:'The library wing, as its entrance',how:'Built by hand in Godot from kit pieces (<code>rooms/authored/reading_room.tscn</code>), then weathered: fallen books, plants, stains, floor wear.'},
+  R02:{when:'Phase 2, 2026-10-20',where:'The library wing and the Lower Stacks',how:'Generated off any door by the stack gallery grammar; some seeds baked to scenes.'},
+  R03:{when:'Phase 5, 2026-10-23',where:'The Lower Stacks',how:'Generated halls of columns up to 10 × 10 bays, with lamp clusters and collapsed bays (left dark by your choice).'},
+  R05:{when:'Phase 5, 2026-10-24',where:'The Lower Stacks, as its entrance',how:'Built by the courtyard grammar and baked in three sizes: 3 × 3, 5 × 5 and 7 × 5.'},
+  R09:{when:'Phase 5, 2026-10-23',where:'The Lower Stacks',how:'Rebuilt as your cone: 3–5 storeys, wide at the floor and narrow at the oculus, with a masonry stair cut into its wall.'},
+  R10:{when:'Phase 6, 2026-10-25',where:'The Gorge',how:'The span grammar joins cliff ledges with bridges or stair chains; the Overlook is its hand-built end (<code>rooms/gorge/overlook.tscn</code>). Restyled in the Persian look in phase 8.'},
+  R11:{when:'Phase 5, 2026-10-23',where:'The Lower Stacks',how:'R03\'s grid of columns with water.'}};
 for(const R of ROOMS){
-  toc.insertAdjacentHTML('beforeend',`<a class="m-${R.mode}" href="#${R.id}">${R.id} ${R.name}</a>`);
-  ov.insertAdjacentHTML('beforeend',`<tr><td class="id">${R.id}</td><td><a href="#${R.id}">${R.name}</a></td><td><span class="chip m-${R.mode}"><i class="dot"></i>${MODE[R.mode]}</span></td><td>${R.role}</td><td>${R.layout}</td></tr>`);
+  const B=BUILT[R.id];
+  toc.insertAdjacentHTML('beforeend',`<a class="m-${R.mode}${B?' is-built':''}" href="#${R.id}">${R.id} ${R.name}</a>`);
+  ov.insertAdjacentHTML('beforeend',`<tr><td class="id">${R.id}</td><td><a href="#${R.id}">${R.name}</a></td><td><span class="chip m-${R.mode}"><i class="dot"></i>${MODE[R.mode]}</span></td><td>${R.role}</td><td>${R.layout}</td><td>${B?`<span class="built">In the game</span> <span class="when">${B.when}</span>`:'<span class="when">Not yet</span>'}</td></tr>`);
   const full=R.prompt+' '+STYLE;
   const BATCH={R01:'First batch · R01–R10',R11:'Second batch · R11–R20',R21:'Third batch · R21'};
   if(BATCH[R.id])host.insertAdjacentHTML('beforeend',`<h2 class="batch-head">${BATCH[R.id]}</h2>`);
   host.insertAdjacentHTML('beforeend',`
   <article class="room m-${R.mode}" id="${R.id}">
-    <div class="room-title"><span class="rid">${R.id}</span><h3>${R.name}</h3><span class="fa">${R.fa}</span><span class="badge">${MODE[R.mode]}</span></div>
+    <div class="room-title"><span class="rid">${R.id}</span><h3>${R.name}</h3><span class="fa">${R.fa}</span><span class="badge">${MODE[R.mode]}</span>${B?'<span class="built">In the game</span>':''}</div>
     <figure>
       <canvas class="mock" id="cv-${R.id}" width="${W}" height="${H}" aria-label="Mock of the ${R.name}"></canvas>
       <div class="figbar"><button type="button" id="roll-${R.id}">Reroll sockets</button><span class="seed" id="seed-${R.id}"></span></div>
@@ -1100,6 +1115,7 @@ for(const R of ROOMS){
     <div class="sheet">
       <div class="facts">${R.facts.map(f=>`<span><b>${f}</b></span>`).join('')}</div>
       <p class="desc">${R.desc}</p>
+      ${B?`<div class="ingame"><b>In the game since ${B.when}.</b> ${B.where}. ${B.how}</div>`:''}
       <dl>
         <div><dt>Kit pieces</dt><dd>${R.kit}</dd></div>
         <div><dt>Sockets and variation</dt><dd>${R.sockets}</dd></div>
