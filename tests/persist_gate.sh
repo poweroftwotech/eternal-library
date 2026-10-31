@@ -14,6 +14,9 @@ LS_SEED=--area-seed=9
 DOOR_SAVE=--save=user://test/persist_door.json
 # phase 7 steps 3-4: the camp from kit pieces, where the game starts, and its door to the Gorge.
 CAMP_SAVE=--save=user://test/persist_camp.json
+# phase 9 step 3: saves made between places (in a vestibule either side of its swap, in the corridor).
+MID_SAVE=--save=user://test/persist_mid.json
+CORRIDOR_SAVE=--save=user://test/persist_corridor.json
 set -e
 timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- save "$SAVE" --fresh --gen-seed=7 > /tmp/persist_save.log 2>&1 || { grep -E "persist_test|FAIL|ERROR" /tmp/persist_save.log; exit 1; }
 grep -E "persist_test|FAIL" /tmp/persist_save.log
@@ -47,4 +50,9 @@ timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test
 grep -E "persist_test|FAIL" /tmp/persist_camp_cross.log
 timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- camp_back "$CAMP_SAVE" > /tmp/persist_camp_back.log 2>&1 || { grep -E "persist_test|FAIL|ERROR|  " /tmp/persist_camp_back.log; exit 1; }
 grep -E "persist_test|FAIL" /tmp/persist_camp_back.log
-echo "persist_gate: all sixteen processes passed"
+for m in "mid_save $MID_SAVE --fresh" "mid_cross $MID_SAVE" "mid_back $MID_SAVE" "corridor_save $CORRIDOR_SAVE --fresh" "corridor_load $CORRIDOR_SAVE"; do
+	log=/tmp/persist_${m%% *}.log
+	timeout 300 "$GODOT" --headless --path "$PROJ" --script res://tests/persist_test.gd -- $m > "$log" 2>&1 || { grep -E "persist_test|FAIL|ERROR|  " "$log"; exit 1; }
+	grep -E "persist_test|FAIL" "$log"
+done
+echo "persist_gate: all twenty-one processes passed"

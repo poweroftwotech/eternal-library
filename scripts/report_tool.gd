@@ -175,6 +175,11 @@ func snapshot() -> Dictionary:
 	}
 	if game.player.get("flying"):
 		entry["flying"] = true     # fly mode (V): the feet are wherever you hovered
+	# Where the place you're in stands (phase 9: off the origin once you've
+	# walked into it from another): a replay boots it at the origin.
+	if game.world is Node3D:
+		var place: Transform3D = (game.world as Node3D).global_transform
+		entry["place"] = [_arr(place.basis.x), _arr(place.basis.y), _arr(place.basis.z), _arr(place.origin)]
 	if game.world is Area:
 		var area: Area = game.world
 		entry["area"] = area.recipe.id

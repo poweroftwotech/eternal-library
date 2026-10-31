@@ -117,3 +117,62 @@ After the fixes, the flicker finder shows only the brick texture's pixel edges m
 
 - **The Gorge door's arch missing faces from inside** (two reports): the passage's end wall stood 6 cm inside the door's line, but the door's frame starts 25 cm outside it, and the frame has no back. Through the 31 cm slot between them you saw the cave beside the arch's stones. The end wall now runs out to the frame's back plate (`Vestibule.FRAME_BACK`), so the brick soffit meets the stone ring.
 - **A gap where the passage meets the Reading Room** (two reports): last round's 1.2 m inset came from a wrong measurement. Both interiors' door walls start 0.3 m in front of the door line, and their openings are the passage's own 3 m width, 3.56 m tall. The passage stopped 1.2 m short, which left a 0.9 m slot open to the dark on either side. It now stops 0.3 m short (`EXIT_INSET`), right where the rooms' walls start, without running into their openings (which was the earlier flicker).
+
+## Step 3: saves between places, the frame gate (2026-10-30, committed)
+
+**No doors between the interiors.** The Library Wing and the Lower Stacks each lead only to the Gorge, and the camp only to the Gorge, so there are no more doors to open. The step is the save test, the frame gate and what they found.
+
+### Saves made between places
+
+New `persist_test` modes, each process its own: `mid_save` / `mid_cross` / `mid_back` (quit in the Lower Stacks' passage short of the swap, resume there, walk on past it, quit, resume there, walk back out onto the same Gorge) and `corridor_save` / `corridor_load` (quit in the camp's half of the corridor, past the doorway sill). Added to `tests/persist_gate.sh` (now 21 processes).
+
+- **Found: a save made in a passage resumed in mid-air.** The passage was only built once the places at both ends were, seconds after start-up, so you fell (86–120 m) and came back at the spawn. In the corridor, the floor past the camp's sill is the Gorge's: the same. Fixed: the passages from the place you start in are built at once from its own plan (`SeamlessPlaces._add_vestibule` places one by the interior's door when the Gorge isn't there yet); in the corridor before the Gorge is built, you wait with the quiet "Loading…" note.
+- **Found: quitting in the first seconds after start-up crashed the game at exit** (the Gorge still being planned on a worker thread; the save was already written). It failed `camp_save` and `camp_load`, so the gate script stopped there. `SeamlessPlaces` now finishes its worker tasks when it leaves (`_on_worker`, `_exit_tree`).
+
+### Report replays from an interior
+
+A report now records where the place you're in stood (`place`, `scripts/report_tool.gd`); `tests/report_capture.gd` puts the view back in that place's own frame. Checked in `mid_back`: a report made in the Lower Stacks after walking in from the Gorge replays where it was made, with the Lower Stacks booted at the origin. Older reports have no `place` and replay as before.
+
+### The frame gate: `tests/world_walk_capture.gd`
+
+The real game from the camp: along the corridor onto the loggia, into the Library Wing from its ledge and back, into the Lower Stacks and back, back along the corridor into the camp, at 3.3 m/s by real time, Medium, 1080p, vsync off, 19,000 frames walked. Across the Gorge from the loggia to each ledge the walk is cut (there's no short way on foot); the second after a cut isn't judged. Each place is judged by its own budget, each swap by the frames from 0.5 s before to 1 s after it: proposed, no frame over 33 ms and at most 3 over 16.7 ms.
+
+What it found, and fixed:
+- **The interiors were planned on a worker thread as you walked, and the game stalled while they were** (up to 235 ms, half a second after stepping onto the loggia, and after each return to the Gorge): the planner instantiates their rooms. They're now planned once at start-up, behind the start-up screen, and their plans kept (`SeamlessPlaces._plan_interiors`). The Gorge's planning stays on the worker.
+- **Each interior's plan was checked again every time it was built** (the Lower Stacks: 36 ms): checked once now (`AreaPlan.checked`).
+- **The Reading Room's first reading table took 75 ms to enter the world** (a first-use cost): the interiors' authored and baked rooms are put into the world once, hidden, at start-up.
+
+Start-up is about 600 ms longer.
+
+| Swap | before | after |
+|---|---|---|
+| camp → Gorge | 228–235 ms | 24 ms |
+| Gorge → Library Wing | 33–35 ms | 30 ms |
+| Library Wing → Gorge | 204–210 ms | 47 ms |
+| Gorge → Lower Stacks | 44–58 ms | 46 ms |
+| Lower Stacks → Gorge | 89–95 ms | 25 ms |
+| Gorge → camp | 15–17 ms | 14 ms |
+
+Places, off the swaps (final run):
+
+| | frame mean / worst | GPU mean / worst | draw calls | triangles |
+|---|---|---|---|---|
+| Camp | 2.73 / 7.62 ms | 2.04 / 4.13 ms | 2,717 | 3.81 M |
+| Gorge | 2.56 / 5.78 ms | 1.86 / 4.51 ms | 2,640 | 3.98 M |
+| Library Wing | 1.72 / 3.83 ms | 1.06 / 2.48 ms | 946 | 0.27 M |
+| Lower Stacks | 1.63 / 3.46 ms | 0.94 / 2.44 ms | 445 | 0.29 M |
+
+**The gate doesn't pass yet:**
+- Two swaps are still over 33 ms (Library Wing → Gorge 47, Gorge → Lower Stacks 46). What's left is the swap itself: the whole Gorge shown or hidden at once (10–38 ms), and shaders compiled the first time parts of the Gorge are seen again (30 at draw).
+- The camp is over the interiors' budget (2,717 draw calls, 3.8 M triangles): the Gorge seen through the doorway, the price of the view accepted in step 1. By the Gorge's budget it's within triangles, a little over draw calls.
+- The Gorge is just over its own budget (2,640 of 2,600 draw calls; GPU worst 4.51 of 4.5 ms): the ledges by the doors, not among the six views of phase 8's budget check.
+
+**Caveats:**
+- Once, in six runs, one frame took 221 ms while the Library Wing built in the background (a floor tile entering the world). It didn't happen again in five more runs; the cause isn't known.
+- The swaps' timings vary by 5–10 ms between runs.
+
+Verified: `persist_gate.sh` all 21 processes, playtest 33 checks, the headless gate clean.
+
+### Your call on the gate (2026-10-30)
+
+Accepted as it stands: swaps up to 50 ms (at most 3 frames over 16.7 ms), and the camp judged by the Gorge's budget, since it shows the Gorge through its doorway (`tests/world_walk_capture.gd`). By the final run's numbers the gate would still flag three small overages of the Gorge's own budget (2,600 draw calls, GPU worst 4.5 ms): the camp's view 2,717 draw calls, the Gorge's door ledges 2,640, GPU worst 4.51 ms. They're left for the later pass over the Gorge (`gorge-later.md`), not met by raising the budget. Committed at your go-ahead; your walk of the whole route is still to come.

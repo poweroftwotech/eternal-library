@@ -24,3 +24,5 @@ Things noticed while building phase 8 and left for another pass over the gorge. 
 ## Seen during phase 9
 
 - **A dark plain corner on ledge_2** (seed 433536861, by (49.6, 0, -111)): the bank's stone core shows where the ledge's own clearing took the face bays away. It looks the same with phase 9's system switched off (`--no-seamless`), so it predates it (phase 6's ledge claims).
+
+- **Draw calls a little over the Gorge's budget** (phase 9 step 3's frame gate, 2026-10-30): 2,640 at the door ledges and 2,717 from the camp looking through its doorway, against 2,600; GPU worst 4.51 ms against 4.5. The two slowest swaps (about 47 ms) come from showing or hiding the whole Gorge at once; hiding it by render layer instead would take most of that away.

@@ -25,6 +25,10 @@ extends SceneTree
 ## door_save, door_cross, door_back: through the gorge's door into the Lower
 ##           Stacks and back (phase-6-design.md 5.7.6), in their own save file;
 ##           see door_save_mode.
+## mid_save, mid_cross, mid_back: saves made between places (phase 9 step 3),
+##           in the Lower Stacks' vestibule on either side of its swap.
+## corridor_save, corridor_load: a save in the camp's half of the corridor to
+##           the Gorge, past the camp's doorway sill.
 
 var main_script: GDScript = load("res://scripts/main.gd")
 const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
@@ -70,7 +74,7 @@ func run() -> void:
 		main_script.room_override = "area:" + area_id()
 	elif mode == "camp_save":
 		main_script.room_override = "camp"
-	elif mode == "door_save":
+	elif mode == "door_save" or mode == "mid_save":
 		main_script.room_override = "area:gorge"
 	game = (load("res://main.tscn") as PackedScene).instantiate()
 	root.add_child(game)
@@ -119,6 +123,16 @@ func run() -> void:
 			await camp_cross_mode()
 		"camp_back":
 			await camp_back_mode()
+		"mid_save":
+			await mid_save_mode()
+		"mid_cross":
+			await mid_cross_mode()
+		"mid_back":
+			await mid_back_mode()
+		"corridor_save":
+			await corridor_save_mode()
+		"corridor_load":
+			await corridor_load_mode()
 	finish(mode, true)
 
 
@@ -734,6 +748,131 @@ func door_back_mode() -> void:
 		"back on %s of the same Gorge (on %s, seed %d)" % [expect.get("ledge", ""), area.streamer.player_room, area.plan.area_seed])
 
 
+## Saves between places (phase 9 step 3). In the Gorge (a fresh save): along
+## the Lower Stacks' vestibule to its second cell, short of the swap, and quit.
+const MID_GORGE := Vector3(0, .1, -4.5)     # the vestibule's frame: before the swap
+const MID_INTERIOR := Vector3(6, .1, -4.5)  # after it
+
+
+func mid_save_mode() -> void:
+	check(area != null and area.recipe.id == "gorge", "the game starts in the Gorge")
+	if area == null:
+		return
+	fast_unloads()
+	if not await into_vestibule("lower_stacks", MID_GORGE):
+		return
+	check(game.world == area, "short of the swap, the Gorge is still the place you're in")
+	write_door_expect({"pos": vec(game.player.global_position), "seed": area.plan.area_seed})
+
+
+## A new process resumes in the vestibule, the Gorge at the origin: you stand
+## there, on its floor, before the Lower Stacks is built; then on past the
+## swap into the Lower Stacks' half, and quit there.
+func mid_cross_mode() -> void:
+	var expect: Dictionary = door_expect()
+	check(area != null and area.recipe.id == "gorge", "the game resumes in the Gorge (%s)" % game.world)
+	if area == null:
+		return
+	await stays_put(arr_vec(expect.get("pos", [0, 0, 0])))
+	fast_unloads()
+	if not await into_vestibule("lower_stacks", MID_INTERIOR):
+		return
+	area = game.world as Area
+	check(area != null and area.recipe.id == "lower_stacks", "past the swap, the Lower Stacks is the place you're in (%s)" % game.world)
+	if area == null:
+		return
+	expect["inside"] = vec(area.to_local(game.player.global_position))
+	expect["report"] = game.report.snapshot()     # replayed in the next process, the Lower Stacks at the origin
+	write_door_expect(expect)
+
+
+## A third: resumes in the vestibule's far half, the Lower Stacks at the
+## origin now: you stand there before the Gorge is built; then back out onto
+## the same Gorge's ledge.
+func mid_back_mode() -> void:
+	var expect: Dictionary = door_expect()
+	check(area != null and area.recipe.id == "lower_stacks", "the game resumes in the Lower Stacks (%s)" % game.world)
+	if area == null:
+		return
+	await stays_put(area.to_global(arr_vec(expect.get("inside", [0, 0, 0]))))
+	var r: Dictionary = expect.get("report", {})
+	var feet: Array = r.get("feet", [0, 0, 0])
+	var replayed: Vector3 = area.global_transform * (load("res://tests/report_capture.gd").place_of(r) as Transform3D).affine_inverse() * arr_vec(feet)
+	check(replayed.distance_to(game.player.global_position) < .1, "a report made there replays where it was made (%s, standing at %s)" % [replayed, game.player.global_position])
+	fast_unloads()
+	if not await through_vestibule("gorge"):
+		return
+	check(area.plan.area_seed == int(expect.get("seed", -1)), "back in the same Gorge (seed %d)" % area.plan.area_seed)
+
+
+## In the camp (a fresh save): once the Gorge is built, along the corridor
+## past the camp's doorway sill, short of the swap (z -15.8), and quit.
+const CORRIDOR_MID := Vector3(-1.0, 2.3, -15.3)
+
+
+func corridor_save_mode() -> void:
+	check(game.world is CampRoom, "the game starts in the camp")
+	if game.seamless == null:
+		return
+	await until_ms(func() -> bool: return game.seamless.neighbour != null, 30000)
+	game.player.teleport(CORRIDOR_MID, 0.0)
+	for _i: int in 20:
+		await physics_frame
+	check(game.world is CampRoom and game.player.is_on_floor(), "in the corridor, the camp still the place you're in (%s)" % game.player.global_position)
+	write_door_expect({"pos": vec(game.player.global_position)})
+
+
+## A new process: you stand in the corridor where you quit, before the Gorge
+## (whose floor it is) is built; then on onto the loggia.
+func corridor_load_mode() -> void:
+	var expect: Dictionary = door_expect()
+	check(game.world is CampRoom, "the game resumes in the camp (%s)" % game.world)
+	await stays_put(arr_vec(expect.get("pos", [0, 0, 0])))
+	if game.seamless == null:
+		return
+	await until_ms(func() -> bool: return game.seamless.neighbour != null, 30000)
+	game.player.rotation.y = 0.0
+	Input.action_press("forward")
+	await until_ms(func() -> bool: return game.player.global_position.z < -21.0, 8000)
+	Input.action_release("forward")
+	for _i: int in 30:
+		await physics_frame
+	check(game.world is Area and game.player.is_on_floor() and game.player.global_position.z < -20.5, "walked on onto the loggia (%s)" % game.player.global_position)
+
+
+## For 3 s after resuming you stay where you quit: something is under you,
+## though the place on the link's other side isn't built yet.
+func stays_put(at: Vector3) -> void:
+	var stop_ms: int = Time.get_ticks_msec() + 3000
+	var worst: float = 0.0
+	while Time.get_ticks_msec() < stop_ms:
+		await physics_frame
+		worst = maxf(worst, game.player.global_position.distance_to(at))
+	check(worst < .15, "stayed where it quit, between places, while the other side builds (moved up to %.2f m from %s)" % [worst, at])
+
+
+## Waits for `to`'s vestibule, then walks into it to `local` (its frame) from
+## the end you're at. Whether it got there.
+func into_vestibule(to: String, local: Vector3) -> bool:
+	var sp: SeamlessPlaces = game.seamless
+	check(sp != null, "the places are one world (SeamlessPlaces)")
+	if sp == null:
+		return false
+	await until_ms(func() -> bool: return sp.vestibules.has(to) and sp.places.has(to), 30000)
+	check(sp.vestibules.has(to), "%s is built behind its door, with the passage" % to)
+	if not sp.vestibules.has(to):
+		return false
+	var v: Node3D = sp.vestibules[to]
+	for p: Vector3 in [Vector3(0, .1, 1.5), Vector3(0, .1, -1.5), local]:
+		game.player.teleport(v.to_global(p) + Vector3(0, .05, 0), v.global_rotation.y)
+		for _i: int in 8:
+			await physics_frame
+	for _i: int in 20:
+		await physics_frame
+	check(game.player.is_on_floor() and game.player.global_position.distance_to(v.to_global(local)) < .3, "standing in the passage (%s)" % game.player.global_position)
+	return true
+
+
 ## Waits for `to` to be built behind the place you're in, then walks the
 ## vestibule between them (in the vestibule's frame, from the end you're at)
 ## and checks `to` is the place you're in, with no reload. Whether it got
@@ -744,7 +883,8 @@ func through_vestibule(to: String) -> bool:
 	if sp == null:
 		return false
 	var key: String = to if to != "gorge" else area.recipe.id
-	await until_ms(func() -> bool: return sp.vestibules.has(key), 30000)
+	# The passage may be there before the place (built from where you started).
+	await until_ms(func() -> bool: return sp.vestibules.has(key) and sp.places.has(to), 30000)
 	check(sp.vestibules.has(key), "%s is built behind its door, with the passage" % (to if to != "gorge" else "the Gorge"))
 	if not sp.vestibules.has(key):
 		return false

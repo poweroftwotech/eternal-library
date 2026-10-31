@@ -98,8 +98,10 @@ func _ready() -> void:
 	if ws != null and active:
 		ws.call("enter_area", recipe.id, recipe.version)
 	plan = prepared_plan if prepared_plan != null else AreaPlanner.plan(recipe, area_seed())
-	for e: String in plan.check():
-		push_warning("Area %s (seed %d): %s" % [recipe.id, plan.area_seed, e])
+	if not plan.checked:
+		plan.checked = true
+		for e: String in plan.check():
+			push_warning("Area %s (seed %d): %s" % [recipe.id, plan.area_seed, e])
 	if arrive_from != "":
 		var door: Array = plan.threshold(arrive_from)
 		if door.is_empty():

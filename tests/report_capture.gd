@@ -59,8 +59,12 @@ func run() -> void:
 		game.player.set_physics_process(false)
 		for r: Dictionary in groups[key]:
 			var feet: Array = r["feet"]
-			game.player.global_position = Vector3(feet[0], feet[1], feet[2])
-			game.player.rotation.y = deg_to_rad(float(r["yaw_deg"]))
+			# In the place's own frame (phase 9: you may have walked into it
+			# from another, which put it off the origin), then where this
+			# boot put it.
+			var to_here: Transform3D = (game.world as Node3D).global_transform * place_of(r).affine_inverse()
+			game.player.global_position = to_here * Vector3(feet[0], feet[1], feet[2])
+			game.player.rotation.y = deg_to_rad(float(r["yaw_deg"])) + to_here.basis.get_euler().y
 			game.player.camera.rotation.x = deg_to_rad(float(r["pitch_deg"]))
 			game.player.camera.fov = float(r.get("fov", 74.0))
 			for _i: int in 90:
@@ -77,3 +81,13 @@ func run() -> void:
 	main_script.room_override = ""
 	Area.seed_override = -1
 	quit()
+
+
+## Where the place you were in stood when you reported (the origin for
+## reports from before phase 9 step 3, which didn't record it).
+static func place_of(r: Dictionary) -> Transform3D:
+	var p: Array = r.get("place", [])
+	if p.size() != 4:
+		return Transform3D()
+	var v: Callable = func(a: Array) -> Vector3: return Vector3(a[0], a[1], a[2])
+	return Transform3D(Basis(v.call(p[0]), v.call(p[1]), v.call(p[2])), v.call(p[3]))

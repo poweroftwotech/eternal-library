@@ -73,6 +73,10 @@ var _boot_id: String = ""
 var vestibules: Dictionary = {}
 var _building: Dictionary = {}
 var _keep: Array[Resource] = []
+var _tasks: Array[int] = []        # worker tasks running (_on_worker)
+## The interiors' plans (an area id -> AreaPlan), made once behind the
+## start-up screen (_plan_interiors) and kept: a plan is never changed.
+var _plans: Dictionary = {}
 var _env_node: WorldEnvironment
 var _env: Dictionary = {}          # place id -> Environment
 var _mix: Environment
@@ -135,9 +139,52 @@ func setup(main: Node, id: String) -> void:
 	_open_door(world)
 	_take_environment(world, id)
 	_watch_lights(world)
+	# The passages from where you start, now: a save made in one resumes
+	# standing on it, before the place at its other end is built.
+	if id == "gorge":
+		for n: String in neighbours_of(id):
+			if _link_kind(id, n) == "door" and not (world as Area).plan.threshold(n).is_empty():
+				_add_vestibule(n)
+	elif _link_kind(id, "gorge") == "door":
+		_add_vestibule(id)
+	_plan_interiors(world)
 	for n: String in neighbours_of(id):
 		_warm(n)
 	_build_neighbours.call_deferred()
+
+
+## The interiors planned now, on the main thread, behind the start-up screen
+## (with the warm-up below, 550-600 ms): planned on a worker thread as you
+## walked, the game stalled for up to 230 ms while the planner instantiated
+## its rooms there (the frame gate). The Gorge's plan stays on the worker
+## (planning it from the camp left the camp's frames as they were).
+func _plan_interiors(world: Node3D) -> void:
+	var t0: int = Time.get_ticks_usec()
+	for id: String in RECIPES:
+		if id == "gorge":
+			continue
+		if world is Area and (world as Area).recipe.id == id:
+			_plans[id] = (world as Area).plan
+			continue
+		var recipe: AreaRecipe = load(RECIPES[id])
+		_keep.append(recipe)
+		_plans[id] = AreaPlanner.plan(recipe, _area_seed(recipe))
+		var plan: AreaPlan = _plans[id]
+		plan.checked = true     # here, behind the start-up screen, not as it's built
+		for e: String in plan.check():
+			push_warning("Area %s (seed %d): %s" % [id, plan.area_seed, e])
+		# Its authored and baked rooms into the world once, hidden, and out: the
+		# first time a scene's meshes enter the world costs once (R01's first
+		# reading table, 75 ms as the Library built in the background).
+		for r: AreaPlan.Room in plan.rooms:
+			if r.scene != null:
+				var warm: Node3D = r.scene.instantiate()
+				warm.visible = false
+				if warm is RoomTemplate:
+					(warm as RoomTemplate).hold_restore = true     # the save untouched
+				game.add_child(warm)
+				warm.free()
+	print("SeamlessPlaces: planned the interiors in %.0f ms" % ((Time.get_ticks_usec() - t0) / 1000.0))
 
 
 ## Where frame `f` (the Gorge's) stands in the world: the place the game
@@ -201,10 +248,7 @@ func _build(id: String) -> void:
 		# it was a 0.5-1 s pause walking back into the Gorge.
 		var scene: PackedScene = load(KIT_CAMP)
 		var made: Array = [null]
-		var task: int = WorkerThreadPool.add_task(func() -> void: made[0] = scene.instantiate())
-		while not WorkerThreadPool.is_task_completed(task):
-			await get_tree().process_frame
-		WorkerThreadPool.wait_for_task_completion(task)
+		await _on_worker(func() -> void: made[0] = scene.instantiate())
 		var camp: Node3D = made[0]
 		_unlight(camp)
 		camp.name = "Place_camp"
@@ -216,7 +260,9 @@ func _build(id: String) -> void:
 		_take_environment(camp, "camp")
 		return
 	var recipe: AreaRecipe = load(RECIPES[id])
-	var plan: AreaPlan = await _plan_on_worker(recipe, _area_seed(recipe))
+	var plan: AreaPlan = _plans.get(id)
+	if plan == null:
+		plan = await _plan_on_worker(recipe, _area_seed(recipe))
 	if id != place_id and not neighbours_of(place_id).has(id):
 		return     # you moved on while it was planning
 	# Its frame: the Gorge's door and the interior's door back meet at the
@@ -263,11 +309,26 @@ func _build(id: String) -> void:
 
 func _plan_on_worker(recipe: AreaRecipe, seed_value: int) -> AreaPlan:
 	var out: Array = [null]
-	var task: int = WorkerThreadPool.add_task(func() -> void: out[0] = AreaPlanner.plan(recipe, seed_value))
+	await _on_worker(func() -> void: out[0] = AreaPlanner.plan(recipe, seed_value))
+	return out[0]
+
+
+## Runs `job` on a worker thread, a frame at a time until it's done.
+func _on_worker(job: Callable) -> void:
+	var task: int = WorkerThreadPool.add_task(job)
+	_tasks.append(task)
 	while not WorkerThreadPool.is_task_completed(task):
 		await get_tree().process_frame
+	_tasks.erase(task)
 	WorkerThreadPool.wait_for_task_completion(task)
-	return out[0]
+
+
+## Quitting while a place is planned or built on a worker thread crashed
+## the game at exit (the first seconds after start-up): its tasks finish first.
+func _exit_tree() -> void:
+	for task: int in _tasks:
+		WorkerThreadPool.wait_for_task_completion(task)
+	_tasks.clear()
 
 
 ## The interior's frame (in the Gorge's) for the Gorge's plan and the
@@ -289,12 +350,19 @@ static func _door_xf(plan: AreaPlan, to: String) -> Transform3D:
 	return ((d[0] as AreaPlan.Room).connectors[d[1]]["xf"] as Transform3D)
 
 
+## The vestibule to interior `id`, placed by the Gorge's door, or, before the
+## Gorge is built, by the interior's door back (a save made in the passage
+## resumes standing on it; phase 9 step 3).
 func _add_vestibule(id: String) -> void:
-	if id == "camp" or vestibules.has(id) or not places.has("gorge") or not places.has(id):
+	if id == "camp" or vestibules.has(id) or not (places.has("gorge") or places.has(id)):
 		return
 	var v := Vestibule.new()
 	v.name = "Vestibule_" + id
-	v.transform = _placed(_door_xf((places["gorge"] as Area).plan, id))
+	if places.has("gorge"):
+		v.transform = _placed(_door_xf((places["gorge"] as Area).plan, id))
+	else:
+		var interior := places[id] as Area
+		v.transform = interior.transform * _door_xf(interior.plan, "gorge") * Transform3D(Basis(Vector3.UP, PI), Vector3.ZERO) * Vestibule.EXIT.affine_inverse()
 	game.add_child(v)
 	vestibules[id] = v
 	(v.get_node("Collision") as CollisionObject3D).collision_layer = 1 | OPEN_LAYER     # walked from either side
@@ -340,6 +408,7 @@ func _process(_delta: float) -> void:
 	var want: String = place_id
 	var pair: Array = [place_id, place_id]
 	var t: float = 0.0
+	var hold: bool = false
 	# The corridor (the camp and the Gorge), or which side of it you're on
 	# (fly mode, a respawn).
 	if place_id == "camp" or place_id == "gorge":
@@ -348,6 +417,9 @@ func _process(_delta: float) -> void:
 			pair = ["camp", "gorge"]
 			t = corridor
 			want = "gorge" if corridor >= .5 else "camp"
+			# Past the camp's doorway the floor is the Gorge's: before it's
+			# built (a save made in the corridor, the first seconds) you wait.
+			hold = not places.has("gorge") and _gorge_local(p).z < CAMP_END_Z
 		else:
 			var g: Vector3 = _gorge_local(p)
 			if g.z < GORGE_END_Z:
@@ -367,8 +439,10 @@ func _process(_delta: float) -> void:
 		if places.has(want) and (not places[want] is Area or (places[want] as Area).is_built):
 			_end_wait()
 			_swap(want)
-		elif _link_kind(place_id, want) == "door":
+		elif _link_kind(place_id, want) == "door" or hold:
 			_wait()
+	elif hold:
+		_wait()
 	elif _waiting:
 		_end_wait()
 	if pair[0] == pair[1]:

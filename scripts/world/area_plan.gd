@@ -109,6 +109,10 @@ var errors: PackedStringArray = []
 var stats: Dictionary = {}
 ## Milliseconds the planner took.
 var plan_ms: float = 0.0
+## Whether an area has checked it (check(), warnings pushed): a plan made
+## once and built again (SeamlessPlaces keeps the interiors') is checked once
+## (the Lower Stacks' check: 36 ms).
+var checked: bool = false
 
 
 func room(slot_id: String) -> Room:
