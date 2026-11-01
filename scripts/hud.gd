@@ -12,6 +12,8 @@ var modal: PanelContainer
 var modal_title: Label
 var modal_text: RichTextLabel
 var modal_buttons: VBoxContainer
+## A line to type into (a world seed), shown when open() is given a placeholder.
+var modal_input: LineEdit
 var veil: ColorRect
 var options: Array = []
 var modal_open: bool = false
@@ -51,6 +53,10 @@ func _ready() -> void:
 	theme.set_stylebox("focus","Button",hover)
 	theme.set_color("font_color","Button",Color("e6dcc3"))
 	theme.set_color("font_disabled_color","Button",Color("797e76"))
+	theme.set_stylebox("normal","LineEdit",panel_style(Color("0c171b"),Color("7c724f"),10))
+	theme.set_stylebox("focus","LineEdit",panel_style(Color("0c171b"),Color("c8ac70"),10))
+	theme.set_color("font_color","LineEdit",Color("e6dcc3"))
+	theme.set_color("font_placeholder_color","LineEdit",Color("797e76"))
 	var control = Control.new()
 	control.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
 	control.mouse_filter = Control.MOUSE_FILTER_IGNORE
@@ -192,6 +198,10 @@ func _ready() -> void:
 	modal_text.scroll_active = false
 	modal_text.custom_minimum_size.y = 85
 	stack.add_child(modal_text)
+	modal_input = LineEdit.new()
+	modal_input.visible = false
+	modal_input.text_submitted.connect(func(_t: String) -> void: select(0))
+	stack.add_child(modal_input)
 	modal_buttons = VBoxContainer.new()
 	modal_buttons.add_theme_constant_override("separation",9)
 	stack.add_child(modal_buttons)
@@ -269,8 +279,13 @@ func hide_loading() -> void:
 		loading_cover.queue_free()
 	loading_cover = null
 
-func open(title: String, text: String, choices: Array) -> void:
+## `input_placeholder` non-empty: a line to type into above the choices
+## (Enter picks the first); its text is in modal_input.
+func open(title: String, text: String, choices: Array, input_placeholder: String = "") -> void:
 	modal_title.text = title
+	modal_input.visible = input_placeholder != ""
+	modal_input.placeholder_text = input_placeholder
+	modal_input.text = ""
 	modal_text.text = text
 	options = choices
 	for child in modal_buttons.get_children():
@@ -290,6 +305,9 @@ func open(title: String, text: String, choices: Array) -> void:
 	dot.visible = false
 	prompt_panel.visible = false
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE
+	if modal_input.visible:
+		modal_input.grab_focus()
+		return
 	for button in modal_buttons.get_children():
 		if not button.disabled:
 			button.grab_focus()

@@ -70,7 +70,7 @@ func _ready() -> void:
 		_line(box, k)
 	_graph = FrameGraph.new()
 	box.add_child(_graph)
-	for k: String in ["draws", "tris", "vram"]:
+	for k: String in ["draws", "tris", "vram", "world"]:
 		_line(box, k)
 	_stream_box = VBoxContainer.new()
 	_stream_box.add_theme_constant_override("separation", 2)
@@ -157,6 +157,7 @@ func _update_text() -> void:
 	_show("draws", "draw calls %d / %d · objects %d" % [draws, budget[0], int(Performance.get_monitor(Performance.RENDER_TOTAL_OBJECTS_IN_FRAME))], draws > int(budget[0]))
 	_show("tris", "triangles %.0f k / %.0f k" % [tris / 1000.0, float(budget[1]) / 1000.0], tris > int(budget[1]))
 	_show("vram", "video memory %.0f / %.0f MB" % [vram, BUDGET_VRAM_MB], vram > BUDGET_VRAM_MB)
+	_show("world", _world_text())
 	var st: AreaStreamer = area.streamer if area != null and is_instance_valid(area) else null
 	_stream_box.visible = st != null
 	if st == null:
@@ -169,6 +170,15 @@ func _update_text() -> void:
 	_show("cost", "streaming %.1f ms now · %.1f worst / %.1f budget" % [st.stats["last_frame_ms"], st.stats["max_frame_ms"], st.settings.build_budget_ms],
 		float(st.stats["max_frame_ms"]) > st.settings.build_budget_ms * 1.5)
 	_show("wear", "floor wear %s · last region %.0f ms (thread)" % ["drawing" if FloorWear.busy() else "idle", FloorWear.last_region_ms])
+
+
+## The world seed (phase 10 step 1), and the seed the area you're in plans from.
+func _world_text() -> String:
+	var ws: Node = get_node_or_null("/root/WorldState")
+	var text: String = "world seed %d" % int(ws.call("world_seed")) if ws != null else "no world"
+	if area != null and is_instance_valid(area) and area.plan != null:
+		text += " · %s seed %d%s" % [area.recipe.id, area.plan.area_seed, " (reseeded)" if Area.seed_override >= 0 else ""]
+	return text
 
 
 func _live_slots(st: AreaStreamer) -> PackedStringArray:

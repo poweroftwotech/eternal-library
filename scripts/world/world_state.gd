@@ -12,7 +12,12 @@ extends Node
 ##
 ## One JSON file per slot (user://saves/slot0.json). User args: --save=<path>
 ## uses another file (tests always do), --fresh ignores the file on disk until
-## the first save overwrites it.
+## the first save overwrites it, --world-seed=<n|random> starts a new world
+## from that seed (as --fresh).
+##
+## The world seed (phase 10 step 1, Q3): a new world in the player's own slot
+## rolls a random one; tests and gates keep seed 1 unless told otherwise, so
+## they stay repeatable. Every area's seed comes from it (AreaPlanner.area_seed_for).
 
 ## A delta was dropped and its thing put back as it was.
 signal reverted(id: String)
@@ -27,11 +32,21 @@ const DEFAULT_PATH: String = "user://saves/slot0.json"
 const DEFAULT_AREA: String = "library"
 ## Seconds after a change before it is written.
 const SAVE_DELAY: float = 1.0
+## A rolled world seed is in 1..MAX_WORLD_SEED: short enough to read out and type.
+const MAX_WORLD_SEED: int = 999999
+## The Strata Board's Walk this seed (phase 10): {area, world_seed, time}, left
+## for the next start of the game, which takes it (once, if under
+## WALK_MAX_AGE s old) and plays that area of that world on WALK_SAVE.
+const WALK_REQUEST: String = "user://strata_walk_request.json"
+const WALK_SAVE: String = "user://test/strata_walk.json"
+const WALK_MAX_AGE: float = 120.0
 
 var path: String = DEFAULT_PATH
 var data: Dictionary = {}
 ## Whether a save file was read at start (main resumes from it).
 var loaded: bool = false
+## The area a Walk this seed request asked for ("" = none).
+var walk_area: String = ""
 ## Live rooms by room key (RoomTemplate.room_key()).
 var rooms: Dictionary = {}
 var _applied: Dictionary = {}     # ids a live room found and applied
@@ -54,7 +69,22 @@ func _ready() -> void:
 			fresh = args.has("--fresh")
 		elif arg == "--fresh":
 			fresh = true
+	var walk: Dictionary = _take_walk_request()
+	if not walk.is_empty():
+		path = WALK_SAVE
+		fresh = true
+		walk_area = str(walk.get("area", ""))
+	var seed_arg: String = ""
+	for arg: String in args:
+		if arg.begins_with("--world-seed="):
+			seed_arg = arg.trim_prefix("--world-seed=")
+			fresh = true
 	data = blank()
+	data["world_seed"] = new_world_seed()
+	if seed_arg != "":
+		data["world_seed"] = roll_world_seed() if seed_arg == "random" else maxi(seed_arg.to_int(), 1)
+	if not walk.is_empty():
+		data["world_seed"] = maxi(int(walk.get("world_seed", 1)), 1)
 	if not fresh:
 		loaded = load_save()
 	for arg: String in args:
@@ -116,13 +146,40 @@ func _process(delta: float) -> void:
 			save_now()
 
 
-## Starts a new world: forgets every change and deletes the save file.
-func forget() -> void:
+## Starts a new world: forgets every change and deletes the save file. The
+## new world has seed `seed_value`, or (0) a new one as at a first start.
+func forget(seed_value: int = 0) -> void:
 	data = blank()
+	data["world_seed"] = seed_value if seed_value > 0 else new_world_seed()
 	_applied.clear()
 	_dirty = false
 	if FileAccess.file_exists(path):
 		DirAccess.remove_absolute(path)
+
+
+## The board's walk request, if there's a fresh one: read and deleted.
+func _take_walk_request() -> Dictionary:
+	if OS.get_cmdline_args().has("--script") or not FileAccess.file_exists(WALK_REQUEST):
+		return {}
+	var req: Variant = JSON.parse_string(FileAccess.get_file_as_string(WALK_REQUEST))
+	DirAccess.remove_absolute(WALK_REQUEST)
+	if not req is Dictionary or Time.get_unix_time_from_system() - float((req as Dictionary).get("time", 0.0)) > WALK_MAX_AGE:
+		return {}
+	return req
+
+
+## The seed a new world in this slot starts with: random in the player's own
+## slot, 1 anywhere else (tests, gates, --save files).
+func new_world_seed() -> int:
+	return roll_world_seed() if path == DEFAULT_PATH else 1
+
+
+static func roll_world_seed() -> int:
+	return randi_range(1, MAX_WORLD_SEED)
+
+
+func world_seed() -> int:
+	return int(data.get("world_seed", 1))
 
 
 # --- deltas --------------------------------------------------------------------

@@ -19,6 +19,9 @@ const INHERIT_GROUPS: PackedStringArray = ["gallery_build"]
 ## Once the area has its minimum rooms, a grown room ends in a plain wall with
 ## this chance (up to max_dead_ends of them).
 const DEAD_END_CHANCE: float = 0.35
+## A scene room's own cells block shrunk by this much, so a neighbour's cell
+## that only touches one face stays free.
+const CELL_INSET: float = 0.05
 
 ## Authored and baked scenes read once per session: "path@seed" -> info.
 static var _scene_cache: Dictionary = {}
@@ -40,7 +43,7 @@ static func plan(recipe: AreaRecipe, area_seed: int) -> AreaPlan:
 	p.max_sight_depth = recipe.max_sight_depth
 	p.placement = recipe.placement if recipe.placement != null else AreaPlacement.new()
 	p.open_sight = recipe.open_sight
-	p.stats = {"tried": 0, "boxed_in": 0, "too_short": 0, "sightline": 0}
+	p.stats = {"tried": 0, "boxed_in": 0, "too_short": 0, "sightline": 0, "grow": []}
 	for s: AreaSlot in recipe.slots:
 		if s == null:
 			continue
@@ -140,16 +143,22 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 		var rng := RandomNumberGenerator.new()
 		rng.seed = hash([p.area_seed, "grow_count", g.slot_prefix])
 		var want: int = rng.randi_range(mini(g.count.x, g.count.y), maxi(g.count.x, g.count.y))
+		var rolled: int = want
 		want = clampi(want, recipe.room_count.x - p.rooms.size(), recipe.room_count.y - p.rooms.size())
 		# Free exits, required rooms' first, each tier in seeded order.
 		var candidates: Array = _free_exits(p, p.rooms, g, hash([p.area_seed, "grow_order", g.slot_prefix, 0]))
 		var dead_ends: int = 0
 		var added: int = 0
+		# What this rule did and why it fell short (the Strata Board shows it).
+		var gs: Dictionary = {"prefix": g.slot_prefix, "rolled": rolled, "want": want, "added": 0, "doors": candidates.size(),
+			"taken": 0, "tried": 0, "boxed_in": 0, "too_short": 0, "sightline": 0}
+		(p.stats["grow"] as Array).append(gs)
 		while added < want and not candidates.is_empty():
 			var c: Array = candidates.pop_front()
 			var parent_room: AreaPlan.Room = c[0]
 			var conn: StringName = c[1]
 			if str(parent_room.connectors[conn]["joined"]) != "":
+				gs["taken"] += 1
 				continue
 			var slot_id: String = "%s_%d" % [g.slot_prefix, n + 1]
 			var seed_value: int = _seed_for(p, slot_id)
@@ -160,10 +169,12 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 				if roll.randf() < DEAD_END_CHANCE:
 					end_kind = "dead_end"
 			p.stats["tried"] += 1
+			gs["tried"] += 1
 			var r: AreaPlan.Room = _generated_room(p, recipe, slot_id, g.display_name, g.grammar, g.rules, seed_value, parent_room, conn, end_kind)
 			var why: String = _fault(r, g.grammar)
 			if why != "":
 				p.stats["too_short" if why.begins_with("only") else "boxed_in"] += 1
+				gs["too_short" if why.begins_with("only") else "boxed_in"] += 1
 				continue
 			r.pinned = g.pinned
 			p.add_room(r)
@@ -171,14 +182,18 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 			if not p.compute_sight(r.slot_id)["violations"].is_empty():
 				p.remove_last()
 				p.stats["sightline"] += 1
+				gs["sightline"] += 1
 				continue
 			_inherit(r, parent_room)
 			_drop_stub(parent_room, conn)
 			n += 1
 			added += 1
+			gs["added"] = added
 			if end_kind == "dead_end":
 				dead_ends += 1
-			candidates.append_array(_free_exits(p, [r], g, hash([p.area_seed, "grow_order", g.slot_prefix, n])))
+			var more: Array = _free_exits(p, [r], g, hash([p.area_seed, "grow_order", g.slot_prefix, n]))
+			gs["doors"] += more.size()
+			candidates.append_array(more)
 
 
 ## [[room, connector], ...] free exits of `among` that `g` may grow from, shuffled by `order_seed`.
@@ -188,7 +203,9 @@ static func _free_exits(p: AreaPlan, among: Array, g: AreaGrow, order_seed: int)
 		if not g.from.is_empty() and not g.from.has(r.slot_id):
 			continue
 		var names: Array = r.connectors.keys()
-		names.sort()
+		# By text: StringNames sort by where they sit in memory, so plain sort()
+		# gave the first plan in a process a different order from later ones.
+		names.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))
 		for name: StringName in names:
 			if String(name).begins_with("SNAP_exit") and str(r.connectors[name]["joined"]) == "" and str(r.connectors[name]["cap"]) != "threshold":
 				out.append([r, name])
@@ -262,6 +279,10 @@ static func _scene_room(p: AreaPlan, slot_id: String, display_name: String, scen
 		var at: Vector3i = AreaPlan.cell_of(r.xf * _centre(c))
 		for s: int in range(info["storeys"].x, info["storeys"].y + 1):
 			r.cells[Vector3i(at.x, at.y + s, at.z)] = true
+			# Its cells block whole, as a generated room's do: a room's open
+			# middle has no module mesh in it, and a grown gallery threaded
+			# through the Reading Room (library wing, world seed 5).
+			r.blockers.append(AreaPlan.cell_box(Vector3i(at.x, at.y + s, at.z)).grow(-CELL_INSET))
 		r.floor_cells[at] = true
 	if (info["walk"] as Array).is_empty():
 		_sight_all_open(r)

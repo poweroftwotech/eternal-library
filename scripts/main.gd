@@ -61,6 +61,8 @@ func _ready() -> void:
 	if resuming and Area.seed_override < 0:
 		Area.seed_override = int(ws().data.get("area_seed_override", -1))
 	var room_path: String = requested_room()
+	if ws().walk_area != "":
+		print("main: Walk this seed: %s, world seed %d (save %s)" % [ws().walk_area, ws().world_seed(), ws().path])
 	if resuming:
 		var saved: String = str(ws().data.get("scene", ""))
 		if str(ws().data.get("area", "")) != "":
@@ -167,6 +169,8 @@ func _ready() -> void:
 func requested_room() -> String:
 	if room_override != "":
 		return "" if room_override == "camp" else room_override
+	if ws().walk_area != "" and _exists(AREA_PREFIX + ws().walk_area):
+		return AREA_PREFIX + ws().walk_area     # the Strata Board's Walk this seed
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("--room=") or arg.begins_with("--area="):
 			var path: String = arg.trim_prefix("--room=") if arg.begins_with("--room=") else AREA_PREFIX + arg.trim_prefix("--area=")
@@ -306,11 +310,11 @@ func prompt_for(target) -> String:
 		return target.interaction_prompt(player.aim_point())
 	return target.title
 
-func open_panel(title: String, text: String, options: Array, context: String = "menu") -> void:
+func open_panel(title: String, text: String, options: Array, context: String = "menu", input_placeholder: String = "") -> void:
 	player.blocked = true
 	world.set_process(false)
 	modal_context = context
-	hud.open(title,text,options)
+	hud.open(title,text,options,input_placeholder)
 
 func close_panel() -> void:
 	player.blocked = false
@@ -413,6 +417,7 @@ func show_menu() -> void:
 	options.append_array([
 		{"text":"Controls & settings","action":"controls"},
 		{"text":"Begin another outing","action":"restart"},
+		{"text":"World seed %d: start a world from a seed" % ws().world_seed(),"action":"world_seed"},
 		{"text":"Forget this library (start the world over)","action":"forget"},
 		{"text":"Quit","action":"quit"}])
 	var text: String = "A moment by the shelves."
@@ -475,6 +480,19 @@ func on_choice(action: String) -> void:
 			open_panel("Forget this library?","Everything you moved, broke or took is put back, and the save is deleted. This can't be undone.",[{"text":"Forget it all","action":"forget_confirm"},{"text":"Keep this library","action":"menu"}],"forget")
 		"forget_confirm":
 			ws().forget()
+			room_override = scene_path
+			get_tree().reload_current_scene()
+		"world_seed":
+			open_panel("Start a world from a seed?","This world is seed %d. Type a seed to start that world instead: the same seed always makes the same library. Everything you moved, broke or took here is forgotten and the save is deleted." % ws().world_seed(),
+				[{"text":"Start this world","action":"world_seed_go"},{"text":"A random new world","action":"world_seed_random"},{"text":"Keep this world","action":"menu"}],"world_seed","a world seed, 1 to %d" % ws().MAX_WORLD_SEED)
+		"world_seed_go", "world_seed_random":
+			var typed: String = hud.modal_input.text.strip_edges()
+			if action == "world_seed_go" and not (typed.is_valid_int() and typed.to_int() >= 1):
+				hud.notify("A world seed is a whole number from 1 up.")
+				return
+			ws().forget(typed.to_int() if action == "world_seed_go" else ws().roll_world_seed())
+			Area.seed_override = -1     # every area plans from the new world's seed
+			GeneratedRoom.seed_override = -1
 			room_override = scene_path
 			get_tree().reload_current_scene()
 		"years":
