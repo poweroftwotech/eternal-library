@@ -168,7 +168,8 @@ func _plan_interiors(world: Node3D) -> void:
 			continue
 		var recipe: AreaRecipe = load(RECIPES[id])
 		_keep.append(recipe)
-		_plans[id] = AreaPlanner.plan(recipe, _area_seed(recipe))
+		_plans[id] = AreaPlanner.plan(recipe, _area_seed(recipe), Area.kept_variants(id))
+		_keep_variants(recipe, _plans[id])
 		var plan: AreaPlan = _plans[id]
 		plan.checked = true     # here, behind the start-up screen, not as it's built
 		for e: String in plan.check():
@@ -262,7 +263,8 @@ func _build(id: String) -> void:
 	var recipe: AreaRecipe = load(RECIPES[id])
 	var plan: AreaPlan = _plans.get(id)
 	if plan == null:
-		plan = await _plan_on_worker(recipe, _area_seed(recipe))
+		plan = await _plan_on_worker(recipe, _area_seed(recipe), Area.kept_variants(id))
+		_keep_variants(recipe, plan)
 	if id != place_id and not neighbours_of(place_id).has(id):
 		return     # you moved on while it was planning
 	# Its frame: the Gorge's door and the interior's door back meet at the
@@ -307,10 +309,19 @@ func _build(id: String) -> void:
 		_update_visibility()
 
 
-func _plan_on_worker(recipe: AreaRecipe, seed_value: int) -> AreaPlan:
+func _plan_on_worker(recipe: AreaRecipe, seed_value: int, kept: Dictionary) -> AreaPlan:
 	var out: Array = [null]
-	await _on_worker(func() -> void: out[0] = AreaPlanner.plan(recipe, seed_value))
+	await _on_worker(func() -> void: out[0] = AreaPlanner.plan(recipe, seed_value, kept))
 	return out[0]
+
+
+## Records the variants a plan picked in the save (Q5), on its own seed only.
+static func _keep_variants(recipe: AreaRecipe, plan: AreaPlan) -> void:
+	if Area.seed_override >= 0 or plan == null:
+		return
+	var ws: Node = Engine.get_main_loop().root.get_node_or_null("/root/WorldState")
+	if ws != null:
+		ws.call("keep_variants", recipe.id, plan.variants, recipe.version)
 
 
 ## Runs `job` on a worker thread, a frame at a time until it's done.

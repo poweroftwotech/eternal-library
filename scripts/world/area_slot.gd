@@ -13,6 +13,12 @@ enum SeedMode { FIXED, AREA }
 @export var scene: PackedScene
 ## Or one of several, rolled by the area seed (the caravanserai's three sizes).
 @export var scene_choices: Array[PackedScene] = []
+## How likely each choice is (empty, or all equal: equally likely, as before
+## phase 10). A save keeps the choice its world made (Q5), whatever the weights
+## say later.
+@export var scene_weights: PackedFloat32Array = []
+## Always this choice (an index into scene_choices; -1: rolled).
+@export var pinned_choice: int = -1
 ## A generated room: its grammar and (optionally) rules overriding the grammar's.
 @export var grammar: RoomGrammar
 @export var rules: ModuleRules

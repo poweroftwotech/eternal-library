@@ -22,6 +22,7 @@ func _enter_tree() -> void:
 	_board.size_flags_vertical = Control.SIZE_EXPAND_FILL
 	_board.size_flags_horizontal = Control.SIZE_EXPAND_FILL
 	_board.walk_requested.connect(_on_walk)
+	_board.files_saved.connect(func(_paths: PackedStringArray) -> void: EditorInterface.get_resource_filesystem().scan())
 	EditorInterface.get_editor_main_screen().add_child(_board)
 	_make_visible(false)
 

@@ -212,6 +212,33 @@ func area_bucket() -> Dictionary:
 	return areas[area_id]
 
 
+## The scene each room with scene choices got in area `id` of this world
+## (slot -> path; Q5), for the planner to keep: adding a variant or changing
+## weights later doesn't swap the room under a save.
+func kept_variants(id: String) -> Dictionary:
+	var areas: Dictionary = data["areas"]
+	return ((areas.get(id, {}) as Dictionary).get("variants", {}) as Dictionary).duplicate()
+
+
+## Records the variants a plan of area `id` picked (once: the first plan of a
+## world decides; later plans were given them to keep).
+func keep_variants(id: String, variants: Dictionary, recipe_version: int) -> void:
+	if variants.is_empty():
+		return
+	var areas: Dictionary = data["areas"]
+	if not areas.has(id):
+		areas[id] = {"recipe_version": recipe_version, "deltas": {}, "spawned": []}
+	var kept: Dictionary = (areas[id] as Dictionary).get("variants", {})
+	var changed: bool = false
+	for slot: String in variants:
+		if not kept.has(slot):
+			kept[slot] = variants[slot]
+			changed = true
+	if changed:
+		areas[id]["variants"] = kept
+		mark_dirty()
+
+
 func deltas() -> Dictionary:
 	return area_bucket()["deltas"]
 

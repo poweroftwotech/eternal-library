@@ -77,6 +77,6 @@ display_name = "The Lower Stacks"
 slots = Array[ExtResource("2_slot")]([SubResource("Resource_court"), SubResource("Resource_hall")])
 grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow"), SubResource("Resource_lightwell"), SubResource("Resource_cistern"), SubResource("Resource_upper")])
 room_count = Vector2i(6, 11)
-version = 7
+version = 8
 placement = SubResource("Resource_place")
 atmosphere = ExtResource("7_atmos")

@@ -8,16 +8,14 @@ extends RefCounted
 ## runs this in its own headless process (service_main.gd) and talks to it
 ## over a pipe; tests call handle() directly.
 
-## Room types by the grammar or scene file name they're made from
-## (design/room-atlas.html).
-const TYPE_BY_FILE: Dictionary = {"r02": "R02", "r03": "R03", "r05": "R05", "r09": "R09", "r10": "R10", "r11": "R11",
-	"reading_room": "R01", "stack_gallery": "R02", "caravanserai": "R05", "overlook": "R10"}
-const TYPE_NAMES: Dictionary = {"R01": "Reading Room", "R02": "Stack gallery", "R03": "Hypostyle hall", "R05": "Caravanserai",
-	"R09": "Light-well stair", "R10": "Chasm span", "R11": "Cistern"}
 ## The places that aren't areas (no recipe).
 const CAMP_NAME: String = "The Reading Garden camp"
 ## By path: an autoload's name isn't known while a --script compiles.
 const WORLD_STATE: GDScript = preload("res://scripts/world/world_state.gd")
+const GRAMMARS: String = "res://gen/grammars"
+const SCENE_DIRS: Array = ["res://rooms/authored", "res://rooms/baked"]
+## A save checks these world seeds for rooms the edit would move.
+const MOVED_WORLDS: int = 20
 
 
 ## One request: {cmd: "stratum" | "recipe" | "plan", ...}. Returns the answer,
@@ -30,11 +28,242 @@ static func handle(req: Dictionary) -> Dictionary:
 			var recipe: AreaRecipe = _load_recipe(str(req.get("path", "")), bool(req.get("fresh", false)))
 			return describe(recipe) if recipe != null else {"error": "no recipe at %s" % req.get("path", "")}
 		"plan":
-			var recipe: AreaRecipe = _load_recipe(str(req.get("path", "")), false)
+			# With `desc`, the board's unsaved edit of the recipe; with
+			# `connections`, of the connection table.
+			var recipe: AreaRecipe = build(req["desc"]) if req.has("desc") else _load_recipe(str(req.get("path", "")), false)
 			if recipe == null:
-				return {"error": "no recipe at %s" % req.get("path", "")}
-			return plan(recipe, int(req.get("world_seed", 1)), int(req.get("map_px", 10)))
+				return {"error": "no recipe at %s" % req.get("path", req.get("desc", {}).get("path", ""))}
+			if req.has("connections"):
+				ConnectionTable.use(_table(req["connections"]))
+			var out: Dictionary = plan(recipe, int(req.get("world_seed", 1)), int(req.get("map_px", 10)))
+			if req.has("connections"):
+				ConnectionTable.drop_cache()
+			return out
+		"catalog":
+			return catalog()
+		"connections":
+			ConnectionTable.drop_cache()
+			return {"rules": ConnectionTable.default().rules.duplicate(), "types": RoomTypes.NAMES.duplicate(),
+				"mtime": _mtime(ConnectionTable.PATH), "weight": ConnectionTable.PREFER_WEIGHT}
+		"save":
+			return save(req["desc"], str(req.get("to", "")), int(req.get("mtime", 0)), bool(req.get("force", false)))
+		"save_connections":
+			return save_connections(req.get("rules", {}), int(req.get("mtime", 0)), bool(req.get("force", false)))
 	return {"error": "unknown request %s" % req.get("cmd", "")}
+
+
+## What a room can be made from, for the board's type pickers: generated
+## rooms' grammars and authored or baked scenes, each with its room type;
+## a scene with no SNAP_entry can only be an area's entrance (Q6).
+static func catalog() -> Dictionary:
+	var grammars: Array = []
+	for f: String in DirAccess.get_files_at(GRAMMARS):
+		var path: String = GRAMMARS.path_join(f.trim_suffix(".remap"))
+		var type: String = RoomTypes.of_path(path)
+		if type != "" and f.ends_with(".tres") and not (load(path) is ChasmGrammar):
+			grammars.append({"path": path, "type": type, "type_name": RoomTypes.NAMES.get(type, "")})
+	var scenes: Array = []
+	for dir: String in SCENE_DIRS:
+		for f: String in DirAccess.get_files_at(dir):
+			var path: String = dir.path_join(f.trim_suffix(".remap"))
+			var type: String = RoomTypes.of_path(path)
+			if type != "" and f.ends_with(".tscn") and not f.contains("_in_host"):
+				scenes.append({"path": path, "type": type, "type_name": RoomTypes.NAMES.get(type, ""), "entrance_only": not _has_entry(path)})
+	return {"grammars": grammars, "scenes": scenes, "types": RoomTypes.NAMES.duplicate()}
+
+
+## An AreaRecipe from a description as describe() gives it, edited on the
+## board: the file's recipe with its rooms, grow rules and limits replaced.
+## Its placement, atmosphere, scenery and network stay as they are, and so do
+## each room's and rule's other fields (its module rules, doors out of the
+## area), found by `orig`, the id it had when described. The file's recipe
+## itself isn't changed.
+static func build(desc: Dictionary) -> AreaRecipe:
+	var base: AreaRecipe = _load_recipe(str(desc.get("path", "")), false)
+	if base == null:
+		return null
+	var r: AreaRecipe = base.duplicate(false)
+	var slots: Array[AreaSlot] = []
+	for d: Dictionary in desc.get("slots", []):
+		var was: AreaSlot = base.slot(str(d.get("orig", "")))
+		var s: AreaSlot = was.duplicate(false) if was != null else AreaSlot.new()
+		s.slot_id = str(d["slot_id"])
+		s.display_name = str(d.get("display_name", ""))
+		s.parent = str(d.get("parent", ""))
+		s.connector = StringName(str(d.get("connector", "")))
+		s.pinned = bool(d.get("pinned", false))
+		var scenes: Array = d.get("scenes", [])
+		if str(d.get("kind", "")) == "scene" and not scenes.is_empty():
+			var choices: Array[PackedScene] = []
+			for p: String in scenes:
+				choices.append(load(p) as PackedScene)
+			s.scene = choices[0]
+			s.scene_choices = choices if choices.size() > 1 else ([] as Array[PackedScene])
+			var w: Array = d.get("weights", [])
+			s.scene_weights = PackedFloat32Array(w) if w.size() == choices.size() and choices.size() > 1 \
+				and not w.all(func(x: Variant) -> bool: return is_equal_approx(float(x), float(w[0]))) else PackedFloat32Array()
+			s.pinned_choice = int(d.get("pinned_choice", -1)) if choices.size() > 1 else -1
+			s.grammar = null
+			s.rules = null
+		else:
+			var g: RoomGrammar = load(str(d.get("grammar", ""))) as RoomGrammar
+			if was == null or was.grammar != g:
+				s.rules = null     # module rules belong to a grammar
+			s.grammar = g
+			s.scene = null
+			s.scene_choices = []
+			s.scene_weights = PackedFloat32Array()
+			s.pinned_choice = -1
+		var thresholds: Dictionary = {}
+		var th: Dictionary = d.get("thresholds", {})
+		for k: String in th:
+			thresholds[StringName(k)] = str(th[k])
+		s.thresholds = thresholds
+		slots.append(s)
+	r.slots = slots
+	var grow: Array[AreaGrow] = []
+	for d: Dictionary in desc.get("grow", []):
+		var was: AreaGrow = null
+		for g: AreaGrow in base.grow:
+			if g != null and g.slot_prefix == str(d.get("orig", "")):
+				was = g
+		var g: AreaGrow = was.duplicate(false) if was != null else AreaGrow.new()
+		g.slot_prefix = str(d["prefix"])
+		g.display_name = str(d.get("display_name", ""))
+		var gram: RoomGrammar = load(str(d.get("grammar", ""))) as RoomGrammar
+		if was == null or was.grammar != gram:
+			g.rules = null
+		g.grammar = gram
+		var c: Array = d.get("count", [1, 1])
+		g.count = Vector2i(int(c[0]), int(c[1]))
+		g.from = PackedStringArray(d.get("from", []))
+		g.min_depth = int(d.get("min_depth", 0))
+		g.pinned = bool(d.get("pinned", false))
+		grow.append(g)
+	r.grow = grow
+	var rc: Array = desc.get("room_count", [base.room_count.x, base.room_count.y])
+	r.room_count = Vector2i(int(rc[0]), int(rc[1]))
+	r.max_dead_ends = int(desc.get("max_dead_ends", base.max_dead_ends))
+	r.max_sight_depth = int(desc.get("max_sight_depth", base.max_sight_depth))
+	return r
+
+
+## How many of the worlds in `worlds` a change from recipe `old` to `new`
+## (and from the table `old_table` to the current one) would move rooms in:
+## each world planned as it is, then again with the change, keeping the
+## variants its save recorded (Q5), as the game would.
+static func moved(old: AreaRecipe, new: AreaRecipe, worlds: Array, old_table: ConnectionTable = null) -> Array:
+	var out: Array = []
+	var new_table: ConnectionTable = ConnectionTable.default()
+	for w: int in worlds:
+		if old_table != null:
+			ConnectionTable.use(old_table)
+		var before: AreaPlan = AreaPlanner.plan(old, AreaPlanner.area_seed_for(old, w))
+		ConnectionTable.use(new_table)
+		var after: AreaPlan = AreaPlanner.plan(new, AreaPlanner.area_seed_for(new, w), before.variants)
+		if before.signature() != after.signature():
+			out.append(w)
+	return out
+
+
+## Writes an edited recipe (to `to`, or its own file). Refuses if the file
+## changed on disk since the board read it (`mtime`), unless `force`. When
+## the edit moves rooms in any of world seeds 1-20, raises the version, so
+## saves made before know their rooms moved.
+static func save(desc: Dictionary, to: String, mtime: int, force: bool) -> Dictionary:
+	var path: String = str(desc.get("path", ""))
+	if not force and mtime != 0 and _mtime(path) != mtime:
+		return {"conflict": "%s changed on disk since the board read it (a hand edit?)" % path}
+	var problem: String = _check(desc)
+	if problem != "":
+		return {"error": problem}
+	var base: AreaRecipe = _load_recipe(path, true)
+	var edited: AreaRecipe = build(desc)
+	var worlds: Array = moved(base, edited, range(1, MOVED_WORLDS + 1))
+	edited.version = base.version + (1 if not worlds.is_empty() else 0)
+	var target: String = to if to != "" else path
+	var err: Error = ResourceSaver.save(edited, target)
+	if err != OK:
+		return {"error": "cannot write %s (%s)" % [target, error_string(err)]}
+	edited.take_over_path(target)
+	return {"saved": target, "version": edited.version, "moved": worlds, "of": MOVED_WORLDS, "mtime": _mtime(target),
+		"desc": describe(edited)}
+
+
+## Writes the connection table. Every interior whose rooms it moves (in
+## world seeds 1-20) gets its version raised.
+static func save_connections(rules: Dictionary, mtime: int, force: bool) -> Dictionary:
+	if not force and mtime != 0 and _mtime(ConnectionTable.PATH) != mtime:
+		return {"conflict": "%s changed on disk since the board read it (a hand edit?)" % ConnectionTable.PATH}
+	ConnectionTable.drop_cache()
+	var old_table: ConnectionTable = ConnectionTable.default()
+	var table: ConnectionTable = _table(rules)
+	ConnectionTable.use(table)
+	var bumped: Dictionary = {}
+	for id: String in SeamlessPlaces.RECIPES:
+		var recipe: AreaRecipe = _load_recipe(SeamlessPlaces.RECIPES[id], true)
+		if recipe == null or recipe.grow.is_empty():
+			continue
+		var worlds: Array = moved(recipe, recipe, range(1, MOVED_WORLDS + 1), old_table)
+		if not worlds.is_empty():
+			bumped[id] = {"moved": worlds, "version": recipe.version + 1}
+	ConnectionTable.use(old_table)
+	for id: String in bumped:
+		var recipe: AreaRecipe = _load_recipe(SeamlessPlaces.RECIPES[id], false)
+		recipe.version = int(bumped[id]["version"])
+		var e: Error = ResourceSaver.save(recipe, recipe.resource_path)
+		if e != OK:
+			return {"error": "cannot write %s (%s)" % [recipe.resource_path, error_string(e)]}
+	var err: Error = ResourceSaver.save(table, ConnectionTable.PATH)
+	ConnectionTable.drop_cache()
+	if err != OK:
+		return {"error": "cannot write %s (%s)" % [ConnectionTable.PATH, error_string(err)]}
+	return {"saved": ConnectionTable.PATH, "bumped": bumped, "of": MOVED_WORLDS, "mtime": _mtime(ConnectionTable.PATH)}
+
+
+## Why an edited description can't be saved ("" = it can).
+static func _check(desc: Dictionary) -> String:
+	var ids: Dictionary = {}
+	var roots: int = 0
+	for d: Dictionary in desc.get("slots", []):
+		var id: String = str(d.get("slot_id", ""))
+		if id == "" or ids.has(id):
+			return "two rooms are called \"%s\"" % id if id != "" else "a room has no name"
+		ids[id] = true
+		if str(d.get("parent", "")) == "":
+			roots += 1
+		if str(d.get("kind", "")) == "scene" and (d.get("scenes", []) as Array).is_empty():
+			return "%s has no scene" % id
+		if str(d.get("kind", "")) != "scene" and not ResourceLoader.exists(str(d.get("grammar", ""))):
+			return "%s has no grammar" % id
+	if roots != 1:
+		return "the area needs exactly one entrance (has %d)" % roots
+	for d: Dictionary in desc.get("slots", []):
+		var parent: String = str(d.get("parent", ""))
+		if parent != "" and not ids.has(parent):
+			return "%s joins %s, which isn't in the recipe" % [d["slot_id"], parent]
+	var prefixes: Dictionary = {}
+	for d: Dictionary in desc.get("grow", []):
+		var pre: String = str(d.get("prefix", ""))
+		if pre == "" or prefixes.has(pre) or ids.has(pre):
+			return "two rules or rooms are called \"%s\"" % pre if pre != "" else "a grow rule has no name"
+		prefixes[pre] = true
+		var c: Array = d.get("count", [0, 0])
+		if int(c[0]) < 0 or int(c[1]) < int(c[0]):
+			return "%s: count %d-%d" % [pre, int(c[0]), int(c[1])]
+	return ""
+
+
+static func _table(rules: Dictionary) -> ConnectionTable:
+	var t := ConnectionTable.new()
+	for k: String in rules:
+		if str(rules[k]) in [ConnectionTable.PREFERRED, ConnectionTable.NEVER]:
+			t.rules[k] = str(rules[k])
+	return t
+
+
+static func _mtime(path: String) -> int:
+	return FileAccess.get_modified_time(path) if FileAccess.file_exists(path) else 0
 
 
 ## The places and the links between them (today SeamlessPlaces' tables; step 3
@@ -55,7 +284,7 @@ static func stratum() -> Dictionary:
 static func describe(recipe: AreaRecipe) -> Dictionary:
 	var env: AABB = recipe.placement.envelope if recipe.placement != null else AreaPlacement.new().envelope
 	var out: Dictionary = {"id": recipe.id, "display_name": recipe.display_name, "path": recipe.resource_path,
-		"version": recipe.version, "room_count": [recipe.room_count.x, recipe.room_count.y], "max_dead_ends": recipe.max_dead_ends,
+		"mtime": _mtime(recipe.resource_path), "version": recipe.version, "room_count": [recipe.room_count.x, recipe.room_count.y], "max_dead_ends": recipe.max_dead_ends,
 		"max_sight_depth": recipe.max_sight_depth, "envelope": [env.position.x, env.position.y, env.position.z, env.size.x, env.size.y, env.size.z],
 		"open_sight": recipe.open_sight, "network": recipe.network != null, "slots": [], "grow": []}
 	for s: AreaSlot in recipe.slots:
@@ -65,13 +294,14 @@ static func describe(recipe: AreaRecipe) -> Dictionary:
 		for scene: PackedScene in s.scene_choices if not s.scene_choices.is_empty() else ([s.scene] if s.scene != null else []):
 			scenes.append(scene.resource_path)
 		var kind: String = "scene" if not scenes.is_empty() else ("span" if s.grammar is ChasmGrammar else "generated")
-		var type: String = _type_of(scenes[0] if not scenes.is_empty() else (s.grammar.resource_path if s.grammar != null else ""))
+		var type: String = RoomTypes.of_path(scenes[0] if not scenes.is_empty() else (s.grammar.resource_path if s.grammar != null else ""))
 		var thresholds: Dictionary = {}
 		for k: StringName in s.thresholds:
 			thresholds[String(k)] = str(s.thresholds[k])
 		(out["slots"] as Array).append({"slot_id": s.slot_id, "display_name": s.display_name, "kind": kind, "type": type,
-			"type_name": TYPE_NAMES.get(type, ""), "scenes": scenes, "grammar": s.grammar.resource_path if s.grammar != null else "",
+			"type_name": RoomTypes.NAMES.get(type, ""), "scenes": scenes, "grammar": s.grammar.resource_path if s.grammar != null else "",
 			"parent": s.parent, "connector": String(s.connector), "seed_mode": "fixed" if s.seed_mode == AreaSlot.SeedMode.FIXED else "area",
+			"orig": s.slot_id, "weights": Array(s.scene_weights), "pinned_choice": s.pinned_choice,
 			"fixed_seed": s.fixed_seed, "pinned": s.pinned, "thresholds": thresholds,
 			# Q6: a scene with no SNAP_entry can only be the area's entrance (its root).
 			"entrance_only": kind == "scene" and scenes.all(func(p: String) -> bool: return not _has_entry(p))})
@@ -79,10 +309,10 @@ static func describe(recipe: AreaRecipe) -> Dictionary:
 		var g: AreaGrow = recipe.grow[i]
 		if g == null:
 			continue
-		var type: String = _type_of(g.grammar.resource_path if g.grammar != null else "")
-		(out["grow"] as Array).append({"prefix": g.slot_prefix, "display_name": g.display_name, "type": type, "type_name": TYPE_NAMES.get(type, ""),
+		var type: String = RoomTypes.of_path(g.grammar.resource_path if g.grammar != null else "")
+		(out["grow"] as Array).append({"prefix": g.slot_prefix, "display_name": g.display_name, "type": type, "type_name": RoomTypes.NAMES.get(type, ""),
 			"grammar": g.grammar.resource_path if g.grammar != null else "", "count": [g.count.x, g.count.y],
-			"from": Array(g.from), "pinned": g.pinned, "order": i})
+			"orig": g.slot_prefix, "min_depth": g.min_depth, "from": Array(g.from), "pinned": g.pinned, "order": i})
 	return out
 
 
@@ -119,7 +349,7 @@ static func plan(recipe: AreaRecipe, world_seed: int, map_px: int = 10) -> Dicti
 			"parent_connector": String(r.parent_connector), "entry": String(r.entry), "storey": r.storey, "depth": r.depth,
 			"seed": r.seed_value, "room_key": "%s@%d" % [r.slot_id, r.seed_value], "end_kind": r.end_kind,
 			"scene": r.scene.resource_path if r.scene != null else "", "grammar": r.grammar.resource_path if r.grammar != null else "",
-			"type": _type_of(r.scene.resource_path if r.scene != null else (r.grammar.resource_path if r.grammar != null else "")),
+			"type": RoomTypes.of_path(r.scene.resource_path if r.scene != null else (r.grammar.resource_path if r.grammar != null else "")),
 			"grow": prefix, "required": recipe.slot(r.slot_id) != null, "cells": r.floor_cells.size(),
 			"bays": maxi(hi.x - lo.x, hi.y - lo.y) + 1 if not r.floor_cells.is_empty() else 1, "connectors": connectors,
 			"floor": r.floor_cells.keys().map(func(c: Vector3i) -> Array: return [c.x, c.y, c.z])})
@@ -139,16 +369,15 @@ static func plan(recipe: AreaRecipe, world_seed: int, map_px: int = 10) -> Dicti
 static func _load_recipe(path: String, fresh: bool) -> AreaRecipe:
 	if path == "" or not ResourceLoader.exists(path):
 		return null
-	# Fresh: re-read from disk (a hand edit since); its grammars and scenes stay cached.
-	return ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_REPLACE if fresh else ResourceLoader.CACHE_MODE_REUSE) as AreaRecipe
-
-
-static func _type_of(path: String) -> String:
-	var file: String = path.get_file().get_basename()
-	for k: String in TYPE_BY_FILE:
-		if file.begins_with(k):
-			return TYPE_BY_FILE[k]
-	return ""
+	# Fresh: re-read from disk (a hand edit since), and that copy is the cached
+	# one from now on; its grammars and scenes stay cached. (Replacing in the
+	# cache would try to reload the recipe's scripts.)
+	if not fresh:
+		return load(path) as AreaRecipe
+	var r: AreaRecipe = ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE) as AreaRecipe
+	if r != null:
+		r.take_over_path(path)
+	return r
 
 
 static func _has_entry(scene_path: String) -> bool:

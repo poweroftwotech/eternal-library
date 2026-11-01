@@ -79,6 +79,8 @@ class Room:
 	var pinned: bool = false
 	## Doorways from the root.
 	var depth: int = 0
+	## Its room type (RoomTypes: R02 …; "" if unknown).
+	var room_type: String = ""
 
 	func children_count() -> int:
 		var n: int = 0
@@ -107,6 +109,9 @@ var visible: Dictionary = {}
 var errors: PackedStringArray = []
 ## Planner counts: grow candidates tried and rejected, and why.
 var stats: Dictionary = {}
+## slot -> the scene path picked for a required room with scene choices (the
+## save keeps it, Q5).
+var variants: Dictionary = {}
 ## Milliseconds the planner took.
 var plan_ms: float = 0.0
 ## Whether an area has checked it (check(), warnings pushed): a plan made

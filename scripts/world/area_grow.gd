@@ -14,6 +14,9 @@ extends Resource
 ## Slots whose exits may sprout these rooms (empty: any generated room's exit,
 ## grown rooms included).
 @export var from: PackedStringArray = []
+## Only on doors at least this many doorways in from the entrance (the new room
+## would be this deep or deeper; 0: anywhere).
+@export var min_depth: int = 0
 ## Always live once the area is, like a pinned AreaSlot: for rooms too big to
 ## build in a frame's budget while you walk (phase 5 step 3: the cistern,
 ## 2,000 nodes, took 5-6 ms to enter the tree).

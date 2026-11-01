@@ -35,6 +35,8 @@ func run() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	if args.size() >= 2 and args[0] in ["seed_save", "seed_load"]:
 		seed_process(args[0], args[1])
+	elif args.has("edit"):
+		edit()
 	else:
 		var capture: String = ""
 		for a: String in args:
@@ -42,6 +44,7 @@ func run() -> void:
 				capture = a.trim_prefix("capture=")
 		service()
 		world_seed()
+		edit()
 		await pipe()
 		await board(capture)
 	print("strata_board_test: %d checks, %d failures" % [checks, failures.size()])
@@ -177,6 +180,7 @@ func board(capture: String) -> void:
 	await process_frame
 	await process_frame
 	check(((b.get("_sweep_flow") as Node).get_child_count()) == Board.SWEEP, "the sweep shows 20 worlds")
+	await board_edit(b)
 	if capture != "":
 		b.call("select", {"panel": "recipe", "id": "grow:upper"})
 		for _i: int in 30:
@@ -191,6 +195,7 @@ func board(capture: String) -> void:
 		var sweep_png: String = capture.get_basename() + "_sweep.png"
 		root.get_texture().get_image().save_png(sweep_png)
 		print("  saved ", sweep_png)
+	await board_save(b)
 	b.queue_free()
 
 
@@ -211,15 +216,200 @@ func seed_process(mode: String, save: String) -> void:
 	if mode == "seed_save":
 		ws.set("path", save)
 		ws.call("forget", ws.call("roll_world_seed"))
+		var first: AreaPlan = _plan_kept(ws)
 		ws.call("save_now")
 		var f := FileAccess.open(save + ".seed", FileAccess.WRITE)
 		f.store_string(str(int(ws.call("world_seed"))))
 		f.close()
 		print("  saved world seed %d" % int(ws.call("world_seed")))
 		check(int(ws.call("world_seed")) >= 1, "a rolled seed")
+		check(first.variants.has("caravanserai"), "the plan records the caravanserai's variant")
+		print("  kept %s" % str(ws.call("kept_variants", "lower_stacks")))
 	else:
 		ws.set("path", save)
 		check(bool(ws.call("load_save")), "the save loads")
 		var want: int = FileAccess.get_file_as_string(save + ".seed").to_int()
 		check(int(ws.call("world_seed")) == want, "a new process loads world seed %d (%d)" % [want, int(ws.call("world_seed"))])
 		print("  loaded world seed %d" % int(ws.call("world_seed")))
+		# Q5: the recipe changed since (pinned to another variant); the save's room stays.
+		var kept: Dictionary = ws.call("kept_variants", "lower_stacks")
+		check(kept.has("caravanserai"), "a new process loads the kept variants (%s)" % str(kept))
+		var recipe: AreaRecipe = (load(INTERIORS["lower_stacks"]) as AreaRecipe).duplicate(true)
+		var court: AreaSlot = recipe.slots.filter(func(s: AreaSlot) -> bool: return s.slot_id == "caravanserai")[0]
+		var other: int = (court.scene_choices.map(func(sc: PackedScene) -> String: return sc.resource_path).find(kept.get("caravanserai", "")) + 1) % court.scene_choices.size()
+		court.pinned_choice = other
+		var seed_value: int = AreaPlanner.area_seed_for(recipe, int(ws.call("world_seed")))
+		var again: AreaPlan = AreaPlanner.plan(recipe, seed_value, kept)
+		check(again.variants.get("caravanserai") == kept.get("caravanserai"), "the saved world keeps its caravanserai after the recipe pins another (%s)" % again.variants.get("caravanserai"))
+		var fresh: AreaPlan = AreaPlanner.plan(recipe, seed_value)
+		check(fresh.variants.get("caravanserai") == court.scene_choices[other].resource_path, "a new world takes the pinned one (%s)" % fresh.variants.get("caravanserai"))
+
+
+## Plans the Lower Stacks of `ws`'s world as the game does (kept variants in,
+## new ones recorded) and saves.
+func _plan_kept(ws: Node) -> AreaPlan:
+	var recipe: AreaRecipe = load(INTERIORS["lower_stacks"])
+	var p: AreaPlan = AreaPlanner.plan(recipe, AreaPlanner.area_seed_for(recipe, int(ws.call("world_seed"))), ws.call("kept_variants", recipe.id))
+	ws.call("keep_variants", recipe.id, p.variants, recipe.version)
+	ws.call("save_now")
+	return p
+
+
+## Step 2: the board's edits. An unchanged description plans exactly as the
+## file; edits to counts, depth, weights and the connection table do what
+## they say; a save writes a recipe that plans as the edit did, raises the
+## version when rooms move, and refuses when the file changed under it.
+func edit() -> void:
+	var cat: Dictionary = Service.handle({"cmd": "catalog"})
+	var gtypes: Array = (cat["grammars"] as Array).map(func(g: Dictionary) -> String: return str(g["type"]))
+	check(["R02", "R03", "R05", "R09", "R11"].all(func(t: String) -> bool: return gtypes.has(t)), "the catalog has every generated type (%s)" % [gtypes])
+	var entrance: Dictionary = {}
+	for s: Dictionary in cat["scenes"]:
+		entrance[str(s["path"]).get_file()] = bool(s["entrance_only"])
+	check(entrance.get("reading_room.tscn") == true and entrance.get("caravanserai_5x5.tscn") == true and entrance.get("stack_gallery_west_7.tscn") == false,
+		"the catalog marks the entrance-only scenes (%s)" % [entrance])
+	for id: String in INTERIORS:
+		var recipe: AreaRecipe = load(INTERIORS[id])
+		var desc: Dictionary = Service.handle({"cmd": "recipe", "path": INTERIORS[id]})
+		var same: AreaRecipe = Service.build(desc)
+		for w: int in [1, 2, 3]:
+			var a: Dictionary = Service.handle({"cmd": "plan", "desc": desc, "world_seed": w, "map_px": 0})
+			var direct: AreaPlan = AreaPlanner.plan(recipe, AreaPlanner.area_seed_for(recipe, w))
+			check(str(a["signature"]) == direct.signature().sha256_text(), "%s world %d: an unedited description plans as the file" % [id, w])
+		check(Service.moved(recipe, same, [1, 2, 3, 4, 5]).is_empty(), "%s: an unedited description moves nothing" % id)
+
+	var ls: AreaRecipe = load(INTERIORS["lower_stacks"])
+	var base: Dictionary = Service.handle({"cmd": "recipe", "path": INTERIORS["lower_stacks"]})
+	# Fewer galleries: rooms move, and no rule places more than its maximum (Q4).
+	var fewer: Dictionary = base.duplicate(true)
+	(fewer["grow"][0] as Dictionary)["count"] = [1, 1]
+	var moved: Array = Service.moved(ls, Service.build(fewer), range(1, 11))
+	check(not moved.is_empty(), "one gallery instead of 3-5 moves rooms (in %s of worlds 1-10)" % [moved])
+	for w: int in [1, 2, 3, 4]:
+		var a: Dictionary = Service.handle({"cmd": "plan", "desc": fewer, "world_seed": w, "map_px": 0})
+		var galleries: int = (a["rooms"] as Array).filter(func(r: Dictionary) -> bool: return str(r["grow"]) == "gallery").size()
+		check(galleries <= 1, "world %d: a 1-1 gallery rule places at most one (%d), even when the area is short (Q4)" % [w, galleries])
+	# A minimum depth no door reaches: none placed, and the counts say why.
+	var deep: Dictionary = base.duplicate(true)
+	(deep["grow"][2] as Dictionary)["min_depth"] = 40
+	var d: Dictionary = Service.handle({"cmd": "plan", "desc": deep, "world_seed": 1, "map_px": 0})
+	var st: Dictionary = (d["stats"]["grow"] as Array).filter(func(g: Dictionary) -> bool: return str(g["prefix"]) == str(deep["grow"][2]["prefix"]))[0]
+	check(int(st["added"]) == 0 and int(st["near_entrance"]) > 0, "a rule 40 doors deep places nothing, for being near the entrance (%s)" % [st])
+	# Weights: only the 3x3 court can come up in a new world; a saved world keeps its own (Q5).
+	var heavy: Dictionary = base.duplicate(true)
+	var court: Dictionary = heavy["slots"][0]
+	court["weights"] = (court["scenes"] as Array).map(func(p: String) -> float: return 1.0 if p.ends_with("3x3.tscn") else 0.0)
+	var courts: Dictionary = {}
+	for w: int in range(1, 9):
+		var a: Dictionary = Service.handle({"cmd": "plan", "desc": heavy, "world_seed": w, "map_px": 0})
+		courts[str((a["rooms"] as Array)[0]["scene"]).get_file()] = true
+	check(courts.keys() == ["caravanserai_3x3.tscn"], "weighted 1-0-0, every new world gets the 3x3 court (%s)" % [courts.keys()])
+	check(Service.moved(ls, Service.build(heavy), range(1, 11)).is_empty(), "a weights change moves no room in a saved world (Q5)")
+	# The connection table: galleries never off a hall or a gallery.
+	var gtype: String = str(base["grow"][0]["type"])
+	var never: Dictionary = {}
+	for t: String in RoomTypes.NAMES:
+		never["%s>%s" % [t, gtype]] = "never"
+	var n: Dictionary = Service.handle({"cmd": "plan", "path": INTERIORS["lower_stacks"], "connections": never, "world_seed": 1, "map_px": 0})
+	var ng: int = (n["rooms"] as Array).filter(func(r: Dictionary) -> bool: return str(r["type"]) == gtype and not bool(r["required"])).size()
+	check(ng == 0, "with %s never joining anything, none are grown (%d)" % [gtype, ng])
+	var after: Dictionary = Service.handle({"cmd": "plan", "path": INTERIORS["lower_stacks"], "world_seed": 1, "map_px": 0})
+	check(str(after["signature"]) == AreaPlanner.plan(ls, AreaPlanner.area_seed_for(ls, 1)).signature().sha256_text(), "an unsaved table is forgotten after its plan")
+	# Saving: to a scratch copy, never the game's file.
+	var to: String = "user://test/strata_edit.tres"
+	DirAccess.make_dir_recursive_absolute("user://test")
+	var saved: Dictionary = Service.handle({"cmd": "save", "desc": fewer, "to": to, "mtime": int(base["mtime"])})
+	check(int(saved.get("version", 0)) == int(base["version"]) + 1 and not (saved.get("moved", []) as Array).is_empty(),
+		"a save that moves rooms raises the version (%d -> %s, moved in %s)" % [int(base["version"]), saved.get("version"), saved.get("moved")])
+	var back: AreaRecipe = ResourceLoader.load(to, "", ResourceLoader.CACHE_MODE_IGNORE)
+	check(back != null and back.grow[0].count == Vector2i(1, 1) and back.placement != null and back.atmosphere != null and back.slots[0].thresholds.size() == ls.slots[0].thresholds.size(),
+		"the saved recipe has the edit and keeps placement, atmosphere and doors out")
+	if back != null:
+		check(AreaPlanner.plan(back, AreaPlanner.area_seed_for(back, 3)).signature() == AreaPlanner.plan(Service.build(fewer), AreaPlanner.area_seed_for(ls, 3)).signature(),
+			"the saved recipe plans as the edit did")
+	var same_save: Dictionary = Service.handle({"cmd": "save", "desc": base, "to": to, "mtime": 0})
+	check(int(same_save.get("version", 0)) == int(base["version"]), "saving without a change keeps the version (%s)" % same_save.get("version"))
+	var stale: Dictionary = Service.handle({"cmd": "save", "desc": base, "mtime": int(base["mtime"]) - 5})
+	check(stale.has("conflict"), "a save refuses when the file changed since it was read (%s)" % [stale])
+	var two_roots: Dictionary = base.duplicate(true)
+	(two_roots["slots"][1] as Dictionary)["parent"] = ""
+	check(Service.handle({"cmd": "save", "desc": two_roots, "to": to}).has("error"), "a recipe with two entrances isn't saved")
+	check(ls.version == int(base["version"]) and FileAccess.get_modified_time(INTERIORS["lower_stacks"]) == int(base["mtime"]), "the game's recipe file is untouched")
+
+
+## Step 2 on the board: edits mark the recipe unsaved, replan the edit, and
+## keep what refers to a room or rule in step; Revert drops them.
+func board_edit(b: Control) -> void:
+	var planned: Callable = func() -> bool: return not (b.get("plan") as Dictionary).is_empty()
+	var file_sig: String = str((b.get("plan") as Dictionary)["signature"])
+	var form: Node = b.get("_form")
+	b.call("select", {"panel": "recipe", "id": "grow:gallery"})
+	await process_frame
+	check(form.get_child_count() > 6, "the form edits the selected grow rule (%d rows)" % form.get_child_count())
+	b.call("set_grow_field", "gallery", "count", [1, 1])
+	check(bool(b.call("is_dirty", "lower_stacks")), "an edit marks the recipe unsaved")
+	check((b.get("_walk_button") as Button).disabled and not (b.get("_save_button") as Button).disabled, "unsaved: Save on, Walk this seed off")
+	check(int(b.get("sweep_base")) == 0, "an edit drops the (now stale) sweep")
+	await until(planned, 30.0)
+	var galleries: int = ((b.get("plan") as Dictionary)["rooms"] as Array).filter(func(r: Dictionary) -> bool: return str(r["grow"]) == "gallery").size()
+	check(galleries <= 1, "the board plans the edit: one gallery at most (%d)" % galleries)
+	var cistern: Dictionary = b.call("_grow_rule", "cistern")
+	check((cistern["from"] as Array).has("gallery_1") and not (cistern["from"] as Array).has("gallery_2"), "a rule growing from the galleries follows their count (%s)" % [cistern["from"]])
+	b.call("revert")
+	check(not bool(b.call("is_dirty", "lower_stacks")), "Revert drops the edit")
+	await until(planned, 30.0)
+	check(str((b.get("plan") as Dictionary)["signature"]) == file_sig, "after Revert the plan is the file's again")
+	# Rename the hall: what joins it and grows from it follows.
+	b.call("set_slot_field", "hall", "slot_id", "nave")
+	var joins_nave: bool = (b.get("recipes")["lower_stacks"]["slots"] as Array).any(func(s: Dictionary) -> bool: return str(s["parent"]) == "nave")
+	var grows_nave: bool = (b.get("recipes")["lower_stacks"]["grow"] as Array).all(func(g: Dictionary) -> bool: return not (g["from"] as Array).has("hall"))
+	check(grows_nave and (joins_nave or (b.get("recipes")["lower_stacks"]["slots"] as Array).size() == 2), "renaming a room renames it where rules grow from it")
+	await until(planned, 30.0)
+	check(not ((b.get("plan") as Dictionary)["rooms"] as Array).filter(func(r: Dictionary) -> bool: return str(r["slot_id"]) == "nave").is_empty(), "the renamed room is planned under its new id")
+	b.call("revert")
+	# Add a room off the entrance, then remove it.
+	b.call("select", {})
+	b.call("add_slot")
+	var added: String = str((b.get("sel") as Dictionary).get("id", ""))
+	check(added != "" and not (b.call("_slot", added) as Dictionary).is_empty(), "+ Required room adds one and selects it (%s)" % added)
+	await process_frame
+	check(((b.get("_recipe_view") as Control).get("nodes") as Array).any(func(n: Dictionary) -> bool: return str(n["id"]) == added), "the recipe graph draws it")
+	await until(planned, 30.0)
+	check(not (b.get("plan") as Dictionary).has("error"), "the board plans a recipe with an added room (%s)" % (b.get("plan") as Dictionary).get("error", ""))
+	b.call("remove_slot", added)
+	check(not bool(b.call("is_dirty", "lower_stacks")), "removing it again leaves the recipe as it was")
+	# Order, entrance, connections.
+	b.call("move_grow", "upper", -1)
+	check(int((b.call("_grow_rule", "upper") as Dictionary)["order"]) == 2, "▲ runs a rule one earlier")
+	b.call("revert")
+	check(str(b.call("entrance_blocked", "hall")).contains("entrance only"), "an entrance-only entrance stays the entrance (Q6)")
+	check(str(b.call("remove_blocked", "caravanserai")) != "", "the entrance can't be removed")
+	b.call("set_connection", "R03", "R02", "never")
+	check(bool(b.call("connections_dirty")), "a connection edit is unsaved")
+	await until(planned, 30.0)
+	var st: Dictionary = b.call("_grow_stats", "gallery")
+	check(int(st.get("ruled_out", 0)) > 0 or int(st.get("added", 0)) == 0, "galleries never off a hall: doors ruled out (%s)" % [st])
+	check(str((b.get("_plan_status") as RichTextLabel).text).contains("ruled out") or int(st.get("added", 0)) >= int(st.get("want", 0)), "the status says doors were ruled out")
+	b.call("revert")
+	check(not bool(b.call("connections_dirty")), "Revert drops the connection edit")
+	# Leave a weights edit on show for the capture.
+	b.call("select", {"panel": "recipe", "id": "caravanserai"})
+	b.call("set_slot_field", "caravanserai", "weights", [1.0, 3.0, 1.0])
+	(b.get("_conn_panel") as Control).visible = true
+	b.call("_refresh")
+	await until(planned, 30.0)
+
+
+## Save on the board, to a scratch copy: the notice says what moved.
+func board_save(b: Control) -> void:
+	var mtime: int = FileAccess.get_modified_time(INTERIORS["lower_stacks"])
+	b.call("revert")
+	b.set("save_to", "user://test/strata_board_save.tres")
+	b.call("set_grow_field", "gallery", "count", [1, 1])
+	b.call("save")
+	if not await until(func() -> bool: return not bool(b.call("is_dirty", "lower_stacks")), 120.0):
+		check(false, "the board saved within 120 s (%s)" % b.get("notice"))
+		return
+	check(str(b.get("notice")).contains("version goes"), "the save notice says rooms moved and the version went up (%s)" % b.get("notice"))
+	check(ResourceLoader.exists("user://test/strata_board_save.tres"), "the board wrote the recipe")
+	check(FileAccess.get_modified_time(INTERIORS["lower_stacks"]) == mtime, "the game's recipe file is untouched")

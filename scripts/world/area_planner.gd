@@ -32,7 +32,9 @@ static func area_seed_for(recipe: AreaRecipe, world_seed: int) -> int:
 	return hash([world_seed, recipe.id]) & 0x7fffffff
 
 
-static func plan(recipe: AreaRecipe, area_seed: int) -> AreaPlan:
+## `keep`: slot -> scene path a save recorded for a room with scene choices
+## (Q5): that choice stands even if the weights changed since.
+static func plan(recipe: AreaRecipe, area_seed: int, keep: Dictionary = {}) -> AreaPlan:
 	var t0: int = Time.get_ticks_usec()
 	var p := AreaPlan.new()
 	p.area_id = recipe.id
@@ -47,7 +49,7 @@ static func plan(recipe: AreaRecipe, area_seed: int) -> AreaPlan:
 	for s: AreaSlot in recipe.slots:
 		if s == null:
 			continue
-		var r: AreaPlan.Room = _place_slot(p, recipe, s)
+		var r: AreaPlan.Room = _place_slot(p, recipe, s, keep)
 		if r == null:
 			continue
 	_grow(p, recipe)
@@ -69,7 +71,7 @@ static func _seed_for(p: AreaPlan, slot_id: String) -> int:
 
 ## A required slot: placed, joined to its parent, recorded. Null (and an error)
 ## if it can't be.
-static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot) -> AreaPlan.Room:
+static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot, keep: Dictionary = {}) -> AreaPlan.Room:
 	var parent_room: AreaPlan.Room = null
 	if s.parent != "":
 		parent_room = p.room(s.parent)
@@ -85,7 +87,8 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot) -> AreaPla
 	var r: AreaPlan.Room
 	var scene: PackedScene = s.scene
 	if not s.scene_choices.is_empty():
-		scene = s.scene_choices[(hash([p.area_seed, s.slot_id, "scene"]) & 0x7fffffff) % s.scene_choices.size()]
+		scene = _pick_scene(p, s, str(keep.get(s.slot_id, "")))
+		p.variants[s.slot_id] = scene.resource_path
 	if scene != null:
 		var info: Dictionary = _scene_info(scene, -1)     # FIXED: the scene's own preview_seed (a bake keeps its seed there)
 		var seed_value: int = int(info["seed"]) if s.seed_mode == AreaSlot.SeedMode.FIXED else _seed_for(p, s.slot_id)
@@ -122,6 +125,35 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot) -> AreaPla
 	return r
 
 
+## Which of a slot's scene choices it gets: the one the save kept, the pinned
+## one, or a roll: equal weights as before phase 10 (hash % n), else weighted.
+static func _pick_scene(p: AreaPlan, s: AreaSlot, kept: String) -> PackedScene:
+	for sc: PackedScene in s.scene_choices:
+		if kept != "" and sc != null and sc.resource_path == kept:
+			return sc
+	var n: int = s.scene_choices.size()
+	if s.pinned_choice >= 0 and s.pinned_choice < n:
+		return s.scene_choices[s.pinned_choice]
+	var roll: int = hash([p.area_seed, s.slot_id, "scene"]) & 0x7fffffff
+	var w: PackedFloat32Array = s.scene_weights
+	var equal: bool = w.size() != n or Array(w).all(func(x: float) -> bool: return is_equal_approx(x, w[0]))
+	if equal:
+		return s.scene_choices[roll % n]
+	var total: float = 0.0
+	for x: float in w:
+		total += maxf(x, 0.0)
+	if total <= 0.0:
+		return s.scene_choices[roll % n]
+	var rng := RandomNumberGenerator.new()
+	rng.seed = roll
+	var at: float = rng.randf() * total
+	for i: int in n:
+		at -= maxf(w[i], 0.0)
+		if at < 0.0:
+			return s.scene_choices[i]
+	return s.scene_choices[n - 1]
+
+
 ## Why a planned generated room can't be used ("" = it can).
 static func _fault(r: AreaPlan.Room, grammar: RoomGrammar) -> String:
 	if r.grid == null or r.grid.cells.is_empty():
@@ -144,14 +176,17 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 		rng.seed = hash([p.area_seed, "grow_count", g.slot_prefix])
 		var want: int = rng.randi_range(mini(g.count.x, g.count.y), maxi(g.count.x, g.count.y))
 		var rolled: int = want
-		want = clampi(want, recipe.room_count.x - p.rooms.size(), recipe.room_count.y - p.rooms.size())
+		# Never more than the rule's own count (Q4): only the area's maximum lowers
+		# it. (Before phase 10 step 2 it was raised to reach the area's minimum.)
+		want = clampi(want, 0, maxi(recipe.room_count.y - p.rooms.size(), 0))
+		# What this rule did and why it fell short (the Strata Board shows it).
+		var gs: Dictionary = {"prefix": g.slot_prefix, "rolled": rolled, "want": want, "added": 0, "doors": 0,
+			"taken": 0, "tried": 0, "boxed_in": 0, "too_short": 0, "sightline": 0, "ruled_out": 0, "near_entrance": 0}
 		# Free exits, required rooms' first, each tier in seeded order.
-		var candidates: Array = _free_exits(p, p.rooms, g, hash([p.area_seed, "grow_order", g.slot_prefix, 0]))
+		var candidates: Array = _free_exits(p, p.rooms, g, hash([p.area_seed, "grow_order", g.slot_prefix, 0]), gs)
+		gs["doors"] = candidates.size()
 		var dead_ends: int = 0
 		var added: int = 0
-		# What this rule did and why it fell short (the Strata Board shows it).
-		var gs: Dictionary = {"prefix": g.slot_prefix, "rolled": rolled, "want": want, "added": 0, "doors": candidates.size(),
-			"taken": 0, "tried": 0, "boxed_in": 0, "too_short": 0, "sightline": 0}
 		(p.stats["grow"] as Array).append(gs)
 		while added < want and not candidates.is_empty():
 			var c: Array = candidates.pop_front()
@@ -159,6 +194,9 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 			var conn: StringName = c[1]
 			if str(parent_room.connectors[conn]["joined"]) != "":
 				gs["taken"] += 1
+				continue
+			if parent_room.depth + 1 < g.min_depth:
+				gs["near_entrance"] += 1
 				continue
 			var slot_id: String = "%s_%d" % [g.slot_prefix, n + 1]
 			var seed_value: int = _seed_for(p, slot_id)
@@ -191,14 +229,19 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 			gs["added"] = added
 			if end_kind == "dead_end":
 				dead_ends += 1
-			var more: Array = _free_exits(p, [r], g, hash([p.area_seed, "grow_order", g.slot_prefix, n]))
+			var more: Array = _free_exits(p, [r], g, hash([p.area_seed, "grow_order", g.slot_prefix, n]), gs)
 			gs["doors"] += more.size()
 			candidates.append_array(more)
 
 
-## [[room, connector], ...] free exits of `among` that `g` may grow from, shuffled by `order_seed`.
-static func _free_exits(p: AreaPlan, among: Array, g: AreaGrow, order_seed: int) -> Array:
+## [[room, connector], ...] free exits of `among` that `g` may grow from, shuffled by
+## `order_seed`: a never door in the connection table left out (counted in
+## gs.ruled_out), a preferred one more likely first.
+static func _free_exits(p: AreaPlan, among: Array, g: AreaGrow, order_seed: int, gs: Dictionary = {}) -> Array:
 	var out: Array = []
+	var table: ConnectionTable = ConnectionTable.default()
+	var to_type: String = RoomTypes.of_resource(g.grammar)
+	var weighted: bool = false
 	for r: AreaPlan.Room in among:
 		if not g.from.is_empty() and not g.from.has(r.slot_id):
 			continue
@@ -208,9 +251,21 @@ static func _free_exits(p: AreaPlan, among: Array, g: AreaGrow, order_seed: int)
 		names.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))
 		for name: StringName in names:
 			if String(name).begins_with("SNAP_exit") and str(r.connectors[name]["joined"]) == "" and str(r.connectors[name]["cap"]) != "threshold":
+				var rule: String = table.rule(r.room_type, to_type) if not table.is_empty() else ConnectionTable.ALLOWED
+				if rule == ConnectionTable.NEVER:
+					gs["ruled_out"] = int(gs.get("ruled_out", 0)) + 1
+					continue
+				weighted = weighted or rule == ConnectionTable.PREFERRED
 				out.append([r, name])
 	var rng := RandomNumberGenerator.new()
 	rng.seed = order_seed
+	if weighted:     # a seeded weighted shuffle: each door's key is u^(1/w), highest first
+		var keyed: Array = []
+		for c: Array in out:
+			var w: float = ConnectionTable.PREFER_WEIGHT if table.rule((c[0] as AreaPlan.Room).room_type, to_type) == ConnectionTable.PREFERRED else 1.0
+			keyed.append([pow(rng.randf(), 1.0 / w), c])
+		keyed.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) > float(b[0]))
+		return keyed.map(func(k: Array) -> Array: return k[1])
 	for i: int in range(out.size() - 1, 0, -1):     # Fisher-Yates, seeded
 		var j: int = rng.randi_range(0, i)
 		var t: Variant = out[i]
@@ -259,6 +314,7 @@ static func _scene_room(p: AreaPlan, slot_id: String, display_name: String, scen
 	r.display_name = display_name if display_name != "" else str(info["display_name"])
 	r.kind = "scene"
 	r.scene = scene
+	r.room_type = RoomTypes.of_resource(scene)
 	r.seed_value = seed_value
 	if parent_room != null:
 		if not info["connectors"].has(&"SNAP_entry"):
@@ -305,6 +361,7 @@ static func _span_room(p: AreaPlan, s: AreaSlot, seed_value: int, parent_room: A
 	r.display_name = s.display_name
 	r.kind = "span"
 	r.grammar = s.grammar
+	r.room_type = "R10"
 	r.seed_value = seed_value
 	r.entry = &"SNAP_entry"
 	r.xf = _joined_xf(parent_room, s.connector, ChasmGrammar.ENTRY)
@@ -333,6 +390,7 @@ static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, di
 	r.display_name = display_name
 	r.kind = "generated"
 	r.grammar = grammar
+	r.room_type = RoomTypes.of_resource(grammar)
 	r.rules = rules
 	r.seed_value = seed_value
 	r.end_kind = end_kind
