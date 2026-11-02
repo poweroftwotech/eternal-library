@@ -113,7 +113,7 @@ New in the game: `AreaSlot.scene_weights` and `pinned_choice`, `AreaGrow.min_dep
 
 Not checked by me: the board inside the editor window (typing in its fields, Save writing the real recipe and the editor rescanning it). The test drives the same board in a game window, saving to a scratch file, never the game's recipe.
 
-## Step 2b: named copies of a recipe (2026-11-01, committed a5cd65d, not yet tried in the editor)
+## Step 2b: named copies of a recipe (2026-11-01, committed a5cd65d)
 
 You asked, after trying step 2, to keep several versions of an area to experiment with without losing earlier ones. You picked named recipe copies, built before step 3.
 
@@ -169,3 +169,71 @@ And on the board:
 - Delete copy goes back to Live.
 
 Not checked by me: the board in the editor window (the name dialog, the delete confirmation, the editor rescanning new copies).
+
+## Step 3: the stratum plan (2026-11-01, committed after you walked it)
+
+Which areas exist and how they link has moved out of the code into one data file the board edits. A new area gets a door from a Gorge building and you walk into it from the Gorge. You chose spare door places, baked once, over re-baking the Gorge for every new door.
+
+### What you can try
+
+- The **Stratum** section has a new bar:
+  - **+ Area…** asks for a name, which area's recipe to start from (a copy you then reshape), and which free Gorge door place it stands behind. The board writes the new recipe and the stratum plan, then opens the new area.
+  - **GORGE DOOR** moves the open area's door to another free door place. Places other areas use are greyed out.
+  - **Remove area…** asks first, then takes the area out of the stratum along with its Gorge door. Its recipe file stays.
+  - The note says how many of the 8 door places are free. It turns red if more than 6 doors are in use: the Gorge's walkways were checked to reach up to 6 in every world.
+- **FROM ABOVE → Draw for this world seed** plans the Gorge and every interior for the board's world seed (about 10 s) and places each interior at its door as the game does. Shown in grey: the Gorge's walkways. Each interior's floors get their own colour, and each Gorge door is a dot. The line beside the button names any two interiors that share space.
+- Walk this seed works for a new area at once. From the Gorge, find its door on its ledge.
+- Any change to the Gorge's doors raises the Gorge's version: a door pulls a walkway to it, so the Gorge's walkways move in every world.
+
+### What changed in the game
+
+- **The stratum plan** is `gen/strata/stratum_1.tres` (`StratumPlan`). It lists the places (each recipe or the camp's scene) and the links (the camp–Gorge corridor, and each Gorge door with the frontage slot it stands on). `SeamlessPlaces.recipes()` and `links()` read it, and so do `main.gd`'s area list and the Esc menu. The tables in the code are gone.
+- **Doors live in the stratum plan, not the frontage.** A frontage slot is now a *door place* (`door_place`) or not. The Gorge's bake keeps the bank behind every door place clear for a passage. At planning, `StratumPlan.apply_doors` sets each slot's door from the links.
+- **Eight door places**: the two in use, plus six spares picked by `tools/door_places.gd`. The tool gave each candidate slot a door of its own and planned the Gorge for world seeds 1–20.
+
+  | Spare | Bank, cliff, storey | Alone: door reached / plan clean (of 20) |
+  |---|---|---|
+  | b3_l17_W_s2_0 | 3, left, -2 | 20 / 20 |
+  | b3_l17_W_s0_1 | 3, left, -4 | 20 / 19 |
+  | b4_l16_E_s2_9 | 4, right, -2 | 20 / 20 |
+  | b4_l14_E_s2_6 | 4, right, -7 | 20 / 17 |
+  | b1_l15_W_s1_3 | 1, left, -6 | 20 / 16 |
+  | b2_l15_E_s2_0 | 2, right, -6 | 20 / 13 |
+
+  The unclean plans were only the Gorge's room count: a door that needs extra walkways went past its 9–13 limit. That limit is a check, not a rule the Gorge plans by, so it is now 9–21.
+
+  In use together:
+
+  | Doors in use | Worlds (of 20) that reach every door |
+  |---|---|
+  | The first four spares plus the two existing doors (6) | 20 |
+  | A fifth spare (7) | 19 |
+  | All six spares (8) | 11 |
+
+  Hence the board's red note above 6.
+- **The walkway network may add up to 4 ledges past a seed's maximum** to reach every door (`AreaNetwork.DOOR_LEDGES`). Only a tree still missing a door grows them, so every world that already reached its doors plans as before.
+- **Door cores, one mesh per door place.** The bake used to make each stone cell by a door its own mesh, so the game could hide the cells a passage runs through. With eight door places that would have been 2,324 separate meshes. Now each door place's cells are one mesh with their boxes kept alongside. When a door is in use, the game rebuilds that one mesh without the cells its passage runs through (`Area._open_cores`, `Area.boxes_mesh`). The baked Gorge now has 278 separate meshes, against 800 before this step, spares included.
+- Fixed on the way: a save that had never been in an area warned that the area's "moved rooms' changes go stale" whenever its recipe was newer than version 1. It no longer does.
+
+### Gates
+
+| Gate | Result |
+|---|---|
+| `strata_board_test.gd` (all of steps 1, 2 and 2b plus `-- stratum`): the game's areas and links come from the file as the code had them; the doors stand where the frontage had them; on scratch files: add an area (its recipe a copy with its own id, name and version 1), the game's stratum has it, the Gorge's version rises, the Gorge's walkways reach the new door and the old ones (worlds 1–2), the layout places it; refusals (the Gorge's name, starting from the Gorge, a door place in use, removing the Gorge); remove keeps the recipe file; the game's own files untouched. On the board: + Area opens the new area valid, the door picker, from above, Remove area | 174 checks, 0 failures |
+| `area_plan_test` / `area_route_test` | 266 / 424 checks, 0 failures |
+| `gorge_route_test` | 8 checks, 0 failures |
+| `gorge_network_test`, 20 seeds in one run | 790 checks, 7 failures, all "the gorge's pieces where the network stands are cleared". **Not from this step:** the committed bake fails the same way when several seeds run in one process (seeds 10 and 11 of 6–12), and seed 6 passes alone on either bake. An order effect in the test, to look at separately |
+| **Walk into a new area from the Gorge** (GPU, `tests/door_capture.gd`): a real area added through the board's service behind spare b3_l17_W_s2_0, then the game from the Gorge: the door's ledge, through the passage, inside | Walked in, and the place you're in became the new area (the HUD names it); back out, the Gorge again. The Library Wing and Lower Stacks doors the same. All three doorways show the passage clean (pictures below). The test area was removed afterwards |
+| **Phase 9 frame gate** (`world_walk_capture --gate`, Medium 1080p), which now walks every interior in the stratum plan | Fails on swaps into interiors: worst 53–54 ms against 50 (two runs). **The committed code fails it worse today:** swaps 53–60 ms, and the camp's and the Gorge's draw calls over budget (2,717 and 2,640 against 2,600). With this step, draw calls are back under budget (camp 2,243, Gorge 2,277) because the door cores were merged. With the test area as a third interior, the swap into it was 72 ms. Phase 9 measured 47 ms; the swaps have drifted since, not from this step |
+| The editor starts with the plugin (headless) | No errors |
+
+Pictures: [the stratum section and the view from above](../../../previews/p10_step3/board_stratum.png) (a test area "Board Hall" open), [a new area's door from its ledge](../../../previews/p10_step3/door_dome_archive_ledge.png) and [inside it](../../../previews/p10_step3/door_dome_archive_inside.png), [the Lower Stacks' door](../../../previews/p10_step3/door_lower_stacks_ledge.png), [the Library Wing's door](../../../previews/p10_step3/door_library_ledge.png).
+
+Caveats:
+
+- The side-on view still draws each area by its recipe's reserved height, not by where its door puts it. A new area behind a door at storey -6 still sits at 0 m there; the view from above shows where it really is.
+- In the view from above, floors at different heights draw over each other. "Overlap" means two interiors sharing the same 4 m cells in 3D.
+- A Gorge plan takes about 5 s, so the board doesn't check the Gorge for 20 worlds when a door changes. `tests/gorge_network_test.gd` does that.
+- Not checked by me: the board in the editor window (the + Area dialog, the remove confirmation, the editor rescanning the new files).
+
+You walked it on 2026-11-01 ("looks good") and added two areas of your own through the board: **The Forgotten Wing** behind b4_l14_E_s2_6 and **The Sanctum** behind b4_l16_E_s2_9 (the Gorge recipe at version 6). They are committed with the step, so the stratum now has four doors in use and four spares.

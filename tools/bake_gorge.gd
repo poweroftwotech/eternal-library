@@ -307,24 +307,19 @@ func generate(layout: GorgeLayout, extras: Array[Dictionary], lamps: PackedVecto
 func tier_cores(cores: Dictionary) -> Node3D:
 	var holder := Node3D.new()
 	holder.name = "TierCores"
-	var n: int = 0
 	for material: String in cores:
 		var st := SurfaceTool.new()
 		st.begin(Mesh.PRIMITIVE_TRIANGLES)
+		var by_door: Dictionary = {}     # door place -> its cells [[stone, size]]
 		for p: Dictionary in cores[material]:
-			if p.get("door_core", false):
-				# A cell by a door, its own node: hidden where a door's passage
+			var door: String = str(p.get("door_core", ""))
+			if door != "":
+				# A cell by a door place: kept with that place's others, as one
+				# mesh and as boxes the game takes out where a door's passage
 				# runs (Area._open_cores).
-				var cell := MeshInstance3D.new()
-				cell.name = "door_core_%d" % n
-				n += 1
-				var b := BoxMesh.new()
-				b.size = p["size"]
-				cell.mesh = b
-				cell.transform = p["stone"]
-				cell.material_override = load("res://kit/materials/%s.tres" % material)
-				cell.layers = 2
-				holder.add_child(cell)
+				if not by_door.has(door):
+					by_door[door] = []
+				(by_door[door] as Array).append([p["stone"], p["size"]])
 				continue
 			var box := BoxMesh.new()
 			box.size = p["size"]
@@ -335,6 +330,14 @@ func tier_cores(cores: Dictionary) -> Node3D:
 		mi.material_override = load("res://kit/materials/%s.tres" % material)
 		mi.layers = 2     # the gorge's light layer
 		holder.add_child(mi)
+		for door: String in by_door:
+			var cells := MeshInstance3D.new()
+			cells.name = "door_cores_%s_%s" % [door, material]
+			cells.mesh = Area.boxes_mesh(by_door[door])
+			cells.set_meta("cells", by_door[door])
+			cells.material_override = mi.material_override
+			cells.layers = 2
+			holder.add_child(cells)
 	return holder
 
 

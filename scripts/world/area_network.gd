@@ -53,12 +53,17 @@ const CROSS_SPLAY: float = 12.0
 ## A link to a ledge on a slot with a door (step 5) costs this many metres
 ## less: every tree is to reach every door.
 const DOOR_PULL: float = 40.0
+## Ledges a tree may add past the seed's maximum to reach every door (phase 10
+## step 3: more areas, more doors). Only trees still missing a door grow them,
+## so a world whose doors were reached plans as before.
+const DOOR_LEDGES: int = 4
 
 
 static func plan(p: AreaPlan, net: GorgeNetwork) -> void:
 	if net.frontage == null or net.ledge == null or net.chasm == null or net.links == null:
 		p.errors.append("network: frontage, links, ledge and chasm grammars needed")
 		return
+	StratumPlan.current().apply_doors(net.frontage)     # the doors into areas (phase 10 step 3)
 	var main: AreaPlan.Room = p.room(net.main_slot)
 	if main != null and p.rooms[-1] == main:
 		p.remove_last()
@@ -118,7 +123,7 @@ static func _tree(p: AreaPlan, net: GorgeNetwork, by_conn: Dictionary, main_id: 
 	var links: Array[Dictionary] = []
 	var free: Dictionary = {main_id: -1}     # free connector id -> its node
 	var cliffs: Dictionary = {"left": 0, "right": 0}
-	while ledges.size() < want or (_doors_missing(net, ledges) > 0 and ledges.size() < net.ledges.y):
+	while ledges.size() < want or (_doors_missing(net, ledges) > 0 and ledges.size() < net.ledges.y + DOOR_LEDGES):
 		var on: Array = ["left", "right"]
 		var main_round: bool = ledges.is_empty()
 		if main_round:

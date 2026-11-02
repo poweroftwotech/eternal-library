@@ -27,6 +27,10 @@ signal files_saved(paths: PackedStringArray)
 const Client: GDScript = preload("res://addons/strata_board/planner_client.gd")
 const SWEEP: int = 20
 const AREA_FIRST: String = "lower_stacks"
+## The Gorge doors in use that its walkways were checked to reach in every one
+## of world seeds 1-20 (phase 10 step 3, tools/door_places.gd); with more,
+## about 1 world in 20 misses one.
+const DOORS_CHECKED: int = 6
 const THUMB_PX: int = 4
 const ORD: PackedStringArray = ["1st", "2nd", "3rd", "4th", "5th", "6th", "7th", "8th", "9th"]
 
@@ -104,6 +108,21 @@ var _delete_copy_button: Button
 var _name_dialog: ConfirmationDialog
 var _name_edit: LineEdit
 var _delete_dialog: ConfirmationDialog
+var _door_label: Label
+var _door_pick: OptionButton
+var _remove_area_button: Button
+var _stratum_note: Label
+var _top_button: Button
+var _top_status: Label
+var _top_view: TopView
+var _add_dialog: ConfirmationDialog
+var _add_name: LineEdit
+var _add_from: OptionButton
+var _add_door: OptionButton
+var _remove_dialog: ConfirmationDialog
+var top: Dictionary = {}              # the stratum from above for top_seed ({} = not drawn)
+var top_seed: int = 0
+var _top_id: int = 0
 
 
 func _ready() -> void:
@@ -321,9 +340,51 @@ func _build() -> void:
 	body.add_theme_constant_override("separation", int(12 * ui_scale))
 	margin.add_child(body)
 
+	var stratum_box := VBoxContainer.new()
+	stratum_box.add_theme_constant_override("separation", int(8 * ui_scale))
+	var sbar := HBoxContainer.new()
+	sbar.add_theme_constant_override("separation", int(8 * ui_scale))
+	var add_area_button := _button("+ Area…", func() -> void:
+		_fill_add_dialog()
+		_add_dialog.popup_centered(Vector2i(int(420 * ui_scale), 0))
+		_add_name.grab_focus())
+	add_area_button.tooltip_text = "A new area behind a free Gorge door place, its recipe a copy of another area's to start from."
+	sbar.add_child(add_area_button)
+	_door_label = _label("GORGE DOOR", 11, MUTED)
+	sbar.add_child(_door_label)
+	_door_pick = OptionButton.new()
+	_door_pick.custom_minimum_size.x = 260 * ui_scale
+	_door_pick.tooltip_text = "Which Gorge door place the open area is reached by. Only door places (kept clear when the Gorge was baked) can take a door."
+	_door_pick.item_selected.connect(func(i: int) -> void: set_door(str(_door_pick.get_item_metadata(i))))
+	sbar.add_child(_door_pick)
+	_remove_area_button = _button("Remove area…", func() -> void:
+		_remove_dialog.dialog_text = "Take %s out of the stratum? Its door in the Gorge goes; its recipe file stays, so you can add it back by hand." % str(_place(area_id).get("name", area_id))
+		_remove_dialog.popup_centered())
+	sbar.add_child(_remove_area_button)
+	_stratum_note = _label("", 12, MUTED)
+	_stratum_note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_stratum_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	sbar.add_child(_stratum_note)
+	stratum_box.add_child(sbar)
 	_stratum_view = StratumView.new()
 	_stratum_view.board = self
-	body.add_child(_section("Stratum, side-on", "Click an area to open it. Heights are each area's reserved space; left to right is only for drawing.", _wide(_stratum_view)))
+	stratum_box.add_child(_wide(_stratum_view))
+	var tbar := HBoxContainer.new()
+	tbar.add_theme_constant_override("separation", int(8 * ui_scale))
+	tbar.add_child(_label("FROM ABOVE", 11, MUTED))
+	_top_button = _button("Draw for this world seed", plan_top)
+	_top_button.tooltip_text = "Plan the Gorge and every interior for this world seed and place them as the game does (about 10 s)."
+	tbar.add_child(_top_button)
+	_top_status = _label("", 12, MUTED)
+	_top_status.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_top_status.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	tbar.add_child(_top_status)
+	stratum_box.add_child(tbar)
+	_top_view = TopView.new()
+	_top_view.board = self
+	stratum_box.add_child(_top_view)
+	body.add_child(_section("Stratum", "Side-on: click an area to open it; heights are each area's reserved space, left to right only for drawing. From above: every area where the game puts it, so you can see two overlap.", stratum_box))
+	_build_stratum_dialogs()
 
 	var split := HSplitContainer.new()
 	split.size_flags_horizontal = Control.SIZE_EXPAND_FILL
@@ -559,6 +620,7 @@ func _refresh() -> void:
 	_sweep_button.text = "Hide sweep" if sweep_base != 0 and _sweep_ids.is_empty() and sweep_base == world_seed - (world_seed - 1) % SWEEP else "Sweep 20 seeds"
 	_walk_button.disabled = not recipes.has(area_id) or is_dirty(area_id) or connections_dirty()
 	_walk_button.tooltip_text = "Save first: the game walks the saved recipe." if _walk_button.disabled and recipes.has(area_id) else "Run the game in this area with this world seed (a scratch save, never your own)."
+	_refresh_stratum_bar()
 	_refresh_copy_row()
 	_refresh_edit_bar()
 	_refresh_form()
@@ -1104,6 +1166,183 @@ func _on_saved(answer: Dictionary, id: String) -> void:
 		save()
 	_replan()
 	_refresh()
+
+
+# --- the stratum plan ------------------------------------------------------------------
+
+## Adds an area called `area_name` behind Gorge door place `at` ("" = the
+## first free one), its recipe a copy of area `from`'s; opens it.
+func add_area(area_name: String, from: String, at: String = "") -> void:
+	if area_name.strip_edges() == "":
+		return
+	client.request({"cmd": "add_area", "name": area_name, "from": from, "at": at}, _on_stratum_changed.bind("add"), true)
+
+
+## Moves the open area's Gorge door to door place `at`.
+func set_door(at: String) -> void:
+	if at == "" or at == str(_place(area_id).get("door", "")):
+		_refresh()
+		return
+	client.request({"cmd": "set_door", "area": area_id, "at": at}, _on_stratum_changed.bind("door"), true)
+
+
+## Takes the open area out of the stratum (the button asks first).
+func remove_area() -> void:
+	if area_id in ["camp", "gorge"] or _place(area_id).is_empty():
+		return
+	client.request({"cmd": "remove_area", "area": area_id}, _on_stratum_changed.bind("remove"), true)
+
+
+func _on_stratum_changed(answer: Dictionary, what: String) -> void:
+	if answer.has("error"):
+		notice = "[color=#%s]Stratum not changed: %s.[/color]" % [BAD.to_html(false), answer["error"]]
+		_refresh()
+		return
+	var paths: PackedStringArray = [str(answer["saved"])]
+	var gv: Array = answer.get("gorge_version", [])
+	var gorge_note: String = " The Gorge's walkways change with its doors, so its version goes %d → %d." % [int(gv[0]), int(gv[1])] if gv.size() == 2 else ""
+	if not gv.is_empty():
+		paths.append(str(answer["gorge_path"]))
+	var was_open: String = area_id
+	match what:
+		"add":
+			paths.append(str(answer["recipe_path"]))
+			notice = "Added %s behind the Gorge door place %s, its recipe a copy to reshape.%s Walk this seed starts in it; from the Gorge, find its door." % [
+				str(answer["added"]), _door_of(answer, str(answer["added"])), gorge_note]
+		"door":
+			notice = "%s's Gorge door is now %s.%s" % [str(_place(was_open).get("name", was_open)), _door_of(answer, was_open), gorge_note]
+		"remove":
+			notice = "Took %s out of the stratum; its recipe file stays.%s" % [str(_place(was_open).get("name", was_open)), gorge_note]
+			recipes.erase(was_open)
+			saved_recipes.erase(was_open)
+			open_copy.erase(was_open)
+			area_id = ""
+	top = {}
+	files_saved.emit(paths)
+	var note: String = notice
+	_on_stratum(answer)
+	notice = note
+	if what == "add":
+		area_id = ""
+		open_area(str(answer["added"]))
+	_refresh()
+
+
+func _door_of(st: Dictionary, id: String) -> String:
+	for p: Dictionary in st.get("places", []):
+		if str(p["id"]) == id:
+			return str(p.get("door", ""))
+	return ""
+
+
+## The stratum from above for the board's world seed (the service plans the
+## Gorge and every interior: about 10 s).
+func plan_top() -> void:
+	if _top_id != 0:
+		client.cancel([_top_id])
+	top = {}
+	top_seed = world_seed
+	_top_id = client.request({"cmd": "layout", "world_seed": world_seed}, func(a: Dictionary) -> void:
+		_top_id = 0
+		top = a
+		_refresh())
+	_refresh()
+
+
+func _door_text(d: Dictionary) -> String:
+	return "Bank %d, %s cliff, storey %d" % [int(d["bank"]), str(d["cliff"]), int(d["storey"])] + (" · %s" % str(d["area"]) if str(d["area"]) != "" else " · free")
+
+
+func _refresh_stratum_bar() -> void:
+	var p: Dictionary = _place(area_id)
+	var interior: bool = str(p.get("kind", "")) == "recipe"
+	_door_label.visible = interior
+	_door_pick.visible = interior
+	_door_pick.clear()
+	for d: Dictionary in stratum.get("door_places", []):
+		_door_pick.add_item(_door_text(d))
+		var i: int = _door_pick.item_count - 1
+		_door_pick.set_item_metadata(i, str(d["id"]))
+		_door_pick.set_item_tooltip(i, str(d["id"]))
+		if str(d["area"]) != "" and str(d["area"]) != area_id:
+			_door_pick.set_item_disabled(i, true)
+		if str(d["id"]) == str(p.get("door", "")):
+			_door_pick.select(i)
+	if interior and str(p.get("door", "")) == "":
+		_door_pick.add_item("No Gorge door")
+		_door_pick.select(_door_pick.item_count - 1)
+	_remove_area_button.disabled = not interior
+	var free: int = (stratum.get("door_places", []) as Array).filter(func(d: Dictionary) -> bool: return str(d["area"]) == "").size()
+	var places_n: int = (stratum.get("door_places", []) as Array).size()
+	_stratum_note.text = "%d of %d Gorge door places free." % [free, places_n]
+	if places_n - free > DOORS_CHECKED:
+		_stratum_note.text += " %d doors in use: the Gorge's walkways were checked to reach up to %d in every world; with more, about 1 world in 20 misses one (tests/gorge_network_test.gd checks the seeds)." % [places_n - free, DOORS_CHECKED]
+	_stratum_note.add_theme_color_override("font_color", BAD if places_n - free > DOORS_CHECKED else MUTED)
+	_top_view.visible = not top.is_empty()
+	if _top_id != 0:
+		_top_status.text = "Planning the Gorge and every interior for world seed %d…" % top_seed
+	elif top.is_empty():
+		_top_status.text = ""
+	else:
+		var said: PackedStringArray = []
+		for a: Dictionary in top["areas"]:
+			if str(a["error"]) != "":
+				said.append("%s: %s" % [str(a["name"]).trim_prefix("The "), a["error"]])
+		for o: Dictionary in top["overlaps"]:
+			said.append("%s and %s overlap (%d cells)" % [str(_place(str(o["a"])).get("name", o["a"])).trim_prefix("The "), str(_place(str(o["b"])).get("name", o["b"])).trim_prefix("The "), int(o["cells"])])
+		_top_status.text = "World seed %d. " % top_seed + ("No two interiors overlap." if said.is_empty() else "; ".join(said) + ".")
+		_top_status.add_theme_color_override("font_color", MUTED if said.is_empty() else BAD)
+	_top_view.refresh()
+
+
+func _fill_add_dialog() -> void:
+	_add_name.text = ""
+	_add_from.clear()
+	for p: Dictionary in stratum.get("places", []):
+		if str(p["kind"]) == "recipe":
+			_add_from.add_item(str(p["name"]))
+			_add_from.set_item_metadata(_add_from.item_count - 1, str(p["id"]))
+			if str(p["id"]) == area_id:
+				_add_from.select(_add_from.item_count - 1)
+	_add_door.clear()
+	for d: Dictionary in stratum.get("door_places", []):
+		if str(d["area"]) == "":
+			_add_door.add_item(_door_text(d))
+			_add_door.set_item_metadata(_add_door.item_count - 1, str(d["id"]))
+	_add_dialog.get_ok_button().disabled = _add_door.item_count == 0
+	if _add_door.item_count == 0:
+		_add_door.add_item("Every door place is taken")
+
+
+func _build_stratum_dialogs() -> void:
+	_add_dialog = ConfirmationDialog.new()
+	_add_dialog.title = "Add an area"
+	_add_dialog.ok_button_text = "Add area"
+	var form := GridContainer.new()
+	form.columns = 2
+	form.add_theme_constant_override("h_separation", int(8 * ui_scale))
+	form.add_child(_label("Name", 12, MUTED))
+	_add_name = LineEdit.new()
+	_add_name.placeholder_text = "e.g. The Dome Archive"
+	_add_name.custom_minimum_size.x = 260 * ui_scale
+	form.add_child(_add_name)
+	form.add_child(_label("Start from", 12, MUTED))
+	_add_from = OptionButton.new()
+	_add_from.tooltip_text = "The new area's recipe starts as a copy of this one's, to reshape."
+	form.add_child(_add_from)
+	form.add_child(_label("Gorge door", 12, MUTED))
+	_add_door = OptionButton.new()
+	form.add_child(_add_door)
+	_add_dialog.add_child(form)
+	_add_dialog.confirmed.connect(func() -> void:
+		if _add_from.item_count > 0 and _add_door.get_selected_metadata() != null:
+			add_area(_add_name.text, str(_add_from.get_selected_metadata()), str(_add_door.get_selected_metadata())))
+	add_child(_add_dialog)
+	_remove_dialog = ConfirmationDialog.new()
+	_remove_dialog.title = "Remove area"
+	_remove_dialog.ok_button_text = "Remove"
+	_remove_dialog.confirmed.connect(remove_area)
+	add_child(_remove_dialog)
 
 
 # --- recipe copies ---------------------------------------------------------------------
@@ -1843,6 +2082,70 @@ class StratumView:
 			if r.size.y > 34 * s():
 				text(r.position + Vector2(8, 31) * s(), "open" if open else kind, 11, MUTED)
 		text(Vector2(size.x - 10 * s(), size.y - 6 * s()), "links in blue", 11, MUTED, HORIZONTAL_ALIGNMENT_RIGHT, 0)
+
+
+## The stratum from above (board.top): the Gorge's floors in grey, the camp's
+## box, each interior's floors in its own colour where the game places it,
+## its Gorge door a dot. Up is -Z (into the gorge from the Overlook).
+class TopView:
+	extends View
+	const COLOURS: Array[Color] = [Color("d1a85a"), Color("5bbfb0"), Color("7d9de0"), Color("c98bd9"), Color("e3a86a"), Color("8fd18b")]
+	var _rect: Rect2
+	var _k: float = 1.0
+
+	func refresh() -> void:
+		var lo := Vector2(INF, INF)
+		var hi := Vector2(-INF, -INF)
+		for a: Dictionary in board.top.get("areas", []):
+			for q: Array in a["quads"]:
+				for i: int in 4:
+					lo = lo.min(Vector2(q[i * 2], q[i * 2 + 1]))
+					hi = hi.max(Vector2(q[i * 2], q[i * 2 + 1]))
+		var camp: Array = board.top.get("camp", [])
+		if camp.size() == 4:
+			lo = lo.min(Vector2(camp[0], camp[1]))
+			hi = hi.max(Vector2(camp[2], camp[3]))
+		if lo.x == INF:
+			custom_minimum_size = Vector2.ZERO
+			queue_redraw()
+			return
+		_rect = Rect2(lo, hi - lo).grow(8.0)
+		var width: float = maxf(size.x, 600.0 * s())
+		_k = minf(width / _rect.size.x, 560.0 * s() / _rect.size.y)
+		custom_minimum_size = Vector2(0, _rect.size.y * _k + 8 * s())
+		queue_redraw()
+
+	func _at(x: float, z: float) -> Vector2:
+		return Vector2((x - _rect.position.x) * _k, (z - _rect.position.y) * _k)
+
+	func _draw() -> void:
+		if board.top.is_empty() or _rect.size == Vector2.ZERO:
+			return
+		var camp: Array = board.top.get("camp", [])
+		if camp.size() == 4:
+			var r := Rect2(_at(camp[0], camp[1]), _at(camp[2], camp[3]) - _at(camp[0], camp[1]))
+			box(r, PANEL_2, MUTED, 1.0, true)
+			text(r.position + Vector2(4, 14) * s(), "camp", 11, MUTED)
+		var n: int = 0
+		for a: Dictionary in board.top["areas"]:
+			var gorge: bool = str(a["id"]) == "gorge"
+			var colour: Color = LINE if gorge else COLOURS[n % COLOURS.size()]
+			if not gorge:
+				n += 1
+			var open: bool = str(a["id"]) == board.area_id
+			var fill := Color(colour, 0.35 if gorge else (0.85 if open else 0.6))
+			for q: Array in a["quads"]:
+				var pts: PackedVector2Array = [_at(q[0], q[1]), _at(q[2], q[3]), _at(q[4], q[5]), _at(q[6], q[7])]
+				draw_colored_polygon(pts, fill)
+			if not gorge:
+				var key := Vector2(size.x - 220 * s(), (10 + 18 * (n - 1)) * s())
+				draw_rect(Rect2(key, Vector2(12, 12) * s()), colour)
+				text(key + Vector2(18, 11) * s(), str(a["name"]).trim_prefix("The ") + ("" if str(a["error"]) == "" else " (not placed)"), 12, FG)
+			if a.has("door"):
+				var d: Vector2 = _at(a["door"][0], a["door"][1])
+				draw_circle(d, 4.5 * s(), colour)
+				draw_arc(d, 6.5 * s(), 0, TAU, 20, FG, 1.0 * s())
+		text(Vector2(size.x - 8 * s(), size.y - 6 * s()), "grey: the Gorge's walkways · dots: Gorge doors · up: into the gorge from the Overlook · floors at different heights draw over each other · 1 cell = 4 m", 11, MUTED, HORIZONTAL_ALIGNMENT_RIGHT, 0)
 
 
 ## The recipe as a graph: required rooms (brass) a column after the room they

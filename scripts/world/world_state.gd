@@ -198,8 +198,9 @@ var area_id: String = DEFAULT_AREA
 ## recipe newer than the save's keeps every delta whose room key still exists.
 func enter_area(id: String, recipe_version: int) -> void:
 	area_id = id
+	var first: bool = not (data["areas"] as Dictionary).has(id)     # never been here: nothing saved to go stale
 	var bucket: Dictionary = area_bucket()
-	if int(bucket.get("recipe_version", recipe_version)) < recipe_version:
+	if not first and int(bucket.get("recipe_version", recipe_version)) < recipe_version:
 		push_warning("WorldState: area %s was saved with recipe version %d, now %d; moved rooms' changes go stale" % [id, int(bucket["recipe_version"]), recipe_version])
 	bucket["recipe_version"] = recipe_version
 

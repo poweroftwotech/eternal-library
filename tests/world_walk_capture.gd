@@ -91,8 +91,10 @@ func run() -> void:
 	# the loggia.
 	await cut("camp: gallery to loggia", [GALLERY], func() -> bool: return sp.places.has("gorge"))
 	await walk([GALLERY, LOGGIA, LOGGIA + Vector3(0, 0, -3)])
-	# 2-3. Each interior, from its door's ledge and back.
-	for id: String in ["library", "lower_stacks"]:
+	# 2-3. Each interior in the stratum plan, from its door's ledge and back.
+	for id: String in SeamlessPlaces.recipes():
+		if id == "gorge":
+			continue
 		var gorge := sp.places["gorge"] as Area
 		var door: Array = gorge.plan.threshold(id)
 		if door.is_empty():
@@ -206,7 +208,7 @@ func report(out: String, boot_ms: float) -> PackedStringArray:
 	var preset: String = GraphicsPreset.requested() if GraphicsPreset.requested() != "" else "project settings"
 	var walked: int = rows.filter(func(r: Dictionary) -> bool: return r["kind"] == "walk").size()
 	print("world_walk_capture: %s, %dx%d, boot %.0f ms; %d frames (%d walked), %d swaps; wrote %s" % [preset, root.size.x, root.size.y, boot_ms, rows.size(), walked, swaps.size(), out])
-	for id: String in ["camp", "gorge", "library", "lower_stacks"]:
+	for id: String in ["camp"] + SeamlessPlaces.recipes().keys():
 		var fr: Array = rows.filter(func(r: Dictionary) -> bool: return r["kind"] == "walk" and r["place"] == id and not at_swap.has(r["i"]))
 		if fr.is_empty():
 			continue

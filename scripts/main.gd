@@ -28,11 +28,9 @@ const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
 ## The camp, baked from kit pieces (phase 7): where the game starts ("camp").
 ## Its gallery doorway is the door to the Gorge (Threshold_gorge, step 4).
 const KIT_CAMP: String = "res://rooms/camp/camp.tscn"
-## Areas you can walk (phase-4-design.md 8.1.3): `-- --area=<id>` or the Esc
-## menu; "area:<id>" wherever a room path goes (room_override, the save's scene).
-const AREAS: Dictionary = {"library": "res://gen/recipes/library_wing.tres", "lower_stacks": "res://gen/recipes/lower_stacks.tres", "gorge": "res://gen/recipes/gorge.tres"}
-## How the Esc menu names each area ("Walk the library wing").
-const AREA_NAMES: Dictionary = {"library": "the library wing", "lower_stacks": "the Lower Stacks", "gorge": "the Gorge"}
+## Areas you can walk (phase-4-design.md 8.1.3; the stratum plan lists them,
+## SeamlessPlaces.recipes()): `-- --area=<id>` or the Esc menu; "area:<id>"
+## wherever a room path goes (room_override, the save's scene).
 const AREA_PREFIX: String = "area:"
 ## Set by the menu before a reload; survives reload_current_scene().
 static var room_override: String = ""
@@ -79,7 +77,7 @@ func _ready() -> void:
 		world = (load(KIT_CAMP) as PackedScene).instantiate()
 	elif room_path.begins_with(AREA_PREFIX):
 		world = Area.new()
-		world.recipe = load(AREAS[room_path.trim_prefix(AREA_PREFIX)])
+		world.recipe = load(SeamlessPlaces.recipes()[room_path.trim_prefix(AREA_PREFIX)])
 		if SeamlessPlaces.applies(room_path.trim_prefix(AREA_PREFIX)) and not OS.get_cmdline_user_args().has("--no-seamless"):
 			world.open_doors = SeamlessPlaces.open_doors_for(room_path.trim_prefix(AREA_PREFIX))
 		if not resuming:
@@ -183,7 +181,7 @@ func requested_room() -> String:
 
 ## A room scene that exists, or "area:<id>" of a known area.
 func _exists(path: String) -> bool:
-	return AREAS.has(path.trim_prefix(AREA_PREFIX)) if path.begins_with(AREA_PREFIX) else ResourceLoader.exists(path)
+	return SeamlessPlaces.recipes().has(path.trim_prefix(AREA_PREFIX)) if path.begins_with(AREA_PREFIX) else ResourceLoader.exists(path)
 
 func in_room() -> bool:
 	return world is RoomTemplate or world is Area
@@ -222,7 +220,7 @@ func travel(path: String) -> void:
 ## you arrive at its door back to where you were (an area's id, or "camp").
 func cross(to: String) -> void:
 	var from: String = (world as Area).recipe.id if world is Area else ("camp" if world is CampRoom else "")
-	if from == "" or not (AREAS.has(to) or to == "camp"):
+	if from == "" or not (SeamlessPlaces.recipes().has(to) or to == "camp"):
 		return
 	ws().data["arrive"] = {"from": from}
 	Area.seed_override = -1     # each area plans from its own seed
@@ -397,11 +395,11 @@ func show_book(item_id: StringName) -> void:
 func show_menu() -> void:
 	var trips: Array = [{"text":"Return to the camp","action":"go_camp"}] if in_room() else [{"text":"Visit the reading room","action":"go_reading_room"}]
 	if world is Area:
-		trips.append({"text":"Reseed %s (seed %d, %d rooms)" % [AREA_NAMES.get((world as Area).recipe.id, (world as Area).recipe.display_name),
+		trips.append({"text":"Reseed %s (seed %d, %d rooms)" % ["the " + (world as Area).recipe.display_name.trim_prefix("The "),
 			(world as Area).plan.area_seed, (world as Area).plan.rooms.size()],"action":"reseed_area"})
-	for id: String in AREAS:
+	for id: String in SeamlessPlaces.recipes():
 		if not (world is Area and (world as Area).recipe.id == id):
-			trips.append({"text":"Walk %s" % AREA_NAMES[id],"action":"go_area:" + id})
+			trips.append({"text":"Walk the %s" % (load(SeamlessPlaces.recipes()[id]) as AreaRecipe).display_name.trim_prefix("The "),"action":"go_area:" + id})
 	if not world is Area:
 		if not in_room() or generated_rooms().is_empty():
 			trips.append({"text":"Visit the stack gallery","action":"go_stack_gallery"})

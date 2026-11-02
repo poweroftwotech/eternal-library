@@ -19,16 +19,25 @@ const MOVED_WORLDS: int = 20
 ## Named copies of an area's recipe to try things on: <DRAFTS>/<area id>/<name>.tres.
 ## The game only plays them through Walk this seed; Make live puts one in the game.
 const DRAFTS: String = "res://gen/recipes/drafts"
+## Where a new area's recipe is written.
+const RECIPES_DIR: String = "res://gen/recipes"
 ## Tests: copies kept here instead, and live recipes read and written at these
-## paths (area id -> path) instead of SeamlessPlaces.RECIPES.
+## paths (area id -> path) instead of the stratum plan's; the stratum plan read
+## and written at stratum_path, new areas' recipes written in recipes_dir.
 static var drafts_dir: String = DRAFTS
 static var live_paths: Dictionary = {}
+static var stratum_path: String = StratumPlan.PATH
+static var recipes_dir: String = RECIPES_DIR
 
 
-## Tests: point copies and live recipes at scratch paths; scratch("", {}) undoes it.
-static func scratch(drafts: String, live: Dictionary) -> void:
+## Tests: point copies, live recipes, the stratum plan and new recipes at
+## scratch paths; scratch("", {}) undoes it.
+static func scratch(drafts: String, live: Dictionary, stratum: String = "", new_recipes: String = "") -> void:
 	drafts_dir = drafts if drafts != "" else DRAFTS
 	live_paths = live
+	stratum_path = stratum if stratum != "" else StratumPlan.PATH
+	recipes_dir = new_recipes if new_recipes != "" else RECIPES_DIR
+	StratumPlan.drop_cache()
 
 
 ## One request: {cmd: "stratum" | "recipe" | "plan" | "save" | "make_live" | ..., ...}. Returns the answer,
@@ -64,6 +73,14 @@ static func handle(req: Dictionary) -> Dictionary:
 			return make_live(str(req.get("path", "")))
 		"delete_draft":
 			return delete_draft(str(req.get("path", "")))
+		"add_area":
+			return add_area(str(req.get("name", "")), str(req.get("from", "")), str(req.get("at", "")))
+		"set_door":
+			return set_door(str(req.get("area", "")), str(req.get("at", "")))
+		"remove_area":
+			return remove_area(str(req.get("area", "")))
+		"layout":
+			return layout(int(req.get("world_seed", 1)))
 		"save_connections":
 			return save_connections(req.get("rules", {}), int(req.get("mtime", 0)), bool(req.get("force", false)))
 	return {"error": "unknown request %s" % req.get("cmd", "")}
@@ -225,7 +242,7 @@ static func make_live(path: String) -> Dictionary:
 	if not is_draft(path) or not FileAccess.file_exists(path):
 		return {"error": "no copy at %s" % path}
 	var draft: AreaRecipe = _load_recipe(path, true)
-	var live_path: String = str(live_paths.get(draft.id, SeamlessPlaces.RECIPES.get(draft.id, ""))) if draft != null else ""
+	var live_path: String = str(live_paths.get(draft.id, _stratum_plan().recipes().get(draft.id, ""))) if draft != null else ""
 	if live_path == "":
 		return {"error": "%s isn't a copy of an area in the stratum" % path}
 	var live: AreaRecipe = _load_recipe(live_path, true)
@@ -298,8 +315,9 @@ static func save_connections(rules: Dictionary, mtime: int, force: bool) -> Dict
 	var table: ConnectionTable = _table(rules)
 	ConnectionTable.use(table)
 	var bumped: Dictionary = {}
-	for id: String in SeamlessPlaces.RECIPES:
-		var recipe: AreaRecipe = _load_recipe(SeamlessPlaces.RECIPES[id], true)
+	var recipe_paths: Dictionary = _stratum_plan().recipes()
+	for id: String in recipe_paths:
+		var recipe: AreaRecipe = _load_recipe(recipe_paths[id], true)
 		if recipe == null or recipe.grow.is_empty():
 			continue
 		var worlds: Array = moved(recipe, recipe, range(1, MOVED_WORLDS + 1), old_table)
@@ -307,7 +325,7 @@ static func save_connections(rules: Dictionary, mtime: int, force: bool) -> Dict
 			bumped[id] = {"moved": worlds, "version": recipe.version + 1}
 	ConnectionTable.use(old_table)
 	for id: String in bumped:
-		var recipe: AreaRecipe = _load_recipe(SeamlessPlaces.RECIPES[id], false)
+		var recipe: AreaRecipe = _load_recipe(recipe_paths[id], false)
 		recipe.version = int(bumped[id]["version"])
 		var e: Error = ResourceSaver.save(recipe, recipe.resource_path)
 		if e != OK:
@@ -364,18 +382,273 @@ static func _mtime(path: String) -> int:
 	return FileAccess.get_modified_time(path) if FileAccess.file_exists(path) else 0
 
 
-## The places and the links between them (today SeamlessPlaces' tables; step 3
-## moves them to a data file): [{id, name, kind (baked | scenery | recipe),
-## recipe, y0, y1 (reserved height, m), drafts (its named copies)}], links [[a, b, kind]].
+## The stratum plan (StratumPlan, gen/strata/stratum_1.tres): [{id, name, kind
+## (baked | scenery | recipe), recipe, y0, y1 (reserved height, m), drafts
+## (its named copies), door (the Gorge door place it's reached by)}], links
+## [[a, b, kind]], door_places [{id, bank, cliff, storey, width, area (the area
+## whose door it is, or "")}].
 static func stratum() -> Dictionary:
-	var places: Array = [{"id": "camp", "name": CAMP_NAME, "kind": "baked", "recipe": SeamlessPlaces.KIT_CAMP,
-		"y0": SeamlessPlaces.CAMP_BOUNDS.position.y, "y1": SeamlessPlaces.CAMP_BOUNDS.end.y}]
-	for id: String in SeamlessPlaces.RECIPES:
-		var recipe: AreaRecipe = load(SeamlessPlaces.RECIPES[id])
+	var sp: StratumPlan = _stratum_plan()
+	var places: Array = []
+	for p: Dictionary in sp.places:
+		var id: String = str(p["id"])
+		var path: String = str(p["path"])
+		if path.get_extension() != "tres":
+			places.append({"id": id, "name": CAMP_NAME if id == "camp" else id, "kind": "baked", "recipe": path,
+				"y0": SeamlessPlaces.CAMP_BOUNDS.position.y, "y1": SeamlessPlaces.CAMP_BOUNDS.end.y})
+			continue
+		var recipe: AreaRecipe = _load_recipe(path, false)
+		if recipe == null:
+			places.append({"id": id, "name": id, "kind": "missing", "recipe": path, "y0": 0.0, "y1": 0.0})
+			continue
 		var env: AABB = recipe.placement.envelope if recipe.placement != null else AreaPlacement.new().envelope
 		places.append({"id": id, "name": recipe.display_name, "kind": "scenery" if recipe.network != null else "recipe",
-			"recipe": SeamlessPlaces.RECIPES[id], "y0": env.position.y, "y1": env.end.y, "drafts": drafts(id)})
-	return {"places": places, "links": SeamlessPlaces.LINKS.duplicate(true), "default_area": WORLD_STATE.DEFAULT_AREA}
+			"recipe": path, "y0": env.position.y, "y1": env.end.y, "drafts": drafts(id), "door": sp.door_slot(id) if id != "gorge" else ""})
+	var door_places: Array = []
+	var gorge: AreaRecipe = _load_recipe(sp.path_of("gorge"), false)
+	if gorge != null and gorge.network != null:
+		sp.apply_doors(gorge.network.frontage)
+		for s: FrontageSlot in gorge.network.frontage.slots:
+			if s != null and s.door_place:
+				door_places.append({"id": s.id, "bank": s.bank, "cliff": s.cliff, "storey": s.storey(), "width": s.width, "area": s.door})
+	return {"places": places, "links": sp.triples(), "door_places": door_places, "default_area": WORLD_STATE.DEFAULT_AREA,
+		"mtime": _mtime(stratum_path), "path": stratum_path}
+
+
+## The stratum plan read fresh from its file (a hand edit since), and the one
+## the game code uses (StratumPlan.current) from now on in this process.
+static func _stratum_plan() -> StratumPlan:
+	var sp: StratumPlan = ResourceLoader.load(stratum_path, "", ResourceLoader.CACHE_MODE_IGNORE) as StratumPlan
+	if sp == null:
+		return StratumPlan.new()
+	sp.take_over_path(stratum_path)
+	StratumPlan.use(sp)
+	return sp
+
+
+## Adds an area called `area_name`, its recipe a copy of area `from`'s (a new
+## file, version 1), behind the free Gorge door place `at` ("" = the first
+## free one).
+static func add_area(area_name: String, from: String, at: String) -> Dictionary:
+	var sp: StratumPlan = _stratum_plan()
+	var id: String = _slug(area_name.strip_edges().trim_prefix("The ").trim_prefix("the "))
+	if id == "":
+		return {"error": "an area needs a name with a letter or digit in it"}
+	if sp.path_of(id) != "" or id in ["camp", "gorge"]:
+		return {"error": "there is already an area called \"%s\"" % id}
+	var src: String = str(sp.recipes().get(from, ""))
+	var from_recipe: AreaRecipe = _load_recipe(src, false)
+	if from_recipe == null or from_recipe.network != null:
+		return {"error": "a new area starts as a copy of an interior's recipe (not %s)" % from}
+	if at == "":
+		at = _free_door(sp)
+		if at == "":
+			return {"error": "every Gorge door place has an area behind it"}
+	var problem: String = _door_problem(sp, at, id)
+	if problem != "":
+		return {"error": problem}
+	var path: String = "%s/%s.tres" % [recipes_dir, id]
+	if FileAccess.file_exists(path):
+		return {"error": "%s already exists" % path}
+	var text: String = _set_resource_field(FileAccess.get_file_as_string(src), "id", "\"%s\"" % id)
+	text = _set_resource_field(text, "display_name", JSON.stringify(area_name.strip_edges()))
+	text = _set_resource_field(text, "version", "1")
+	DirAccess.make_dir_recursive_absolute(recipes_dir)
+	var f := FileAccess.open(path, FileAccess.WRITE)
+	if f == null:
+		return {"error": "cannot write %s (%s)" % [path, error_string(FileAccess.get_open_error())]}
+	f.store_string(text)
+	f.close()
+	sp.places.append({"id": id, "path": path})
+	sp.links.append({"a": "gorge", "b": id, "kind": StratumPlan.DOOR, "at": at})
+	var out: Dictionary = _write_stratum(sp, true)
+	out["added"] = id
+	out["recipe_path"] = path
+	return out
+
+
+## Moves area `id`'s Gorge door to the free door place `at`.
+static func set_door(id: String, at: String) -> Dictionary:
+	var sp: StratumPlan = _stratum_plan()
+	if sp.path_of(id) == "" or id in ["camp", "gorge"]:
+		return {"error": "no area %s to give a door" % id}
+	var problem: String = _door_problem(sp, at, id)
+	if problem != "":
+		return {"error": problem}
+	var found: bool = false
+	for l: Dictionary in sp.links:
+		if str(l["kind"]) == StratumPlan.DOOR and (str(l["b"]) == id or str(l["a"]) == id):
+			l["at"] = at
+			found = true
+	if not found:
+		sp.links.append({"a": "gorge", "b": id, "kind": StratumPlan.DOOR, "at": at})
+	return _write_stratum(sp, true)
+
+
+## Takes area `id` out of the stratum (its links too). Its recipe file stays.
+static func remove_area(id: String) -> Dictionary:
+	if id in ["camp", "gorge"]:
+		return {"error": "the %s can't be removed" % id}
+	var sp: StratumPlan = _stratum_plan()
+	if sp.path_of(id) == "":
+		return {"error": "no area %s" % id}
+	var had_door: bool = sp.door_slot(id) != ""
+	sp.places = sp.places.filter(func(p: Dictionary) -> bool: return str(p["id"]) != id)
+	sp.links = sp.links.filter(func(l: Dictionary) -> bool: return str(l["a"]) != id and str(l["b"]) != id)
+	return _write_stratum(sp, had_door)
+
+
+## Why area `id` can't have its door at `at` ("" = it can).
+static func _door_problem(sp: StratumPlan, at: String, id: String) -> String:
+	var gorge: AreaRecipe = _load_recipe(sp.path_of("gorge"), false)
+	var slot: FrontageSlot = gorge.network.frontage.slot(at) if gorge != null and gorge.network != null else null
+	if slot == null:
+		return "no Gorge frontage slot %s" % at
+	if not slot.door_place:
+		return "%s isn't a door place (the Gorge's bake keeps only door places clear)" % at
+	for l: Dictionary in sp.links:
+		if str(l["kind"]) == StratumPlan.DOOR and str(l.get("at", "")) == at and str(l["b"]) != id and str(l["a"]) != id:
+			return "%s is %s's door" % [at, l["b"] if str(l["a"]) == "gorge" else l["a"]]
+	return ""
+
+
+static func _free_door(sp: StratumPlan) -> String:
+	var gorge: AreaRecipe = _load_recipe(sp.path_of("gorge"), false)
+	if gorge == null or gorge.network == null:
+		return ""
+	for s: FrontageSlot in gorge.network.frontage.slots:
+		if s != null and s.door_place and _door_problem(sp, s.id, "") == "":
+			return s.id
+	return ""
+
+
+## Writes the stratum plan. A change to the Gorge's doors changes where its
+## walkways run in every world (a door pulls a ledge to it), so the Gorge's
+## version goes up.
+static func _write_stratum(sp: StratumPlan, doors_changed: bool) -> Dictionary:
+	var err: Error = ResourceSaver.save(sp, stratum_path)
+	if err != OK:
+		return {"error": "cannot write %s (%s)" % [stratum_path, error_string(err)]}
+	sp.take_over_path(stratum_path)
+	StratumPlan.use(sp)
+	var gorge_change: Array = []
+	var gorge_path: String = str(live_paths.get("gorge", sp.path_of("gorge")))
+	if doors_changed:
+		var text: String = FileAccess.get_file_as_string(gorge_path)
+		var was: int = maxi(_resource_field(text, "version").to_int(), 1)
+		var f := FileAccess.open(gorge_path, FileAccess.WRITE)
+		if f != null:
+			f.store_string(_set_resource_field(text, "version", str(was + 1)))
+			f.close()
+			gorge_change = [was, was + 1]
+	var out: Dictionary = stratum()
+	out["saved"] = stratum_path
+	out["gorge_version"] = gorge_change
+	out["gorge_path"] = gorge_path
+	return out
+
+
+## A field's value text in a .tres file's [resource] section ("" = not set).
+static func _resource_field(text: String, key: String) -> String:
+	var at: int = text.find("\n[resource]\n")
+	if at < 0:
+		return ""
+	for line: String in text.substr(at).split("\n"):
+		if line.begins_with(key + " = "):
+			return line.trim_prefix(key + " = ")
+	return ""
+
+
+## The .tres text with `key = value` set in its [resource] section (added
+## after `script = ...` if missing).
+static func _set_resource_field(text: String, key: String, value: String) -> String:
+	var at: int = text.find("\n[resource]\n")
+	if at < 0:
+		return text
+	var head: String = text.substr(0, at)
+	var lines: PackedStringArray = text.substr(at).split("\n")
+	for i: int in lines.size():
+		if lines[i].begins_with(key + " = "):
+			lines[i] = "%s = %s" % [key, value]
+			return head + "\n".join(lines)
+	for i: int in lines.size():
+		if lines[i].begins_with("script = "):
+			lines.insert(i + 1, "%s = %s" % [key, value])
+			break
+	return head + "\n".join(lines)
+
+
+static func _slug(s: String) -> String:
+	var re := RegEx.create_from_string("[^a-z0-9]+")
+	return re.sub(s.strip_edges().to_lower(), "_", true).trim_prefix("_").trim_suffix("_")
+
+
+## The stratum from above for world seed `world_seed`: the Gorge's plan and
+## each interior's, the interiors placed by their doors as the game places
+## them (SeamlessPlaces._interior_frame), in the Gorge's frame (m). Each area's
+## floor cells as quads [x0, z0, ... x3, z3, floor y]; overlaps between two
+## interiors' cells (any storey). The Gorge plans in about 5 s.
+static func layout(world_seed: int) -> Dictionary:
+	var sp: StratumPlan = _stratum_plan()
+	var gorge: AreaRecipe = _load_recipe(sp.path_of("gorge"), false)
+	var gp: AreaPlan = AreaPlanner.plan(gorge, AreaPlanner.area_seed_for(gorge, world_seed))
+	var areas: Array = [{"id": "gorge", "name": gorge.display_name, "quads": _quads(gp, Transform3D()), "error": ""}]
+	var placed: Dictionary = {}     # id -> [plan, frame]
+	var recipe_paths: Dictionary = sp.recipes()
+	for id: String in recipe_paths:
+		if id == "gorge":
+			continue
+		var recipe: AreaRecipe = _load_recipe(recipe_paths[id], false)
+		if recipe == null:
+			continue
+		var ip: AreaPlan = AreaPlanner.plan(recipe, AreaPlanner.area_seed_for(recipe, world_seed))
+		if gp.threshold(id).is_empty() or ip.threshold("gorge").is_empty():
+			areas.append({"id": id, "name": recipe.display_name, "quads": [],
+				"error": "no door to it from the Gorge in this world" if gp.threshold(id).is_empty() else "no door back to the Gorge"})
+			continue
+		var frame: Transform3D = SeamlessPlaces._interior_frame(gp, ip, id)
+		placed[id] = [ip, frame]
+		var door: Vector3 = SeamlessPlaces._door_xf(gp, id).origin
+		areas.append({"id": id, "name": recipe.display_name, "quads": _quads(ip, frame), "door": [door.x, door.z], "error": ""})
+	var overlaps: Array = []
+	var ids: Array = placed.keys()
+	for i: int in ids.size():
+		for j: int in range(i + 1, ids.size()):
+			var n: int = _shared_cells(placed[ids[i]], placed[ids[j]])
+			if n > 0:
+				overlaps.append({"a": ids[i], "b": ids[j], "cells": n})
+	var camp: AABB = SeamlessPlaces.CAMP_BOUNDS
+	return {"world_seed": world_seed, "areas": areas, "overlaps": overlaps,
+		"camp": [camp.position.x, camp.position.z, camp.end.x, camp.end.z]}
+
+
+static func _quads(p: AreaPlan, frame: Transform3D) -> Array:
+	var out: Array = []
+	for r: AreaPlan.Room in p.rooms:
+		for c: Vector3i in r.floor_cells:
+			var b: AABB = AreaPlan.cell_box(c)
+			var q: Array = []
+			for k: Vector3 in [b.position, b.position + Vector3(b.size.x, 0, 0), b.position + Vector3(b.size.x, 0, b.size.z), b.position + Vector3(0, 0, b.size.z)]:
+				var w: Vector3 = frame * k
+				q.append_array([w.x, w.z])
+			q.append((frame * b.position).y)
+			out.append(q)
+	return out
+
+
+## How many of plan a's cells (any storey) have their middle inside one of
+## plan b's ([plan, frame] each).
+static func _shared_cells(a: Array, b: Array) -> int:
+	var to_b: Transform3D = (b[1] as Transform3D).affine_inverse() * (a[1] as Transform3D)
+	var b_cells: Dictionary = {}
+	for r: AreaPlan.Room in (b[0] as AreaPlan).rooms:
+		b_cells.merge(r.cells)
+	var n: int = 0
+	for r: AreaPlan.Room in (a[0] as AreaPlan).rooms:
+		for c: Vector3i in r.cells:
+			if b_cells.has(AreaPlan.cell_of(to_b * AreaPlan.cell_box(c).get_center())):
+				n += 1
+	return n
 
 
 ## A recipe as the board draws it.

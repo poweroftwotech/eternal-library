@@ -105,7 +105,7 @@ func _ready() -> void:
 		active = false
 	# Walk this seed on a recipe copy: plan that copy instead.
 	var copy: String = SeamlessPlaces.recipe_path(recipe.id)
-	if copy != "" and copy != recipe.resource_path and SeamlessPlaces.RECIPES.get(recipe.id, "") == recipe.resource_path:
+	if copy != "" and copy != recipe.resource_path and SeamlessPlaces.recipes().get(recipe.id, "") == recipe.resource_path:
 		recipe = load(copy) as AreaRecipe
 		print("Area %s: walking the recipe copy %s" % [recipe.id, copy])
 	var ws: Node = get_node_or_null("/root/WorldState")
@@ -674,9 +674,12 @@ func _vestibule_claims() -> Array:
 	return out
 
 
-## Hides the bank's core cells an open door's vestibule runs through (the bake
-## keeps the cells by a door slot as their own boxes, door_core_*): seen from
-## the ledge, their faces stood in the open doorway.
+## Takes out the bank's core cells an open door's vestibule runs through: seen
+## from the ledge, their faces stood in the open doorway. The bake keeps each
+## door place's cells as one mesh with its boxes alongside (door_cores_*, meta
+## "cells"); a mesh a passage runs through is rebuilt without those boxes, the
+## rest are left as baked (phase 10 step 3: spare door places cost one draw
+## call each, not one a cell).
 func _open_cores(scenery: Node) -> void:
 	if open_doors.is_empty() or scenery == null:
 		return
@@ -688,10 +691,23 @@ func _open_cores(scenery: Node) -> void:
 		var xf: Transform3D = global_transform * ((d[0] as AreaPlan.Room).connectors[d[1]]["xf"] as Transform3D)
 		var b: AABB = Vestibule.bounds()
 		boxes.append(xf * AABB(b.position + Vector3(0, .3, 0), b.size + Vector3(0, -.6, 1.6)))     # and through the face; not the storeys above or below
-	for n: Node in scenery.find_children("door_core_*", "MeshInstance3D", true, false):
+	for n: Node in scenery.find_children("door_cores_*", "MeshInstance3D", true, false):
 		var mi := n as MeshInstance3D
-		var cell: AABB = mi.global_transform * mi.get_aabb()
-		for b: AABB in boxes:
-			if cell.grow(-.05).intersects(b):
-				mi.visible = false
-				break
+		var kept: Array = []
+		for c: Array in mi.get_meta("cells", []):
+			var cell: AABB = mi.global_transform * (c[0] as Transform3D) * AABB(-(c[1] as Vector3) * .5, c[1])
+			if not boxes.any(func(b: AABB) -> bool: return cell.grow(-.05).intersects(b)):
+				kept.append(c)
+		if kept.size() < (mi.get_meta("cells", []) as Array).size():
+			mi.mesh = boxes_mesh(kept) if not kept.is_empty() else null
+
+
+## One mesh of boxes [[transform, size]] (the bake's door cores).
+static func boxes_mesh(cells: Array) -> ArrayMesh:
+	var st := SurfaceTool.new()
+	st.begin(Mesh.PRIMITIVE_TRIANGLES)
+	for c: Array in cells:
+		var box := BoxMesh.new()
+		box.size = c[1]
+		st.append_from(box, 0, c[0])
+	return st.commit()

@@ -5,7 +5,7 @@ extends Node
 ## docs/environment/phase-9-approval.md). A child of the game
 ## (scripts/main.gd), set up at the end of its _ready.
 ##
-## Links (LINKS), each between two places:
+## Links (links(), from the stratum plan), each between two places:
 ## - the camp and the Gorge share one frame: the camp's gallery doorway
 ##   opens onto the corridor that runs on into the Overlook's loggia; they
 ##   don't overlap, so both are drawn (step 1, your call: straight through);
@@ -29,12 +29,7 @@ extends Node
 ## middle.
 
 const KIT_CAMP: String = "res://rooms/camp/camp.tscn"
-const RECIPES: Dictionary = {"gorge": "res://gen/recipes/gorge.tres", "library": "res://gen/recipes/library_wing.tres",
-	"lower_stacks": "res://gen/recipes/lower_stacks.tres"}
 const ROOT_ROOM: String = "res://rooms/gorge/overlook.tscn"
-## [a, b, kind]: "corridor" (the camp and the Gorge) or "door" (the Gorge and
-## an interior, b).
-const LINKS: Array = [["camp", "gorge", "corridor"], ["gorge", "library", "door"], ["gorge", "lower_stacks", "door"]]
 
 ## The corridor (x, z, the Gorge's frame): from the camp's gallery doorway to
 ## the loggia.
@@ -89,9 +84,20 @@ var _gorge_shown: bool = true
 var _waiting: bool = false
 
 
+## Area id -> recipe path, from the stratum plan.
+static func recipes() -> Dictionary:
+	return StratumPlan.current().recipes()
+
+
+## [a, b, kind]: "corridor" (the camp and the Gorge) or "door" (the Gorge and
+## an interior, b), from the stratum plan.
+static func links() -> Array:
+	return StratumPlan.current().triples()
+
+
 ## The game's place ("camp" or an area id) is one of these.
 static func applies(id: String) -> bool:
-	return id == "camp" or RECIPES.has(id)
+	return id == "camp" or recipes().has(id)
 
 
 ## Where area `id`'s recipe is read from: its live file, or the copy a
@@ -100,14 +106,14 @@ static func recipe_path(id: String) -> String:
 	var ws: Node = Engine.get_main_loop().root.get_node_or_null("/root/WorldState") if Engine.get_main_loop() is SceneTree else null
 	if ws != null and str(ws.get("walk_area")) == id and str(ws.get("walk_recipe")) != "":
 		return str(ws.get("walk_recipe"))
-	return str(RECIPES.get(id, ""))
+	return str(recipes().get(id, ""))
 
 
 ## The doors of area `id` walked through here (Area.open_doors), set before
 ## it's built.
 static func open_doors_for(id: String) -> PackedStringArray:
 	var out: PackedStringArray = []
-	for l: Array in LINKS:
+	for l: Array in links():
 		if l[2] == "door" and (l[0] == id or l[1] == id):
 			out.append(l[1] if l[0] == id else l[0])
 	return out
@@ -116,7 +122,7 @@ static func open_doors_for(id: String) -> PackedStringArray:
 ## The places one link from `id`.
 static func neighbours_of(id: String) -> Array[String]:
 	var out: Array[String] = []
-	for l: Array in LINKS:
+	for l: Array in links():
 		if l[0] == id:
 			out.append(l[1])
 		elif l[1] == id:
@@ -125,7 +131,7 @@ static func neighbours_of(id: String) -> Array[String]:
 
 
 static func _link_kind(a: String, b: String) -> String:
-	for l: Array in LINKS:
+	for l: Array in links():
 		if (l[0] == a and l[1] == b) or (l[0] == b and l[1] == a):
 			return l[2]
 	return ""
@@ -169,7 +175,7 @@ func setup(main: Node, id: String) -> void:
 ## (planning it from the camp left the camp's frames as they were).
 func _plan_interiors(world: Node3D) -> void:
 	var t0: int = Time.get_ticks_usec()
-	for id: String in RECIPES:
+	for id: String in recipes():
 		if id == "gorge":
 			continue
 		if world is Area and (world as Area).recipe.id == id:
@@ -663,7 +669,7 @@ func _doorway_in_view(cam: Camera3D) -> bool:
 	return false
 
 
-## A built neighbour of the place you're in (the first in LINKS), or null:
+## A built neighbour of the place you're in (the first in links()), or null:
 ## for tests.
 var neighbour: Node3D:
 	get:

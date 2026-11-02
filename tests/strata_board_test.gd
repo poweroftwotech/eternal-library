@@ -18,6 +18,7 @@ const Client: GDScript = preload("res://addons/strata_board/planner_client.gd")
 const INTERIORS: Dictionary = {"library": "res://gen/recipes/library_wing.tres", "lower_stacks": "res://gen/recipes/lower_stacks.tres"}
 
 var failures: PackedStringArray = []
+var capture_path: String = ""     # capture=<png>: the board's pictures (GPU)
 var checks: int = 0
 
 
@@ -39,17 +40,24 @@ func run() -> void:
 		edit()
 	elif args.has("copies"):
 		await copies()
+	elif args.has("stratum"):
+		for a: String in args:
+			if a.begins_with("capture="):
+				capture_path = a.trim_prefix("capture=")
+		await stratum_plan()
 	else:
 		var capture: String = ""
 		for a: String in args:
 			if a.begins_with("capture="):
 				capture = a.trim_prefix("capture=")
+				capture_path = capture
 		service()
 		world_seed()
 		edit()
 		await pipe()
 		await board(capture)
 		await copies()
+		await stratum_plan()
 	print("strata_board_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -514,6 +522,114 @@ func board_copies(scratch: String) -> void:
 	b.call("delete_copy")
 	await until(func() -> bool: return copy_of.call() == "" and not FileAccess.file_exists(copy_path), 30.0)
 	check(not FileAccess.file_exists(copy_path) and copy_of.call() == "", "Delete copy removes it and goes back to Live")
+	b.queue_free()
+	await process_frame
+
+
+## The stratum plan (step 3): the game reads the places and links the code
+## used to hold; then, all on scratch files (the stratum plan, the Gorge's
+## recipe for its version, new recipes), an area is added behind a door place,
+## the Gorge's network reaches its door and the layout places it, its door
+## moves, and it's removed.
+func stratum_plan() -> void:
+	StratumPlan.drop_cache()
+	check(SeamlessPlaces.recipes() == {"gorge": "res://gen/recipes/gorge.tres", "library": "res://gen/recipes/library_wing.tres",
+		"lower_stacks": "res://gen/recipes/lower_stacks.tres"}, "the game's areas come from the stratum plan, as the code had them (%s)" % SeamlessPlaces.recipes())
+	check(SeamlessPlaces.links() == [["camp", "gorge", "corridor"], ["gorge", "library", "door"], ["gorge", "lower_stacks", "door"]],
+		"the links come from the stratum plan, as the code had them (%s)" % [SeamlessPlaces.links()])
+	var gorge: AreaRecipe = load(SeamlessPlaces.recipes()["gorge"])
+	StratumPlan.current().apply_doors(gorge.network.frontage)
+	check(gorge.network.frontage.slot("b2_l17_E_s1_2").door == "lower_stacks" and gorge.network.frontage.slot("b3_l18_W_s1_0").door == "library",
+		"the Gorge's doors stand where the frontage had them")
+
+	var scratch: String = "user://test/stratum"
+	_wipe(ProjectSettings.globalize_path(scratch))
+	DirAccess.make_dir_recursive_absolute(scratch)
+	for f: String in ["stratum.tres", "gorge.tres"]:
+		var src: String = StratumPlan.PATH if f == "stratum.tres" else SeamlessPlaces.recipes()["gorge"]
+		DirAccess.copy_absolute(ProjectSettings.globalize_path(src), ProjectSettings.globalize_path(scratch + "/" + f))
+	Service.scratch("", {"gorge": scratch + "/gorge.tres"}, scratch + "/stratum.tres", scratch + "/recipes")
+	var real: Dictionary = {}
+	for p: String in [StratumPlan.PATH, SeamlessPlaces.recipes()["gorge"], SeamlessPlaces.recipes()["lower_stacks"]]:
+		real[p] = FileAccess.get_modified_time(p)
+	# A door place for the test, if the frontage has no free one yet.
+	var trial: FrontageSlot = null
+	if gorge.network.frontage.slots.filter(func(s: FrontageSlot) -> bool: return s.door_place and s.door == "").is_empty():
+		trial = gorge.network.frontage.slot("b1_l17_W_s2_0")
+		trial.door_place = true
+	var st: Dictionary = Service.handle({"cmd": "stratum"})
+	var free: Array = (st["door_places"] as Array).filter(func(d: Dictionary) -> bool: return str(d["area"]) == "")
+	check(not free.is_empty(), "the stratum lists the door places and which are free (%d)" % free.size())
+	var at: String = str(free[0]["id"]) if not free.is_empty() else ""
+	check(Service.handle({"cmd": "add_area", "name": "The Gorge", "from": "lower_stacks"}).has("error"), "an area can't take the Gorge's name")
+	check(Service.handle({"cmd": "add_area", "name": "Dome", "from": "gorge"}).has("error"), "a new area can't start from the Gorge (it has no rooms to copy)")
+	check(Service.handle({"cmd": "add_area", "name": "Dome", "from": "lower_stacks", "at": "b2_l17_E_s1_2"}).has("error"), "a door place another area has is refused")
+	var a: Dictionary = Service.handle({"cmd": "add_area", "name": "The Dome Archive", "from": "lower_stacks", "at": at})
+	check(str(a.get("added", "")) == "dome_archive", "add_area names the area from its name (%s)" % a.get("error", a.get("added", "")))
+	var made: AreaRecipe = ResourceLoader.load(str(a.get("recipe_path", "")), "", ResourceLoader.CACHE_MODE_IGNORE) if a.has("recipe_path") else null
+	check(made != null and made.id == "dome_archive" and made.display_name == "The Dome Archive" and made.version == 1 and made.slots.size() == load(SeamlessPlaces.recipes()["lower_stacks"]).slots.size(),
+		"its recipe is the Lower Stacks' as a new file: its own id and name, version 1")
+	check(str(a.get("recipe_path", "")).begins_with(scratch), "the new recipe went to the scratch folder")
+	check(SeamlessPlaces.recipes().has("dome_archive") and SeamlessPlaces.links().has(["gorge", "dome_archive", "door"]) and StratumPlan.current().door_slot("dome_archive") == at,
+		"the game's stratum now has it, behind its door place")
+	check((a.get("gorge_version", []) as Array).size() == 2 and int(a["gorge_version"][1]) == int(a["gorge_version"][0]) + 1, "a new door raises the Gorge's version (%s)" % [a.get("gorge_version")])
+	var reached: int = 0
+	for w: int in [1, 2]:
+		var gp: AreaPlan = AreaPlanner.plan(gorge, AreaPlanner.area_seed_for(gorge, w))
+		if not gp.threshold("dome_archive").is_empty() and not gp.threshold("library").is_empty() and not gp.threshold("lower_stacks").is_empty():
+			reached += 1
+	check(reached == 2, "the Gorge's walkways reach the new door and the old ones (worlds 1-2: %d)" % reached)
+	var lay: Dictionary = Service.handle({"cmd": "layout", "world_seed": 1})
+	var dome: Array = (lay["areas"] as Array).filter(func(x: Dictionary) -> bool: return str(x["id"]) == "dome_archive")
+	check(dome.size() == 1 and str(dome[0]["error"]) == "" and not (dome[0]["quads"] as Array).is_empty() and dome[0].has("door"), "from above, the new area stands at its door (%s)" % [dome[0]["error"] if not dome.is_empty() else "missing"])
+	check(Service.handle({"cmd": "set_door", "area": "dome_archive", "at": "b3_l18_W_s1_0"}).has("error"), "moving a door onto another area's is refused")
+	check(Service.handle({"cmd": "remove_area", "area": "gorge"}).has("error"), "the Gorge can't be removed")
+	var r: Dictionary = Service.handle({"cmd": "remove_area", "area": "dome_archive"})
+	check(not r.has("error") and not SeamlessPlaces.recipes().has("dome_archive") and FileAccess.file_exists(str(a.get("recipe_path", ""))),
+		"remove_area takes it out of the stratum; its recipe file stays")
+	await board_stratum(at)
+	if trial != null:
+		trial.door_place = false
+	Service.scratch("", {})
+	StratumPlan.drop_cache()
+	for p: String in real:
+		check(FileAccess.get_modified_time(p) == int(real[p]), "the game's own %s is untouched" % p.get_file())
+	check(SeamlessPlaces.recipes().size() == 3, "back on the game's stratum plan")
+
+
+## The stratum on the board: + Area, the door picker, from above, remove.
+func board_stratum(at: String) -> void:
+	var b: Control = Board.new()
+	b.set("local_planner", true)
+	b.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_child(b)
+	if not await until(func() -> bool: return not (b.get("plan") as Dictionary).is_empty(), 60.0):
+		check(false, "the board planned within 60 s")
+		return
+	var door_pick: OptionButton = b.get("_door_pick")
+	check(door_pick.visible and str(door_pick.get_item_metadata(door_pick.selected)) == "b2_l17_E_s1_2", "the door picker shows the Lower Stacks' Gorge door")
+	b.call("add_area", "Board Hall", "lower_stacks", at)
+	if not await until(func() -> bool: return str(b.get("area_id")) == "board_hall" and (b.get("recipes") as Dictionary).has("board_hall") and not (b.get("plan") as Dictionary).is_empty(), 60.0):
+		check(false, "+ Area opened the new area within 60 s (%s)" % b.get("notice"))
+		return
+	check(str(b.get("notice")).contains("Added board_hall") and str(b.get("notice")).contains("version goes"), "the notice says where it is and that the Gorge's version went up (%s)" % b.get("notice"))
+	check(((b.get("stratum") as Dictionary)["places"] as Array).size() == 5 and str(door_pick.get_item_metadata(door_pick.selected)) == at, "the side-on view has it, and the door picker its door")
+	check(bool((b.get("plan") as Dictionary).get("valid", false)), "the new area plans valid for world seed 1, as the recipe it copied")
+	b.call("plan_top")
+	if not await until(func() -> bool: return not (b.get("top") as Dictionary).is_empty(), 90.0):
+		check(false, "the view from above came within 90 s")
+		return
+	var top: Dictionary = b.get("top")
+	check((top["areas"] as Array).any(func(x: Dictionary) -> bool: return str(x["id"]) == "board_hall" and str(x["error"]) == ""), "from above, the board places the new area")
+	check((b.get("_top_view") as Control).visible and str((b.get("_top_status") as Label).text).begins_with("World seed 1"), "the view from above shows, with what overlaps (%s)" % (b.get("_top_status") as Label).text)
+	await process_frame
+	if capture_path != "":
+		for _i: int in 30:
+			await process_frame
+		root.get_viewport().get_texture().get_image().save_png(capture_path.get_basename() + "_stratum.png")
+	b.call("remove_area")
+	await until(func() -> bool: return str(b.get("area_id")) != "board_hall" and ((b.get("stratum") as Dictionary)["places"] as Array).size() == 4, 60.0)
+	check(((b.get("stratum") as Dictionary)["places"] as Array).size() == 4 and str(b.get("notice")).contains("Took"), "Remove area takes it out and opens another (%s)" % b.get("notice"))
 	b.queue_free()
 	await process_frame
 

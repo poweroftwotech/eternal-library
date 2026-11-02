@@ -19,8 +19,12 @@ extends Resource
 @export var xf: Transform3D = Transform3D()
 ## Bays along the face.
 @export var width: int = 2
-## A door into the library here (step 5): the area id behind it, or "".
-@export var door: String = ""
+## A place a door into an area can stand (phase 10 step 3): the Gorge's bake
+## keeps the bank behind it clear for the passage (PersianTown._by_door).
+@export var door_place: bool = false
+## The area whose door stands here, or "": set from the stratum plan
+## (StratumPlan.apply_doors), not stored here.
+var door: String = ""
 
 
 ## The storey (AreaPlan cells) of the slot's floor.
