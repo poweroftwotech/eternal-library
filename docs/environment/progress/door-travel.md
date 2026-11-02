@@ -1,6 +1,6 @@
 # Door travel: doors between places load the other side
 
-[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-01 (after walking phase 9's continuous world) · Status: **door travel and ornate doors walked ("looks good"); sealed doors built 2026-11-02, uncommitted, waiting for your walk**
+[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-01 (after walking phase 9's continuous world) · Status: **door travel and ornate doors walked ("looks good"); sealed doors built 2026-11-02; all committed 86a7303**
 
 ## Why
 
