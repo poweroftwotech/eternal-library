@@ -113,7 +113,7 @@ New in the game: `AreaSlot.scene_weights` and `pinned_choice`, `AreaGrow.min_dep
 
 Not checked by me: the board inside the editor window (typing in its fields, Save writing the real recipe and the editor rescanning it). The test drives the same board in a game window, saving to a scratch file, never the game's recipe.
 
-## Step 2b: named copies of a recipe (2026-11-01, built, not committed)
+## Step 2b: named copies of a recipe (2026-11-01, committed a5cd65d, not yet tried in the editor)
 
 You asked, after trying step 2, to keep several versions of an area to experiment with without losing earlier ones. You picked named recipe copies, built before step 3.
 
