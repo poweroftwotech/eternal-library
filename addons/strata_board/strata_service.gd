@@ -16,9 +16,22 @@ const GRAMMARS: String = "res://gen/grammars"
 const SCENE_DIRS: Array = ["res://rooms/authored", "res://rooms/baked"]
 ## A save checks these world seeds for rooms the edit would move.
 const MOVED_WORLDS: int = 20
+## Named copies of an area's recipe to try things on: <DRAFTS>/<area id>/<name>.tres.
+## The game only plays them through Walk this seed; Make live puts one in the game.
+const DRAFTS: String = "res://gen/recipes/drafts"
+## Tests: copies kept here instead, and live recipes read and written at these
+## paths (area id -> path) instead of SeamlessPlaces.RECIPES.
+static var drafts_dir: String = DRAFTS
+static var live_paths: Dictionary = {}
 
 
-## One request: {cmd: "stratum" | "recipe" | "plan", ...}. Returns the answer,
+## Tests: point copies and live recipes at scratch paths; scratch("", {}) undoes it.
+static func scratch(drafts: String, live: Dictionary) -> void:
+	drafts_dir = drafts if drafts != "" else DRAFTS
+	live_paths = live
+
+
+## One request: {cmd: "stratum" | "recipe" | "plan" | "save" | "make_live" | ..., ...}. Returns the answer,
 ## or {error: why}.
 static func handle(req: Dictionary) -> Dictionary:
 	match str(req.get("cmd", "")):
@@ -46,7 +59,11 @@ static func handle(req: Dictionary) -> Dictionary:
 			return {"rules": ConnectionTable.default().rules.duplicate(), "types": RoomTypes.NAMES.duplicate(),
 				"mtime": _mtime(ConnectionTable.PATH), "weight": ConnectionTable.PREFER_WEIGHT}
 		"save":
-			return save(req["desc"], str(req.get("to", "")), int(req.get("mtime", 0)), bool(req.get("force", false)))
+			return save(req["desc"], str(req.get("to", "")), int(req.get("mtime", 0)), bool(req.get("force", false)), str(req.get("as", "")))
+		"make_live":
+			return make_live(str(req.get("path", "")))
+		"delete_draft":
+			return delete_draft(str(req.get("path", "")))
 		"save_connections":
 			return save_connections(req.get("rules", {}), int(req.get("mtime", 0)), bool(req.get("force", false)))
 	return {"error": "unknown request %s" % req.get("cmd", "")}
@@ -166,28 +183,109 @@ static func moved(old: AreaRecipe, new: AreaRecipe, worlds: Array, old_table: Co
 	return out
 
 
-## Writes an edited recipe (to `to`, or its own file). Refuses if the file
-## changed on disk since the board read it (`mtime`), unless `force`. When
-## the edit moves rooms in any of world seeds 1-20, raises the version, so
-## saves made before know their rooms moved.
-static func save(desc: Dictionary, to: String, mtime: int, force: bool) -> Dictionary:
+## Writes an edited recipe (to `to`, or its own file; with `as_name`, to a new
+## named copy, never over one). Refuses if the file changed on disk since the
+## board read it (`mtime`), unless `force`. When an edit of a live recipe moves
+## rooms in any of world seeds 1-20, raises the version, so saves made before
+## know their rooms moved; a copy's version only matters at make_live.
+static func save(desc: Dictionary, to: String, mtime: int, force: bool, as_name: String = "") -> Dictionary:
 	var path: String = str(desc.get("path", ""))
-	if not force and mtime != 0 and _mtime(path) != mtime:
+	if as_name != "":
+		to = draft_path(str(desc.get("id", "")), as_name)
+		if to == "":
+			return {"error": "a copy needs a name with a letter or digit in it"}
+		if FileAccess.file_exists(to):
+			return {"error": "there is already a copy called \"%s\"" % draft_name(to)}
+	elif not force and mtime != 0 and _mtime(path) != mtime:
 		return {"conflict": "%s changed on disk since the board read it (a hand edit?)" % path}
 	var problem: String = _check(desc)
 	if problem != "":
 		return {"error": problem}
 	var base: AreaRecipe = _load_recipe(path, true)
 	var edited: AreaRecipe = build(desc)
-	var worlds: Array = moved(base, edited, range(1, MOVED_WORLDS + 1))
-	edited.version = base.version + (1 if not worlds.is_empty() else 0)
 	var target: String = to if to != "" else path
+	var worlds: Array = []
+	if not is_draft(target):
+		worlds = moved(base, edited, range(1, MOVED_WORLDS + 1))
+	edited.version = base.version + (1 if not worlds.is_empty() else 0)
+	if is_draft(target):
+		DirAccess.make_dir_recursive_absolute(target.get_base_dir())
 	var err: Error = ResourceSaver.save(edited, target)
 	if err != OK:
 		return {"error": "cannot write %s (%s)" % [target, error_string(err)]}
 	edited.take_over_path(target)
 	return {"saved": target, "version": edited.version, "moved": worlds, "of": MOVED_WORLDS, "mtime": _mtime(target),
-		"desc": describe(edited)}
+		"desc": describe(edited), "draft": is_draft(target), "drafts": drafts(edited.id)}
+
+
+## Puts the copy at `path` in the game: it becomes the area's live recipe,
+## its version raised if that moves rooms in world seeds 1-20 (as a save would).
+## The live recipe before is kept as a copy, so nothing is lost.
+static func make_live(path: String) -> Dictionary:
+	if not is_draft(path) or not FileAccess.file_exists(path):
+		return {"error": "no copy at %s" % path}
+	var draft: AreaRecipe = _load_recipe(path, true)
+	var live_path: String = str(live_paths.get(draft.id, SeamlessPlaces.RECIPES.get(draft.id, ""))) if draft != null else ""
+	if live_path == "":
+		return {"error": "%s isn't a copy of an area in the stratum" % path}
+	var live: AreaRecipe = _load_recipe(live_path, true)
+	var keep: String = draft_path(draft.id, "live v%d before %s" % [live.version, draft_name(path)])
+	var n: int = 2
+	while FileAccess.file_exists(keep):
+		keep = draft_path(draft.id, "live v%d before %s %d" % [live.version, draft_name(path), n])
+		n += 1
+	DirAccess.make_dir_recursive_absolute(keep.get_base_dir())
+	var err: Error = DirAccess.copy_absolute(ProjectSettings.globalize_path(live_path), ProjectSettings.globalize_path(keep))
+	if err != OK:
+		return {"error": "cannot keep the live recipe as %s (%s)" % [keep, error_string(err)]}
+	var made: AreaRecipe = build(describe(draft))
+	var worlds: Array = moved(live, made, range(1, MOVED_WORLDS + 1))
+	made.version = live.version + (1 if not worlds.is_empty() else 0)
+	err = ResourceSaver.save(made, live_path)
+	if err != OK:
+		return {"error": "cannot write %s (%s)" % [live_path, error_string(err)]}
+	made.take_over_path(live_path)
+	return {"saved": live_path, "kept": keep, "from": path, "was": live.version, "version": made.version, "moved": worlds,
+		"of": MOVED_WORLDS, "desc": describe(made), "drafts": drafts(made.id)}
+
+
+## Deletes the copy at `path` (only ever a copy, never a live recipe).
+static func delete_draft(path: String) -> Dictionary:
+	if not is_draft(path) or not FileAccess.file_exists(path):
+		return {"error": "no copy at %s" % path}
+	var id: String = path.get_base_dir().get_file()
+	var err: Error = DirAccess.remove_absolute(ProjectSettings.globalize_path(path))
+	if err != OK:
+		return {"error": "cannot delete %s (%s)" % [path, error_string(err)]}
+	return {"deleted": path, "drafts": drafts(id)}
+
+
+## The copies of area `id`: [{name, path, mtime}], by name.
+static func drafts(id: String) -> Array:
+	var dir: String = "%s/%s" % [drafts_dir, id]
+	var out: Array = []
+	if id == "" or not DirAccess.dir_exists_absolute(dir):
+		return out
+	for f: String in DirAccess.get_files_at(dir):
+		if f.get_extension() == "tres":
+			out.append({"name": draft_name(f), "path": "%s/%s" % [dir, f], "mtime": _mtime("%s/%s" % [dir, f])})
+	out.sort_custom(func(a: Dictionary, b: Dictionary) -> bool: return str(a["name"]) < str(b["name"]))
+	return out
+
+
+## Where a copy called `name` of area `id` lives ("" = no usable name).
+static func draft_path(id: String, name: String) -> String:
+	var re := RegEx.create_from_string("[^a-z0-9]+")
+	var slug: String = re.sub(name.strip_edges().to_lower(), "_", true).trim_prefix("_").trim_suffix("_")
+	return "%s/%s/%s.tres" % [drafts_dir, id, slug] if slug != "" and id != "" else ""
+
+
+static func draft_name(path: String) -> String:
+	return path.get_file().get_basename().replace("_", " ")
+
+
+static func is_draft(path: String) -> bool:
+	return path.begins_with(drafts_dir + "/")
 
 
 ## Writes the connection table. Every interior whose rooms it moves (in
@@ -268,7 +366,7 @@ static func _mtime(path: String) -> int:
 
 ## The places and the links between them (today SeamlessPlaces' tables; step 3
 ## moves them to a data file): [{id, name, kind (baked | scenery | recipe),
-## recipe, y0, y1 (reserved height, m)}], links [[a, b, kind]].
+## recipe, y0, y1 (reserved height, m), drafts (its named copies)}], links [[a, b, kind]].
 static func stratum() -> Dictionary:
 	var places: Array = [{"id": "camp", "name": CAMP_NAME, "kind": "baked", "recipe": SeamlessPlaces.KIT_CAMP,
 		"y0": SeamlessPlaces.CAMP_BOUNDS.position.y, "y1": SeamlessPlaces.CAMP_BOUNDS.end.y}]
@@ -276,7 +374,7 @@ static func stratum() -> Dictionary:
 		var recipe: AreaRecipe = load(SeamlessPlaces.RECIPES[id])
 		var env: AABB = recipe.placement.envelope if recipe.placement != null else AreaPlacement.new().envelope
 		places.append({"id": id, "name": recipe.display_name, "kind": "scenery" if recipe.network != null else "recipe",
-			"recipe": SeamlessPlaces.RECIPES[id], "y0": env.position.y, "y1": env.end.y})
+			"recipe": SeamlessPlaces.RECIPES[id], "y0": env.position.y, "y1": env.end.y, "drafts": drafts(id)})
 	return {"places": places, "links": SeamlessPlaces.LINKS.duplicate(true), "default_area": WORLD_STATE.DEFAULT_AREA}
 
 

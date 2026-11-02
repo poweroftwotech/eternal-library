@@ -94,6 +94,15 @@ static func applies(id: String) -> bool:
 	return id == "camp" or RECIPES.has(id)
 
 
+## Where area `id`'s recipe is read from: its live file, or the copy a
+## Walk this seed asked for (WorldState.walk_recipe) when walking that area.
+static func recipe_path(id: String) -> String:
+	var ws: Node = Engine.get_main_loop().root.get_node_or_null("/root/WorldState") if Engine.get_main_loop() is SceneTree else null
+	if ws != null and str(ws.get("walk_area")) == id and str(ws.get("walk_recipe")) != "":
+		return str(ws.get("walk_recipe"))
+	return str(RECIPES.get(id, ""))
+
+
 ## The doors of area `id` walked through here (Area.open_doors), set before
 ## it's built.
 static func open_doors_for(id: String) -> PackedStringArray:
@@ -166,7 +175,7 @@ func _plan_interiors(world: Node3D) -> void:
 		if world is Area and (world as Area).recipe.id == id:
 			_plans[id] = (world as Area).plan
 			continue
-		var recipe: AreaRecipe = load(RECIPES[id])
+		var recipe: AreaRecipe = load(recipe_path(id))
 		_keep.append(recipe)
 		_plans[id] = AreaPlanner.plan(recipe, _area_seed(recipe), Area.kept_variants(id))
 		_keep_variants(recipe, _plans[id])
@@ -207,7 +216,7 @@ func _open_door(world: Node) -> void:
 func _warm(id: String) -> void:
 	var t0: int = Time.get_ticks_usec()
 	if id == "gorge":
-		var recipe: AreaRecipe = load(RECIPES["gorge"])
+		var recipe: AreaRecipe = load(recipe_path("gorge"))
 		_keep.append(recipe)
 		for path: String in Array(recipe.scenery_pieces.generated) + Array(recipe.scenery_pieces.kit):
 			var scene: PackedScene = load(path)
@@ -225,7 +234,7 @@ func _warm(id: String) -> void:
 		_keep.append(camp)
 		camp.instantiate().free()
 	else:
-		_keep.append(load(RECIPES[id]))
+		_keep.append(load(recipe_path(id)))
 	print("SeamlessPlaces: warmed %s in %.0f ms" % [id, (Time.get_ticks_usec() - t0) / 1000.0])
 
 
@@ -260,7 +269,7 @@ func _build(id: String) -> void:
 		places["camp"] = camp
 		_take_environment(camp, "camp")
 		return
-	var recipe: AreaRecipe = load(RECIPES[id])
+	var recipe: AreaRecipe = load(recipe_path(id))
 	var plan: AreaPlan = _plans.get(id)
 	if plan == null:
 		plan = await _plan_on_worker(recipe, _area_seed(recipe), Area.kept_variants(id))

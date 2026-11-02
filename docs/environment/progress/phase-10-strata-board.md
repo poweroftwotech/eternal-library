@@ -67,7 +67,7 @@ Of 60 worlds per interior after the fixes: the library wing is valid in all 60; 
 
 Not checked by me: the board inside the editor window itself (clicking through it, *Walk this seed* launching the game). The test runs the same board in a game window with the planner in-process, and the pipe separately.
 
-## Step 2: editing areas on the board (2026-11-01, committed 2026-11-01, not yet tried in the editor)
+## Step 2: editing areas on the board (2026-11-01, committed 2026-11-01, tried in the editor 2026-11-01: works)
 
 ### What you can try
 
@@ -112,3 +112,60 @@ New in the game: `AreaSlot.scene_weights` and `pinned_choice`, `AreaGrow.min_dep
 | GPU capture of the board | Above |
 
 Not checked by me: the board inside the editor window (typing in its fields, Save writing the real recipe and the editor rescanning it). The test drives the same board in a game window, saving to a scratch file, never the game's recipe.
+
+## Step 2b: named copies of a recipe (2026-11-01, built, not committed)
+
+You asked, after trying step 2, to keep several versions of an area to experiment with without losing earlier ones. You picked named recipe copies, built before step 3.
+
+### What you can try
+
+- Above the recipe's edit bar there is a **COPY** row. The picker shows **Live (what the game plays)** and every copy of the open area.
+- **Save as copy…** asks for a name and keeps what's on the board as a new copy, unsaved edits included. It never writes over another copy or over the live recipe. The board then opens the copy, and the breadcrumb says `› copy: <name>`.
+- While a copy is open, **Save** writes the copy and the game is untouched. **Sweep 20 seeds** sweeps the copy. **Walk this seed** walks the copy on the scratch save; the game prints `Area lower_stacks: walking the recipe copy …`.
+- **Make live** puts the open copy in the game. The version goes up if rooms move in any of world seeds 1–20, as with a save. The recipe that was live is kept as a copy named `live v<n> before <copy>`, so nothing is lost.
+- **Delete copy** asks first, then removes only that copy and goes back to Live.
+- The picker is off while there are unsaved edits. Save, Save as copy or Revert first.
+
+Copies live in `gen/recipes/drafts/<area id>/<name>.tres`. The game reads them only through Walk this seed.
+
+### How it works
+
+- In the service (`strata_service.gd`):
+  - `save(…, as_name)` writes a new copy.
+  - `make_live(path)` copies the live file byte for byte to the keep copy, then writes the copy over the live recipe with its version settled.
+  - `delete_draft(path)` only ever deletes inside the copies folder.
+  - `drafts(id)` lists the copies; the stratum answer lists each area's copies.
+  - Saving a copy never computes or raises a version. A version only matters when a copy goes live.
+- In the game: the walk request carries the copy's path. `WorldState.walk_recipe` accepts only paths under `gen/recipes/drafts/`. `SeamlessPlaces.recipe_path(id)` gives the walked area's copy, and `Area` plans it in place of the live recipe.
+- Tests point the copies folder and the live recipe at scratch files (`Service.scratch`), so the real recipe is never written.
+
+### Gates
+
+| Gate | Result |
+|---|---|
+| `strata_board_test.gd -- copies`: the service checks, then the board's own buttons (see below) | 29 checks, 0 failures |
+| The whole `strata_board_test.gd` (step 2's checks plus copies) | 146 checks, 0 failures |
+| End to end: a real copy (1 gallery) plus a walk request for world 7, then the game run headless | The game walked the copy (`Area lower_stacks: walking the recipe copy …`), no errors. The check files were removed afterwards |
+| The editor starts with the plugin (headless) | No errors |
+| GPU capture: [board_copies.png](../../../previews/p10_step2/board_copies.png) | The COPY row sits above the edit bar. It is greyed out in the capture because an unsaved edit is on show |
+
+What `-- copies` checks on the service:
+
+- the file is named from the copy's name;
+- saving a copy never raises a version and leaves the live recipe alone;
+- a name already in use, or one with nothing usable in it, is refused;
+- the copy plans as edited, and the stratum lists it;
+- Make live raises the version (rooms move), the live recipe becomes the copy, and the old live recipe is kept byte for byte;
+- delete refuses a live recipe and removes only the copy it was given.
+
+And on the board:
+
+- the picker and the buttons follow what's open;
+- Save as copy opens the copy and the breadcrumb names it;
+- the board plans the copy;
+- Walk this seed sends the copy's path;
+- Live opens the live recipe again;
+- Make live writes the live recipe and its notice names the kept copy;
+- Delete copy goes back to Live.
+
+Not checked by me: the board in the editor window (the name dialog, the delete confirmation, the editor rescanning new copies).

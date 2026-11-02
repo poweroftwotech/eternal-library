@@ -47,6 +47,8 @@ var data: Dictionary = {}
 var loaded: bool = false
 ## The area a Walk this seed request asked for ("" = none).
 var walk_area: String = ""
+## The recipe copy that walk plays instead of the area's live recipe ("" = the live one).
+var walk_recipe: String = ""
 ## Live rooms by room key (RoomTemplate.room_key()).
 var rooms: Dictionary = {}
 var _applied: Dictionary = {}     # ids a live room found and applied
@@ -74,6 +76,9 @@ func _ready() -> void:
 		path = WALK_SAVE
 		fresh = true
 		walk_area = str(walk.get("area", ""))
+		var copy: String = str(walk.get("recipe", ""))
+		if copy.begins_with("res://gen/recipes/drafts/") and ResourceLoader.exists(copy):
+			walk_recipe = copy
 	var seed_arg: String = ""
 	for arg: String in args:
 		if arg.begins_with("--world-seed="):

@@ -18,8 +18,9 @@ extends VBoxContainer
 ## of sections (PanelContainer → VBox). The stratum, recipe and plan pictures
 ## are drawn by StratumView, RecipeView and PlanView (custom _draw).
 
-## Walk this seed: the plugin runs the game in `area_id` with `world_seed`.
-signal walk_requested(area_id: String, world_seed: int)
+## Walk this seed: the plugin runs the game in `area_id` with `world_seed`,
+## playing the recipe copy at `recipe` ("" = the live recipe).
+signal walk_requested(area_id: String, world_seed: int, recipe: String)
 ## Save wrote these files (the plugin has the editor rescan them).
 signal files_saved(paths: PackedStringArray)
 
@@ -64,6 +65,7 @@ var connections: Dictionary = {}      # "R03>R02" -> preferred | never, as edite
 var saved_connections: Dictionary = {}
 var conn_mtime: int = 0
 var notice: String = ""               # what the last save did (bbcode)
+var open_copy: Dictionary = {}       # area id -> the path of the recipe copy open on the board (none: the live recipe)
 ## Tests: Save writes here instead of the recipe's own file.
 var save_to: String = ""
 var _force: bool = false              # the last save was refused: the file changed on disk
@@ -95,6 +97,13 @@ var _conn_button: Button
 var _dirty_label: Label
 var _conn_panel: Control
 var _conn_grid: GridContainer
+var _copy_pick: OptionButton
+var _copy_note: Label
+var _make_live_button: Button
+var _delete_copy_button: Button
+var _name_dialog: ConfirmationDialog
+var _name_edit: LineEdit
+var _delete_dialog: ConfirmationDialog
 
 
 func _ready() -> void:
@@ -122,6 +131,12 @@ func _on_stratum(answer: Dictionary) -> void:
 		_set_status("[color=#%s]%s[/color]" % [BAD.to_html(false), answer["error"]])
 		return
 	stratum = answer
+	# A copy deleted or renamed on disk since: back to the live recipe.
+	for id: String in open_copy.keys():
+		if not is_dirty(id) and not (_place(id).get("drafts", []) as Array).any(func(d: Dictionary) -> bool: return str(d["path"]) == str(open_copy[id])):
+			open_copy.erase(id)
+			recipes.erase(id)
+			saved_recipes.erase(id)
 	client.request({"cmd": "catalog"}, func(a: Dictionary) -> void:
 		catalog = a
 		_form_key = ""
@@ -129,7 +144,7 @@ func _on_stratum(answer: Dictionary) -> void:
 	client.request({"cmd": "connections"}, _on_connections, true)
 	for p: Dictionary in stratum["places"]:
 		if str(p["kind"]) != "baked":
-			client.request({"cmd": "recipe", "path": p["recipe"], "fresh": true}, _on_recipe.bind(str(p["id"])), true)
+			client.request({"cmd": "recipe", "path": _copy_or_live(str(p["id"])), "fresh": true}, _on_recipe.bind(str(p["id"])), true)
 	if area_id == "":
 		area_id = AREA_FIRST if _place(AREA_FIRST) != {} else str((stratum["places"] as Array)[0]["id"])
 	_refresh()
@@ -139,6 +154,8 @@ func _on_recipe(answer: Dictionary, id: String) -> void:
 	if answer.has("error"):
 		push_warning("Strata Board: %s" % answer["error"])
 		return
+	if str(answer.get("path", "")) != _copy_or_live(id):
+		return     # another copy was opened since
 	if is_dirty(id):
 		return     # unsaved edits stay; Save checks the file
 	recipes[id] = _norm(answer)
@@ -282,7 +299,7 @@ func _build() -> void:
 	_sweep_button = _button("Sweep 20 seeds", start_sweep)
 	_sweep_button.tooltip_text = "Plan the 20 world seeds around this one with the game's planner and mark each valid or not."
 	header.add_child(_sweep_button)
-	_walk_button = _button("Walk this seed", func() -> void: walk_requested.emit(area_id, world_seed))
+	_walk_button = _button("Walk this seed", func() -> void: walk_requested.emit(area_id, world_seed, str(open_copy.get(area_id, ""))))
 	_walk_button.tooltip_text = "Run the game in this area with this world seed (a scratch save, never your own)."
 	_style_primary(_walk_button)
 	header.add_child(_walk_button)
@@ -342,6 +359,51 @@ func _build() -> void:
 	_save_button.tooltip_text = "Write the recipe file (and the connection table)."
 	_style_primary(_save_button)
 	bar.add_child(_save_button)
+	var copy_row := HBoxContainer.new()
+	copy_row.add_theme_constant_override("separation", int(8 * ui_scale))
+	copy_row.add_child(_label("COPY", 11, MUTED))
+	_copy_pick = OptionButton.new()
+	_copy_pick.custom_minimum_size.x = 220 * ui_scale
+	_copy_pick.tooltip_text = "Which version of this area's recipe the board shows. Live is what the game plays; copies are yours to try things on."
+	_copy_pick.item_selected.connect(func(i: int) -> void: open_copy_at(str(_copy_pick.get_item_metadata(i))))
+	copy_row.add_child(_copy_pick)
+	var save_as_button := _button("Save as copy…", func() -> void:
+		_name_edit.text = ""
+		_name_dialog.popup_centered(Vector2i(int(360 * ui_scale), 0))
+		_name_edit.grab_focus())
+	save_as_button.tooltip_text = "Keep what's on the board (edits included) as a new named copy. The game keeps playing the live recipe."
+	copy_row.add_child(save_as_button)
+	_make_live_button = _button("Make live", make_live)
+	_make_live_button.tooltip_text = "Put this copy in the game. The live recipe before is kept as a copy."
+	copy_row.add_child(_make_live_button)
+	_delete_copy_button = _button("Delete copy", func() -> void:
+		_delete_dialog.dialog_text = "Delete the copy \"%s\"? The live recipe and other copies stay." % _copy_name(area_id)
+		_delete_dialog.popup_centered())
+	copy_row.add_child(_delete_copy_button)
+	_copy_note = _label("", 12, MUTED)
+	_copy_note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_copy_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	copy_row.add_child(_copy_note)
+	recipe_box.add_child(copy_row)
+	_name_dialog = ConfirmationDialog.new()
+	_name_dialog.title = "Save as copy"
+	_name_dialog.ok_button_text = "Save copy"
+	var name_box := VBoxContainer.new()
+	name_box.add_child(_label("Name of the copy", 12, MUTED))
+	_name_edit = LineEdit.new()
+	_name_edit.placeholder_text = "e.g. tight galleries"
+	_name_edit.text_submitted.connect(func(_t: String) -> void:
+		_name_dialog.hide()
+		save_as(_name_edit.text))
+	name_box.add_child(_name_edit)
+	_name_dialog.add_child(name_box)
+	_name_dialog.confirmed.connect(func() -> void: save_as(_name_edit.text))
+	add_child(_name_dialog)
+	_delete_dialog = ConfirmationDialog.new()
+	_delete_dialog.title = "Delete copy"
+	_delete_dialog.ok_button_text = "Delete"
+	_delete_dialog.confirmed.connect(delete_copy)
+	add_child(_delete_dialog)
 	recipe_box.add_child(bar)
 	_recipe_view = RecipeView.new()
 	_recipe_view.board = self
@@ -491,12 +553,13 @@ func _refresh() -> void:
 	if _seed_box == null:
 		return
 	var place: Dictionary = _place(area_id)
-	_crumb.text = "Stratum 1 › %s" % str(place.get("name", area_id))
+	_crumb.text = "Stratum 1 › %s" % str(place.get("name", area_id)) + (" › copy: %s" % _copy_name(area_id) if open_copy.has(area_id) else "")
 	_area_seed.text = "area seed %d" % int(plan["area_seed"]) if not plan.is_empty() and plan.has("area_seed") else ""
 	_sweep_button.disabled = not _boardable()
 	_sweep_button.text = "Hide sweep" if sweep_base != 0 and _sweep_ids.is_empty() and sweep_base == world_seed - (world_seed - 1) % SWEEP else "Sweep 20 seeds"
 	_walk_button.disabled = not recipes.has(area_id) or is_dirty(area_id) or connections_dirty()
 	_walk_button.tooltip_text = "Save first: the game walks the saved recipe." if _walk_button.disabled and recipes.has(area_id) else "Run the game in this area with this world seed (a scratch save, never your own)."
+	_refresh_copy_row()
 	_refresh_edit_bar()
 	_refresh_form()
 	_refresh_connections()
@@ -1027,7 +1090,9 @@ func _on_saved(answer: Dictionary, id: String) -> void:
 	saved_recipes[id] = _norm(answer["desc"])
 	var worlds: Array = answer.get("moved", [])
 	var file: String = str(answer["saved"]).get_file()
-	if worlds.is_empty():
+	if bool(answer.get("draft", false)):
+		notice = "Saved the copy \"%s\". The game is untouched: it plays the live recipe until you Make live." % _copy_name(id)
+	elif worlds.is_empty():
 		notice = "Saved %s. No world among seeds 1–%d changes, so the version stays %d." % [file, int(answer["of"]), int(answer["version"])]
 	else:
 		notice = "Saved %s. [color=#%s]Rooms move in %d of world seeds 1–%d (%s), so the version goes %d → %d:[/color] a save made before keeps its changes only in rooms that didn't move." % [
@@ -1039,6 +1104,144 @@ func _on_saved(answer: Dictionary, id: String) -> void:
 		save()
 	_replan()
 	_refresh()
+
+
+# --- recipe copies ---------------------------------------------------------------------
+
+## Opens the recipe copy at `path` ("" = the live recipe) for the current area.
+## Not while there are unsaved edits (Save, Save as copy or Revert first).
+func open_copy_at(path: String) -> void:
+	if path == str(open_copy.get(area_id, "")) or is_dirty(area_id):
+		_refresh()
+		return
+	if path == "":
+		open_copy.erase(area_id)
+	else:
+		open_copy[area_id] = path
+	recipes.erase(area_id)
+	saved_recipes.erase(area_id)
+	sel = {}
+	plan = {}
+	notice = ""
+	_force = false
+	_form_key = ""
+	_clear_sweep()
+	client.request({"cmd": "recipe", "path": _copy_or_live(area_id), "fresh": true}, _on_recipe.bind(area_id), true)
+	_refresh()
+
+
+## Keeps what's on the board (unsaved edits included) as a new copy called
+## `copy_name`, and opens it. The recipe it came from stays as it was on disk.
+func save_as(copy_name: String) -> void:
+	if not recipes.has(area_id) or copy_name.strip_edges() == "":
+		return
+	client.request({"cmd": "save", "desc": recipes[area_id], "as": copy_name}, _on_saved_as.bind(area_id), true)
+
+
+func _on_saved_as(answer: Dictionary, id: String) -> void:
+	if answer.has("error"):
+		notice = "[color=#%s]Copy not saved: %s.[/color]" % [BAD.to_html(false), answer["error"]]
+		_refresh()
+		return
+	_place(id)["drafts"] = answer["drafts"]
+	open_copy[id] = str(answer["saved"])
+	recipes[id] = _norm(answer["desc"])
+	saved_recipes[id] = _norm(answer["desc"])
+	notice = "Saved the copy \"%s\". The game still plays the live recipe; Walk this seed walks this copy, Make live puts it in the game." % _copy_name(id)
+	_form_gen += 1
+	files_saved.emit(PackedStringArray([str(answer["saved"])]))
+	_replan()
+	_refresh()
+
+
+## Puts the open copy in the game as the live recipe; the live recipe before
+## is kept as a copy (the service names it "live v<n> before <copy>").
+func make_live() -> void:
+	if not open_copy.has(area_id) or is_dirty(area_id):
+		return
+	client.request({"cmd": "make_live", "path": open_copy[area_id]}, _on_made_live.bind(area_id), true)
+
+
+func _on_made_live(answer: Dictionary, id: String) -> void:
+	if answer.has("error"):
+		notice = "[color=#%s]Not made live: %s.[/color]" % [BAD.to_html(false), answer["error"]]
+		_refresh()
+		return
+	_place(id)["drafts"] = answer["drafts"]
+	var from: String = _copy_name(id)
+	open_copy.erase(id)
+	recipes[id] = _norm(answer["desc"])
+	saved_recipes[id] = _norm(answer["desc"])
+	var worlds: Array = answer.get("moved", [])
+	var kept: String = str(answer["kept"]).get_file().get_basename().replace("_", " ")
+	if worlds.is_empty():
+		notice = "\"%s\" is live. No world among seeds 1–%d changes, so the version stays %d." % [from, int(answer["of"]), int(answer["version"])]
+	else:
+		notice = "\"%s\" is live. [color=#%s]Rooms move in %d of world seeds 1–%d, so the version goes %d → %d.[/color]" % [
+			from, BRASS.to_html(false), worlds.size(), int(answer["of"]), int(answer["was"]), int(answer["version"])]
+	notice += " The recipe that was live is kept as the copy \"%s\"." % kept
+	_form_gen += 1
+	files_saved.emit(PackedStringArray([str(answer["saved"]), str(answer["kept"])]))
+	_replan()
+	_refresh()
+
+
+## Deletes the open copy (the button asks first) and goes back to the live recipe.
+func delete_copy() -> void:
+	if not open_copy.has(area_id):
+		return
+	client.request({"cmd": "delete_draft", "path": open_copy[area_id]}, _on_copy_deleted.bind(area_id), true)
+
+
+func _on_copy_deleted(answer: Dictionary, id: String) -> void:
+	if answer.has("error"):
+		notice = "[color=#%s]Not deleted: %s.[/color]" % [BAD.to_html(false), answer["error"]]
+		_refresh()
+		return
+	_place(id)["drafts"] = answer["drafts"]
+	var gone: String = _copy_name(id)
+	recipes.erase(id)
+	saved_recipes.erase(id)     # the deleted copy's edits go with it
+	if id == area_id:
+		open_copy_at("")
+	else:
+		open_copy.erase(id)
+	notice = "Deleted the copy \"%s\"." % gone
+	files_saved.emit(PackedStringArray([str(answer["deleted"])]))
+	_refresh()
+
+
+func _copy_or_live(id: String) -> String:
+	return str(open_copy.get(id, _place(id).get("recipe", "")))
+
+
+func _copy_name(id: String) -> String:
+	var path: String = str(open_copy.get(id, ""))
+	return path.get_file().get_basename().replace("_", " ") if path != "" else "live"
+
+
+func _refresh_copy_row() -> void:
+	var row: Control = _copy_pick.get_parent() as Control
+	row.visible = _boardable()
+	if not row.visible:
+		return
+	_copy_pick.clear()
+	_copy_pick.add_item("Live (what the game plays)")
+	_copy_pick.set_item_metadata(0, "")
+	for d: Dictionary in _place(area_id).get("drafts", []):
+		_copy_pick.add_item(str(d["name"]))
+		_copy_pick.set_item_metadata(_copy_pick.item_count - 1, str(d["path"]))
+		if str(d["path"]) == str(open_copy.get(area_id, "")):
+			_copy_pick.select(_copy_pick.item_count - 1)
+	var dirty: bool = is_dirty(area_id)
+	_copy_pick.disabled = dirty
+	_copy_pick.tooltip_text = "Save, Save as copy or Revert first." if dirty else "Which version of this area's recipe the board shows. Live is what the game plays; copies are yours to try things on."
+	_make_live_button.disabled = not open_copy.has(area_id) or dirty
+	_make_live_button.tooltip_text = "Save the copy first." if open_copy.has(area_id) and dirty else "Put this copy in the game. The live recipe before is kept as a copy."
+	_delete_copy_button.disabled = not open_copy.has(area_id)
+	var n: int = (_place(area_id).get("drafts", []) as Array).size()
+	_copy_note.text = ("Editing a copy: Save writes the copy, the game is untouched." if open_copy.has(area_id)
+		else "%d cop%s of this area." % [n, "y" if n == 1 else "ies"] if n > 0 else "")
 
 
 func _on_connections_saved(answer: Dictionary) -> void:

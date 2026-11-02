@@ -5,9 +5,10 @@ extends EditorPlugin
 ## Opening the tab reads the recipe files fresh.
 ##
 ## Walk this seed leaves a one-time request (WorldState.WALK_REQUEST) that the
-## game takes as it starts: that area, that world seed, on a scratch save. Your
-## own world is never touched. (Run arguments were not reliable: the editor's
-## Customize Run Instances can replace them.)
+## game takes as it starts: that area, that world seed (and the open recipe
+## copy, if any), on a scratch save. Your own world is never touched. (Run
+## arguments were not reliable: the editor's Customize Run Instances can
+## replace them.)
 
 const Board: GDScript = preload("res://addons/strata_board/strata_board.gd")
 const WALK_REQUEST: String = "user://strata_walk_request.json"     # as WorldState.WALK_REQUEST
@@ -53,11 +54,11 @@ func _make_visible(visible: bool) -> void:
 		_board.call("reload")
 
 
-func _on_walk(area_id: String, world_seed: int) -> void:
+func _on_walk(area_id: String, world_seed: int, recipe: String) -> void:
 	var f := FileAccess.open(WALK_REQUEST, FileAccess.WRITE)
 	if f == null:
 		push_warning("Strata Board: cannot write %s (%s)" % [WALK_REQUEST, error_string(FileAccess.get_open_error())])
 		return
-	f.store_string(JSON.stringify({"area": area_id, "world_seed": world_seed, "time": Time.get_unix_time_from_system()}))
+	f.store_string(JSON.stringify({"area": area_id, "world_seed": world_seed, "recipe": recipe, "time": Time.get_unix_time_from_system()}))
 	f.close()
 	EditorInterface.play_main_scene()

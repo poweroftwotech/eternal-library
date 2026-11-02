@@ -37,6 +37,8 @@ func run() -> void:
 		seed_process(args[0], args[1])
 	elif args.has("edit"):
 		edit()
+	elif args.has("copies"):
+		await copies()
 	else:
 		var capture: String = ""
 		for a: String in args:
@@ -47,6 +49,7 @@ func run() -> void:
 		edit()
 		await pipe()
 		await board(capture)
+		await copies()
 	print("strata_board_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -413,3 +416,113 @@ func board_save(b: Control) -> void:
 	check(str(b.get("notice")).contains("version goes"), "the save notice says rooms moved and the version went up (%s)" % b.get("notice"))
 	check(ResourceLoader.exists("user://test/strata_board_save.tres"), "the board wrote the recipe")
 	check(FileAccess.get_modified_time(INTERIORS["lower_stacks"]) == mtime, "the game's recipe file is untouched")
+
+
+## Named recipe copies: Save as copy, open, walk, Make live (the live recipe
+## before kept as a copy), delete. All on scratch files: the copies folder and
+## the live Lower Stacks recipe point under user://test/copies.
+func copies() -> void:
+	var scratch: String = "user://test/copies"
+	_wipe(ProjectSettings.globalize_path(scratch))
+	DirAccess.make_dir_recursive_absolute(scratch)
+	var live: String = scratch + "/live_lower_stacks.tres"
+	DirAccess.copy_absolute(ProjectSettings.globalize_path(INTERIORS["lower_stacks"]), ProjectSettings.globalize_path(live))
+	var original: PackedByteArray = FileAccess.get_file_as_bytes(live)
+	var real_mtime: int = FileAccess.get_modified_time(INTERIORS["lower_stacks"])
+	Service.scratch(scratch + "/drafts", {"lower_stacks": live})
+	var names: Callable = func() -> Array: return Service.drafts("lower_stacks").map(func(d: Dictionary) -> String: return str(d["name"]))
+
+	var desc: Dictionary = Service.handle({"cmd": "recipe", "path": live, "fresh": true})
+	var v0: int = int(desc["version"])
+	check((names.call() as Array).is_empty(), "no copies to start with")
+	for g: Dictionary in desc["grow"]:
+		if str(g["prefix"]) == "gallery":
+			g["count"] = [1, 1]
+	var a: Dictionary = Service.handle({"cmd": "save", "desc": desc, "as": "Tight galleries!"})
+	check(str(a.get("saved", "")) == scratch + "/drafts/lower_stacks/tight_galleries.tres", "Save as copy names the file from the name (%s)" % a.get("saved", a))
+	check(int(a.get("version", -1)) == v0 and (a.get("moved", [1]) as Array).is_empty(), "saving a copy never raises a version")
+	check(FileAccess.get_file_as_bytes(live) == original, "Save as copy leaves the live recipe alone")
+	check(names.call() == ["tight galleries"], "the copy is listed (%s)" % [names.call()])
+	check(str(Service.handle({"cmd": "save", "desc": desc, "as": "tight  galleries"}).get("error", "")).contains("already"), "a copy is never saved over another")
+	check(Service.handle({"cmd": "save", "desc": desc, "as": "!!"}).has("error"), "a copy needs a usable name")
+	var p: Dictionary = Service.handle({"cmd": "plan", "path": a.get("saved", ""), "world_seed": 1, "map_px": 0})
+	check(not p.has("error") and (p["rooms"] as Array).filter(func(r: Dictionary) -> bool: return str(r["grow"]) == "gallery").size() <= 1, "the copy plans as edited")
+	var st: Dictionary = Service.handle({"cmd": "stratum"})
+	var place: Dictionary = (st["places"] as Array).filter(func(q: Dictionary) -> bool: return str(q["id"]) == "lower_stacks")[0]
+	check((place["drafts"] as Array).size() == 1, "the stratum lists the area's copies")
+
+	var ml: Dictionary = Service.handle({"cmd": "make_live", "path": a.get("saved", "")})
+	check(not ml.has("error"), "Make live works (%s)" % ml.get("error", ""))
+	check(int(ml.get("version", -1)) == v0 + 1 and not (ml.get("moved", []) as Array).is_empty(), "making the copy live raises the version: rooms move (%d → %s)" % [v0, ml.get("version")])
+	var now: AreaRecipe = ResourceLoader.load(live, "", ResourceLoader.CACHE_MODE_IGNORE)
+	check(now.version == v0 + 1 and now.grow.any(func(g: AreaGrow) -> bool: return g.slot_prefix == "gallery" and g.count == Vector2i(1, 1)), "the live recipe is now the copy")
+	check(FileAccess.get_file_as_bytes(str(ml.get("kept", ""))) == original, "the live recipe before is kept as a copy, byte for byte")
+	check(names.call() == ["live v%d before tight galleries" % v0, "tight galleries"], "both copies listed (%s)" % [names.call()])
+	check(Service.handle({"cmd": "delete_draft", "path": live}).has("error"), "delete never touches a live recipe")
+	var d: Dictionary = Service.handle({"cmd": "delete_draft", "path": a.get("saved", "")})
+	check(not d.has("error") and names.call() == ["live v%d before tight galleries" % v0], "Delete removes just that copy (%s)" % [names.call()])
+
+	await board_copies(scratch)
+	Service.scratch("", {})
+	check(FileAccess.get_modified_time(INTERIORS["lower_stacks"]) == real_mtime, "the game's own recipe file is untouched")
+	check(not DirAccess.dir_exists_absolute(Service.DRAFTS + "/lower_stacks"), "nothing was written to the real copies folder")
+
+
+func board_copies(scratch: String) -> void:
+	var b: Control = Board.new()
+	b.set("local_planner", true)
+	b.set_anchors_and_offsets_preset(Control.PRESET_FULL_RECT)
+	root.add_child(b)
+	var planned: Callable = func() -> bool: return not (b.get("plan") as Dictionary).is_empty()
+	if not await until(planned, 60.0):
+		check(false, "the board planned within 60 s")
+		return
+	var copy_path: String = scratch + "/drafts/lower_stacks/board_copy.tres"
+	var copy_of: Callable = func() -> String: return str((b.get("open_copy") as Dictionary).get("lower_stacks", ""))
+	var galleries: Callable = func() -> int: return ((b.get("plan") as Dictionary)["rooms"] as Array).filter(func(r: Dictionary) -> bool: return str(r["grow"]) == "gallery").size()
+	var pick: OptionButton = b.get("_copy_pick")
+	check(pick.item_count == 2 and (b.get("_make_live_button") as Button).disabled, "the copy picker shows Live and the one copy; Make live is off on Live (%d items)" % pick.item_count)
+	b.call("set_grow_field", "gallery", "count", [2, 2])
+	check(pick.disabled, "the picker is off while there are unsaved edits")
+	b.call("save_as", "board copy")
+	if not await until(func() -> bool: return copy_of.call() != "", 60.0):
+		check(false, "Save as copy opened the new copy within 60 s (%s)" % b.get("notice"))
+		return
+	check(copy_of.call() == copy_path and not bool(b.call("is_dirty", "lower_stacks")), "Save as copy opens the copy, nothing unsaved")
+	check(str((b.get("_crumb") as Label).text).contains("copy: board copy") and pick.item_count == 3, "the crumb names the copy; the picker lists it (%s, %d)" % [(b.get("_crumb") as Label).text, pick.item_count])
+	await until(planned, 30.0)
+	check(galleries.call() == 2, "the board plans the copy (2 galleries: %d)" % galleries.call())
+	var walked: Array = []
+	b.connect("walk_requested", func(id: String, s: int, recipe: String) -> void: walked.append([id, s, recipe]))
+	(b.get("_walk_button") as Button).pressed.emit()
+	check(walked.size() == 1 and str(walked[0][2]) == copy_path, "Walk this seed walks the open copy (%s)" % [walked])
+	b.call("open_copy_at", "")
+	await until(func() -> bool: return copy_of.call() == "" and (b.get("recipes") as Dictionary).has("lower_stacks") and planned.call(), 30.0)
+	check(str((b.get("recipes") as Dictionary).get("lower_stacks", {}).get("path", "")) == INTERIORS["lower_stacks"], "Live opens the live recipe")
+	b.call("open_copy_at", copy_path)
+	await until(func() -> bool: return (b.get("recipes") as Dictionary).has("lower_stacks") and planned.call(), 30.0)
+	check(not (b.get("_make_live_button") as Button).disabled, "Make live is on for a saved copy")
+	b.call("make_live")
+	if not await until(func() -> bool: return copy_of.call() == "", 60.0):
+		check(false, "Make live finished within 60 s (%s)" % b.get("notice"))
+		return
+	check(str(b.get("notice")).contains("is live") and str(b.get("notice")).contains("kept as the copy"), "the notice says it's live and where the old recipe went (%s)" % b.get("notice"))
+	var live: AreaRecipe = ResourceLoader.load(scratch + "/live_lower_stacks.tres", "", ResourceLoader.CACHE_MODE_IGNORE)
+	check(live.grow.any(func(g: AreaGrow) -> bool: return g.slot_prefix == "gallery" and g.count == Vector2i(2, 2)), "the board's Make live wrote the live recipe")
+	b.call("open_copy_at", copy_path)
+	await until(func() -> bool: return (b.get("recipes") as Dictionary).has("lower_stacks"), 30.0)
+	b.call("delete_copy")
+	await until(func() -> bool: return copy_of.call() == "" and not FileAccess.file_exists(copy_path), 30.0)
+	check(not FileAccess.file_exists(copy_path) and copy_of.call() == "", "Delete copy removes it and goes back to Live")
+	b.queue_free()
+	await process_frame
+
+
+func _wipe(dir: String) -> void:
+	if not DirAccess.dir_exists_absolute(dir):
+		return
+	for sub: String in DirAccess.get_directories_at(dir):
+		_wipe(dir.path_join(sub))
+	for f: String in DirAccess.get_files_at(dir):
+		DirAccess.remove_absolute(dir.path_join(f))
+	DirAccess.remove_absolute(dir)

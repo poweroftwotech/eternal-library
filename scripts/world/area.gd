@@ -103,6 +103,11 @@ func _ready() -> void:
 	var t0: int = Time.get_ticks_usec()
 	if background:
 		active = false
+	# Walk this seed on a recipe copy: plan that copy instead.
+	var copy: String = SeamlessPlaces.recipe_path(recipe.id)
+	if copy != "" and copy != recipe.resource_path and SeamlessPlaces.RECIPES.get(recipe.id, "") == recipe.resource_path:
+		recipe = load(copy) as AreaRecipe
+		print("Area %s: walking the recipe copy %s" % [recipe.id, copy])
 	var ws: Node = get_node_or_null("/root/WorldState")
 	if ws != null and active:
 		ws.call("enter_area", recipe.id, recipe.version)
