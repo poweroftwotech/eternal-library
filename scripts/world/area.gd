@@ -119,7 +119,7 @@ func _ready() -> void:
 		for e: String in plan.check():
 			push_warning("Area %s (seed %d): %s" % [recipe.id, plan.area_seed, e])
 	if arrive_from != "":
-		var door: Array = plan.threshold(arrive_from)
+		var door: Array = door_to(arrive_from)
 		if door.is_empty():
 			push_warning("Area %s: no door back to %s, starting at the spawn" % [recipe.id, arrive_from])
 		else:
@@ -417,8 +417,13 @@ func make_room(r: AreaPlan.Room) -> RoomTemplate:
 		if str(k["cap"]) == "threshold" and not open_doors.has(str(k["to"])):
 			var door := Threshold.new()
 			door.name = "Threshold_" + str(k["to"])
-			door.to = str(k["to"])
-			door.look = "door" if r.kind == "ledge" or String(name).begins_with("SNAP_door") else "glow"     # a ledge (its pishtaq) or a SNAP_door: a door piece stands there
+			door.to = StratumPlan.current().door_target(recipe.id, str(k["to"]))     # an entrance leads where the stratum plan links it
+			door.to_name = StratumPlan.current().place_name(door.to)
+			# A door between places is an ornate door (ornate doors, 2026-11-01): in
+			# a ledge's pishtaq, or in the kit's wall arch. A SNAP_door has its own
+			# door piece.
+			door.look = "door" if String(name).begins_with("SNAP_door") else "ornate"
+			door.arch = "gorge" if r.kind == "ledge" else "kit"
 			door.transform = r.xf.affine_inverse() * (k["xf"] as Transform3D)
 			room.add_child(door)
 	return room
@@ -570,6 +575,17 @@ static func _mesh_bounds(m: Node3D) -> AABB:
 		out = b if first else out.merge(b)
 		first = false
 	return out
+
+
+## The plan's door that leads to place `to` (its threshold's target as the
+## stratum plan has it, StratumPlan.door_target): [room, connector], or [].
+func door_to(to: String) -> Array:
+	for r: AreaPlan.Room in plan.rooms:
+		for name: StringName in r.connectors:
+			var k: Dictionary = r.connectors[name]
+			if str(k["cap"]) == "threshold" and StratumPlan.current().door_target(recipe.id, str(k.get("to", ""))) == to:
+				return [r, name]
+	return []
 
 
 ## Where a new visit starts: just inside the door you came through (arrive_from),

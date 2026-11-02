@@ -43,8 +43,8 @@ links = Array[Dictionary]([{
 "b": "forgotten_wing",
 "kind": "door"
 }, {
-"a": "gorge",
-"at": "b4_l16_E_s2_9",
+"a": "camp",
+"at": "SNAP_exit_front",
 "b": "sanctum",
 "kind": "door"
 }])

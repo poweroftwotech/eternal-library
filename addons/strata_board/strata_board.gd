@@ -348,17 +348,17 @@ func _build() -> void:
 		_fill_add_dialog()
 		_add_dialog.popup_centered(Vector2i(int(420 * ui_scale), 0))
 		_add_name.grab_focus())
-	add_area_button.tooltip_text = "A new area behind a free Gorge door place, its recipe a copy of another area's to start from."
+	add_area_button.tooltip_text = "A new area behind a free door place (in the Gorge, or the camp's back door), its recipe a copy of another area's to start from."
 	sbar.add_child(add_area_button)
-	_door_label = _label("GORGE DOOR", 11, MUTED)
+	_door_label = _label("DOOR", 11, MUTED)
 	sbar.add_child(_door_label)
 	_door_pick = OptionButton.new()
 	_door_pick.custom_minimum_size.x = 260 * ui_scale
-	_door_pick.tooltip_text = "Which Gorge door place the open area is reached by. Only door places (kept clear when the Gorge was baked) can take a door."
+	_door_pick.tooltip_text = "Which door the open area is reached by: a Gorge door place (kept clear when the Gorge was baked) or the camp's back door. Opening it loads the area as its own scene; its entrance leads back there."
 	_door_pick.item_selected.connect(func(i: int) -> void: set_door(str(_door_pick.get_item_metadata(i))))
 	sbar.add_child(_door_pick)
 	_remove_area_button = _button("Remove area…", func() -> void:
-		_remove_dialog.dialog_text = "Take %s out of the stratum? Its door in the Gorge goes; its recipe file stays, so you can add it back by hand." % str(_place(area_id).get("name", area_id))
+		_remove_dialog.dialog_text = "Take %s out of the stratum? Its door goes; its recipe file stays, so you can add it back by hand." % str(_place(area_id).get("name", area_id))
 		_remove_dialog.popup_centered())
 	sbar.add_child(_remove_area_button)
 	_stratum_note = _label("", 12, MUTED)
@@ -1207,10 +1207,10 @@ func _on_stratum_changed(answer: Dictionary, what: String) -> void:
 	match what:
 		"add":
 			paths.append(str(answer["recipe_path"]))
-			notice = "Added %s behind the Gorge door place %s, its recipe a copy to reshape.%s Walk this seed starts in it; from the Gorge, find its door." % [
-				str(answer["added"]), _door_of(answer, str(answer["added"])), gorge_note]
+			notice = "Added %s behind %s, its recipe a copy to reshape.%s Walk this seed starts in it; or open its door." % [
+				str(answer["added"]), _door_name(answer, _door_of(answer, str(answer["added"]))), gorge_note]
 		"door":
-			notice = "%s's Gorge door is now %s.%s" % [str(_place(was_open).get("name", was_open)), _door_of(answer, was_open), gorge_note]
+			notice = "%s is now reached by %s.%s" % [str(_place(was_open).get("name", was_open)), _door_name(answer, _door_of(answer, was_open)), gorge_note]
 		"remove":
 			notice = "Took %s out of the stratum; its recipe file stays.%s" % [str(_place(was_open).get("name", was_open)), gorge_note]
 			recipes.erase(was_open)
@@ -1235,6 +1235,15 @@ func _door_of(st: Dictionary, id: String) -> String:
 	return ""
 
 
+
+## Door place `at` as words: "the camp's back door", or the Gorge door place.
+func _door_name(st: Dictionary, at: String) -> String:
+	for d: Dictionary in st.get("door_places", []):
+		if str(d["id"]) == at:
+			var t: String = _door_text(d).get_slice(" · ", 0)
+			return t.left(1).to_lower() + t.substr(1)
+	return "the Gorge door place " + at
+
 ## The stratum from above for the board's world seed (the service plans the
 ## Gorge and every interior: about 10 s).
 func plan_top() -> void:
@@ -1250,6 +1259,8 @@ func plan_top() -> void:
 
 
 func _door_text(d: Dictionary) -> String:
+	if bool(d.get("camp", false)):
+		return "The camp's back door" + (" · %s" % str(d["area"]) if str(d["area"]) != "" else " · free")
 	return "Bank %d, %s cliff, storey %d" % [int(d["bank"]), str(d["cliff"]), int(d["storey"])] + (" · %s" % str(d["area"]) if str(d["area"]) != "" else " · free")
 
 
@@ -1269,11 +1280,12 @@ func _refresh_stratum_bar() -> void:
 		if str(d["id"]) == str(p.get("door", "")):
 			_door_pick.select(i)
 	if interior and str(p.get("door", "")) == "":
-		_door_pick.add_item("No Gorge door")
+		_door_pick.add_item("No door")
 		_door_pick.select(_door_pick.item_count - 1)
 	_remove_area_button.disabled = not interior
-	var free: int = (stratum.get("door_places", []) as Array).filter(func(d: Dictionary) -> bool: return str(d["area"]) == "").size()
-	var places_n: int = (stratum.get("door_places", []) as Array).size()
+	var gorge_places: Array = (stratum.get("door_places", []) as Array).filter(func(d: Dictionary) -> bool: return not bool(d.get("camp", false)))
+	var free: int = gorge_places.filter(func(d: Dictionary) -> bool: return str(d["area"]) == "").size()
+	var places_n: int = gorge_places.size()
 	_stratum_note.text = "%d of %d Gorge door places free." % [free, places_n]
 	if places_n - free > DOORS_CHECKED:
 		_stratum_note.text += " %d doors in use: the Gorge's walkways were checked to reach up to %d in every world; with more, about 1 world in 20 misses one (tests/gorge_network_test.gd checks the seeds)." % [places_n - free, DOORS_CHECKED]
@@ -1330,7 +1342,7 @@ func _build_stratum_dialogs() -> void:
 	_add_from = OptionButton.new()
 	_add_from.tooltip_text = "The new area's recipe starts as a copy of this one's, to reshape."
 	form.add_child(_add_from)
-	form.add_child(_label("Gorge door", 12, MUTED))
+	form.add_child(_label("Door", 12, MUTED))
 	_add_door = OptionButton.new()
 	form.add_child(_add_door)
 	_add_dialog.add_child(form)

@@ -5,20 +5,30 @@ extends Resource
 ## Shaped for several strata; the game has one.
 ##
 ## A place is an area (its recipe file) or the camp (a baked scene). A link is
-## the camp–Gorge corridor or a door from a Gorge building into an area: the
-## Gorge frontage slot it stands on (`at`). Only the frontage's door places
+## the camp–Gorge corridor or a door into an area: from a Gorge building (the
+## Gorge frontage slot it stands on, `at`) or the camp's back door
+## (`at` = CAMP_BACK_DOOR). Only the frontage's door places
 ## (FrontageSlot.door_place, kept clear of buildings when the Gorge is baked)
 ## can take a door; apply_doors() sets each slot's door from the links.
+##
+## Doors travel (door travel, 2026-11-01): you open the door and the place
+## behind it loads as its own scene, arriving just inside its door back. A
+## link marked "seamless" streams the two places into one world instead
+## (phase 9, SeamlessPlaces); the camp–Gorge corridor always does.
 
 const PATH: String = "res://gen/strata/stratum_1.tres"
 const CORRIDOR: String = "corridor"
 const DOOR: String = "door"
+## The camp's back door (rooms/camp/camp.tscn's SNAP_exit_front, at the far
+## end of the camp from the Gorge) as a link's `at`.
+const CAMP_BACK_DOOR: String = "SNAP_exit_front"
 
 @export var id: String = "stratum_1"
 @export var display_name: String = "Stratum 1"
 ## [{id, path}]: path a recipe (.tres, an area) or a scene (the camp).
 @export var places: Array[Dictionary] = []
-## [{a, b, kind (corridor | door), at (a door's frontage slot id)}].
+## [{a, b, kind (corridor | door), at (a door's frontage slot id, or
+## CAMP_BACK_DOOR), seamless (a door: streamed, not travelled; default false)}].
 @export var links: Array[Dictionary] = []
 
 static var _current: StratumPlan
@@ -57,24 +67,82 @@ func path_of(place: String) -> String:
 	return ""
 
 
+## What a door to `place` calls it, mid-sentence: an area's display name
+## ("the Lower Stacks"), "the camp".
+func place_name(place: String) -> String:
+	if place == "camp":
+		return "the camp"
+	var path: String = path_of(place)
+	var recipe: AreaRecipe = load(path) as AreaRecipe if path.get_extension() == "tres" and ResourceLoader.exists(path) else null
+	var shown: String = recipe.display_name if recipe != null and recipe.display_name != "" else place.capitalize()
+	return "the " + shown.substr(4) if shown.begins_with("The ") else shown     # mid-sentence: "the Sanctum"
+
+
 ## [a, b, kind] for each link.
 func triples() -> Array:
 	return links.map(func(l: Dictionary) -> Array: return [str(l["a"]), str(l["b"]), str(l["kind"])])
 
 
-## The frontage slot of the Gorge's door into `area` ("" = none).
+## Whether link `l` streams its two places into one world (SeamlessPlaces)
+## rather than travelling between them.
+static func is_seamless(l: Dictionary) -> bool:
+	return str(l.get("kind", "")) == CORRIDOR or bool(l.get("seamless", false))
+
+
+## [a, b, kind] for each seamless link.
+func seamless_triples() -> Array:
+	return links.filter(is_seamless).map(func(l: Dictionary) -> Array: return [str(l["a"]), str(l["b"]), str(l["kind"])])
+
+
+## The door into `area`: where it stands (a Gorge frontage slot id, or
+## CAMP_BACK_DOOR; "" = none).
 func door_slot(area: String) -> String:
+	var l: Dictionary = door_link(area)
+	return str(l.get("at", ""))
+
+
+## The door link into `area` ({} = none).
+func door_link(area: String) -> Dictionary:
 	for l: Dictionary in links:
-		if str(l["kind"]) == DOOR and (str(l["b"]) == area or str(l["a"]) == area):
-			return str(l.get("at", ""))
+		if str(l["kind"]) == DOOR and (str(l["b"]) == area or (str(l["a"]) == area and str(l["b"]) in ["gorge", "camp"])):
+			return l
+	return {}
+
+
+## The place at the other end of `area`'s door link ("" = none).
+func outside_of(area: String) -> String:
+	var l: Dictionary = door_link(area)
+	if l.is_empty():
+		return ""
+	return str(l["a"]) if str(l["b"]) == area else str(l["b"])
+
+
+## The area behind the camp's back door ("" = none).
+func camp_back_area() -> String:
+	for l: Dictionary in links:
+		if str(l["kind"]) == DOOR and str(l.get("at", "")) == CAMP_BACK_DOOR:
+			return str(l["b"]) if str(l["a"]) == "camp" else str(l["a"])
 	return ""
+
+
+## Where a door of `area` its recipe says leads to `raw` (a threshold's "to")
+## really leads: `raw` when that's a place `area` links to (the Gorge's doors,
+## each to its own area), else the place its door link comes from (an
+## interior's entrance, written "gorge" in its recipe, behind the camp's back
+## door leads to the camp).
+func door_target(area: String, raw: String) -> String:
+	for l: Dictionary in links:
+		if (str(l["a"]) == area and str(l["b"]) == raw) or (str(l["b"]) == area and str(l["a"]) == raw):
+			return raw
+	var outside: String = outside_of(area)
+	return outside if outside != "" else raw
 
 
 ## Sets every frontage slot's door from the links: the area behind it, or "".
 func apply_doors(frontage: GorgeFrontage) -> void:
 	var at: Dictionary = {}
 	for l: Dictionary in links:
-		if str(l["kind"]) == DOOR and str(l.get("at", "")) != "":
+		if str(l["kind"]) == DOOR and str(l.get("at", "")) != "" and "gorge" in [str(l["a"]), str(l["b"])]:
 			at[str(l["at"])] = str(l["b"]) if str(l["a"]) == "gorge" else str(l["a"])
 	for s: FrontageSlot in frontage.slots:
 		if s != null:

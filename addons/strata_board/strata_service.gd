@@ -411,6 +411,8 @@ static func stratum() -> Dictionary:
 		for s: FrontageSlot in gorge.network.frontage.slots:
 			if s != null and s.door_place:
 				door_places.append({"id": s.id, "bank": s.bank, "cliff": s.cliff, "storey": s.storey(), "width": s.width, "area": s.door})
+	# The camp's back door (door travel, 2026-11-01): a door place of its own.
+	door_places.append({"id": StratumPlan.CAMP_BACK_DOOR, "camp": true, "bank": 0, "cliff": "", "storey": 0, "width": 0, "area": sp.camp_back_area()})
 	return {"places": places, "links": sp.triples(), "door_places": door_places, "default_area": WORLD_STATE.DEFAULT_AREA,
 		"mtime": _mtime(stratum_path), "path": stratum_path}
 
@@ -460,8 +462,8 @@ static func add_area(area_name: String, from: String, at: String) -> Dictionary:
 	f.store_string(text)
 	f.close()
 	sp.places.append({"id": id, "path": path})
-	sp.links.append({"a": "gorge", "b": id, "kind": StratumPlan.DOOR, "at": at})
-	var out: Dictionary = _write_stratum(sp, true)
+	sp.links.append(_door_link(id, at))
+	var out: Dictionary = _write_stratum(sp, at != StratumPlan.CAMP_BACK_DOOR)
 	out["added"] = id
 	out["recipe_path"] = path
 	return out
@@ -475,14 +477,21 @@ static func set_door(id: String, at: String) -> Dictionary:
 	var problem: String = _door_problem(sp, at, id)
 	if problem != "":
 		return {"error": problem}
-	var found: bool = false
-	for l: Dictionary in sp.links:
-		if str(l["kind"]) == StratumPlan.DOOR and (str(l["b"]) == id or str(l["a"]) == id):
-			l["at"] = at
-			found = true
-	if not found:
-		sp.links.append({"a": "gorge", "b": id, "kind": StratumPlan.DOOR, "at": at})
-	return _write_stratum(sp, true)
+	var was: Dictionary = sp.door_link(id)
+	var seamless: bool = bool(was.get("seamless", false))
+	sp.links.erase(was)
+	sp.links.append(_door_link(id, at, seamless))
+	# The Gorge's walkways follow its doors: its version goes up when one of them changed.
+	return _write_stratum(sp, str(was.get("a", "")) == "gorge" or at != StratumPlan.CAMP_BACK_DOOR)
+
+
+## The door link into area `id` at door place `at` (a Gorge frontage slot, or
+## the camp's back door).
+static func _door_link(id: String, at: String, seamless: bool = false) -> Dictionary:
+	var l: Dictionary = {"a": "camp" if at == StratumPlan.CAMP_BACK_DOOR else "gorge", "b": id, "kind": StratumPlan.DOOR, "at": at}
+	if seamless:
+		l["seamless"] = true
+	return l
 
 
 ## Takes area `id` out of the stratum (its links too). Its recipe file stays.
@@ -492,7 +501,7 @@ static func remove_area(id: String) -> Dictionary:
 	var sp: StratumPlan = _stratum_plan()
 	if sp.path_of(id) == "":
 		return {"error": "no area %s" % id}
-	var had_door: bool = sp.door_slot(id) != ""
+	var had_door: bool = sp.door_slot(id) not in ["", StratumPlan.CAMP_BACK_DOOR]
 	sp.places = sp.places.filter(func(p: Dictionary) -> bool: return str(p["id"]) != id)
 	sp.links = sp.links.filter(func(l: Dictionary) -> bool: return str(l["a"]) != id and str(l["b"]) != id)
 	return _write_stratum(sp, had_door)
@@ -500,6 +509,9 @@ static func remove_area(id: String) -> Dictionary:
 
 ## Why area `id` can't have its door at `at` ("" = it can).
 static func _door_problem(sp: StratumPlan, at: String, id: String) -> String:
+	if at == StratumPlan.CAMP_BACK_DOOR:
+		var behind: String = sp.camp_back_area()
+		return "" if behind == "" or behind == id else "the camp's back door is %s's door" % behind
 	var gorge: AreaRecipe = _load_recipe(sp.path_of("gorge"), false)
 	var slot: FrontageSlot = gorge.network.frontage.slot(at) if gorge != null and gorge.network != null else null
 	if slot == null:
@@ -587,7 +599,10 @@ static func _slug(s: String) -> String:
 ## each interior's, the interiors placed by their doors as the game places
 ## them (SeamlessPlaces._interior_frame), in the Gorge's frame (m). Each area's
 ## floor cells as quads [x0, z0, ... x3, z3, floor y]; overlaps between two
-## interiors' cells (any storey). The Gorge plans in about 5 s.
+## interiors' cells (any storey), only between interiors streamed into one
+## world (a seamless link): doors travel, so the rest may share space. An
+## area behind the camp's back door is listed with no cells ("camp"). The
+## Gorge plans in about 5 s.
 static func layout(world_seed: int) -> Dictionary:
 	var sp: StratumPlan = _stratum_plan()
 	var gorge: AreaRecipe = _load_recipe(sp.path_of("gorge"), false)
@@ -601,13 +616,17 @@ static func layout(world_seed: int) -> Dictionary:
 		var recipe: AreaRecipe = _load_recipe(recipe_paths[id], false)
 		if recipe == null:
 			continue
+		if sp.door_slot(id) == StratumPlan.CAMP_BACK_DOOR:
+			areas.append({"id": id, "name": recipe.display_name, "quads": [], "error": "", "camp": true})
+			continue     # behind the camp's back door: it loads as its own scene, nowhere in the Gorge
 		var ip: AreaPlan = AreaPlanner.plan(recipe, AreaPlanner.area_seed_for(recipe, world_seed))
 		if gp.threshold(id).is_empty() or ip.threshold("gorge").is_empty():
 			areas.append({"id": id, "name": recipe.display_name, "quads": [],
 				"error": "no door to it from the Gorge in this world" if gp.threshold(id).is_empty() else "no door back to the Gorge"})
 			continue
 		var frame: Transform3D = SeamlessPlaces._interior_frame(gp, ip, id)
-		placed[id] = [ip, frame]
+		if StratumPlan.is_seamless(sp.door_link(id)):
+			placed[id] = [ip, frame]     # only places streamed into one world must not share space
 		var door: Vector3 = SeamlessPlaces._door_xf(gp, id).origin
 		areas.append({"id": id, "name": recipe.display_name, "quads": _quads(ip, frame), "door": [door.x, door.z], "error": ""})
 	var overlaps: Array = []

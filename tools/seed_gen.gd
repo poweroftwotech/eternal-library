@@ -9,8 +9,8 @@ extends SceneTree
 ##
 ## Slice 3 also writes, when missing: kit/sockets/collapse_rubble.tres and two
 ## Godot-only modules in gen/modules/: rubble_strip (a SCATTER socket of rubble
-## along a collapsed bay's wall) and exit_glow (the lit room beyond an exit
-## door that nothing has joined yet, with a blocker).
+## along a collapsed bay's wall) and exit_glow (a plain shut door in an exit
+## that nothing has joined yet, sealed doors 2026-11-02; it was a glow).
 
 const WALLS: String = "res://kit/modules/walls/"
 const DRESS: String = "res://kit/modules/dressing/"
@@ -111,10 +111,11 @@ func seed_rubble() -> void:
 
 
 ## gen/modules/exit_glow.tscn, in the frame of an exit connector (origin at the
-## door's centre on the wall line, -Z out of the room): a warm emissive card
-## 1.4 m beyond the wall that fills the arch from any angle in the corridor,
-## a warm shadowed light that throws the arch's shape into the last bay, and
-## a blocker 0.7-1.1 m out so the player can't walk off the grid.
+## door's centre on the wall line, -Z out of the room). Sealed doors
+## (2026-11-02): a plain shut door in the arch (SealedDoor) and a warm lamp
+## before it; until then a glowing card 1.4 m beyond the wall with a blocker
+## past it, which left a gap you could drop through where the floor stopped
+## at the wall. The name stays: the rules and baked rooms point at it.
 func seed_exit_glow() -> void:
 	if ResourceLoader.exists(EXIT_GLOW):
 		return
@@ -122,40 +123,19 @@ func seed_exit_glow() -> void:
 	m.name = "exit_glow"
 	m.family = "gen"
 	m.tags = PackedStringArray(["light", "stub"])
-	var card := MeshInstance3D.new()
-	card.name = "Glow"
-	var quad := QuadMesh.new()
-	quad.size = Vector2(6.0, 6.5)
-	var mat := StandardMaterial3D.new()
-	mat.albedo_color = Color.BLACK
-	mat.emission_enabled = true
-	mat.emission = Color(1.0, 0.64, 0.34)
-	mat.emission_energy_multiplier = 0.65
-	mat.roughness = 1.0
-	quad.material = mat
-	card.mesh = quad
-	card.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
-	card.position = Vector3(0.0, 2.75, -1.4)     # a QuadMesh faces +Z: back into the room
+	var door := SealedDoor.new()
+	door.name = "Door"
 	var light := OmniLight3D.new()
 	light.name = "Light"
-	light.light_color = Color(1.0, 0.76, 0.48)
-	light.light_energy = 1.3
-	light.omni_range = 7.0
+	light.light_color = Color(1.0, 0.8, 0.55)
+	light.light_energy = 0.7
+	light.light_specular = 0.15
+	light.omni_range = 6.0
 	light.shadow_enabled = true
-	light.position = Vector3(0.0, 2.2, -1.0)
-	var body := StaticBody3D.new()
-	body.name = "Blocker"
-	var shape := CollisionShape3D.new()
-	shape.name = "Shape"
-	var box := BoxShape3D.new()
-	box.size = Vector3(3.6, 4.0, 0.4)
-	shape.shape = box
-	shape.position = Vector3(0.0, 2.0, -0.9)
-	for n: Node in [card, light, body]:
+	light.position = Vector3(0.0, 3.0, 2.2)
+	for n: Node in [door, light]:
 		m.add_child(n)
 		n.owner = m
-	body.add_child(shape)
-	shape.owner = m
 	pack(m, EXIT_GLOW)
 
 

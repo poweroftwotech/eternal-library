@@ -90,14 +90,15 @@ static func recipes() -> Dictionary:
 
 
 ## [a, b, kind]: "corridor" (the camp and the Gorge) or "door" (the Gorge and
-## an interior, b), from the stratum plan.
+## an interior, b), from the stratum plan: only the links streamed into one
+## world (StratumPlan.is_seamless); every other door travels (main.cross).
 static func links() -> Array:
-	return StratumPlan.current().triples()
+	return StratumPlan.current().seamless_triples()
 
 
-## The game's place ("camp" or an area id) is one of these.
+## The game's place ("camp" or an area id) has a seamless link.
 static func applies(id: String) -> bool:
-	return id == "camp" or recipes().has(id)
+	return links().any(func(l: Array) -> bool: return l[0] == id or l[1] == id)
 
 
 ## Where area `id`'s recipe is read from: its live file, or the copy a
@@ -176,8 +177,8 @@ func setup(main: Node, id: String) -> void:
 func _plan_interiors(world: Node3D) -> void:
 	var t0: int = Time.get_ticks_usec()
 	for id: String in recipes():
-		if id == "gorge":
-			continue
+		if id == "gorge" or not applies(id):
+			continue     # an area you travel to plans when you get there
 		if world is Area and (world as Area).recipe.id == id:
 			_plans[id] = (world as Area).plan
 			continue

@@ -38,6 +38,7 @@ func _ready() -> void:
 			var body: Node = bodies.get_node_or_null(NodePath(v.name))
 			if body != null:
 				gatherables[str(v.name)] = {"kind": str(v.get_meta("kind", "")), "visual": v, "body": body, "taken": false}
+	_add_back_door()
 	for n: Node in find_children("*", "Light3D", true, false):
 		if n.has_meta("camp_light"):
 			_lights.append(n as Light3D)
@@ -59,6 +60,25 @@ func _ready() -> void:
 				_materials.append(m as ShaderMaterial)
 	tick(0.0)
 
+
+
+## The back door (SNAP_exit_front, its glow baked as FrontDoorGlow) opens
+## onto the area the stratum plan puts behind it (StratumPlan.CAMP_BACK_DOOR;
+## door travel, 2026-11-01). With none, it stays the glowing stub.
+func _add_back_door() -> void:
+	var plan: StratumPlan = StratumPlan.current()
+	var to: String = plan.camp_back_area() if plan != null else ""
+	var at: Node3D = get_node_or_null("Connectors/" + StratumPlan.CAMP_BACK_DOOR)
+	if to == "" or at == null or has_node("Threshold_" + to):
+		return
+	var door := Threshold.new()
+	door.name = "Threshold_" + to
+	door.to = to
+	door.to_name = plan.place_name(to)
+	door.look = "ornate"
+	door.arch = "camp"
+	door.transform = at.transform
+	add_child(door)
 
 func _process(delta: float) -> void:
 	elapsed += delta

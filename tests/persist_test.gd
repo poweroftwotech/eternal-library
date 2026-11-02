@@ -23,12 +23,15 @@ extends SceneTree
 ## camp_cross, camp_back: on along the gallery's corridor onto the Overlook's loggia
 ##           and back with no loading screen (phase 9), in the camp's save file.
 ## door_save, door_cross, door_back: through the gorge's door into the Lower
-##           Stacks and back (phase-6-design.md 5.7.6), in their own save file;
-##           see door_save_mode.
+##           Stacks and back (phase-6-design.md 5.7.6; opened, door travel),
+##           in their own save file; see door_save_mode.
 ## mid_save, mid_cross, mid_back: saves made between places (phase 9 step 3),
-##           in the Lower Stacks' vestibule on either side of its swap.
+##           in the Lower Stacks' vestibule on either side of its swap (its
+##           door made seamless for these runs: doors travel in the game).
 ## corridor_save, corridor_load: a save in the camp's half of the corridor to
 ##           the Gorge, past the camp's doorway sill.
+## camp_door: the camp's back door with the Sanctum behind it (door travel):
+##           open it, arrive in the Sanctum, open its entrance back to the camp.
 
 var main_script: GDScript = load("res://scripts/main.gd")
 const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
@@ -76,6 +79,26 @@ func run() -> void:
 		main_script.room_override = "camp"
 	elif mode == "door_save" or mode == "mid_save":
 		main_script.room_override = "area:gorge"
+	if mode.begins_with("mid_"):
+		# Doors travel (door travel, 2026-11-01); the passage between places
+		# streamed into one world (SeamlessPlaces) is kept for a hub other than
+		# the Gorge: these modes stream the Lower Stacks' door to test it.
+		var sp := StratumPlan.new()
+		sp.places = StratumPlan.current().places.duplicate(true)
+		for l: Dictionary in StratumPlan.current().links:
+			var c: Dictionary = l.duplicate()
+			if str(c["b"]) == "lower_stacks":
+				c["seamless"] = true
+			sp.links.append(c)
+		StratumPlan.use(sp)
+	elif mode == "camp_door":
+		# The Sanctum moved behind the camp's back door (in memory only).
+		var sp := StratumPlan.new()
+		sp.places = StratumPlan.current().places.duplicate(true)
+		for l: Dictionary in StratumPlan.current().links:
+			sp.links.append({"a": "camp", "b": "sanctum", "kind": StratumPlan.DOOR, "at": StratumPlan.CAMP_BACK_DOOR} if str(l["b"]) == "sanctum" else l.duplicate())
+		StratumPlan.use(sp)
+		main_script.room_override = "camp"
 	game = (load("res://main.tscn") as PackedScene).instantiate()
 	root.add_child(game)
 	current_scene = game     # a door reloads it (main.travel)
@@ -133,6 +156,8 @@ func run() -> void:
 			await corridor_save_mode()
 		"corridor_load":
 			await corridor_load_mode()
+		"camp_door":
+			await camp_door_mode()
 	finish(mode, true)
 
 
@@ -697,6 +722,7 @@ func door_save_mode() -> void:
 	check(area != null and area.recipe.id == "gorge", "the game starts in the Gorge")
 	if area == null:
 		return
+	check(area.open_doors.is_empty() and game.find_children("Vestibule_*", "", false, false).is_empty(), "the Gorge's doors are closed: no passages cut into its banks (door travel)")
 	var door: Array = area.plan.threshold("lower_stacks")
 	check(not door.is_empty(), "the Gorge has a door to the Lower Stacks")
 	if door.is_empty():
@@ -709,10 +735,9 @@ func door_save_mode() -> void:
 	write_door_expect({"ledge": ledge.slot_id, "seed": area.plan.area_seed, "pos": vec(game.player.global_position)})
 
 
-## Ninth (phase 9, one continuous world): resumes on that ledge; once the
-## Lower Stacks is built behind its door, walks through the door and along
-## its vestibule into the Lower Stacks, the same game throughout; walks a
-## little further in and quits.
+## Ninth: resumes on that ledge; opens the door and travels into the Lower
+## Stacks (door travel, 2026-11-01: its own scene, arriving just inside its
+## door back); walks a little further in and quits.
 func door_cross_mode() -> void:
 	var expect: Dictionary = door_expect()
 	check(area != null and area.recipe.id == "gorge" and area.streamer.player_room == expect.get("ledge", ""), "the game resumes in the Gorge on %s" % expect.get("ledge", ""))
@@ -720,9 +745,9 @@ func door_cross_mode() -> void:
 	if area == null:
 		return
 	fast_unloads()
-	if not await through_vestibule("lower_stacks"):
+	if not await through_door("lower_stacks", "gorge"):
 		return
-	var door: Array = area.plan.threshold("gorge")
+	var door: Array = area.door_to("gorge")
 	var inward: Vector3 = (door[0] as AreaPlan.Room).connectors[door[1]]["xf"] * Vector3(0, .1, Area.ARRIVE_IN + 3.0)
 	await walk([inward])
 	await until(func() -> bool: return area.room_at(game.player.global_position) != null and area.streamer.player_room == area.room_at(game.player.global_position).slot_id)
@@ -731,9 +756,8 @@ func door_cross_mode() -> void:
 	write_door_expect(expect)
 
 
-## Tenth: a new process resumes inside the Lower Stacks where it quit (the
-## Lower Stacks at the origin now, the Gorge placed by it); walks back out
-## along the vestibule onto the same ledge.
+## Tenth: a new process resumes inside the Lower Stacks where it quit; opens
+## its door back and travels out onto the same ledge of the same Gorge.
 func door_back_mode() -> void:
 	var expect: Dictionary = door_expect()
 	check(area != null and area.recipe.id == "lower_stacks", "the game resumes in the Lower Stacks")
@@ -741,7 +765,7 @@ func door_back_mode() -> void:
 	if area == null:
 		return
 	fast_unloads()
-	if not await through_vestibule("gorge"):
+	if not await through_door("gorge", "lower_stacks"):
 		return
 	await until(func() -> bool: return area.streamer.player_room == expect.get("ledge", ""))
 	check(area.streamer.player_room == expect.get("ledge", "") and area.plan.area_seed == int(expect.get("seed", -1)),
@@ -905,20 +929,29 @@ func through_vestibule(to: String) -> bool:
 	return area != null and area.recipe.id == to
 
 
-## Steps into the current area's door to `to` and waits for the game to
-## reload there; then checks you stand just inside its door back to `from`,
-## facing in. Whether it got there.
+## Stands before the current area's door to `to`, facing it, opens it as E
+## does (the aimed door, game.interact) and waits for the game to reload
+## there (door travel, 2026-11-01); then checks you stand just inside its
+## door back to `from`, facing in. Whether it got there.
 func through_door(to: String, from: String) -> bool:
-	var door: Array = area.plan.threshold(to)
+	var door: Array = area.door_to(to)
 	check(not door.is_empty() and area.rooms.has((door[0] as AreaPlan.Room).slot_id), "%s: its door to %s is live" % [area.recipe.id, to])
 	if door.is_empty():
 		return false
 	var old_id: int = game.get_instance_id()
-	var at: Transform3D = (door[0] as AreaPlan.Room).connectors[door[1]]["xf"]
-	game.player.teleport(area.to_global(at * Vector3(0, .1, .5)), game.player.rotation.y)
+	var at: Transform3D = area.global_transform * ((door[0] as AreaPlan.Room).connectors[door[1]]["xf"] as Transform3D)
+	game.player.teleport(at * Vector3(0, .1, Area.ARRIVE_IN), at.basis.get_euler().y, 0.0)     # facing out through it
+	for _i: int in 6:
+		await physics_frame
+	var aimed: Object = game.player.ray.get_collider() if game.player.ray.is_colliding() else null
+	var prompt: String = game.prompt_for(aimed) if aimed != null and aimed.has_method("interaction_prompt") else ""
+	check(prompt.begins_with("Open the door to"), "facing the door to %s, the HUD offers to open it (\"%s\", aiming at %s)" % [to, prompt, aimed])
+	if prompt == "":
+		return false
+	game.interact(aimed)
 	await until(func() -> bool: return current_scene != null and current_scene.get_instance_id() != old_id and current_scene.get("world") is Area)
 	var moved: bool = current_scene != null and current_scene.get_instance_id() != old_id
-	check(moved, "stepping into the door to %s travels" % to)
+	check(moved, "opening the door to %s travels" % to)
 	if not moved:
 		return false
 	game = current_scene
@@ -926,7 +959,7 @@ func through_door(to: String, from: String) -> bool:
 	check(area.recipe.id == to, "arrived in %s (%s)" % [to, area.recipe.id])
 	fast_unloads()
 	await until(func() -> bool: return area.room_at(game.player.global_position) != null and area.streamer.player_room == area.room_at(game.player.global_position).slot_id and not area.streamer.busy())
-	var back: Array = area.plan.threshold(from)
+	var back: Array = area.door_to(from)
 	check(not back.is_empty(), "%s has a door back to %s" % [to, from])
 	if back.is_empty():
 		return false
@@ -1073,3 +1106,65 @@ func until_ms(cond: Callable, ms: int) -> void:
 	var stop_ms: int = Time.get_ticks_msec() + ms
 	while not cond.call() and Time.get_ticks_msec() < stop_ms:
 		await process_frame
+
+
+## The camp's back door (door travel, 2026-11-01), the Sanctum behind it:
+## open it from the camp, arrive just inside the Sanctum's entrance, which
+## now leads back to the camp; open that, arrive just inside the back door.
+func camp_door_mode() -> void:
+	check(game.world is CampRoom, "the game starts in the camp")
+	var door: Threshold = game.world.get_node_or_null("Threshold_sanctum") if game.world is CampRoom else null
+	check(door != null and door.look == "ornate" and door.has_node("Door") and door.to == "sanctum", "the camp's back door is an ornate door to the Sanctum")
+	if door == null:
+		return
+	if not await open_facing(door.global_transform, "the Sanctum"):
+		return
+	area = game.world as Area
+	check(area != null and area.recipe.id == "sanctum", "opening it travels to the Sanctum (%s)" % game.world)
+	if area == null:
+		return
+	fast_unloads()
+	await until(func() -> bool: return area.room_at(game.player.global_position) != null and not area.streamer.busy())
+	var back: Array = area.door_to("camp")
+	check(not back.is_empty(), "the Sanctum's entrance leads back to the camp")
+	if back.is_empty():
+		return
+	var at: Transform3D = area.global_transform * ((back[0] as AreaPlan.Room).connectors[back[1]]["xf"] as Transform3D)
+	check(game.player.global_position.distance_to(at * Vector3(0, .1, Area.ARRIVE_IN)) < .15 and (-game.player.global_basis.z).dot(at.basis.z) > .95,
+		"just inside the Sanctum's entrance, facing in (%s)" % game.player.global_position)
+	var live: RoomTemplate = area.rooms.get((back[0] as AreaPlan.Room).slot_id)
+	var entrance: Threshold = live.get_node_or_null("Threshold_" + str((back[0] as AreaPlan.Room).connectors[back[1]]["to"])) if live != null else null
+	check(entrance != null and entrance.to == "camp", "its door's threshold goes to the camp (%s)" % [entrance.to if entrance != null else "none"])
+	if not await open_facing(at, "the camp"):
+		return
+	check(game.world is CampRoom, "opening it travels back to the camp (%s)" % game.world)
+	var home: Threshold = game.world.get_node_or_null("Threshold_sanctum") if game.world is CampRoom else null
+	if home == null:
+		return
+	var want: Vector3 = home.global_transform * Vector3(0, .1, Area.ARRIVE_IN)
+	check(game.player.global_position.distance_to(want) < .3 and (-game.player.global_basis.z).dot(home.global_basis.z) > .95,
+		"just inside the camp's back door, facing in (%s, want %s)" % [game.player.global_position, want])
+
+
+## Stands Area.ARRIVE_IN before the door at `at` (-Z out through it), facing
+## it; the HUD offers to open it onto `place`; opens it as E does and waits
+## for the game to reload. Whether it did.
+func open_facing(at: Transform3D, place: String) -> bool:
+	var old_id: int = game.get_instance_id()
+	game.player.teleport(at * Vector3(0, .1, Area.ARRIVE_IN), at.basis.get_euler().y, 0.0)
+	for _i: int in 6:
+		await physics_frame
+	var aimed: Object = game.player.ray.get_collider() if game.player.ray.is_colliding() else null
+	var prompt: String = game.prompt_for(aimed) if aimed != null and aimed.has_method("interaction_prompt") else ""
+	check(prompt == "Open the door to %s" % place, "facing the door, the HUD says \"%s\"" % prompt)
+	if prompt == "":
+		return false
+	game.interact(aimed)
+	await until_ms(func() -> bool: return current_scene != null and current_scene.get_instance_id() != old_id and current_scene.get("world") != null, 30000)
+	if current_scene == null or current_scene.get_instance_id() == old_id:
+		check(false, "the game reloaded through the door")
+		return false
+	game = current_scene
+	for _i: int in 12:
+		await physics_frame
+	return true
