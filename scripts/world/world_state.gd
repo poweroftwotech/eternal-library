@@ -245,6 +245,85 @@ func keep_variants(id: String, variants: Dictionary, recipe_version: int) -> voi
 		mark_dirty()
 
 
+## What the map knows of place `id` (phase 11): {recipe_version, name, ground
+## (the entrance's storey), entered: [slot], seen: [slot], rooms: {slot: sketch
+## (MapCanvas.sketch_of)}, floor: the storey the map last showed}. The sketches
+## let the map draw a place you are not in without planning it. A recipe newer than the
+## one it was drawn from moves rooms, so that place is forgotten (shown as
+## unexplored) rather than drawn wrong.
+func map_place(id: String, recipe_version: int) -> Dictionary:
+	var map: Dictionary = data.get_or_add("map", {"places": {}, "order": []})
+	var places: Dictionary = map["places"]
+	var known: Dictionary = places.get(id, {})
+	if known.is_empty() or int(known.get("recipe_version", recipe_version)) != recipe_version:
+		known = {"recipe_version": recipe_version, "name": "", "ground": 0, "entered": [], "seen": [], "rooms": {}, "floor": 0}
+		places[id] = known
+	return known
+
+
+## What the map knows of place `id` as it was saved ({} = nothing), whatever
+## its recipe now: what the map draws for a place you are not in.
+func map_known(id: String) -> Dictionary:
+	return ((data.get("map", {}) as Dictionary).get("places", {}) as Dictionary).get(id, {})
+
+
+## The places the map has drawn something of, in the order first visited.
+func map_places() -> Array[String]:
+	var map: Dictionary = data.get("map", {})
+	var out: Array[String] = []
+	for id: Variant in map.get("order", []):
+		if not ((map["places"] as Dictionary).get(id, {}) as Dictionary).get("entered", []).is_empty():
+			out.append(str(id))
+	return out
+
+
+## You are in room `slot` of place `id` and can see into `seen`: the map
+## draws them from now on. `sketch` makes a room's sketch (slot -> Dictionary),
+## asked only for rooms the map hasn't got. Returns whether it learned anything.
+func map_note(id: String, recipe_version: int, slot: String, seen: PackedStringArray, sketch: Callable) -> bool:
+	var known: Dictionary = map_place(id, recipe_version)
+	var changed: bool = false
+	var sketches: Dictionary = known.get_or_add("rooms", {})
+	# This room, those seen from it, and any the map knows without a sketch
+	# (a save from before the sketches).
+	for s: Variant in [slot] + Array(seen) + (known["entered"] as Array) + (known["seen"] as Array):
+		if not sketches.has(s):
+			sketches[s] = sketch.call(s)
+			changed = true
+	var entered: Array = known["entered"]
+	var seen_list: Array = known["seen"]
+	if not entered.has(slot):
+		entered.append(slot)
+		seen_list.erase(slot)
+		changed = true
+	for s: String in seen:
+		if not seen_list.has(s) and not entered.has(s):
+			seen_list.append(s)
+			changed = true
+	var order: Array = data["map"]["order"]
+	if not order.has(id):
+		order.append(id)
+	if changed:
+		mark_dirty()
+	return changed
+
+
+## Names place `id` on the map and says which storey is its ground floor.
+func set_map_name(id: String, recipe_version: int, shown: String, ground: int) -> void:
+	var known: Dictionary = map_place(id, recipe_version)
+	if str(known.get("name", "")) != shown or int(known.get("ground", 0)) != ground:
+		known["name"] = shown
+		known["ground"] = ground
+		mark_dirty()
+
+
+func set_map_floor(id: String, recipe_version: int, storey: int) -> void:
+	var known: Dictionary = map_place(id, recipe_version)
+	if int(known.get("floor", 0)) != storey:
+		known["floor"] = storey
+		mark_dirty()
+
+
 func deltas() -> Dictionary:
 	return area_bucket()["deltas"]
 

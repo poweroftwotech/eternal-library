@@ -8,6 +8,8 @@ var hud
 var stats: StatsOverlay
 ## Reports what you see for Claude: a screenshot, where you stand and look, a note (the ` key).
 var report: ReportTool
+## The map (phase 11): M.
+var map: MapPage
 var inventory: Dictionary = {"mushroom":0,"root":0,"herb":0}
 var nourishment: float = 80
 var warmth: float = 65
@@ -137,6 +139,10 @@ func _ready() -> void:
 	report.game = self
 	report.ui_theme = hud.theme
 	add_child(report)
+	map = MapPage.new()
+	map.game = self
+	map.ui_theme = hud.theme
+	add_child(map)
 	audio = AudioStreamPlayer.new()
 	audio.stream = load("res://assets/reading_garden_tar.ogg")
 	if audio.stream is AudioStreamOggVorbis:
@@ -150,7 +156,7 @@ func _ready() -> void:
 		audio.play()
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 	hud.update_values(inventory,nourishment,warmth)
-	hud.notify("WASD explore  ·  E interact  ·  J field notes  ·  Esc menu")
+	hud.notify("WASD explore  ·  E interact  ·  J field notes  ·  M map  ·  Esc menu")
 	if in_room():
 		hud.zone_label.text = room_title()
 	# The camp and the Gorge stream into each other along the corridor from
@@ -266,7 +272,7 @@ func save_and_quit() -> void:
 	get_tree().quit()
 
 func install_inputs() -> void:
-	var actions = {"forward":[KEY_W,KEY_UP],"back":[KEY_S,KEY_DOWN],"left":[KEY_A,KEY_LEFT],"right":[KEY_D,KEY_RIGHT],"interact":[KEY_E],"jump":[KEY_SPACE],"sprint":[KEY_SHIFT],"notes":[KEY_J],"fullscreen":[KEY_F11],"stats":[KEY_F3],"fly":[KEY_V],"fly_down":[KEY_C,KEY_CTRL]}
+	var actions = {"forward":[KEY_W,KEY_UP],"back":[KEY_S,KEY_DOWN],"left":[KEY_A,KEY_LEFT],"right":[KEY_D,KEY_RIGHT],"interact":[KEY_E],"jump":[KEY_SPACE],"sprint":[KEY_SHIFT],"notes":[KEY_J],"fullscreen":[KEY_F11],"stats":[KEY_F3],"fly":[KEY_V],"fly_down":[KEY_C,KEY_CTRL],"map":[KEY_M]}
 	for action in actions:
 		if not InputMap.has_action(action):
 			InputMap.add_action(action)
@@ -425,7 +431,7 @@ func show_menu() -> void:
 	open_panel(room_title().capitalize() if in_room() else "The reading garden",text,options,"menu")
 
 func show_controls() -> void:
-	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     Esc — menu\nF11 — fullscreen     F3 — performance stats\n` — report what you see (a screenshot, where you stand, a note)\nV — fly (no-clip): Space up, C or Ctrl down, Shift 4x, mouse wheel for speed\n\nMovement pauses while a panel is open.",[
+	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     M — map     Esc — menu\nF11 — fullscreen     F3 — performance stats\n` — report what you see (a screenshot, where you stand, a note)\nV — fly (no-clip): Space up, C or Ctrl down, Shift 4x, mouse wheel for speed\n\nMovement pauses while a panel is open.",[
 		{"text":"Mouse sensitivity: %.4f — cycle" % player.sensitivity,"action":"sensitivity"},
 		{"text":"Invert look: %s" % ("On" if player.invert_y else "Off"),"action":"invert"},
 		{"text":"Music: %s" % ("Off" if mute else "On"),"action":"mute"},
@@ -553,6 +559,9 @@ func _unhandled_input(event: InputEvent) -> void:
 			close_panel()
 		else:
 			show_notes()
+	elif event.is_action_pressed("map"):
+		if not hud.modal_open:
+			map.toggle()
 	elif event.is_action_pressed("stats"):
 		toggle_stats()
 	elif event.is_action_pressed("fullscreen"):
@@ -561,7 +570,7 @@ func _unhandled_input(event: InputEvent) -> void:
 func _notification(what: int) -> void:
 	if what == NOTIFICATION_WM_CLOSE_REQUEST:
 		ws().save_now()     # closing the window keeps the world (ENVIRONMENT_PLAN.md 6.5.3)
-	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and hud != null and not hud.modal_open and not (report != null and report.is_open()):
+	if what == NOTIFICATION_APPLICATION_FOCUS_OUT and hud != null and not hud.modal_open and not (report != null and report.is_open()) and not (map != null and map.is_open()):
 		show_menu()
 
 func _exit_tree() -> void:
