@@ -272,7 +272,8 @@ func map_places() -> Array[String]:
 	var map: Dictionary = data.get("map", {})
 	var out: Array[String] = []
 	for id: Variant in map.get("order", []):
-		if not ((map["places"] as Dictionary).get(id, {}) as Dictionary).get("entered", []).is_empty():
+		var known: Dictionary = (map["places"] as Dictionary).get(id, {})
+		if not known.get("entered", []).is_empty() or not known.get("walked", []).is_empty():
 			out.append(str(id))
 	return out
 
@@ -299,6 +300,47 @@ func map_note(id: String, recipe_version: int, slot: String, seen: PackedStringA
 	for s: String in seen:
 		if not seen_list.has(s) and not entered.has(s):
 			seen_list.append(s)
+			changed = true
+	var order: Array = data["map"]["order"]
+	if not order.has(id):
+		order.append(id)
+	if changed:
+		mark_dirty()
+	return changed
+
+
+## What the map keeps of a traced place (the Gorge, the camp: MapTrace), made
+## fresh if it has none or was traced differently (`stamp`, MapTrace.stamp()):
+## the tiles walked (drawn in ink) and only seen (pencil), as tile indices.
+func map_traced(id: String, stamp: String, shown: String) -> Dictionary:
+	var map: Dictionary = data.get_or_add("map", {"places": {}, "order": []})
+	var places: Dictionary = map["places"]
+	var known: Dictionary = places.get(id, {})
+	if str(known.get("trace", "")) != stamp:
+		known = {"trace": stamp, "name": shown, "walked": [], "sighted": []}
+		places[id] = known
+	for k: String in ["walked", "sighted"]:     # JSON reads numbers back as floats
+		var list: Array = known[k]
+		if not list.is_empty() and typeof(list[0]) == TYPE_FLOAT:
+			known[k] = list.map(func(t: Variant) -> int: return int(t))
+	return known
+
+
+## You walk near `walked` tiles of traced place `id` and see `sighted` ones.
+## Returns whether the map learned anything.
+func map_reveal(id: String, stamp: String, shown: String, walked: PackedInt32Array, sighted: PackedInt32Array) -> bool:
+	var known: Dictionary = map_traced(id, stamp, shown)
+	var w: Array = known["walked"]
+	var s: Array = known["sighted"]
+	var changed: bool = false
+	for t: int in walked:
+		if not w.has(t):
+			w.append(t)
+			s.erase(t)
+			changed = true
+	for t: int in sighted:
+		if not s.has(t) and not w.has(t):
+			s.append(t)
 			changed = true
 	var order: Array = data["map"]["order"]
 	if not order.has(id):

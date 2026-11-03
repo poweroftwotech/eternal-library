@@ -45,6 +45,14 @@ var you: Dictionary = {}
 var door_labels: Dictionary = {}
 ## Said in the middle of the sheet when there is nothing to draw.
 var note: String = ""
+## A traced place (the Gorge, the camp) is drawn from its trace's images
+## instead of rooms: the tiles walked (index -> true) in ink, those only
+## seen in pencil, and the doors on walked tiles.
+var trace: MapTrace
+var trace_ink: Texture2D
+var trace_pencil: Texture2D
+var walked: Dictionary = {}
+var sighted: Dictionary = {}
 
 
 func to_px(m: Vector2) -> Vector2:
@@ -71,6 +79,11 @@ func storeys() -> Array[int]:
 func middle() -> Vector2:
 	var sum := Vector2.ZERO
 	var n: int = 0
+	if trace != null:
+		for t: int in walked:
+			sum += trace.tile_rect(t).get_center()
+			n += 1
+		return sum / n if n > 0 else Vector2.ZERO
 	for r: Sketch in rooms:
 		if entered.has(r.slot_id):
 			for c: Vector3i in r.floor_cells:
@@ -83,6 +96,9 @@ func middle() -> Vector2:
 func _draw() -> void:
 	if paper != null:
 		draw_texture_rect(paper, Rect2(Vector2.ZERO, size), false)
+	if trace != null:
+		_draw_trace()
+		return
 	if rooms.is_empty():
 		_text_at(size * 0.5, note, PENCIL, 0.0, font_size + 2)
 		return
@@ -119,6 +135,25 @@ func _draw() -> void:
 	for r: Sketch in named.values():
 		_draw_name(r)
 	if not you.is_empty() and int(you["storey"]) == storey:
+		_draw_you(Vector2(you["pos"].x, you["pos"].z), you["dir"])
+
+
+## A traced place: the tiles seen in pencil, those walked in ink over them,
+## a tile at a time from the trace's images; the doors on walked tiles.
+func _draw_trace() -> void:
+	var view := Rect2(to_map(Vector2.ZERO), size / zoom)
+	for pass_ink: bool in [false, true]:
+		for t: int in (walked if pass_ink else sighted):
+			if pass_ink == false and walked.has(t):
+				continue
+			var r: Rect2 = trace.tile_rect(t)
+			if not view.intersects(r):
+				continue
+			draw_texture_rect_region(trace_ink if pass_ink else trace_pencil, Rect2(to_px(r.position), r.size * zoom), trace.tile_pixels(t))
+	for d: Dictionary in trace.doors:
+		if walked.has(trace.tile_of(d["at"])):
+			_door_mark({"mid": d["at"], "out": d["out"], "kind": d["kind"], "to": d["raw"]}, true)
+	if not you.is_empty():
 		_draw_you(Vector2(you["pos"].x, you["pos"].z), you["dir"])
 
 

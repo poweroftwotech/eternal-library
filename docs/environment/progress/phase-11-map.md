@@ -3,6 +3,48 @@
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · [Approval brief](../phase-11-approval.md) ·
 [The mock](https://claude.ai/artifact/LSnEpwg9XnPVp3DLoqYnx6)
 
+## Step 2: the Gorge and the camp (built 2026-11-03, waiting for your try)
+
+**What you can try:** start in the camp, walk through the corridor into the Gorge and down the span, then press **M**. Both are listed under "Places you know".
+
+- The Gorge and the camp aren't built on the 4 m grid, so they're drawn from a trace of where you can walk: the outlines you approved (`previews/p11_step2/camp_outline.png`, `gorge_outline.png`).
+- The map shows them in 8 m patches:
+  - **Ink:** the patches within 14 m of where you have walked.
+  - **Pencil:** patches you have only seen (in the Gorge only, out to 40 m, since you see far down it; the camp has walls).
+- A door shows once its patch is in ink: "to the camp" at the corridor's end, "to the Gorge" at the camp's north door, "?" for a door you haven't been through.
+- The Gorge opens at 2 pixels a metre, the camp at 4, so each 0.5 m sample is a whole number of pixels.
+
+**How it's built:**
+
+- `tools/map_trace.gd` (run `-- gorge` or `-- camp --no-seamless`, then `--import`) loads the place on its own and casts rays down every 0.5 m. A floor needs to face up with 1.7 m of headroom. It then floods out from where you stand and from each door, by steps of at most 0.45 m, only where nothing stands between two samples at waist height.
+  - This sideways check was added after the first camp trace counted the whole ground, because walls thinner than a sample slipped through.
+  - Roofs, ledges and the gorge floor you can't reach are left out.
+  - It writes `gen/map/<place>_trace.tres` (size, which tiles have floor, the doors), `_ink.png` and `_pencil.png`.
+  - **Re-run it after re-baking either place.**
+- `MapTrace` (`scripts/map/map_trace.gd`) holds the trace. The map draws a revealed tile as a region of the ink or pencil image, so drawing costs nothing more.
+- The save keeps, per traced place, the tiles walked and seen and a stamp of the trace. If a re-trace changes the tiling, that place's map starts again rather than drawing wrong.
+- The Gorge's doors say where the stratum plan links them now; the camp's say where they led when traced.
+
+**Verified:**
+
+- `tests/map_trace_test.gd`, in two OS processes, with the world as you play it (seamless):
+  - *save* (62 checks): start in the camp, go to its door, down the corridor, onto the Overlook, to the Gorge's doors to the Library Wing and the Lower Stacks. Checked:
+    - the map knows which place you're in;
+    - the tiles where you went are walked, more of the Gorge is only seen, never both;
+    - the map opens on the Gorge with you on it, "to the camp" and "?" on the doors;
+    - the camp's door says "to the Gorge".
+  - *load* (7 with the GPU): a new process resumes in the Gorge with the same tiles walked in both places, and the map draws them.
+- GPU captures: `previews/p11_step2/map_gorge.png` and `map_camp.png`.
+- `tests/map_test.gd` (step 1) still passes (15 + 9 checks); the headless 240-frame gate passes.
+
+**Caveats:**
+
+- The test moves you by teleporting, so the stretches between the spots it visits are pencil, not ink. Walking covers them.
+- A patch is drawn whole once revealed: its edge can cut a flight short in pencil.
+- The Gorge is one sheet: where the span passes over a lower flight, the map shows the higher one.
+- The camp's back door is drawn where it was traced. If the stratum plan moves the area behind it, re-run the trace.
+- Not run: the full persistence gate, the frame gate and the route tests. The map only reads the world.
+
 ## Step 1: the map of an interior (committed d7c13a7, 2026-11-03, after your try)
 
 **What you can try:** walk into the Lower Stacks (or any interior) and press **M**.
@@ -30,7 +72,7 @@
 
 **Caveats:**
 
-- The Gorge and the camp aren't drawn yet (step 2). The Gorge is listed once you've walked it, and shows a note.
+- The Gorge and the camp weren't drawn in step 1 (see step 2).
 - Long names in narrow rooms are turned to run along them; the Cistern Archive's name is a little longer than its room.
 - Walls that two rooms share are drawn by both. Their wobble is the same, so they line up, but a pencil wall next to an ink one shows both.
 - Not run: the full persistence gate, the frame gate and the route tests. The map touches the save only under its own key, and nothing in the world.

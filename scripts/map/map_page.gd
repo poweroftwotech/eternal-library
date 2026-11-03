@@ -10,7 +10,8 @@ extends CanvasLayer
 ##   the sheet), footer (keys). The sheet is a SubViewportContainer drawing the
 ##   MapCanvas at half resolution, doubled: it reads as pixels like the game.
 ##
-## Step 1 draws the interiors; the Gorge and the camp come in step 2.
+## Interiors are drawn from their rooms (step 1); the Gorge and the camp from
+## their traces (MapTrace, step 2), revealed a tile at a time as you walk.
 
 const PAPER: Texture2D = preload("res://assets/textures/map_paper.png")
 const HEAD := Color("c8ac70")
@@ -23,6 +24,13 @@ const PICKED_BG := Color("294042")
 const NOTE_EVERY: float = 0.25
 const ZOOM_MIN: float = 1.2
 const ZOOM_MAX: float = 12.0
+## A traced place (the Gorge, the camp: MapTrace) shows the tiles within
+## WALK_REVEAL m of where you walk in ink, and those within its SIGHT_REVEAL
+## m in pencil (the Gorge is open: you see far down it; the camp has walls).
+const WALK_REVEAL: float = 14.0
+const SIGHT_REVEAL: Dictionary = {"gorge": 40.0}
+## Its pixels a metre when you open it: a 0.5 m sample to whole pixels.
+const TRACE_ZOOM: Dictionary = {"gorge": 2.0, "camp": 4.0}
 
 ## The game (main.gd).
 var game: Node
@@ -37,6 +45,10 @@ var _places: VBoxContainer
 var _since_note: float = 0.0
 var _dragging: bool = false
 var _was_blocked: bool = false
+## Traces (id -> MapTrace or null) and their images, loaded once.
+var _traces: Dictionary = {}
+var _ink: Dictionary = {}
+var _pencil: Dictionary = {}
 
 
 func _ready() -> void:
@@ -170,8 +182,17 @@ func _process(delta: float) -> void:
 		_note_room()
 
 
-## The room you are in, and the rooms you see into from it, into the save.
+## The room you are in, and the rooms you see into from it, into the save;
+## in a traced place, the tiles near you.
 func _note_room() -> void:
+	var traced: Array = _traced_here()
+	if not traced.is_empty():
+		here_id = traced[0]
+		var t: MapTrace = trace_of(here_id)
+		var local: Vector3 = (traced[1] as Node3D).to_local(game.player.global_position)
+		var m := Vector2(local.x, local.z)
+		ws().map_reveal(here_id, t.stamp(), _traced_name(traced[1]), t.tiles_near(m, WALK_REVEAL), t.tiles_near(m, float(SIGHT_REVEAL.get(here_id, WALK_REVEAL))))
+		return
 	var a: Area = _area_here()
 	if a == null:
 		here_id = ""
@@ -187,6 +208,35 @@ func _note_room() -> void:
 		ws().set_map_name(here_id, plan.recipe_version, a.recipe.display_name, plan.rooms[0].storey if not plan.rooms.is_empty() else 0)
 	ws().map_note(here_id, plan.recipe_version, r.slot_id, plan.visible.get(r.slot_id, PackedStringArray()),
 		func(s: String) -> Dictionary: return MapCanvas.sketch_of(plan.room(s)))
+
+
+## The traced place you are in (the Gorge, the camp) and its node: [id, Node3D], or [].
+func _traced_here() -> Array:
+	var id: String = ""
+	if game.seamless != null and game.seamless.place_id != "":
+		id = game.seamless.place_id
+	elif game.world is Area:
+		id = (game.world as Area).recipe.id
+	elif game.world is CampRoom:
+		id = "camp"
+	if id == "" or trace_of(id) == null or not is_instance_valid(game.world):
+		return []
+	return [id, game.world]
+
+
+## The trace of place `id` (null: not a traced place), loaded once.
+func trace_of(id: String) -> MapTrace:
+	if not _traces.has(id):
+		var path: String = MapTrace.path_of(id)
+		_traces[id] = load(path) as MapTrace if ResourceLoader.exists(path) else null
+		if _traces[id] != null:
+			_ink[id] = load(MapTrace.ink_path(id))
+			_pencil[id] = load(MapTrace.pencil_path(id))
+	return _traces[id]
+
+
+func _traced_name(place: Node3D) -> String:
+	return (place as Area).recipe.display_name if place is Area else "The camp"
 
 
 ## The area you are standing in (the place loaded, or one SeamlessPlaces streams in).
@@ -208,11 +258,28 @@ func show_place(id: String, centre_on_you: bool = false) -> void:
 	canvas.rooms = []
 	canvas.note = ""
 	canvas.you = {}
+	var was: MapTrace = canvas.trace
+	canvas.trace = null
 	_title.text = _place_title(id) if id != "" else "Nowhere yet"
+	var t: MapTrace = trace_of(id) if id != "" else null
 	if id == "":
 		canvas.note = "Nothing drawn yet: walk into a room."
-	elif id == "gorge":
-		canvas.note = "The Gorge goes on the map in step 2."
+	elif t != null:
+		canvas.trace = t
+		canvas.trace_ink = _ink[id]
+		canvas.trace_pencil = _pencil[id]
+		canvas.walked = _set_of_ints(known.get("walked", []) if str(known.get("trace", "")) == t.stamp() else [])
+		canvas.sighted = _set_of_ints(known.get("sighted", []) if str(known.get("trace", "")) == t.stamp() else [])
+		canvas.door_labels = _trace_door_labels(id, t)
+		var traced: Array = _traced_here()
+		if id == here_id and not traced.is_empty():
+			var place: Node3D = traced[1]
+			var local: Vector3 = place.to_local(game.player.global_position)
+			var fwd: Vector3 = place.global_transform.basis.inverse() * -game.player.global_transform.basis.z
+			canvas.you = {"pos": local, "dir": Vector2(fwd.x, fwd.z).normalized(), "storey": 0}
+		if centre_on_you or was != t:
+			canvas.zoom = float(TRACE_ZOOM.get(id, 2.0))     # a sample to a whole number of pixels
+		canvas.centre = Vector2(canvas.you["pos"].x, canvas.you["pos"].z) if not canvas.you.is_empty() and centre_on_you else canvas.middle()
 	else:
 		var sketches: Dictionary = known.get("rooms", {})
 		for slot: String in sketches:
@@ -351,10 +418,29 @@ func _door_labels(id: String) -> Dictionary:
 		for door: Variant in (sketches[slot] as Dictionary).get("doors", []):
 			if str(door["kind"]) == "threshold":
 				var to: String = str(door.get("to", ""))
-				var target: String = stratum.door_target(id, to)
-				var shown: String = _place_title(target) if target == "camp" or ws().map_places().has(target) else ""
-				out[to] = "to " + (("the " + shown.substr(4)) if shown.begins_with("The ") else shown) if shown != "" else "?"
+				out[to] = _door_says(stratum.door_target(id, to))
 	return out
+
+
+## What each door out of traced place `id` says (keyed by its connector's
+## `to`): an area's doors lead where the stratum plan links them now.
+func _trace_door_labels(id: String, t: MapTrace) -> Dictionary:
+	var out: Dictionary = {}
+	var stratum: StratumPlan = StratumPlan.current()
+	for d: Dictionary in t.doors:
+		if str(d["kind"]) != "threshold":
+			continue
+		var target: String = str(d["to"]) if id == "camp" or str(d["raw"]) == "camp" else stratum.door_target(id, str(d["raw"]))
+		out[str(d["raw"])] = _door_says(target)
+	return out
+
+
+## "to the Gorge" once you have been to `target` (the camp: always), else "?".
+func _door_says(target: String) -> String:
+	if target != "camp" and not ws().map_places().has(target):
+		return "?"
+	var shown: String = _place_title(target)
+	return "to " + (("the " + shown.substr(4)) if shown.begins_with("The ") else shown)
 
 
 ## A place's name as the map wrote it down when you were there (no recipe
@@ -364,6 +450,13 @@ func _place_title(id: String) -> String:
 		return "The camp"
 	var shown: String = str(ws().map_known(id).get("name", ""))
 	return shown if shown != "" else id.capitalize()
+
+
+static func _set_of_ints(list: Array) -> Dictionary:
+	var out: Dictionary = {}
+	for t: Variant in list:
+		out[int(t)] = true
+	return out
 
 
 static func _set_of(list: Array) -> Dictionary:

@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="MapTrace" format=3]
+
+[ext_resource type="Script" path="res://scripts/map/map_trace.gd" id="1_310pi"]
+
+[resource]
+script = ExtResource("1_310pi")
+place = "camp"
+origin = Vector2(-21.321291, -23.201748)
+size = Vector2i(82, 90)
+unreachable = 3532
+tiles = PackedByteArray(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
+doors = Array[Dictionary]([{
+"at": Vector2(-1, -13.2),
+"kind": "threshold",
+"out": Vector2(0, -1),
+"raw": "gorge",
+"to": "gorge"
+}, {
+"at": Vector2(7, 12.4),
+"kind": "threshold",
+"out": Vector2(8.742278e-08, 1),
+"raw": "sanctum",
+"to": "sanctum"
+}])
