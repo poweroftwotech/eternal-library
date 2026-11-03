@@ -3,7 +3,7 @@
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · [Approval brief](../phase-11-approval.md) ·
 [The mock](https://claude.ai/artifact/LSnEpwg9XnPVp3DLoqYnx6)
 
-## Step 1: the map of an interior (built 2026-11-03, not committed)
+## Step 1: the map of an interior (committed d7c13a7, 2026-11-03, after your try)
 
 **What you can try:** walk into the Lower Stacks (or any interior) and press **M**.
 
