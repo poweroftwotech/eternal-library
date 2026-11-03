@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_km"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/gorge_banner_1.tscn" id="3_banner"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_vase_floor.tscn" id="4_vase"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/floor_seat.tscn" id="5_seat"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/tray_table.tscn" id="6_tray"]
+
+[node name="niche_art_1" type="Node3D"]
+script = ExtResource("1_km")
+family = "dressing"
+tags = PackedStringArray("niche", "art", "light")
+
+[node name="Banner" parent="." instance=ExtResource("3_banner")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 3.5, -1.65)
+
+[node name="VaseWest" parent="." instance=ExtResource("4_vase")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1.5)
+
+[node name="VaseEast" parent="." instance=ExtResource("4_vase")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1, 0, -1.5)
+
+[node name="Seat" parent="." instance=ExtResource("5_seat")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 0.5)
+
+[node name="TrayTable" parent="." instance=ExtResource("6_tray")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)

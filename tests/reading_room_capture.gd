@@ -25,6 +25,9 @@ const VIEWS: Dictionary = {
 	"crown": [Vector3(6.0, 9.5, -9.0), Vector3(6.0, 14.6, -14.0), 50.0],  # vault crown over a chandelier
 	"west_stair": [Vector3(5.2, 1.6, -15.5), Vector3(0.8, 2.0, -11.0), 70.0],  # side-on to the west stair
 	"stair_foot": [Vector3(4.6, 1.5, -19.6), Vector3(1.4, 0.9, -15.0), 60.0],  # the west stair's foot newel (polish 1b)
+	"niche_west": [Vector3(4.2, 1.6, -16.4), Vector3(0.2, 1.0, -18.0), 66.0],   # the west working niche past the stair feet (room rework step 2)
+	"niche_east": [Vector3(7.8, 1.6, -16.4), Vector3(11.8, 1.0, -18.0), 66.0],  # the east one
+	"niche_close": [Vector3(2.6, 1.3, -18.0), Vector3(0.0, 1.2, -18.0), 70.0],   # straight at the west niche
 	"under_gallery": [Vector3(0.75, 1.5, -0.75), Vector3(1.0, 2.3, -7.0), 70.0],    # along the west wall under the gallery (1c)
 	"arcade": [Vector3(7.0, 1.6, -2.6), Vector3(1.0, 2.6, -5.0), 70.0],           # side-on to the west arcade (1c)
 	"side_arch": [Vector3(5.5, 1.7, -10.0), Vector3(0.3, 2.7, -10.0), 66.0],        # the west side door arch (polish B)

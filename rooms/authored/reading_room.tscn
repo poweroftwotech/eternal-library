@@ -35,6 +35,7 @@
 [ext_resource type="Script" path="res://scripts/world/variant_socket.gd" id="45_vsock"]
 [ext_resource type="Resource" path="res://kit/sockets/rug_hall.tres" id="46_rughall"]
 [ext_resource type="Resource" path="res://kit/sockets/rug_nook.tres" id="47_rugnook"]
+[ext_resource type="Resource" path="res://kit/sockets/recess_niche.tres" id="48_rniche"]
 
 [sub_resource type="BoxShape3D" id="BoxShape3D_gml7e"]
 size = Vector3(12, 15, 23.3)
@@ -81,7 +82,6 @@ socket_pins = Dictionary[String, int]({
 "Shell/stair_gallery_8m_r/Mesh/M_stair_gallery_8m_r/SOCKET_stair_style": 1,
 "Shell/wall_shelfbay_4m/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 0,
 "Shell/wall_shelfbay_4m10/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 3,
-"Shell/wall_shelfbay_4m12/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 0,
 "Shell/wall_shelfbay_4m13/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 3,
 "Shell/wall_shelfbay_4m14/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 3,
 "Shell/wall_shelfbay_4m15/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 2,
@@ -90,6 +90,10 @@ socket_pins = Dictionary[String, int]({
 "Shell/wall_shelfbay_4m5/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 0,
 "Shell/wall_shelfbay_4m6/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 0,
 "Shell/wall_shelfbay_4m8/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": 1
+})
+socket_sets = Dictionary[String, Resource]({
+"Shell/wall_shelfbay_4m11/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": ExtResource("48_rniche"),
+"Shell/wall_shelfbay_4m12/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill": ExtResource("48_rniche")
 })
 
 [node name="Shell" type="Node3D" parent="." unique_id=191676557]

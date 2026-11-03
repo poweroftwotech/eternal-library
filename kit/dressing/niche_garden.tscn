@@ -1,0 +1,61 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_km"]
+[ext_resource type="Script" path="res://scripts/world/niche_thing.gd" id="2_nt"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/niche_bed.tscn" id="3_bed"]
+[ext_resource type="PackedScene" path="res://kit/modules/camp/camp_planter.tscn" id="4_planter"]
+[ext_resource type="PackedScene" path="res://kit/dressing/forage_herb.tscn" id="5_herb"]
+[ext_resource type="PackedScene" path="res://kit/dressing/forage_root.tscn" id="6_root"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_patch"]
+size = Vector3(0.45, 0.4, 0.45)
+
+[node name="niche_garden" type="Node3D"]
+script = ExtResource("1_km")
+family = "dressing"
+tags = PackedStringArray("niche", "garden")
+
+[node name="Bed" parent="." instance=ExtResource("3_bed")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1)
+
+[node name="PlanterWest" parent="." instance=ExtResource("4_planter")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0, 0.5)
+
+[node name="PlanterEast" parent="." instance=ExtResource("4_planter")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.5, 0, 0.5)
+
+[node name="HerbWest" parent="." instance=ExtResource("5_herb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 0.36, -1)
+
+[node name="Take_HerbWest" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 0.56, -1)
+script = ExtResource("2_nt")
+kind = "herb"
+visual = NodePath("../HerbWest")
+
+[node name="Shape" type="CollisionShape3D" parent="Take_HerbWest"]
+shape = SubResource("BoxShape3D_patch")
+
+[node name="Root" parent="." instance=ExtResource("6_root")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.36, -1)
+
+[node name="Take_Root" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.56, -1)
+script = ExtResource("2_nt")
+kind = "root"
+visual = NodePath("../Root")
+
+[node name="Shape" type="CollisionShape3D" parent="Take_Root"]
+shape = SubResource("BoxShape3D_patch")
+
+[node name="HerbEast" parent="." instance=ExtResource("5_herb")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.36, -1)
+
+[node name="Take_HerbEast" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.55, 0.56, -1)
+script = ExtResource("2_nt")
+kind = "herb"
+visual = NodePath("../HerbEast")
+
+[node name="Shape" type="CollisionShape3D" parent="Take_HerbEast"]
+shape = SubResource("BoxShape3D_patch")

@@ -1,0 +1,49 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_km"]
+[ext_resource type="Script" path="res://scripts/world/niche_thing.gd" id="2_nt"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/court_contents_store.tscn" id="3_store"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/niche_log.tscn" id="4_log"]
+[ext_resource type="PackedScene" path="res://kit/modules/camp/camp_pack.tscn" id="5_pack"]
+[ext_resource type="PackedScene" path="res://kit/dressing/forage_mushroom.tscn" id="6_mush"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_patch"]
+size = Vector3(0.45, 0.4, 0.45)
+
+[node name="niche_larder" type="Node3D"]
+script = ExtResource("1_km")
+family = "dressing"
+tags = PackedStringArray("niche", "storage", "garden")
+
+[node name="Store" parent="." instance=ExtResource("3_store")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -1.5)
+
+[node name="Log" parent="." instance=ExtResource("4_log")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, -1.5, 0, 0.5)
+
+[node name="Pack" parent="." instance=ExtResource("5_pack")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.5, 0, 0.5)
+
+[node name="MushroomNear" parent="." instance=ExtResource("6_mush")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.38, 0.9)
+
+[node name="Take_MushroomNear" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.58, 0.9)
+script = ExtResource("2_nt")
+kind = "mushroom"
+visual = NodePath("../MushroomNear")
+
+[node name="Shape" type="CollisionShape3D" parent="Take_MushroomNear"]
+shape = SubResource("BoxShape3D_patch")
+
+[node name="MushroomFar" parent="." instance=ExtResource("6_mush")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.38, 0.1)
+
+[node name="Take_MushroomFar" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.5, 0.58, 0.1)
+script = ExtResource("2_nt")
+kind = "mushroom"
+visual = NodePath("../MushroomFar")
+
+[node name="Shape" type="CollisionShape3D" parent="Take_MushroomFar"]
+shape = SubResource("BoxShape3D_patch")

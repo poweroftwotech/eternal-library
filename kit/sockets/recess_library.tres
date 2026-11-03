@@ -7,6 +7,9 @@
 [ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="5_alfd5"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/recess_tile_panel.tscn" id="5_anl2g"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/recess_sealed_door.tscn" id="6_ywqle"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_hearth.tscn" id="7_niche"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_herbs.tscn" id="8_niche"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_pantry.tscn" id="9_niche"]
 
 [sub_resource type="Resource" id="Resource_lnars"]
 script = ExtResource("1_mgb78")
@@ -41,8 +44,29 @@ scene = ExtResource("6_ywqle")
 weight = 0.7
 tags = PackedStringArray()
 
+[sub_resource type="Resource" id="Resource_niche_hearth"]
+script = ExtResource("1_mgb78")
+label = "hearth niche"
+scene = ExtResource("7_niche")
+weight = 0.4
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_niche_herbs"]
+script = ExtResource("1_mgb78")
+label = "herb niche"
+scene = ExtResource("8_niche")
+weight = 0.4
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_niche_pantry"]
+script = ExtResource("1_mgb78")
+label = "pantry niche"
+scene = ExtResource("9_niche")
+weight = 0.4
+tags = PackedStringArray()
+
 [resource]
 script = ExtResource("5_alfd5")
-entries = Array[ExtResource("1_mgb78")]([SubResource("Resource_lnars"), SubResource("Resource_rp607"), SubResource("Resource_ctym8"), SubResource("Resource_alfd5"), SubResource("Resource_lvwha")])
+entries = Array[ExtResource("1_mgb78")]([SubResource("Resource_lnars"), SubResource("Resource_rp607"), SubResource("Resource_ctym8"), SubResource("Resource_alfd5"), SubResource("Resource_lvwha"), SubResource("Resource_niche_hearth"), SubResource("Resource_niche_herbs"), SubResource("Resource_niche_pantry")])
 slot_bounds = AABB(-1.5, 0, -0.3, 3, 3.7, 0.6)
 spill_bounds = AABB(-1.5, 0, -1.35, 3, 0.6, 1.05)

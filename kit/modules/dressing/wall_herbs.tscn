@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_a2fob"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/wall_herbs.glb" id="2_e2k1u"]
+
+[node name="wall_herbs" type="Node3D" unique_id=1474953622]
+script = ExtResource("1_a2fob")
+family = "dressing"
+tags = PackedStringArray("wood", "soil", "garden", "light", "niche")
+source_glb = "res://assets/kit/dressing/wall_herbs.glb"
+
+[node name="Mesh" parent="." unique_id=85731418 instance=ExtResource("2_e2k1u")]

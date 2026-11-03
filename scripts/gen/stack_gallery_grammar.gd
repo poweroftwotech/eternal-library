@@ -69,6 +69,14 @@ extends RoomGrammar
 	set(value):
 		alcove_lamp_chance = value
 		emit_changed()
+## What an alcove holds (room rework step 2, your walk of 2026-11-02: niches so
+## the stacks aren't only corridors), by relative weight: a hearth to sit and
+## cook by, a garden bed, a larder with mushrooms on a log, a woven hanging
+## (art), or "empty". Each is slot dressing:niche_<kind>.
+@export var niche_weights: Dictionary = {"hearth": 1.0, "garden": 1.0, "larder": 1.0, "art": 1.0, "empty": 0.0}:
+	set(value):
+		niche_weights = value
+		emit_changed()
 ## Per bay: a collapsed bay. Both side walls are shelf recesses pinned to
 ## "collapsed", with rubble (slot dressing:rubble) along their feet.
 @export_range(0.0, 1.0, 0.01) var collapse_chance: float = 0.08:
@@ -313,13 +321,44 @@ func add_alcoves(grid: CellGrid, c: Vector3i, taken: Dictionary, behind: Diction
 		taken[a] = true
 		grid.add_cell(a, "alcove", out.abs(), grid.cells[c]["bay"])
 		grid.set_edge(c, side, CellGrid.Mark.OPENING)
+		var niche: String = pick_niche(rng)
+		# A niche's back wall is plain brick (no door or shelves behind a fire).
+		var back_slot: String = "edge:plain" if niche != "" else ""
 		for s: int in CellGrid.ALL_SIDES:
 			var n: Vector3i = CellGrid.neighbour(a, s)
 			if n == c:
 				continue
-			grid.set_edge(a, s, CellGrid.Mark.SOLID, false, "" if n == a + out else "edge:solid_corner")
-		if rng.randf() < alcove_lamp_chance:
+			grid.set_edge(a, s, CellGrid.Mark.SOLID, false, back_slot if n == a + out else "edge:solid_corner")
+		if niche != "":
+			# No seam debris at the feet of a niche's walls: it would land in the furniture.
+			for s: int in CellGrid.ALL_SIDES:
+				if CellGrid.neighbour(a, s) != c:
+					grid.pins["edge_" + CellGrid.key(a, s)] = "nothing"
+			# Local -Z toward the alcove's back wall (grid +z is room -Z).
+			var back := Vector3(out.x, 0, -out.z)
+			grid.props["niche_" + CellGrid.cell_name(a)] = {"slot": "dressing:niche_" + niche,
+				"xf": Transform3D(Basis.looking_at(back), CellGrid.cell_centre(a))}
+		# A hearth's fire and an art niche's tray lamp light their niche; the
+		# garden and the larder hang a lamp (plants grow by light, and you need
+		# to see the mushrooms); an empty alcove may have one.
+		if niche in ["garden", "larder"] or (niche == "" and rng.randf() < alcove_lamp_chance):
 			grid.lamps[a] = lamp_height
+			if niche != "":
+				grid.pins["lamp_" + CellGrid.cell_name(a)] = "lit"     # a niche is kept: place_lamps leaves it lit
+
+
+## The niche an alcove holds (room rework step 2), by niche_weights; "" for
+## none (the empty dead end it was before).
+func pick_niche(rng: RandomNumberGenerator) -> String:
+	var total: float = 0.0
+	for k: String in niche_weights:
+		total += float(niche_weights[k])
+	var roll: float = rng.randf() * total
+	for k: String in niche_weights:
+		roll -= float(niche_weights[k])
+		if roll < 0.0:
+			return "" if k == "empty" else k
+	return ""
 
 
 ## A collapsed bay: a straight bay whose two side walls are both plain solid
@@ -357,6 +396,8 @@ func place_lamps(grid: CellGrid, seed_value: int) -> void:
 		if every or (lamp_on_corners and grid.cells[c]["kind"] == "corner"):
 			grid.lamps[c] = lamp_height
 	for c: Vector3i in grid.lamps:
+		if grid.pins.get("lamp_" + CellGrid.cell_name(c), "") == "lit" and grid.props.has("niche_" + CellGrid.cell_name(c)):
+			continue
 		var rng := RandomNumberGenerator.new()
 		rng.seed = hash([seed_value, "lamp_lit", CellGrid.cell_name(c)])
 		var state: String = "lit"

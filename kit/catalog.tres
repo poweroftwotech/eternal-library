@@ -781,6 +781,24 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "niche_bed",
+"scene": "res://kit/modules/dressing/niche_bed.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brick", "soil", "garden", "niche"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "niche_log",
+"scene": "res://kit/modules/dressing/niche_log.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "moss", "garden", "niche"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "plant_crack_tuft",
 "scene": "res://kit/modules/dressing/plant_crack_tuft.tscn",
 "shape": "free",
@@ -1182,6 +1200,33 @@ modules = Array[Dictionary]([{
 "shape": "free",
 "size_cells": Vector3i(0, 0, 0),
 "tags": PackedStringArray("brass", "wood", "furniture", "light", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "wall_hearth",
+"scene": "res://kit/modules/dressing/wall_hearth.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brick", "fire", "niche"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "wall_herbs",
+"scene": "res://kit/modules/dressing/wall_herbs.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "soil", "garden", "light", "niche"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "wall_pantry",
+"scene": "res://kit/modules/dressing/wall_pantry.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "earthenware", "storage", "light", "niche"),
 "weight": 1.0
 }, {
 "edge": "none",

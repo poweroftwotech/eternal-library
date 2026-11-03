@@ -293,18 +293,28 @@ func interact(target) -> void:
 		if item != null and ws().owns(item.id):
 			hud.notify("Took %s.  J — read it in your satchel." % item.display_name)
 		return
+	if target is NicheThing:     # a working niche in a room (room rework step 2)
+		if (target as NicheThing).kind == "pot":
+			show_pot()
+		else:
+			gather((target as NicheThing).take())
+		return
 	if in_room():
 		return
 	var id: String = target.get_interaction_id()
 	if id == "pot":
 		show_pot()
 	else:
-		var kind: String = world.harvest(id)
-		if not kind.is_empty():
-			inventory[kind] += 1
-			ws().set_count(kind, inventory[kind])
-			hud.notify("Gathered " + {"mushroom":"shelf mushrooms","root":"amberroot","herb":"hearthleaf"}[kind])
-			hud.update_values(inventory,nourishment,warmth)
+		gather(world.harvest(id))
+
+## One forage gathered into the satchel ("" = nothing).
+func gather(kind: String) -> void:
+	if kind.is_empty():
+		return
+	inventory[kind] += 1
+	ws().set_count(kind, inventory[kind])
+	hud.notify("Gathered " + NicheThing.KINDS[kind])
+	hud.update_values(inventory,nourishment,warmth)
 
 ## HUD prompt for what the player aims at: room interactables say it themselves.
 func prompt_for(target) -> String:
@@ -531,8 +541,10 @@ func _process(delta: float) -> void:
 	if in_room():
 		if world is Area and (world as Area).room_at(player.global_position) != null:
 			hud.zone_label.text = room_title()     # the room you're in (a doorway keeps the last one)
-		# No hearth or cold archive here; only the slow nourishment drain.
+		# No cold archive here: the slow nourishment drain, and a niche's hearth warms you.
 		nourishment = maxf(0,nourishment-delta*.013)
+		if NicheThing.warmed(get_tree(), player.global_position):
+			warmth = minf(100,warmth+delta*.9)
 		hud.update_values(inventory,nourishment,warmth)
 		return
 	var cold: bool = player.position.x > 5 and player.position.z < 0

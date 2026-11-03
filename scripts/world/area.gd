@@ -183,6 +183,7 @@ func _ready() -> void:
 		else:
 			streamer.start(at.slot_id if at != null else plan.rooms[0].slot_id)
 			add_child(streamer)
+			PipelineWarm.add(self)     # the niches' materials compile on arrival, not on first sight
 	else:
 		for r: AreaPlan.Room in plan.rooms:
 			build_room(r)

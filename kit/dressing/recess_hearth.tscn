@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/niche_thing.gd" id="2_nt"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/wall_hearth.tscn" id="3_hearth"]
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_pot"]
+size = Vector3(0.6, 0.45, 0.5)
+
+[node name="recess_hearth" type="Node3D"]
+
+[node name="Hearth" parent="." instance=ExtResource("3_hearth")]
+
+[node name="Fire" type="OmniLight3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.6, -0.2)
+light_color = Color(1, 0.615686, 0.258824, 1)
+light_energy = 1.5
+omni_range = 4.5
+omni_attenuation = 1.2
+
+[node name="Pot" type="StaticBody3D" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.77, 0.02)
+script = ExtResource("2_nt")
+kind = "pot"
+fire = NodePath("../Fire")
+
+[node name="Shape" type="CollisionShape3D" parent="Pot"]
+shape = SubResource("BoxShape3D_pot")

@@ -38,6 +38,11 @@ extends Node3D
 		style_pins = value
 		if Engine.is_editor_hint() and is_inside_tree():
 			resolve_sockets(_last_seed)
+## {socket path relative to this room: socket set} in place of the set a
+## module's socket was built with, for this room only: the Reading Room's two
+## shelf bays that are always working niches (room rework step 2), the seed
+## picking which. Applied before every resolve.
+@export var socket_sets: Dictionary[String, SocketSet] = {}
 ## Lore books on this room's shelves (ENVIRONMENT_PLAN.md 6.5.4). Each recess
 ## used must be room-pinned to a shelf candidate (Validate Room checks).
 @export var lore_books: Array[LoreBookPin] = []
@@ -102,6 +107,10 @@ var _resolve_styles: Dictionary = {}
 
 func begin_resolve(seed_value: int) -> void:
 	scale_lights()
+	for key: String in socket_sets:
+		var s := get_node_or_null(key) as VariantSocket
+		if s != null and socket_sets[key] != null:
+			s.socket_set = socket_sets[key]
 	_last_seed = seed_value
 	_resolve_picks = {}
 	_resolve_styles = style_picks(seed_value)

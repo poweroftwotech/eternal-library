@@ -167,7 +167,8 @@ func validate(room: RoomTemplate, g: GeneratedRoom, tag: String) -> void:
 	var rv: Dictionary = KitValidateRoom.run(room)
 	check((rv["errors"] as PackedStringArray).is_empty(), "%s: R01 still validates without errors (%s)" % [tag, rv["errors"]])
 	var r01_sockets: int = room.sockets().size()
-	check(r01_sockets == 106, "%s: R01 keeps its own 106 sockets, none of the corridor's (%d)" % [tag, r01_sockets])
+	# 101 since room rework step 1 (floor seating, carpets: 106 before).
+	check(r01_sockets == 101, "%s: R01 keeps its own 101 sockets, none of the corridor's (%d)" % [tag, r01_sockets])
 	var entry: Node3D = g.get_node("Connectors/SNAP_entry")
 	var door: Node3D = room.get_node(NodePath("Connectors/" + String(g.join_connector)))
 	check(entry.global_position.distance_to(door.global_position) < 0.01
@@ -210,8 +211,14 @@ func walk(room: RoomTemplate, g: GeneratedRoom, door_name: String, tag: String) 
 				leaks.append("%s %s" % [cell, CellGrid.SIDE_NAMES[side]])
 	check(leaks.is_empty(), "%s: every solid side and the exit block (%s)" % [tag, leaks])
 	var route: Array[Vector3] = []
+	var prev: Vector3i = Vector3i.ZERO
 	for cell: Vector3i in g.grid.tour():
-		route.append(g.to_global(CellGrid.cell_centre(cell)))
+		var at: Vector3 = CellGrid.cell_centre(cell)
+		# A niche (room rework step 2) fills an alcove's back: walk into its free front.
+		if g.grid.props.has("niche_" + CellGrid.cell_name(cell)):
+			at += (CellGrid.cell_centre(prev) - at).normalized() * 1.3
+		route.append(g.to_global(at))
+		prev = cell
 	var start: Vector3 = DOORS[door_name]["start"]
 	body.global_position = start
 	await physics_frame

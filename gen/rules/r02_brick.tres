@@ -14,6 +14,12 @@
 [ext_resource type="PackedScene" path="res://kit/modules/walls/vault_cross_4m.tscn" id="11_orsei"]
 [ext_resource type="PackedScene" path="res://gen/modules/rubble_strip.tscn" id="12_nesut"]
 [ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="13_jj3bs"]
+[ext_resource type="PackedScene" path="res://kit/dressing/niche_hearth.tscn" id="20_niche"]
+[ext_resource type="PackedScene" path="res://kit/dressing/niche_garden.tscn" id="21_niche"]
+[ext_resource type="PackedScene" path="res://kit/dressing/niche_larder.tscn" id="22_niche"]
+[ext_resource type="PackedScene" path="res://kit/dressing/niche_art_0.tscn" id="23_niche"]
+[ext_resource type="PackedScene" path="res://kit/dressing/niche_art_1.tscn" id="24_niche"]
+[ext_resource type="PackedScene" path="res://kit/dressing/niche_art_2.tscn" id="25_niche"]
 
 [sub_resource type="Resource" id="Resource_4m81t"]
 script = ExtResource("2_orsei")
@@ -156,6 +162,54 @@ slot = "edge:plain"
 styles = PackedStringArray("brick")
 choices = Array[ExtResource("2_orsei")]([SubResource("Resource_orsei")])
 
+[sub_resource type="Resource" id="Resource_c_hearth"]
+script = ExtResource("2_orsei")
+scene = ExtResource("20_niche")
+
+[sub_resource type="Resource" id="Resource_c_garden"]
+script = ExtResource("2_orsei")
+scene = ExtResource("21_niche")
+
+[sub_resource type="Resource" id="Resource_c_larder"]
+script = ExtResource("2_orsei")
+scene = ExtResource("22_niche")
+
+[sub_resource type="Resource" id="Resource_c_art_0"]
+script = ExtResource("2_orsei")
+scene = ExtResource("23_niche")
+
+[sub_resource type="Resource" id="Resource_c_art_1"]
+script = ExtResource("2_orsei")
+scene = ExtResource("24_niche")
+
+[sub_resource type="Resource" id="Resource_c_art_2"]
+script = ExtResource("2_orsei")
+scene = ExtResource("25_niche")
+
+[sub_resource type="Resource" id="Resource_niche_hearth"]
+script = ExtResource("1_7scms")
+slot = "dressing:niche_hearth"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_hearth")])
+
+[sub_resource type="Resource" id="Resource_niche_garden"]
+script = ExtResource("1_7scms")
+slot = "dressing:niche_garden"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_garden")])
+
+[sub_resource type="Resource" id="Resource_niche_larder"]
+script = ExtResource("1_7scms")
+slot = "dressing:niche_larder"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_larder")])
+
+[sub_resource type="Resource" id="Resource_niche_art"]
+script = ExtResource("1_7scms")
+slot = "dressing:niche_art"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_art_0"), SubResource("Resource_c_art_1"), SubResource("Resource_c_art_2")])
+
 [resource]
 script = ExtResource("11_47oyu")
-rules = Array[ExtResource("1_7scms")]([SubResource("Resource_kjaeu"), SubResource("Resource_uidj1"), SubResource("Resource_a6cyo"), SubResource("Resource_nomh4"), SubResource("Resource_iu605"), SubResource("Resource_l0etk"), SubResource("Resource_bpxti"), SubResource("Resource_4yvrr"), SubResource("Resource_nesut"), SubResource("Resource_jj3bs"), SubResource("Resource_45fml"), SubResource("Resource_af66h"), SubResource("Resource_47oyu"), SubResource("Resource_plain")])
+rules = Array[ExtResource("1_7scms")]([SubResource("Resource_kjaeu"), SubResource("Resource_uidj1"), SubResource("Resource_a6cyo"), SubResource("Resource_nomh4"), SubResource("Resource_iu605"), SubResource("Resource_l0etk"), SubResource("Resource_bpxti"), SubResource("Resource_4yvrr"), SubResource("Resource_nesut"), SubResource("Resource_jj3bs"), SubResource("Resource_45fml"), SubResource("Resource_af66h"), SubResource("Resource_47oyu"), SubResource("Resource_plain"), SubResource("Resource_niche_hearth"), SubResource("Resource_niche_garden"), SubResource("Resource_niche_larder"), SubResource("Resource_niche_art")])
