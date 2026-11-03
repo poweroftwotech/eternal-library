@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://blbx4kpquf3ca"]
+
+[ext_resource type="Texture2D" uid="uid://bfpxsi4xid2vl" path="res://assets/textures/px/rug_medallion_runner.png" id="1_vsd0h"]
+[ext_resource type="Texture2D" uid="uid://835kwdfue6ps" path="res://assets/textures/px/rug_medallion_runner_rough.png" id="2_4sbqm"]
+
+[resource]
+resource_name = "rug_medallion_runner"
+albedo_texture = ExtResource("1_vsd0h")
+metallic_specular = 0.65
+roughness_texture = ExtResource("2_4sbqm")
+texture_filter = 4

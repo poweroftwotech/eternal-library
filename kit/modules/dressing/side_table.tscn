@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_118kh"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/side_table.glb" id="2_utac6"]
+
+[node name="side_table" type="Node3D" unique_id=1213961607]
+script = ExtResource("1_118kh")
+family = "dressing"
+tags = PackedStringArray("wood", "furniture", "reading")
+source_glb = "res://assets/kit/dressing/side_table.glb"
+
+[node name="Mesh" parent="." unique_id=573313136 instance=ExtResource("2_utac6")]

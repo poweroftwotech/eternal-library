@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://7ivcu2s3htny"]
+
+[ext_resource type="Texture2D" uid="uid://blq0psgd8r41k" path="res://assets/textures/px/cushion_kilim.png" id="1_ciy0m"]
+[ext_resource type="Texture2D" uid="uid://dxt3g721ey2qb" path="res://assets/textures/px/cushion_kilim_normal.png" id="2_c8nvd"]
+[ext_resource type="Texture2D" uid="uid://c3u8td8bdsse4" path="res://assets/textures/px/cushion_kilim_rough.png" id="3_kc1c4"]
+
+[resource]
+resource_name = "cushion_kilim"
+albedo_texture = ExtResource("1_ciy0m")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_kc1c4")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_c8nvd")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

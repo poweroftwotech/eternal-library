@@ -412,6 +412,24 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "floor_cushion",
+"scene": "res://kit/modules/dressing/floor_cushion.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "furniture", "seat", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "floor_seat",
+"scene": "res://kit/modules/dressing/floor_seat.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "furniture", "seat", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "gallery_column",
 "scene": "res://kit/modules/dressing/gallery_column.tscn",
 "shape": "free",
@@ -745,6 +763,24 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "low_reading_table",
+"scene": "res://kit/modules/dressing/low_reading_table.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "furniture", "light", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "low_table",
+"scene": "res://kit/modules/dressing/low_table.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "furniture", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "plant_crack_tuft",
 "scene": "res://kit/modules/dressing/plant_crack_tuft.tscn",
 "shape": "free",
@@ -786,6 +822,15 @@ modules = Array[Dictionary]([{
 "shape": "free",
 "size_cells": Vector3i(1, 0, 1),
 "tags": PackedStringArray("wood", "storage", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "pouf",
+"scene": "res://kit/modules/dressing/pouf.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "furniture", "seat", "reading"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -862,6 +907,33 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "reading_armchair",
+"scene": "res://kit/modules/dressing/reading_armchair.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "cloth", "furniture", "seat", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "reading_chair",
+"scene": "res://kit/modules/dressing/reading_chair.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "furniture", "seat", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "reading_table",
+"scene": "res://kit/modules/dressing/reading_table.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "furniture", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "recess_plain_cone",
 "scene": "res://kit/modules/dressing/recess_plain_cone.tscn",
 "shape": "free",
@@ -916,6 +988,150 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "rug_gabbeh_grand",
+"scene": "res://kit/modules/dressing/rug_gabbeh_grand.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_gabbeh_runner",
+"scene": "res://kit/modules/dressing/rug_gabbeh_runner.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_gabbeh_small",
+"scene": "res://kit/modules/dressing/rug_gabbeh_small.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_garden_grand",
+"scene": "res://kit/modules/dressing/rug_garden_grand.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_garden_runner",
+"scene": "res://kit/modules/dressing/rug_garden_runner.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_garden_small",
+"scene": "res://kit/modules/dressing/rug_garden_small.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_herati_grand",
+"scene": "res://kit/modules/dressing/rug_herati_grand.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_herati_runner",
+"scene": "res://kit/modules/dressing/rug_herati_runner.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_herati_small",
+"scene": "res://kit/modules/dressing/rug_herati_small.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_kilim_grand",
+"scene": "res://kit/modules/dressing/rug_kilim_grand.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_kilim_runner",
+"scene": "res://kit/modules/dressing/rug_kilim_runner.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_kilim_small",
+"scene": "res://kit/modules/dressing/rug_kilim_small.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_medallion_grand",
+"scene": "res://kit/modules/dressing/rug_medallion_grand.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_medallion_runner",
+"scene": "res://kit/modules/dressing/rug_medallion_runner.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "rug_medallion_small",
+"scene": "res://kit/modules/dressing/rug_medallion_small.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "floor", "rug", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "side_table",
+"scene": "res://kit/modules/dressing/side_table.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "furniture", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "stair_steps_masonry",
 "scene": "res://kit/modules/dressing/stair_steps_masonry.tscn",
 "shape": "free",
@@ -948,6 +1164,24 @@ modules = Array[Dictionary]([{
 "shape": "free",
 "size_cells": Vector3i(0, 0, 0),
 "tags": PackedStringArray("wood", "stair"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "table_lamp",
+"scene": "res://kit/modules/dressing/table_lamp.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brass", "light", "table_prop", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "tray_table",
+"scene": "res://kit/modules/dressing/tray_table.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brass", "wood", "furniture", "light", "reading"),
 "weight": 1.0
 }, {
 "edge": "none",

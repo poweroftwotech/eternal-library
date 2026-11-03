@@ -1,0 +1,50 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_entry"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="2_set"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_kilim_small.tscn" id="3_kilim"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_herati_small.tscn" id="4_herati"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_medallion_small.tscn" id="5_medallion"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_gabbeh_small.tscn" id="6_gabbeh"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_garden_small.tscn" id="7_garden"]
+
+[sub_resource type="Resource" id="Resource_small_kilim"]
+script = ExtResource("1_entry")
+label = "kilim"
+scene = ExtResource("3_kilim")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_small_herati"]
+script = ExtResource("1_entry")
+label = "herati"
+scene = ExtResource("4_herati")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_small_medallion"]
+script = ExtResource("1_entry")
+label = "medallion"
+scene = ExtResource("5_medallion")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_small_gabbeh"]
+script = ExtResource("1_entry")
+label = "gabbeh"
+scene = ExtResource("6_gabbeh")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_small_garden"]
+script = ExtResource("1_entry")
+label = "garden"
+scene = ExtResource("7_garden")
+weight = 1.0
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("2_set")
+entries = Array[ExtResource("1_entry")]([SubResource("Resource_small_kilim"), SubResource("Resource_small_herati"), SubResource("Resource_small_medallion"), SubResource("Resource_small_gabbeh"), SubResource("Resource_small_garden")])
+slot_bounds = AABB(-0.875, 0, -1.25, 1.75, 0.1, 2.5)
+style_group = "reading_nook_rug"

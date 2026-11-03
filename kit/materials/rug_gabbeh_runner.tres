@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://mimt2tufyki0"]
+
+[ext_resource type="Texture2D" uid="uid://bwwby3q2dcsvf" path="res://assets/textures/px/rug_gabbeh_runner.png" id="1_nbyj4"]
+[ext_resource type="Texture2D" uid="uid://c8xr337dao2oy" path="res://assets/textures/px/rug_gabbeh_runner_rough.png" id="2_bjtm0"]
+
+[resource]
+resource_name = "rug_gabbeh_runner"
+albedo_texture = ExtResource("1_nbyj4")
+metallic_specular = 0.65
+roughness_texture = ExtResource("2_bjtm0")
+texture_filter = 4

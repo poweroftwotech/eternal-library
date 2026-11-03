@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_swwwt"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/rug_gabbeh_runner.glb" id="2_xa8ys"]
+
+[node name="rug_gabbeh_runner" type="Node3D" unique_id=795377100]
+script = ExtResource("1_swwwt")
+family = "dressing"
+tags = PackedStringArray("cloth", "floor", "rug", "reading")
+source_glb = "res://assets/kit/dressing/rug_gabbeh_runner.glb"
+
+[node name="Mesh" parent="." unique_id=541195343 instance=ExtResource("2_xa8ys")]

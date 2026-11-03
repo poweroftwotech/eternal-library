@@ -49,6 +49,27 @@
     16
    ]
   },
+  "cushion_ikat": {
+   "mapping": "world",
+   "size": [
+    32,
+    32
+   ]
+  },
+  "cushion_kilim": {
+   "mapping": "world",
+   "size": [
+    32,
+    32
+   ]
+  },
+  "cushion_termeh": {
+   "mapping": "world",
+   "size": [
+    32,
+    32
+   ]
+  },
   "cut_fruit": {
    "mapping": "world",
    "size": [
@@ -285,6 +306,111 @@
    "size": [
     16,
     16
+   ]
+  },
+  "rug_gabbeh_grand": {
+   "mapping": "uv",
+   "size": [
+    192,
+    112
+   ]
+  },
+  "rug_gabbeh_runner": {
+   "mapping": "uv",
+   "size": [
+    140,
+    102
+   ]
+  },
+  "rug_gabbeh_small": {
+   "mapping": "uv",
+   "size": [
+    80,
+    56
+   ]
+  },
+  "rug_garden_grand": {
+   "mapping": "uv",
+   "size": [
+    192,
+    112
+   ]
+  },
+  "rug_garden_runner": {
+   "mapping": "uv",
+   "size": [
+    140,
+    102
+   ]
+  },
+  "rug_garden_small": {
+   "mapping": "uv",
+   "size": [
+    80,
+    56
+   ]
+  },
+  "rug_herati_grand": {
+   "mapping": "uv",
+   "size": [
+    192,
+    112
+   ]
+  },
+  "rug_herati_runner": {
+   "mapping": "uv",
+   "size": [
+    140,
+    102
+   ]
+  },
+  "rug_herati_small": {
+   "mapping": "uv",
+   "size": [
+    80,
+    56
+   ]
+  },
+  "rug_kilim_grand": {
+   "mapping": "uv",
+   "size": [
+    192,
+    112
+   ]
+  },
+  "rug_kilim_runner": {
+   "mapping": "uv",
+   "size": [
+    140,
+    102
+   ]
+  },
+  "rug_kilim_small": {
+   "mapping": "uv",
+   "size": [
+    80,
+    56
+   ]
+  },
+  "rug_medallion_grand": {
+   "mapping": "uv",
+   "size": [
+    192,
+    112
+   ]
+  },
+  "rug_medallion_runner": {
+   "mapping": "uv",
+   "size": [
+    140,
+    102
+   ]
+  },
+  "rug_medallion_small": {
+   "mapping": "uv",
+   "size": [
+    80,
+    56
    ]
   },
   "stack_atlas": {

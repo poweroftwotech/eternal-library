@@ -58,12 +58,12 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 		for s: VariantSocket in sockets:
 			var key: String = s.socket_set.resource_path.get_file().get_basename() if s.socket_set != null else "(none)"
 			by_set[key] = int(by_set.get(key, 0)) + 1
-		check(by_set == {"recess_library": 16, "iwan_centre": 1, "table_props": 4, "lamp_state": 7, "seam_debris": 10,
-				"wall_stains": 10, "floor_wear": 15, "lamp_soot": 7, "stair_style": 1, "stair_style_r": 1,
+		check(by_set == {"recess_library": 16, "iwan_centre": 1, "table_props_small": 4, "lamp_state": 3, "seam_debris": 10,
+				"wall_stains": 10, "floor_wear": 15, "lamp_soot": 3, "stair_style": 1, "stair_style_r": 1, "rug_hall": 1, "rug_nook": 2,
 				"gallery_style_slab": 2, "gallery_style_open_end": 1, "gallery_style_open_start": 1, "gallery_style_end": 1,
 				"gallery_support": 6, "gallery_support_corner": 2, "arch_growth": 3, "arch_growth_iwan": 1, "cornice_growth": 10,
 				"parapet_growth": 5, "parapet_growth_stair": 1, "parapet_growth_stair_r": 1},
-			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 7 lamps, 10 seams, 10 wall stains, 15 floors, 7 soot, 2 stairs, 5 gallery looks, 8 column points, growth over 4 arches, 10 cornices and 7 copings (found %s)" % by_set)
+			"sockets: 16 recesses (atlas), iwan centrepiece, 4 table tops, 3 lamps, 10 seams, 10 wall stains, 15 floors, 3 soot, 3 carpets, 2 stairs, 5 gallery looks, 8 column points, growth over 4 arches, 10 cornices and 7 copings (found %s)" % by_set)
 		check(tmpl.resolve_sockets(7) == tmpl.resolve_sockets(7), "socket picks are deterministic")
 	check(room.get_node("Connectors").get_child_count() == 3, "three door connectors")
 	# Floor wear (polish C item 9): the walked lanes are polished, under the rug is not.
@@ -71,19 +71,23 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 	FloorWear.rebuild_now()
 	check(wear != null and FloorWear.map != null, "FloorWear baked a wear map")
 	if wear != null and FloorWear.map != null:
-		var lanes: Vector3 = Vector3(wear_at(room, 2.2, -10.0), wear_at(room, 6.0, -10.0), wear_at(room, 9.8, -10.0))
+		var lanes: Vector3 = Vector3(wear_at(room, 5.1, -10.0), wear_at(room, 6.0, -10.0), wear_at(room, 6.9, -10.0))
 		check(lanes.x > 0.4 and lanes.z > 0.4 and lanes.y == 0.0,
-			"wear runs down both aisles outside the tables, none mid-rug (%s)" % lanes)
+			"wear runs either side of the centre seating, none on its rug (%s)" % lanes)
 	var floor_mat: ShaderMaterial = load("res://kit/materials/floor_stone.tres") as ShaderMaterial
 	check(floor_mat != null and float(floor_mat.get_shader_parameter("wear_strength")) > 0.0, "floor_stone takes the wear")
 	await physics_frame
 	await physics_frame
 	var space: PhysicsDirectSpaceState3D = room.get_world_3d().direct_space_state
 	var floors: int = 0
+	var furniture: Array[RID] = []     # chairs and tables stand on the floor; look past them
+	for n: Node in room.get_node("Dressing").find_children("*", "CollisionObject3D", true, false):
+		furniture.append((n as CollisionObject3D).get_rid())
 	for k: int in 5:
 		for i: int in 3:
 			var p := Vector3(2 + i * 4, 0, -2 - k * 4)
-			var hit: Dictionary = space.intersect_ray(PhysicsRayQueryParameters3D.create(p + Vector3(0, 0.5, 0), p - Vector3(0, 1, 0), 1))
+			var ray := PhysicsRayQueryParameters3D.create(p + Vector3(0, 0.5, 0), p - Vector3(0, 1, 0), 1, furniture)
+			var hit: Dictionary = space.intersect_ray(ray)
 			if not hit.is_empty() and absf((hit["position"] as Vector3).y) < 0.05:
 				floors += 1
 	check(floors == 15, "floor collision in all 15 cells (%d)" % floors)
@@ -96,9 +100,14 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 	check(await blocked(body, Vector3(1.5, 0.95, -18), Vector3(-3, 0, 0)), "west wall blocks (bay 4)")
 	check(await blocked(body, Vector3(10.5, 0.95, -2), Vector3(3, 0, 0)), "east wall blocks (bay 0)")
 	check(await blocked(body, Vector3(3, 0.95, -1.5), Vector3(0, 0, 3)), "south wall blocks beside the entrance")
-	# Walk the hall down the runner, then step aside (the iwan centrepiece has
-	# collision on the centre line) and into the alcove.
-	await walk(body, Vector3(6, 0.95, -1.0), Vector3(0, 0, -3), func(p: Vector3) -> bool: return p.z < -17.5)
+	# Walk the hall down the middle, round the centre seating (some seeds put a
+	# low table there) between it and the reading tables' chairs, then step
+	# aside (the iwan centrepiece has collision on the centre line) and into the alcove.
+	await walk(body, Vector3(6, 0.95, -1.0), Vector3(0, 0, -3), func(p: Vector3) -> bool: return p.z < -7.8)
+	await walk(body, Vector3.INF, Vector3(-2, 0, 0), func(p: Vector3) -> bool: return p.x < 4.9)
+	await walk(body, Vector3.INF, Vector3(0, 0, -3), func(p: Vector3) -> bool: return p.z < -12.2)
+	await walk(body, Vector3.INF, Vector3(2, 0, 0), func(p: Vector3) -> bool: return p.x > 6.0)
+	await walk(body, Vector3.INF, Vector3(0, 0, -3), func(p: Vector3) -> bool: return p.z < -17.5)
 	await walk(body, Vector3.INF, Vector3(-2, 0, 0), func(p: Vector3) -> bool: return p.x < 4.0)
 	var feet: Vector3 = await walk(body, Vector3.INF, Vector3(0, 0, -2), func(p: Vector3) -> bool: return p.z < -21.8)
 	check(feet.z < -21.5 and absf(feet.y) < 0.1, "walk the hall into the iwan alcove beside the centrepiece (feet at %s)" % feet)
@@ -109,8 +118,9 @@ func audit(room: Node3D, open_stairs: bool) -> void:
 	feet = await walk(body, Vector3(11.05, 0.95, -18.5), Vector3(0, 0, 3), func(p: Vector3) -> bool: return p.z > -4.0)
 	check(feet.z > -5.0 and absf(feet.y - 4.15) < 0.1, "east stair reaches the east gallery (feet at %s)" % feet)
 	# Polish slice A: under the high end of each stair (bay 2) the masonry look
-	# is solid, the open wooden one can be walked under, up to the wall.
-	for side: Array in [[Vector3(3.0, 0.95, -9.5), -1.0], [Vector3(9.0, 0.95, -9.5), 1.0]]:
+	# is solid, the open wooden one can be walked under, up to the wall. From
+	# between the two reading tables on that side.
+	for side: Array in [[Vector3(3.0, 0.95, -12.0), -1.0], [Vector3(9.0, 0.95, -12.0), 1.0]]:
 		var start: Vector3 = side[0]
 		var dir: float = side[1]
 		if open_stairs:

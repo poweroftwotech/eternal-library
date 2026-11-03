@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://chsgud1r8ku2m"]
+
+[ext_resource type="Texture2D" uid="uid://cxi7spp64lh45" path="res://assets/textures/px/rug_kilim_grand.png" id="1_o8g5f"]
+[ext_resource type="Texture2D" uid="uid://c7wndlkhqbai3" path="res://assets/textures/px/rug_kilim_grand_rough.png" id="2_invsv"]
+
+[resource]
+resource_name = "rug_kilim_grand"
+albedo_texture = ExtResource("1_o8g5f")
+metallic_specular = 0.65
+roughness_texture = ExtResource("2_invsv")
+texture_filter = 4

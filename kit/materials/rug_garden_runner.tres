@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://bxf042fyxujiw"]
+
+[ext_resource type="Texture2D" uid="uid://cjnuh5g42i8wt" path="res://assets/textures/px/rug_garden_runner.png" id="1_nvevb"]
+[ext_resource type="Texture2D" uid="uid://dy4h2pkassg6c" path="res://assets/textures/px/rug_garden_runner_rough.png" id="2_vba7x"]
+
+[resource]
+resource_name = "rug_garden_runner"
+albedo_texture = ExtResource("1_nvevb")
+metallic_specular = 0.65
+roughness_texture = ExtResource("2_vba7x")
+texture_filter = 4

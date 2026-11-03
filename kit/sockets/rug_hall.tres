@@ -1,0 +1,73 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/socket_entry.gd" id="1_entry"]
+[ext_resource type="Script" path="res://scripts/world/socket_set.gd" id="2_set"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_kilim_runner.tscn" id="3_kilim"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_herati_runner.tscn" id="4_herati"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_medallion_runner.tscn" id="5_medallion"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_gabbeh_runner.tscn" id="6_gabbeh"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_garden_runner.tscn" id="7_garden"]
+[ext_resource type="PackedScene" path="res://kit/dressing/hall_seating_medallion.tscn" id="8_seat_medallion"]
+[ext_resource type="PackedScene" path="res://kit/dressing/hall_seating_herati.tscn" id="9_seat_herati"]
+[ext_resource type="PackedScene" path="res://kit/dressing/hall_seating_garden.tscn" id="10_seat_garden"]
+
+[sub_resource type="Resource" id="Resource_run_kilim"]
+script = ExtResource("1_entry")
+label = "kilim runner"
+scene = ExtResource("3_kilim")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_run_herati"]
+script = ExtResource("1_entry")
+label = "herati runner"
+scene = ExtResource("4_herati")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_run_medallion"]
+script = ExtResource("1_entry")
+label = "medallion runner"
+scene = ExtResource("5_medallion")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_run_gabbeh"]
+script = ExtResource("1_entry")
+label = "gabbeh runner"
+scene = ExtResource("6_gabbeh")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_run_garden"]
+script = ExtResource("1_entry")
+label = "garden runner"
+scene = ExtResource("7_garden")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_seat_medallion"]
+script = ExtResource("1_entry")
+label = "medallion rug, low table"
+scene = ExtResource("8_seat_medallion")
+weight = 1.2
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_seat_herati"]
+script = ExtResource("1_entry")
+label = "herati rug, low table"
+scene = ExtResource("9_seat_herati")
+weight = 1.2
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_seat_garden"]
+script = ExtResource("1_entry")
+label = "garden rug, low table"
+scene = ExtResource("10_seat_garden")
+weight = 1.2
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("2_set")
+entries = Array[ExtResource("1_entry")]([SubResource("Resource_run_kilim"), SubResource("Resource_run_herati"), SubResource("Resource_run_medallion"), SubResource("Resource_run_gabbeh"), SubResource("Resource_run_garden"), SubResource("Resource_seat_medallion"), SubResource("Resource_seat_herati"), SubResource("Resource_seat_garden")])
+slot_bounds = AABB(-1.75, 0, -6.8, 3.5, 0.8, 13.6)

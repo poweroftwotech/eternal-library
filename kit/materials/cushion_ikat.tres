@@ -1,0 +1,18 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://d2mavbrm4rpua"]
+
+[ext_resource type="Texture2D" uid="uid://dfqbbx1xqqxkm" path="res://assets/textures/px/cushion_ikat.png" id="1_efpdh"]
+[ext_resource type="Texture2D" uid="uid://dd6dg5s8v7dlm" path="res://assets/textures/px/cushion_ikat_normal.png" id="2_s2a42"]
+[ext_resource type="Texture2D" uid="uid://dfvend8lhilw5" path="res://assets/textures/px/cushion_ikat_rough.png" id="3_bhrm5"]
+
+[resource]
+resource_name = "cushion_ikat"
+albedo_texture = ExtResource("1_efpdh")
+metallic_specular = 0.65
+roughness_texture = ExtResource("3_bhrm5")
+normal_enabled = true
+normal_scale = 0.55
+normal_texture = ExtResource("2_s2a42")
+uv1_triplanar = true
+uv1_world_triplanar = true
+texture_filter = 4
+metadata/px_scale = Vector3(1, 1, 1)

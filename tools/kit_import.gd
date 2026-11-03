@@ -32,6 +32,9 @@ const LIGHT_PROFILES: Dictionary = {
 	# grove. Neither casts shadows, so they cost no shadow budget.
 	"lumen": {"color": Color(1.0, 0.93, 0.78), "energy": 2.4, "range": 14.0, "attenuation": 0.9, "shadow": false},
 	"fungus": {"color": Color(0.24, 0.9, 0.8), "energy": 0.9, "range": 5.0, "attenuation": 1.3, "shadow": false},
+	# The Reading Room's table lamps (room rework, step 1): a small warm pool on
+	# the table and the seats round it, not the walls. No shadows.
+	"desk": {"color": Color(1.0, 0.66, 0.32), "energy": 1.1, "range": 3.2, "attenuation": 1.6, "shadow": false},
 }
 const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_", "FOG_"]
 ## Physics layer 8: walls only the player collides with (project layer names).

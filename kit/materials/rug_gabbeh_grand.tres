@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cksf2fd1mdfjm"]
+
+[ext_resource type="Texture2D" uid="uid://d23hdta1v0ojp" path="res://assets/textures/px/rug_gabbeh_grand.png" id="1_hdxbg"]
+[ext_resource type="Texture2D" uid="uid://cnxs8tnmgqukj" path="res://assets/textures/px/rug_gabbeh_grand_rough.png" id="2_hmg0j"]
+
+[resource]
+resource_name = "rug_gabbeh_grand"
+albedo_texture = ExtResource("1_hdxbg")
+metallic_specular = 0.65
+roughness_texture = ExtResource("2_hmg0j")
+texture_filter = 4

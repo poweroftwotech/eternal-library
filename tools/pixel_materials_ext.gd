@@ -24,6 +24,18 @@ func _init() -> void:
 		decals()
 		quit()
 		return
+	if OS.get_cmdline_user_args().has("rugs"):     # -- rugs: only the carpets, merged into the manifest
+		var old: Variant = JSON.parse_string(FileAccess.get_file_as_string(OUT + "manifest_ext.json"))
+		manifest = (old as Dictionary).get("materials", {}) if old is Dictionary else {}
+		for entry: Dictionary in manifest.values():     # JSON reads numbers back as floats
+			entry["size"] = [int(entry["size"][0]), int(entry["size"][1])]
+		rugs()
+		var out: FileAccess = FileAccess.open(OUT + "manifest_ext.json", FileAccess.WRITE)
+		out.store_string(JSON.stringify({"texel_density": 32, "materials": manifest}, " "))
+		out.close()
+		print("wrote the carpets; manifest has %d pixel materials" % manifest.size())
+		quit()
+		return
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(OUT))
 	decals()
 	props()
@@ -33,6 +45,7 @@ func _init() -> void:
 	foliage()
 	kit_room()
 	persian()
+	rugs()
 	var file: FileAccess = FileAccess.open(OUT + "manifest_ext.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify({"texel_density": 32, "materials": manifest}, " "))
 	file.close()
@@ -888,6 +901,251 @@ func fern_shape(u: float, v: float) -> bool:
 ## The albedo alpha is what the Decal blends with, quantised to a few levels
 ## with ordered dithering, so edges stay pixel steps instead of soft gradients.
 ## Image top is the decal's -Z; wall decal scenes are turned so it is up.
+# ------------------------------------------------------------------ carpets
+## The Reading Room's carpets (room rework, step 1): five designs, each at the
+## three rug sizes the kit's rug pieces use, one knot per texel, UV-mapped over
+## the whole rug (long side along u). Named rug_<design>_<size>.
+const RUG_SIZES: Dictionary = {"runner": [140, 102], "grand": [192, 112], "small": [80, 56]}
+## Palette slots: 0 outline, 1 field, 2 field abrash, 3 accent, 4 second accent,
+## 5 ivory, 6 border ground, 7 border motif.
+const RUG_PALETTES: Dictionary = {
+	"kilim": ["#1a0f0b", "#7c2a1c", "#6a2318", "#c8913f", "#2a6a6a", "#e3cf9c", "#203a5a", "#9c3a22"],
+	"herati": ["#120e12", "#1d2a4a", "#18233f", "#8a2a1e", "#3c6a4a", "#e0cfa0", "#7c2a1c", "#c8913f"],
+	"medallion": ["#160c0a", "#8a2a1e", "#78241a", "#1d2a4a", "#2a4a6a", "#e6d4a6", "#d8c290", "#8a2a1e"],
+	"gabbeh": ["#1e140c", "#b0702c", "#9c6026", "#7c2a1c", "#3a4a5a", "#e3cf9c", "#5a1d14", "#c8913f"],
+	"garden": ["#121410", "#3c5a34", "#5e7e40", "#7c2a1c", "#2a5a7a", "#e3cf9c", "#5a1d14", "#c8913f"],
+}
+
+func rugs() -> void:
+	var k: int = 0
+	for design: String in RUG_PALETTES:
+		for size: String in RUG_SIZES:
+			k += 1
+			carpet("rug_%s_%s" % [design, size], design, RUG_SIZES[size][0], RUG_SIZES[size][1], 300 + k)
+	cushions()
+
+## The floor seating's cloths (room rework, your note after step 1: Persian
+## floor seating in place of the chairs). World-mapped tiles at 32 texels/m.
+##   cushion_termeh  woven termeh: rows of boteh (paisley) on madder red
+##   cushion_ikat    ikat: blurred indigo / ivory / red chevrons
+##   cushion_kilim   kilim bands with small diamonds (poufs)
+func cushions() -> void:
+	var termeh: PackedColorArray = pal(["#1c0c0a", "#7a1e18", "#68181a", "#c8913f", "#2e5a44", "#e3cf9c"])
+	var ikat: PackedColorArray = pal(["#141a2e", "#1d2a4a", "#e0cfa0", "#8a2a1e", "#c8913f"])
+	var kilim: PackedColorArray = pal(["#1a0f0b", "#9c3a22", "#c8913f", "#2a6a6a", "#e3cf9c", "#5a1d14"])
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	for which: String in ["termeh", "ikat", "kilim"]:
+		rng.seed = hash(which)
+		var w: int = 32
+		var h: int = 32
+		var rgb: PackedColorArray = PackedColorArray()
+		var height: PackedFloat32Array = PackedFloat32Array()
+		var jitter: PackedInt32Array = PackedInt32Array()     # ikat: each row's dye bleed
+		for _y: int in range(h):
+			jitter.append(rng.randi_range(-1, 1))
+		for y: int in range(h):
+			for x: int in range(w):
+				var c: Color
+				match which:
+					"termeh":
+						# Two boteh per tile, the second row offset by half: a
+						# teardrop swept up from a round base, its tip curling over.
+						var p := Vector2((x + (8 if (y / 16) % 2 == 1 else 0)) % 16, y % 16)
+						var inside: float = 99.0     # distance past the teardrop's edge (< 0 inside)
+						for k: int in range(11):
+							var t: float = k / 10.0
+							var centre := Vector2(7.0 + 4.5 * sin(t * PI * 0.75), 11.0 - 8.0 * t)
+							var r: float = 4.0 * pow(1.0 - t, 0.9) + 0.5
+							inside = minf(inside, p.distance_to(centre) - r)
+						var core: float = p.distance_to(Vector2(7.0, 11.0))
+						if inside < -0.2 and core < 1.5:
+							c = termeh[4]
+						elif inside < -0.2 and core < 2.6:
+							c = termeh[5]
+						elif inside < -1.0:
+							c = termeh[3]
+						elif inside < 0.0:
+							c = termeh[5]
+						elif inside < 0.9:
+							c = termeh[0]
+						else:
+							c = termeh[1] if (x + y) % 2 == 0 else termeh[2]
+					"ikat":
+						var u: int = (x + jitter[y]) % 16
+						var t: float = absf(float(y % 16) - 8.0) / 8.0     # chevron
+						var edge: float = absf(u - (8.0 + (t - 0.5) * 8.0))
+						if edge < 2.0:
+							c = ikat[2]
+						elif edge < 3.0:
+							c = ikat[3] if (y + x) % 3 == 0 else ikat[2]
+						elif edge < 4.5:
+							c = ikat[3]
+						elif u == 0:
+							c = ikat[4]
+						else:
+							c = ikat[1] if (x + y) % 2 == 0 else ikat[0]
+					_:
+						var band: int = (y / 8) % 4
+						var bx: float = absf(float(x % 8) - 3.5) + absf(float(y % 8) - 3.5)
+						if y % 8 == 0:
+							c = kilim[0]
+						elif bx < 1.5:
+							c = kilim[4]
+						elif bx < 3.0:
+							c = kilim[[2, 3, 2, 5][band]]
+						else:
+							c = kilim[[1, 5, 3, 1][band]]
+				var shade: float = 0.9 + (x % 2) * 0.08 + rng.randf() * 0.06
+				rgb.append(Color(c.r * shade, c.g * shade, c.b * shade))
+				height.append(0.6 + (x % 2) * 0.2 + rng.randf() * 0.15)
+		save("cushion_" + which, w, h, rgb, height, filled(w * h, .95), "world", 1.0)
+
+func carpet(material_name: String, design: String, w: int, h: int, seed_value: int) -> void:
+	var p: PackedColorArray = pal(RUG_PALETTES[design])
+	var rng: RandomNumberGenerator = RandomNumberGenerator.new()
+	rng.seed = seed_value
+	var bw: int = clampi(h / 8, 7, 16)        # border width, guards included
+	var fw: int = w - 2 * bw
+	var fh: int = h - 2 * bw
+	# Abrash: the field's dye lot changes in bands across the long side.
+	var lot: PackedInt32Array = PackedInt32Array()
+	var band: int = 1
+	for x: int in range(w):
+		if x % 9 == 0 and rng.randf() < 0.45:
+			band = 3 - band
+		lot.append(band)
+	var spots: Array[Vector2i] = []           # the gabbeh's few motifs, one per jittered cell
+	var gx: int = maxi(1, fw / 34)
+	var gy: int = maxi(1, fh / 30)
+	for i: int in range(gx):
+		for j: int in range(gy):
+			if rng.randf() < 0.7:
+				var cx: int = (fw * (2 * i + 1)) / (2 * gx) + rng.randi_range(-4, 4)
+				var cy: int = (fh * (2 * j + 1)) / (2 * gy) + rng.randi_range(-3, 3)
+				spots.append(Vector2i(cx, cy))
+	var rgb: PackedColorArray = PackedColorArray()
+	var height: PackedFloat32Array = PackedFloat32Array()
+	for y: int in range(h):
+		for x: int in range(w):
+			var b: int = mini(mini(x, y), mini(w - 1 - x, h - 1 - y))
+			var slot: int
+			if b < 1:
+				slot = 0
+			elif b < 2:
+				slot = 4
+			elif b < bw - 2:
+				var along: int = x if mini(y, h - 1 - y) == b else y
+				slot = _rug_border(design, along, b - 2, bw - 4)
+			elif b < bw - 1:
+				slot = 0
+			elif b < bw:
+				slot = 7
+			else:
+				slot = _rug_field(design, x - bw, y - bw, fw, fh, lot[x], spots)
+			var shade: float = 0.9 + (x % 2) * 0.08 + rng.randf() * 0.06
+			var c: Color = p[slot]
+			rgb.append(Color(c.r * shade, c.g * shade, c.b * shade))
+			height.append(0.6 + (x % 2) * 0.2 + rng.randf() * 0.2)
+	save(material_name, w, h, rgb, height, filled(w * h, .97), "uv", 1.0)
+
+## The main border band: a zigzag (kilim, gabbeh), rosettes (herati, garden)
+## or a running vine (medallion), on the border ground.
+func _rug_border(design: String, along: int, cross: int, width: int) -> int:
+	var mid: float = (width - 1) * 0.5
+	match design:
+		"kilim", "gabbeh":
+			var t: float = absf(float(along % 10) - 5.0) / 5.0
+			return 5 if absf(cross - (width - 1) * t) < 1.0 else 6
+		"medallion":
+			var wave: float = mid + sin(along * TAU / 14.0) * mid * 0.7
+			if absf(cross - wave) < 0.8:
+				return 3
+			return 7 if along % 7 == 3 and absf(cross - mid) > mid * 0.5 else 6
+		_:
+			var d: float = absf(float(along % 10) - 4.5) + absf(cross - mid)
+			if d < 1.5:
+				return 5
+			if d >= 2.5 and d < 3.5:
+				return 7
+			return 6
+
+func _rug_field(design: String, fx: int, fy: int, fw: int, fh: int, lot: int, spots: Array[Vector2i]) -> int:
+	match design:
+		"kilim":
+			var cx: float = ((fx + 10) % 20) - 9.5
+			var cy: float = ((fy + 10) % 20) - 9.5
+			var d: float = absf(cx) + absf(cy)
+			if d >= 8.0 and d < 9.5:
+				return 3
+			if d >= 5.0 and d < 6.5:
+				return 4
+			if d >= 2.5 and d < 3.5:
+				return 5
+			return 0 if d < 1.5 else lot
+		"herati":
+			var cx: float = (fx % 12) - 5.5
+			var cy: float = (fy % 12) - 5.5
+			var d: float = absf(cx) + absf(cy)
+			if d >= 5.0 and d < 6.0:
+				return 3
+			if d < 1.6:
+				return 5
+			if absf(absf(cx) - absf(cy)) < 0.8 and d >= 2.8 and d < 4.2:
+				return 4
+			return lot
+		"medallion":
+			var dx: float = absf(fx - (fw - 1) * 0.5)
+			var dy: float = absf(fy - (fh - 1) * 0.5)
+			var r: float = dx / (fw * 0.24) + dy / (fh * 0.4)
+			if r < 1.0:
+				if r < 0.22:
+					return 3
+				if r < 0.3 or (r >= 0.72 and r < 0.8):
+					return 0
+				if r < 0.72:
+					return 3 if (fx + fy) % 6 == 0 and (fx - fy) % 6 == 0 else 5
+				return 4
+			if dy < 1.5 and dx < fw * 0.24 + 5.0:
+				return 5     # the pendants
+			var qx: int = mini(fx, fw - 1 - fx)
+			var qy: int = mini(fy, fh - 1 - fy)
+			var q: float = qx / (fw * 0.16) + qy / (fh * 0.28)
+			if q < 1.0:
+				return 0 if q >= 0.88 else 4
+			if fx % 9 == 4 and fy % 9 == 4:
+				return 5
+			if (absi(fx % 9 - 4) + absi(fy % 9 - 4)) == 1:
+				return 3
+			return lot
+		"gabbeh":
+			for s: Vector2i in spots:
+				var d: int = absi(fx - s.x) + absi(fy - s.y)
+				if d <= 2:
+					return 3
+				if d == 3 or d == 7:
+					return 0
+				if d >= 4 and d <= 6:
+					return 5 if d == 5 or (fx + fy) % 2 == 0 else 7
+			return lot
+		_:
+			# Beds fitted to the field: whole cells only, about square.
+			var ny: int = maxi(1, int(round(fh / 30.0)))
+			var nx: int = maxi(1, int(round(fw * ny / float(fh))))
+			var cw: float = fw / float(nx)
+			var ch: float = fh / float(ny)
+			var cx: float = fmod(fx, cw)
+			var cy: float = fmod(fy, ch)
+			if cx < 2.0 or cy < 2.0:
+				return 4 if (cx < 1.0 or cy < 1.0) else 0     # the water channels
+			var d: float = absf(cx - cw * 0.5) / cw + absf(cy - ch * 0.42) / ch
+			if d < 0.26:
+				return 5 if (int(cx) * 3 + int(cy) * 5) % 13 == 0 else 2     # the tree's crown, a few blossoms
+			if absf(cx - cw * 0.5) < 0.7 and cy > ch * 0.42:
+				return 0     # trunk
+			if (int(cx) * 7 + int(cy) * 3) % 23 == 0:
+				return 3     # flowers
+			return 1
+
 const DECAL_OUT: String = "res://assets/textures/decals/"
 const DECAL_ALPHA: Array[float] = [0.0, .22, .38, .54, .7, .86]
 

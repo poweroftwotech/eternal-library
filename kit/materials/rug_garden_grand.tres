@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://0cbfxkmm7imk"]
+
+[ext_resource type="Texture2D" uid="uid://jgo16yj7nlc6" path="res://assets/textures/px/rug_garden_grand.png" id="1_xe8gc"]
+[ext_resource type="Texture2D" uid="uid://b0pxxwf4ev7kr" path="res://assets/textures/px/rug_garden_grand_rough.png" id="2_6wtaa"]
+
+[resource]
+resource_name = "rug_garden_grand"
+albedo_texture = ExtResource("1_xe8gc")
+metallic_specular = 0.65
+roughness_texture = ExtResource("2_6wtaa")
+texture_filter = 4

@@ -101,6 +101,7 @@ var _resolve_styles: Dictionary = {}
 
 
 func begin_resolve(seed_value: int) -> void:
+	scale_lights()
 	_last_seed = seed_value
 	_resolve_picks = {}
 	_resolve_styles = style_picks(seed_value)
@@ -129,6 +130,25 @@ func resolve_next(deadline_usec: int) -> bool:
 	apply_claims()
 	_resolve_queue = []
 	return true
+
+
+## A placed module with metadata "light_energy_scale" has its lights' energy
+## scaled by it, so one room can dim a kit lamp without changing the kit (the
+## Reading Room's chandeliers, room rework step 1). Before the sockets resolve,
+## so LampState takes the scaled energy as the lamp's base; once per light.
+func scale_lights() -> void:
+	for n: Node in find_children("*", "Node3D", true, true):
+		if not n.has_meta("light_energy_scale"):
+			continue
+		var k: float = float(n.get_meta("light_energy_scale"))
+		for found: Node in n.find_children("*", "Light3D", true, false):
+			var light := found as Light3D
+			if light.has_meta("energy_scaled"):
+				continue
+			light.light_energy *= k
+			if light.has_meta("lamp_base_energy"):
+				light.set_meta("lamp_base_energy", float(light.get_meta("lamp_base_energy")) * k)
+			light.set_meta("energy_scaled", true)
 
 
 ## {style group: entry index}, rolled once per room from the seed with the

@@ -1,0 +1,11 @@
+[gd_resource type="StandardMaterial3D" format=3 uid="uid://cyvxy043qc3is"]
+
+[ext_resource type="Texture2D" uid="uid://bvd8vkq7v0iqa" path="res://assets/textures/px/rug_herati_grand.png" id="1_ddwmp"]
+[ext_resource type="Texture2D" uid="uid://buf7ihyrbiieb" path="res://assets/textures/px/rug_herati_grand_rough.png" id="2_kjh66"]
+
+[resource]
+resource_name = "rug_herati_grand"
+albedo_texture = ExtResource("1_ddwmp")
+metallic_specular = 0.65
+roughness_texture = ExtResource("2_kjh66")
+texture_filter = 4
