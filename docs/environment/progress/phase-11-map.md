@@ -3,7 +3,7 @@
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · [Approval brief](../phase-11-approval.md) ·
 [The mock](https://claude.ai/artifact/LSnEpwg9XnPVp3DLoqYnx6)
 
-## Step 2: the Gorge and the camp (built 2026-11-03, waiting for your try)
+## Step 2: the Gorge and the camp (committed c2ae869, 2026-11-03, after your try)
 
 **What you can try:** start in the camp, walk through the corridor into the Gorge and down the span, then press **M**. Both are listed under "Places you know".
 
