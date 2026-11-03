@@ -350,6 +350,31 @@ func map_reveal(id: String, stamp: String, shown: String, walked: PackedInt32Arr
 	return changed
 
 
+## Your marks on the map (phase 11 step 3), each {place, x, z (metres in the
+## place's frame), storey, symbol: star | cross | question | lamp, note}.
+## They stay when a place's map is forgotten: they are your words.
+func map_marks() -> Array:
+	var map: Dictionary = data.get_or_add("map", {"places": {}, "order": []})
+	return map.get_or_add("marks", [])
+
+
+## Adds a mark (as map_marks) and returns its index.
+func add_map_mark(mark: Dictionary) -> int:
+	map_marks().append(mark)
+	mark_dirty()
+	return map_marks().size() - 1
+
+
+func set_map_mark(i: int, mark: Dictionary) -> void:
+	map_marks()[i] = mark
+	mark_dirty()
+
+
+func remove_map_mark(i: int) -> void:
+	map_marks().remove_at(i)
+	mark_dirty()
+
+
 ## Names place `id` on the map and says which storey is its ground floor.
 func set_map_name(id: String, recipe_version: int, shown: String, ground: int) -> void:
 	var known: Dictionary = map_place(id, recipe_version)

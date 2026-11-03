@@ -3,6 +3,48 @@
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · [Approval brief](../phase-11-approval.md) ·
 [The mock](https://claude.ai/artifact/LSnEpwg9XnPVp3DLoqYnx6)
 
+## Step 3: the whole stratum, and your marks (committed 2026-11-03, after your try)
+
+**What you can try:**
+
+- Open the map (**M**) and pick **The whole stratum** at the top of the places list, or zoom out past a place's smallest zoom. Every place you know is drawn at once, where it really lies: the camp and the Gorge as they are, each interior placed so its door back meets its Gorge door (through the vestibule, as the continuous world places them). A dotted line joins the doors of linked places. Each place's name is written above it, and the red arrow shows you. Pick a place in the list to go back to it.
+- **Right-click** on a place's sheet to put a mark there. A panel opens under the key with:
+  - four symbols: star, cross, question, lamp;
+  - a short note (up to 40 letters);
+  - **Keep**, **Remove** and **Cancel**. **Enter** keeps the mark; **Esc** cancels it, not the map.
+- Right-click an existing mark to change or remove it. Marks are drawn in a blue-black ink with their note beside them, on their place and on the stratum. They're saved.
+
+**How it's built:**
+
+- `MapPage.stratum_frames()` works out where each place lies from what the save already knows:
+  - each interior's door back (in its room sketches);
+  - the Gorge's and the camp's doors (in their traces).
+  - It follows the stratum plan's links outward from the Gorge, with the same arithmetic as `SeamlessPlaces._interior_frame`.
+  - A place whose door back you haven't seen can't be placed, so it isn't drawn on the stratum. You arrive by that door, so it's always seen.
+- The sheet draws each place through its frame (`MapCanvas.use` and `frame`). On the stratum it leaves out room names and door labels, and writes each place's name above it.
+- Smaller than a pixel a sample, the Gorge's and the camp's images are drawn mipmapped, so their lines fade rather than drop out.
+- Marks are kept in the save under `map.marks`: place, position in the place's own frame, storey, symbol, note. They stay when a place's map is forgotten after a recipe change, because they're your words. They may then sit in the wrong spot.
+
+**Verified:**
+
+- `tests/map_stratum_test.gd`, over three OS processes:
+  - *stacks*: walk the Lower Stacks to the room with its door to the Gorge, and note the door's frame from the plan.
+  - *gorge* (14 checks): start in the camp and walk to the Gorge's door to the Lower Stacks. The map places the Lower Stacks exactly where the continuous world would: the frame from both plans matches within 5 cm. Then marks:
+    - a lamp with a note on the Gorge, a star on the camp;
+    - one more mark, picked again and removed.
+    - The stratum shows the three places, joined by two links, with you on it. Zooming out past the Gorge shows the stratum.
+  - *load*: a new process has both marks and the note, the Lower Stacks where it was, and the same stratum.
+- GPU captures: `previews/p11_step3/stratum.png`, `marks.png`.
+- Steps 1 and 2's tests still pass (`map_test` 15 + 9, `map_trace_test` 62 + 5); the headless 240-frame gate passes.
+
+**Caveats:**
+
+- **Overlaps:** interiors stand inside the Gorge's banks, so on the stratum they overlap the Gorge's drawing. That's where they really are.
+- **Floors:** the stratum draws each interior's ground floor only. Its other floors are in the place's own view.
+- **Mark placement:** marks are put and changed on a place's own sheet, not on the stratum.
+- **Text:** a note can run over a door label next to it.
+- **Not run:** the full persistence gate, the frame gate and the route tests. The map only reads the world.
+
 ## Step 2: the Gorge and the camp (committed c2ae869, 2026-11-03, after your try)
 
 **What you can try:** start in the camp, walk through the corridor into the Gorge and down the span, then press **M**. Both are listed under "Places you know".
