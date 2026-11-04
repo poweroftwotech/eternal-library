@@ -15,7 +15,7 @@ const SLOT_SHAPES: Dictionary = {
 
 ## A slot RoomBuilder asks for: one of SLOT_SHAPES, or a grammar's own named by
 ## its shape (edge:…, cell:…, post:…; anything else is FREE dressing).
-@export_custom(PROPERTY_HINT_ENUM_SUGGESTION, "edge:solid,edge:solid_corner,edge:recess,edge:opening,edge:door,edge:arcade,gable,cell:floor,cell:ceiling,cell:ceiling_cross,cell:dome,cell:oculus,post,post:column,post:engaged,lamp,dressing:rubble,dressing:case,dressing:niche_hearth,dressing:niche_garden,dressing:niche_larder,dressing:niche_art,landmark,stub:exit")
+@export_custom(PROPERTY_HINT_ENUM_SUGGESTION, "edge:solid,edge:solid_corner,edge:recess,edge:opening,edge:door,edge:arcade,gable,cell:floor,cell:ceiling,cell:ceiling_cross,cell:dome,cell:oculus,post,post:column,post:engaged,lamp,dressing:rubble,dressing:case,dressing:wall_case,dressing:niche_hearth,dressing:niche_garden,dressing:niche_larder,dressing:niche_art,landmark,stub:exit")
 var slot: String = "edge:solid":
 	set(value):
 		slot = value

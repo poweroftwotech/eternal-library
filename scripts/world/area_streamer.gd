@@ -19,8 +19,11 @@ enum RoomState { UNLOADED, STAND_IN, LIVE }
 ## (step 2 measurements): one isn't started with less budget left.
 const STEP_ESTIMATE_MS: float = 2.5
 ## Rooms with more modules enter the tree in parts (_hold_parts): a gallery
-## has about 130, the cistern 220 (its 2,000 nodes cost 5-6 ms in one frame).
-const ENTER_WHOLE_MODULES: int = 160
+## had about 130, the cistern 220 (its 2,000 nodes cost 5-6 ms in one frame).
+## Room rework step 2 gave galleries more alcoves and niches, and a gallery
+## entering whole took about 4 ms, the Lower Stacks' worst frames: they
+## enter in parts too now.
+const ENTER_WHOLE_MODULES: int = 100
 
 signal room_loaded(slot: String)
 signal room_unloaded(slot: String)

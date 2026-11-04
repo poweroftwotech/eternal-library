@@ -8,13 +8,16 @@ extends Node3D
 ## scripts, no collision.
 
 const FRAMES: int = 3
-## What the niches bring that the rest of the library doesn't use.
+## What the niches and the caravanserai cells bring that the rooms around
+## them don't use.
 const SCENES: PackedStringArray = [
 	"res://kit/dressing/niche_hearth.tscn", "res://kit/dressing/niche_garden.tscn",
 	"res://kit/dressing/niche_larder.tscn", "res://kit/dressing/niche_art_0.tscn",
 	"res://kit/dressing/niche_art_1.tscn", "res://kit/dressing/niche_art_2.tscn",
 	"res://kit/dressing/recess_hearth.tscn", "res://kit/dressing/recess_herbs.tscn",
 	"res://kit/dressing/recess_pantry.tscn",
+	"res://kit/dressing/court_cell_sitting.tscn", "res://kit/dressing/court_cell_cooking.tscn",
+	"res://kit/dressing/court_cell_garden.tscn", "res://kit/dressing/court_cell_reading.tscn",
 ]
 
 var _left: int = FRAMES

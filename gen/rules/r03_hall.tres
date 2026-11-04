@@ -22,6 +22,8 @@
 [ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_dome_cluster.tscn" id="19_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/dome_cell_4m_fallen.tscn" id="20_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/rubble_heap_4m.tscn" id="21_m"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/case_wall_tall_4m.tscn" id="22_wcase"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/case_wall_tall_ladder_4m.tscn" id="23_wcase"]
 
 [sub_resource type="Resource" id="Choice_1"]
 script = ExtResource("2_choice")
@@ -213,6 +215,21 @@ script = ExtResource("1_rule")
 slot = "edge:plain"
 choices = Array[ExtResource("2_choice")]([SubResource("Choice_plain")])
 
+[sub_resource type="Resource" id="Choice_wcase"]
+script = ExtResource("2_choice")
+scene = ExtResource("22_wcase")
+weight = 3.0
+
+[sub_resource type="Resource" id="Choice_wcase_ladder"]
+script = ExtResource("2_choice")
+scene = ExtResource("23_wcase")
+weight = 1.0
+
+[sub_resource type="Resource" id="Rule_wcase"]
+script = ExtResource("1_rule")
+slot = "dressing:wall_case"
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_wcase"), SubResource("Choice_wcase_ladder")])
+
 [resource]
 script = ExtResource("0_rules")
-rules = Array[ExtResource("1_rule")]([SubResource("Rule_1"), SubResource("Rule_2"), SubResource("Rule_3"), SubResource("Rule_4"), SubResource("Rule_5"), SubResource("Rule_6"), SubResource("Rule_7"), SubResource("Rule_8"), SubResource("Rule_9"), SubResource("Rule_10"), SubResource("Rule_11"), SubResource("Rule_12"), SubResource("Rule_13"), SubResource("Rule_14"), SubResource("Rule_15"), SubResource("Rule_16"), SubResource("Rule_17"), SubResource("Rule_plain")])
+rules = Array[ExtResource("1_rule")]([SubResource("Rule_1"), SubResource("Rule_2"), SubResource("Rule_3"), SubResource("Rule_4"), SubResource("Rule_5"), SubResource("Rule_6"), SubResource("Rule_7"), SubResource("Rule_8"), SubResource("Rule_9"), SubResource("Rule_10"), SubResource("Rule_11"), SubResource("Rule_12"), SubResource("Rule_13"), SubResource("Rule_14"), SubResource("Rule_15"), SubResource("Rule_16"), SubResource("Rule_17"), SubResource("Rule_plain"), SubResource("Rule_wcase")])

@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_qasv7"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/case_wall_tall_ladder_4m.glb" id="2_b2ky2"]
+
+[node name="case_wall_tall_ladder_4m" type="Node3D" unique_id=235457064]
+script = ExtResource("1_qasv7")
+family = "dressing"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("wood", "brass", "storage", "hall", "books")
+source_glb = "res://assets/kit/dressing/case_wall_tall_ladder_4m.glb"
+
+[node name="Mesh" parent="." unique_id=471051674 instance=ExtResource("2_b2ky2")]

@@ -1,0 +1,31 @@
+[gd_scene format=3]
+
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_herati_small.tscn" id="1_rug"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/floor_seat.tscn" id="2_seat"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/low_reading_table.tscn" id="3_table"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_book_stack.tscn" id="4_books"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_scroll.tscn" id="5_scroll"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/floor_cushion.tscn" id="6_cushion"]
+
+[node name="court_cell_reading" type="Node3D"]
+
+[node name="Rug" parent="." instance=ExtResource("1_rug")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, 1.4)
+
+[node name="Seat" parent="." instance=ExtResource("2_seat")]
+transform = Transform3D(-1, 0, 0, 0, 1, 0, 0, 0, -1, 0, 0, 0.4)
+
+[node name="Table" parent="." instance=ExtResource("3_table")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.1)
+
+[node name="Cushion" parent="." instance=ExtResource("6_cushion")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 1.8)
+
+[node name="BooksWest" parent="." instance=ExtResource("4_books")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.4, 0, 0.4)
+
+[node name="BooksEast" parent="." instance=ExtResource("4_books")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 1.4, 0, 0.4)
+
+[node name="Scroll" parent="." instance=ExtResource("5_scroll")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 1.4, 0, 0.9)

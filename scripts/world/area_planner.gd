@@ -460,7 +460,10 @@ static func _plain_backed_walls(p: AreaPlan) -> void:
 			var behind: Vector3i = AreaPlan.cell_of(r.xf * _centre(n))
 			if p.rooms.any(func(o: AreaPlan.Room) -> bool: return o != r and o.cells.has(behind)):
 				e["slot"] = "edge:plain"
-				r.grid.pins.erase("edge_" + k)
+				# A recess pin goes with the recess; "no seam debris" (a hall's tall
+				# case beside it) holds on a plain wall too.
+				if r.grid.pins.get("edge_" + k, "") != "nothing":
+					r.grid.pins.erase("edge_" + k)
 
 
 ## Every edge between two of a scene room's floor cells is open to sight (its

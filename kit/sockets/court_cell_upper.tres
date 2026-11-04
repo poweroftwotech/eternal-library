@@ -5,6 +5,9 @@
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/court_contents_bedroll.tscn" id="3_s"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/court_contents_store.tscn" id="4_s"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/court_contents_ruin.tscn" id="5_s"]
+[ext_resource type="PackedScene" path="res://kit/dressing/court_cell_sitting.tscn" id="20_c"]
+[ext_resource type="PackedScene" path="res://kit/dressing/court_cell_reading.tscn" id="21_c"]
+[ext_resource type="PackedScene" path="res://kit/dressing/court_cell_garden.tscn" id="22_c"]
 
 [sub_resource type="Resource" id="Resource_3"]
 script = ExtResource("1_entry")
@@ -33,6 +36,27 @@ label = "empty"
 weight = 2.0
 tags = PackedStringArray()
 
+[sub_resource type="Resource" id="Resource_sitting"]
+script = ExtResource("1_entry")
+label = "sitting"
+scene = ExtResource("20_c")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_reading"]
+script = ExtResource("1_entry")
+label = "reading"
+scene = ExtResource("21_c")
+weight = 1.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_garden"]
+script = ExtResource("1_entry")
+label = "garden"
+scene = ExtResource("22_c")
+weight = 1.0
+tags = PackedStringArray()
+
 [resource]
 script = ExtResource("2_set")
-entries = Array[ExtResource("1_entry")]([SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6")])
+entries = Array[ExtResource("1_entry")]([SubResource("Resource_3"), SubResource("Resource_4"), SubResource("Resource_5"), SubResource("Resource_6"), SubResource("Resource_sitting"), SubResource("Resource_reading"), SubResource("Resource_garden")])

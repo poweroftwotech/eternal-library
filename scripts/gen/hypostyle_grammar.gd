@@ -58,6 +58,13 @@ extends RoomGrammar
 	set(value):
 		case_density = value
 		emit_changed()
+## Chance that a solid wall bay holds a tall bookcase against it, floor to the
+## tile band (room rework step 4); the others keep the rules' wall (a shelf
+## recess or plain brick). Never on a door's wall bay.
+@export_range(0.0, 1.0, 0.01) var wall_case_chance: float = 0.0:
+	set(value):
+		wall_case_chance = value
+		emit_changed()
 ## A lamp hangs from the dome of every Nth bay along each aisle (0 = none).
 @export_range(0, 8) var lamp_every_bays: int = 2:
 	set(value):
@@ -117,7 +124,7 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 		grid.add_cell(c, "floor", Vector3i(0, 0, 1), d.x + d.z)
 		grid.cells[c]["ceiling_slot"] = "cell:oculus" if c == centre else "cell:dome"
 		grid.cells[c]["gables"] = false
-	mark_edges(grid, rect, doors)
+	mark_edges(grid, rect, doors, seed_value)
 	place_posts(grid, rect)
 	grid.props["landmark"] = {"slot": "landmark", "xf": Transform3D(Basis(), CellGrid.cell_centre(centre))}
 	grid.cells[centre]["blocked"] = true      # its plinth and what stands on it: walk round
@@ -224,8 +231,10 @@ static func _offset(side: int) -> Vector3i:
 
 ## Arcades between hall cells, doors where doors are, walls everywhere else,
 ## and the upper band over every wall and door (dressing in the shell).
-func mark_edges(grid: CellGrid, rect: Rect2i, doors: Array) -> void:
+func mark_edges(grid: CellGrid, rect: Rect2i, doors: Array, seed_value: int = 0) -> void:
 	var door_of: Dictionary = {}
+	var walls: Dictionary = {}       # solid edge key -> its two ends (for the cases' corners)
+	var cased: Array[String] = []
 	for i: int in doors.size():
 		door_of[CellGrid.key(doors[i][0], doors[i][1])] = i
 	for c: Vector3i in grid.cells:
@@ -238,12 +247,32 @@ func mark_edges(grid: CellGrid, rect: Rect2i, doors: Array) -> void:
 			grid.props["band_" + k] = {"slot": "edge:band", "xf": CellGrid.edge_transform(c, side), "shell": true}
 			if not door_of.has(k):
 				grid.set_edge(c, side, CellGrid.Mark.SOLID)
+				var xf: Transform3D = CellGrid.edge_transform(c, side)
+				walls[k] = [xf.origin, xf * Vector3(CellGrid.BAY, 0, 0)]
+				var roll := RandomNumberGenerator.new()
+				roll.seed = hash([seed_value, "wall_case", k])
+				# Not where the wall turns inward at an end: the case would stand in
+				# the next wall's recess.
+				var along: Vector3i = Vector3i(1, 0, 0) if (n - c).x == 0 else Vector3i(0, 0, 1)
+				var inner: bool = grid.cells.has(n + along) or grid.cells.has(n - along)
+				if not inner and roll.randf() < wall_case_chance:
+					grid.set_edge(c, side, CellGrid.Mark.SOLID, false, "edge:plain")
+					grid.props["wallcase_" + k] = {"slot": "dressing:wall_case", "xf": CellGrid.edge_transform(c, side)}
+					grid.pins["edge_" + k] = "nothing"      # no seam debris at its foot: it would land inside the case
+					cased.append(k)
 			elif door_of[k] == 0 and not grid.root:
 				grid.set_edge(c, side, CellGrid.Mark.DOOR, true)
 			else:
 				grid.set_edge(c, side, CellGrid.Mark.DOOR)
 				# Until a room joins here, the exit shows a lit room beyond and blocks the way.
 				grid.props["exit_" + k] = {"slot": "stub:exit", "xf": CellGrid.door_transform(c, side)}
+	# A wall meeting a case at its end drops no seam debris either (it would
+	# land inside the case's end).
+	for k: String in cased:
+		for other: String in walls:
+			for e: Vector3 in walls[other]:
+				if e.distance_to(walls[k][0]) < 0.01 or e.distance_to(walls[k][1]) < 0.01:
+					grid.pins["edge_" + other] = "nothing"
 
 
 ## Columns on every inner corner; the top of a pier over the host door's two

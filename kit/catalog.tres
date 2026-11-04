@@ -295,6 +295,24 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "case_wall_tall_4m",
+"scene": "res://kit/modules/dressing/case_wall_tall_4m.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 0),
+"tags": PackedStringArray("wood", "storage", "hall", "books"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "case_wall_tall_ladder_4m",
+"scene": "res://kit/modules/dressing/case_wall_tall_ladder_4m.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 0),
+"tags": PackedStringArray("wood", "brass", "storage", "hall", "books"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "chasm_lamp_post",
 "scene": "res://kit/modules/dressing/chasm_lamp_post.tscn",
 "shape": "free",

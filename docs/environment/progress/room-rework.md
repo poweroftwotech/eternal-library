@@ -1,6 +1,6 @@
 # Room rework: the existing rooms before phase 12
 
-[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 2026-11-03 after your walk**
+[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED 2026-11-03 after your walks; next: step 5, the Cistern Archive**
 
 ## Why
 
@@ -20,6 +20,147 @@ Two steps: **step 1** covers the first three reports (furniture, lighting,
 carpets). **Step 2** covers the last two: niches in the stacks and the
 Reading Room's shelf bays. You chose working niches, so the plants can be
 foraged, the pot cooks and the hearth warms.
+
+## The Lower Stacks (your walk of 2026-11-03; steps 3 and 4 committed, 5 and 6 next)
+
+Your walk left ten reports in four rooms and one geometry gap:
+
+| Report | Where | What you said |
+|---|---|---|
+| 15-17-35 | Caravanserai | More variety in the cells: sitting, cooking, food and garden, reading |
+| 15-19-02 | Hypostyle Stacks | No freestanding shelves in the middle; tall floor-to-ceiling shelves along the walls, clear of doorways |
+| 15-20-33 | Cistern Archive | Remove the wooden tables and their supports in the water |
+| 15-21-12 | Cistern Archive | Replace the shelves with niches: plants (rice paddies growing in water), nets and fishing spears |
+| 15-23-59 | Cistern Archive | Light it with glowing plants and mushrooms, not lanterns |
+| 15-25-01 | Light-Well Stair | Stronger contrast: dimmer lamps, more daylight down the middle |
+| 15-26-25 | Light-Well Stair | An underground garden on the floor round the well, with pools between the plants and seats to relax |
+| 15-28-18 | Light-Well Stair | Vines hanging from the stair edges and the opening at the top |
+| 15-29-09 | Light-Well Stair | Some shelves become niches with plants and decoration |
+| 15-29-46 | Upper Stacks | Missing geometry: the light-well's closed cone seen from above |
+
+Proposed steps, each walked by you before the next:
+
+- **Step 3, the Caravanserai cells:** the cells' contents gain sitting
+  (kilim, floor seats), cooking (hearth and pot, works like the niches),
+  garden (the niche beds, plants you can gather) and reading (a low table
+  with books and a lamp), alongside today's bedrolls, stores, stables and
+  stalls. Rebakes the three courts.
+- **Step 4, the Hypostyle Stacks:** the freestanding cases come out of the
+  hall; the side walls get full-height shelving (floor to the vault spring),
+  skipping doorways and the collapsed bays.
+- **Step 5, the Cistern Archive:** the plank tables go; the shelf recesses
+  become water niches (rice paddies in shallow water, nets and fishing
+  spears, eel traps) and the room is lit by glowing mushrooms and plants on
+  the piers and in the niches instead of lanterns. It stays dark between
+  the glows.
+- **Step 6, the Light-Well Stair:** a stronger, brighter shaft of daylight
+  down the middle with the gallery lamps dimmed; the floor round the well
+  becomes a garden of beds and small pools with seats; vines hang from the
+  stair edges and the oculus; some gallery shelves become plant and
+  decoration niches. The missing face seen from the Upper Stacks is fixed
+  here too.
+
+## Step 4: the Hypostyle Stacks (2026-11-03, committed after your walk, no reports)
+
+### What you can try
+
+Walk the Hypostyle Stacks (the big domed hall of the Lower Stacks).
+
+- **No freestanding bookcases in the hall any more:** every bay off the
+  aisles is open, so you can cross the hall any way you like between the
+  columns. Collapsed bays and the landmark in the middle are unchanged.
+- **Tall bookcases along the walls:** most wall bays (85%) have a bookcase
+  3.3 m wide reaching from the floor to the tile band under the domes
+  (5.9 m), thirteen shelves of books. About one in four has a brass rail and
+  a library ladder hooked on it. The rest keep the old shelf recess or plain
+  brick. A wall bay with a door never gets one, and neither does a wall
+  where the hall turns inward at its end.
+
+### What changed
+
+- New kit pieces (`tools/kit_add_hall_cases.py` → `kit_hall.blend`):
+  `case_wall_tall_4m` and `case_wall_tall_ladder_4m`, with a new socket set
+  `case_tall` (full or sparse shelves, `kit/dressing/case_tall_books_*.tscn`).
+- `HypostyleGrammar.wall_case_chance` (new; 0.85 in
+  `gen/grammars/r03_hypostyle.tres`) and `case_density` 0.7 → 0. A cased
+  wall is plain brick behind the case; the R03 rules
+  (`gen/rules/r03_hall.tres`) offer the two cases for `dressing:wall_case`.
+- Seam debris is pinned off at the foot of each case and on any wall that
+  meets a case at its end (it would land inside the case; Validate Room
+  caught it). The area planner used to drop every pin on a wall it turns
+  plain because another room stands behind it; it now keeps a "nothing"
+  pin there (`AreaPlanner._plain_backed_walls`).
+
+### Tests
+
+- R03 layout (11,001 checks) and route (46) tests: pass, after the
+  seam-debris and corner fixes (the first runs found cases running into a
+  corner's shelf recess, now 3.3 m instead of 3.6 m wide, and debris inside
+  the cases).
+- Area route tests (library 172, Lower Stacks 254), generation signatures
+  (93): pass.
+- Lower Stacks frame gate: worst frame 8.06 ms in the hall (the borderline
+  you accepted; no frame over 8.3 ms), mean 1.46 ms, GPU 0.91 mean, lights
+  in reach 42 of 50.
+- Captures: `previews/room_rework_step4/`.
+
+## Step 3: the Caravanserai cells (2026-11-03, committed after your walk; frame gate accepted as borderline)
+
+### What you can try
+
+The court's cells (ground and upstairs) can now be four more things, picked
+by the seed alongside the bedrolls, stores, stables, spice stalls and ruins:
+
+- **Sitting** (ground and upstairs): a kilim, a floor seat along the back
+  wall and one along the side, a brass tray table with its lamp, a pouf, a mug.
+- **Cooking** (ground only): a brick wall hearth with embers and a copper
+  pot, a floor seat either side. **E on the pot** opens the cooking panel;
+  the fire warms you, as the camp's hearth does.
+- **Garden** (ground and upstairs): a raised bed of hearthleaf and amberroot
+  (E gathers them) between two of the camp's planters, under its own lantern.
+- **Reading** (ground and upstairs): a herati carpet, a low reading table
+  with a book on its rahl and an oil lamp, a floor seat behind it, books and
+  a scroll by the walls.
+
+About two ground cells in five are one of the new kinds (weight 1.5 each
+beside the old 10), and about three upper cells in ten.
+
+### What changed
+
+- `kit/dressing/court_cell_{sitting,cooking,garden,reading}.tscn`, built from
+  existing pieces (the Reading Room's seats and tables, the niches' hearth,
+  bed and plants). New entries in `kit/sockets/court_cell.tres` and
+  `court_cell_upper.tres`. The cells resolve when the room is built, so the
+  three baked courts didn't need rebaking.
+- The four scenes are in `PipelineWarm.SCENES`, so their materials compile
+  as an area arrives.
+
+### Tests
+
+- R05 layout test (11,219 checks), R05 route test (138), generation
+  signatures (93): pass.
+- Lower Stacks frame gate (Medium, 1080p): **fails, narrowly**. Run 1: two
+  frames of 809 and 783 ms in stack galleries, each compiling about 45 shader
+  pipelines for the first time on this machine (a cold shader cache: the
+  step 2 niches had never been drawn in the Lower Stacks). They were gone in
+  runs 2 and 3, which failed by 0.3 ms on one frame each: 8.30 ms in the
+  Light-Well Stair (nothing loading or compiling) and 8.34 ms as a gallery
+  streamed in (4.1 ms of streaming). The court's own frames are fine (worst
+  7.8 ms). Mean 1.47 ms, GPU 0.92 mean, lights in reach 43 of 50.
+- Baseline (the commit before step 2, a75a767, in a scratch copy): passes
+  three runs, but close: worst 7.95, 7.57 and 7.92 ms, the same gallery
+  load among them (7.6-7.9 ms). So the Lower Stacks was already near the
+  limit and the niches add about 0.3-1 ms on a few frames.
+- Galleries now enter the tree in parts (`AreaStreamer.ENTER_WHOLE_MODULES`
+  160 -> 100): the load frames dropped out of the worst list, but run 4
+  still failed on one frame in gallery 4 (9.12 ms, nothing loading or
+  compiling, 148 draw calls where the baseline drew 119 at that spot, 7.21
+  ms). Not yet explained. **You accepted the gate as borderline** (2026-11-03)
+  and asked to walk the step; worth a look in a later performance pass.
+- After the streaming change: area route tests (library 172, Lower Stacks
+  254) and the area save/load tests in two processes (library seed 2: 17 +
+  15 checks; Lower Stacks seed 9: 19 + 15): pass.
+- Captures: `previews/room_rework_step3/`.
 
 ## Step 2: working niches (2026-11-03, committed after your walk, no reports)
 
