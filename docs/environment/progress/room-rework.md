@@ -1,6 +1,6 @@
 # Room rework: the existing rooms before phase 12
 
-[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED feca290 after your walks; step 5 (Cistern Archive) BUILT 2026-11-03, waiting for your walk; then step 6, the Light-Well Stair**
+[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED feca290 after your walks; step 5 (Cistern Archive) COMMITTED 8865b41 2026-11-03; next: step 6, the Light-Well Stair**
 
 ## Why
 
@@ -21,7 +21,7 @@ carpets). **Step 2** covers the last two: niches in the stacks and the
 Reading Room's shelf bays. You chose working niches, so the plants can be
 foraged, the pot cooks and the hearth warms.
 
-## The Lower Stacks (your walk of 2026-11-03; steps 3 and 4 committed, 5 built, 6 next)
+## The Lower Stacks (your walk of 2026-11-03; steps 3, 4 and 5 committed, 6 next)
 
 Your walk left ten reports in four rooms and one geometry gap:
 
@@ -60,7 +60,7 @@ Proposed steps, each walked by you before the next:
   decoration niches. The missing face seen from the Upper Stacks is fixed
   here too.
 
-## Step 5: the Cistern Archive (2026-11-03, built, waiting for your walk)
+## Step 5: the Cistern Archive (2026-11-03, committed 8865b41)
 
 ### What you can try
 
