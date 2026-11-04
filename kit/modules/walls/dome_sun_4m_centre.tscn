@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_3j72i"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/dome_sun_4m_centre.glb" id="2_kfk0v"]
+
+[node name="dome_sun_4m_centre" type="Node3D" unique_id=1995888324]
+script = ExtResource("1_3j72i")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 1, 1)
+tags = PackedStringArray("tile", "dome", "light", "hall")
+source_glb = "res://assets/kit/walls/dome_sun_4m_centre.glb"
+
+[node name="Mesh" parent="." unique_id=771976367 instance=ExtResource("2_kfk0v")]

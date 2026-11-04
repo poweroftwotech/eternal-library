@@ -772,6 +772,33 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "hall_book_cart",
+"scene": "res://kit/modules/dressing/hall_book_cart.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("wood", "books", "scholar", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "hall_reading_nook",
+"scene": "res://kit/modules/dressing/hall_reading_nook.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("wood", "cloth", "books", "scholar", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "hall_sorting_table",
+"scene": "res://kit/modules/dressing/hall_sorting_table.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("wood", "books", "scholar", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "iwan_fountain",
 "scene": "res://kit/modules/dressing/iwan_fountain.tscn",
 "shape": "free",
@@ -817,11 +844,29 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "landmark_hauz",
+"scene": "res://kit/modules/dressing/landmark_hauz.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("stone", "water", "landmark", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "landmark_plinth",
 "scene": "res://kit/modules/dressing/landmark_plinth.tscn",
 "shape": "free",
 "size_cells": Vector3i(1, 0, 1),
 "tags": PackedStringArray("stone", "landmark", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "landmark_takht",
+"scene": "res://kit/modules/dressing/landmark_takht.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("wood", "cloth", "light", "landmark", "hall"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -2743,11 +2788,38 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "dome_sun_4m",
+"scene": "res://kit/modules/walls/dome_sun_4m.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("tile", "dome", "light", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "dome_sun_4m_centre",
+"scene": "res://kit/modules/walls/dome_sun_4m_centre.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("tile", "dome", "light", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "floor_4m",
 "scene": "res://kit/modules/walls/floor_4m.tscn",
 "shape": "cell",
 "size_cells": Vector3i(1, 0, 1),
 "tags": PackedStringArray("stone", "floor"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "floor_carpet_4m",
+"scene": "res://kit/modules/walls/floor_carpet_4m.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("stone", "cloth", "floor", "hall"),
 "weight": 1.0
 }, {
 "edge": "gallery_end",
@@ -3324,6 +3396,24 @@ modules = Array[Dictionary]([{
 "shape": "free",
 "size_cells": Vector3i(0, 1, 0),
 "tags": PackedStringArray("brass", "light"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lantern_moroccan",
+"scene": "res://kit/modules/walls/lantern_moroccan.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brass", "light", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lantern_oil",
+"scene": "res://kit/modules/walls/lantern_oil.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 1, 0),
+"tags": PackedStringArray("brass", "light", "hall"),
 "weight": 1.0
 }, {
 "edge": "",

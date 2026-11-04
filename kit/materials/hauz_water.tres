@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/water.gdshader" id="1_water"]
+
+[resource]
+resource_name = "hauz_water"
+shader = ExtResource("1_water")
+shader_parameter/shallow_tint = Color(0.86, 0.92, 0.86, 1)
+shader_parameter/deep_tint = Color(0.2, 0.32, 0.3, 1)
+shader_parameter/flow = Vector2(0, 0.01)
+shader_parameter/murk_depth = 1.4
+shader_parameter/surface_tint = 0.3
+shader_parameter/glow = 0.02

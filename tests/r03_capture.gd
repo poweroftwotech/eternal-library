@@ -40,12 +40,14 @@ func run() -> void:
 	var g: CellGrid = hall.grid
 	var xs: Array = []
 	var zs: Array = []
-	var centre := Vector3i.ZERO
+	var suns: Array[Vector3i] = []
 	for c: Vector3i in g.cells:
 		xs.append(c.x)
 		zs.append(c.z)
-		if g.cells[c].get("ceiling_slot", "") == "cell:oculus":
-			centre = c
+		if str(g.cells[c].get("ceiling_slot", "")).begins_with("cell:oculus"):
+			suns.append(c)
+	var lm: Vector3 = (g.props["landmark"]["xf"] as Transform3D).origin
+	var centre := Vector3i(AreaPlan.cell_of(lm + Vector3(0, 0.1, 0)).x, 0, AreaPlan.cell_of(lm + Vector3(0, 0.1, 0)).z)
 	var far := Vector3i(xs.max() if absi(xs.max()) >= absi(xs.min()) else xs.min(), 0, zs.max())
 	var case_cell: Vector3i = centre
 	var case_axis := Vector3.RIGHT
@@ -79,9 +81,69 @@ func run() -> void:
 				var from: Vector3 = CellGrid.cell_centre(n) + (CellGrid.cell_centre(n) - CellGrid.cell_centre(cell)) * 0.25
 				views["collapse" if slot == "dressing:rubble_heap" else "cluster"] = [from + Vector3(0, 1.6, 0), at + Vector3(0, 3.2 if slot == "dressing:rubble_heap" else 3.0, 0)]
 				break
+	# Hall rework step 2: the pool from beside it, and a takht from across the pool.
+	for k: String in g.props:
+		if g.props[k]["slot"] != "landmark:takht" or views.has("takht"):
+			continue
+		var t: Vector3 = (g.props[k]["xf"] as Transform3D).origin
+		var dir: Vector3 = (t - c0).normalized()
+		var perp := Vector3(dir.z, 0.0, dir.x)
+		views["pool"] = [c0 + perp * 4.6 + dir * 1.2 + Vector3(0, 1.7, 0), c0 + Vector3(0, 0.5, 0)]
+		views["takht"] = [c0 - dir * 4.0 + perp * 0.8 + Vector3(0, 1.7, 0), t + Vector3(0, 0.7, 0)]
+	# Hall rework step 1: a sunbeam from a dome open to the sky (not the
+	# landmark's), seen from a clear neighbouring bay across where it lands.
+	for c: Vector3i in suns:
+		if c == centre or views.has("sun"):
+			continue
+		for dir: int in CellGrid.ALL_SIDES:
+			var n: Vector3i = CellGrid.neighbour(c, dir)
+			if g.cells.has(n) and not g.cells[n].get("blocked", false):
+				var from: Vector3 = CellGrid.cell_centre(n) + (CellGrid.cell_centre(n) - CellGrid.cell_centre(c)) * 0.6
+				views["sun"] = [from + Vector3(0, 1.6, 0), CellGrid.cell_centre(c) + Vector3(0, 2.6, 0)]
+				break
+	# Hall rework step 3: scholars' furniture, from a clear neighbouring bay.
+	var scholar_n: int = 0
+	for k: String in g.props:
+		if g.props[k]["slot"] != "dressing:scholar":
+			continue
+		scholar_n += 1
+		var at: Vector3 = (g.props[k]["xf"] as Transform3D).origin
+		var cell := Vector3i(AreaPlan.cell_of(at + Vector3(0, 0.1, 0)).x, 0, AreaPlan.cell_of(at + Vector3(0, 0.1, 0)).z)
+		for s: int in CellGrid.ALL_SIDES:
+			var n: Vector3i = CellGrid.neighbour(cell, s)
+			if views.has("scholar_%d" % scholar_n) or scholar_n > 3:
+				break
+			if g.cells.has(n) and not g.cells[n].get("blocked", false):
+				var from: Vector3 = at + (CellGrid.cell_centre(n) - at) * 0.6 + (CellGrid.cell_centre(n) - at).rotated(Vector3.UP, PI / 2) * 0.12
+				views["scholar_%d" % scholar_n] = [from + Vector3(0, 1.6, 0), at + Vector3(0, 0.5, 0)]
+	# Hall rework step 4: ornament. A column's tiled foot, an arch's frame and
+	# frieze, a painted dome and an open dome, from inner bays.
+	for c: Vector3i in g.cells:
+		if g.cells[c].get("blocked", false) or c == centre:
+			continue
+		var inner: bool = true
+		for s: int in CellGrid.ALL_SIDES:
+			inner = inner and g.cells.has(CellGrid.neighbour(c, s))
+		if not inner:
+			continue
+		var cc: Vector3 = CellGrid.cell_centre(c)
+		if suns.has(c):
+			if not views.has("orn_sun_dome"):
+				views["orn_sun_dome"] = [cc + Vector3(-1.2, 1.6, 0), cc + Vector3(0.3, 7.9, 0)]
+			continue
+		if views.has("orn_column"):
+			continue
+		views["orn_column"] = [cc + Vector3(-0.6, 1.6, 0.6), cc + Vector3(2.0, 0.9, -2.0)]
+		views["orn_arch"] = [cc + Vector3(0.4, 1.6, 1.7), cc + Vector3(0, 4.4, -2.0)]
+		views["orn_dome"] = [cc + Vector3(-1.0, 1.6, 0), cc + Vector3(0.3, 7.9, 0)]
 	var vp_rid: RID = root.get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(vp_rid, true)
 	print("r03_capture: seed %d, hall %d x %d bays, %d modules, landmark %s" % [area_seed, xs.max() - xs.min() + 1, zs.max() - zs.min() + 1, hall.modules.size(), _landmark(hall)])
+	var red: int = 0
+	for k: String in g.props:
+		if g.props[k]["slot"] == "lamp:cluster":
+			red += 1
+	print("  %d sunlit domes, %d red lanterns, %d dim lamps; hall at %s" % [suns.size(), red, g.lamps.size(), hall.global_position])
 	for view: String in views:
 		var v: Array = views[view]
 		var eye: Vector3 = hall.to_global(v[0])

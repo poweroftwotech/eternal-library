@@ -72,6 +72,21 @@ func run() -> void:
 			await RenderingServer.frame_post_draw
 			var path: String = "%s/%s.png" % [out_dir, r["id"]]
 			root.get_viewport().get_texture().get_image().save_png(path)
+			# --lights: what lights the spot (hall rework step 1, your walk's dark corner).
+			if OS.get_cmdline_user_args().has("--lights"):
+				var eye: Vector3 = game.player.camera.global_position
+				var near: Array = []
+				for n: Node in root.find_children("*", "Light3D", true, false):
+					var l := n as Light3D
+					var d: float = l.global_position.distance_to(eye)
+					if d < 12.0:
+						near.append([d, l])
+				near.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
+				var env: Environment = root.get_viewport().world_3d.environment if root.get_viewport().world_3d != null else null
+				print("    ambient %s x %.2f; %d lights within 12 m:" % [env.ambient_light_color if env != null else "?", env.ambient_light_energy if env != null else -1.0, near.size()])
+				for e: Array in near:
+					var l: Light3D = e[1]
+					print("      %5.1f m  %-12s on %-5s energy %.2f  state %s  %s" % [e[0], str(l.get_meta("light_profile", l.get_class())), l.is_visible_in_tree(), l.light_energy, l.get_meta("lamp_state", "-"), l.get_parent().get_parent().name])
 			print("  %s: %s at %s \"%s\": draw calls %d, triangles %.2f M, gpu %.2f ms -> %s" % [r["id"], r.get("scene", ""), feet, r.get("note", ""),
 				Performance.get_monitor(Performance.RENDER_TOTAL_DRAW_CALLS_IN_FRAME), Performance.get_monitor(Performance.RENDER_TOTAL_PRIMITIVES_IN_FRAME) / 1000000.0,
 				RenderingServer.viewport_get_measured_render_time_gpu(vp_rid), path])

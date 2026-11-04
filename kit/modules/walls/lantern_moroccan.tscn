@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_280n3"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/lantern_moroccan.glb" id="2_3ja07"]
+
+[node name="lantern_moroccan" type="Node3D" unique_id=1186775213]
+script = ExtResource("1_280n3")
+family = "walls"
+size_cells = Vector3i(0, 1, 0)
+tags = PackedStringArray("brass", "light", "hall")
+source_glb = "res://assets/kit/walls/lantern_moroccan.glb"
+
+[node name="Mesh" parent="." unique_id=1632695344 instance=ExtResource("2_3ja07")]

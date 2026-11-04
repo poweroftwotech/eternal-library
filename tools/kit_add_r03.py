@@ -145,6 +145,7 @@ def column_twisted(r):
     bm = bmesh.new()
     add_box(bm, -0.3, 0.3, -0.3, 0.3, 0.0, CAP)
     mesh_object("post_column_twisted__shaft-colonly", bm, ["arch_stone"], r)
+    column_wainscot(r)
 
 
 def hall_pier(r):
@@ -155,6 +156,7 @@ def hall_pier(r):
     bm = bmesh.new()
     add_box(bm, -0.42, 0.42, -0.42, 0.42, 3.8, CAP)
     mesh_object("post_hall_pier__capital", bm, ["arch_stone"], r)
+    pier_wainscot(r)
 
 
 def hall_pier_cap(r):
@@ -171,6 +173,7 @@ def arcade_arch(r):
     add_prism(bm, arch_outline(3.3, 0.1, 0.55, 10), 0.35, CAP - 0.1, -0.4, 0.4)
     cutter = mesh_object("cutter", bm, ["arch_stone"], r)
     cut(body, cutter)
+    arch_ornament(r)
 
 
 def hall_band(r):
@@ -179,10 +182,11 @@ def hall_band(r):
     mesh_object("wall_hall_band_4m__body-col", bm, ["brick"], r)
     bm = bmesh.new()
     add_box(bm, 0.0, 4.0, -T, T + 0.03, BAND_TOP - 0.3, BAND_TOP)
-    mesh_object("wall_hall_band_4m__tiles", bm, ["tile"], r)
+    mesh_object("wall_hall_band_4m__tiles", bm, ["tile_hall"], r)
     bm = bmesh.new()
     add_box(bm, 0.0, 4.0, T + 0.03, T + 0.14, CAP, CAP + 0.14)
     mesh_object("wall_hall_band_4m__cornice", bm, ["arch_stone"], r)
+    band_frieze(r)
 
 
 def dome(r, mat, hole=0.02, name="dome_cell_4m", band=False):
@@ -200,11 +204,13 @@ def dome(r, mat, hole=0.02, name="dome_cell_4m", band=False):
         outer = [((ri + 0.01) * math.cos(t), z) for ((_r, z), t) in zip(inner, (top * i / n for i in range(n + 1)))]
         bm = bmesh.new()
         revolve_loop(bm, inner + list(reversed(outer)), 2.0, 2.0, 24)
-        mesh_object(name + "__band", bm, ["tile"], r)
+        mesh_object(name + "__band", bm, ["tile_hall"], r)
+    if name in PAINTED:
+        dome_paint(r, name, hole, band)
 
 
 def dome_a(r):
-    dome(r, "tile", name="dome_cell_4m_a")
+    dome(r, "tile_hall", name="dome_cell_4m_a")
 
 
 def dome_b(r):
@@ -213,7 +219,7 @@ def dome_b(r):
 
 
 def oculus(r):
-    dome(r, "tile", hole=0.55, name="oculus_cell_4m")
+    dome(r, "tile_hall", hole=0.55, name="oculus_cell_4m")
     marker("LIGHT_cold__oculus", r, (2.0, 2.0, DOME_CROWN - 0.4))
 
 
@@ -278,8 +284,8 @@ def great_lamp(r):
     add_ngon_prism(bm, 8, 0.3, 3.75, 3.85)
     add_ngon_prism(bm, 8, 0.12, 3.85, 4.1)
     mesh_object("landmark_great_lamp__body-col", bm, ["brass"], r)
-    mesh_object("landmark_great_lamp__glass", glass, ["emit_lantern"], r)
-    marker("LIGHT_chandelier__great", r, (0.0, 0.0, 3.2))
+    mesh_object("landmark_great_lamp__glass", glass, ["emit_redfire"], r)     # rev 2: red fire, as every lamp in the hall (hall rework step 1)
+    marker("LIGHT_chandelier__great", r, (0.0, 0.0, 3.2), {"color": HALL_RED})
 
 
 def catalogue_desk(r):
@@ -306,8 +312,8 @@ def catalogue_desk(r):
     glass = bmesh.new()
     add_ngon_prism(glass, 8, 0.07, 1.35, 1.5, cx=0.9, cy=0.0)
     mesh_object("landmark_catalogue_desk__lamp", bm, ["brass"], r)
-    mesh_object("landmark_catalogue_desk__glass", glass, ["emit_lantern"], r)
-    marker("LIGHT_lantern__desk", r, (0.9, 0.0, 1.45))
+    mesh_object("landmark_catalogue_desk__glass", glass, ["emit_redfire"], r)     # rev 2: red fire
+    marker("LIGHT_lantern__desk", r, (0.9, 0.0, 1.45), {"color": HALL_RED})
     marker("ANCHOR_librarian__desk", r, (0.0, 0.0, 0.0))
 
 
@@ -360,7 +366,7 @@ def dome_fallen(r):
         ring = [(2.0 + rad * math.cos(a), 2.0 + rad * math.sin(a))
                 for (rad, a) in ((DOME_R, a0), (DOME_R, a1), (DOME_R + 0.18, a1), (DOME_R + 0.18, a0))]
         add_plan_prism(bm, list(reversed(ring)), BAND_TOP + 0.2, BAND_TOP + 0.2 + h)
-    mesh_object("dome_cell_4m_fallen__stub", bm, ["tile"], r)
+    mesh_object("dome_cell_4m_fallen__stub", bm, ["tile_hall"], r)
     bm = bmesh.new()
     top = 9.6
     w = 0.12
@@ -370,6 +376,574 @@ def dome_fallen(r):
     add_box(bm, 3.95 - w, 3.95, 0.05 + w, 3.95 - w, BAND_TOP + 0.2, top)
     add_box(bm, 0.05, 3.95, 0.05, 3.95, top, top + 0.2)
     mesh_object("dome_cell_4m_fallen__shaft", bm, ["brick"], r)
+
+
+# --- hall rework (room rework, the Hypostyle Stacks) ---------------------------
+# Step 1, your note: a red carpet on the floor, a red tint as if light scatters
+# off it, the lanterns gone; daylight shafts, dim lamps and a few red-fire
+# Moroccan lanterns.
+
+SUN_TILT = math.radians(10.0)      # every shaft leans the same way (+X): one sun
+SUN_LIFT = 5.2                     # the spot sits this far over the crown, along the beam
+SKY_TOP = 9.6                      # the light tube's top over the dome
+# Your note: every lamp in the hall burns red like the Moroccan lanterns; only
+# daylight differs, a slightly yellow sun.
+HALL_RED = [1.0, 0.54, 0.34]     # rev 3: less red overall (your walk)
+SUN_YELLOW = [1.0, 0.91, 0.68]
+
+
+def floor_carpet(r):
+    """The hall's floor bay: the stone slab and a square carpet over it, wall to
+    wall between the columns (their bases hide its corners)."""
+    bm = bmesh.new()
+    add_box(bm, 0, 4, 0, 4, -0.2, 0.0)
+    mesh_object("floor_carpet_4m__body-col", bm, ["floor_stone"], r)
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    s = 116 / 32.0
+    x0 = 2.0 - s / 2
+    vs = [bm.verts.new(p) for p in ((x0, x0, 0.012), (x0 + s, x0, 0.012), (x0 + s, x0 + s, 0.012), (x0, x0 + s, 0.012))]
+    f = bm.faces.new(vs)
+    for loop in f.loops:
+        loop[uv].uv = ((loop.vert.co.x - x0) / s, (loop.vert.co.y - x0) / s)
+    mesh_object("floor_carpet_4m__rug", bm, ["rug_hall_bay"], r, recalc=False)
+
+
+def dome_sun(r, tilt=SUN_TILT, name="dome_sun_4m"):
+    """A dome open to the sky: a brick tube over its crown to a disc of daylight,
+    a narrow sunbeam leaning through it onto the carpet in a column of haze, and
+    a little red light thrown back up off the carpet where it lands."""
+    dome(r, "tile_hall", hole=0.55, name=name, band=True)
+    bm = bmesh.new()
+    revolve_loop(bm, [(0.55, DOME_CROWN - 0.1), (0.55, SKY_TOP), (0.8, SKY_TOP), (0.8, DOME_CROWN - 0.1)], 2.0, 2.0, 16)
+    mesh_object(name + "__tube", bm, ["brick"], r)
+    sky = bmesh.new()
+    vs = [sky.verts.new((2.0 + 0.6 * math.cos(2 * math.pi * i / 16), 2.0 + 0.6 * math.sin(2 * math.pi * i / 16), SKY_TOP - 0.05)) for i in range(16)]
+    sky.faces.new(list(reversed(vs)))
+    mesh_object(name + "__sky", sky, ["emit_sky_day"], r, recalc=False)
+    sx, cz = math.sin(tilt), math.cos(tilt)
+    floor_hit = 2.0 + DOME_CROWN * sx / cz           # where the beam's axis meets the floor (x)
+    half = 0.55 * (SUN_LIFT + DOME_CROWN / cz) / SUN_LIFT    # the beam's radius there
+    spot = marker("LIGHT_shaft__sun", r, (2.0 - SUN_LIFT * sx, 2.0, DOME_CROWN + SUN_LIFT * cz),
+                  {"range": SUN_LIFT + DOME_CROWN / cz + 2.0, "spot_angle": math.degrees(math.atan(0.55 / SUN_LIFT)),
+                   "energy": 30.0, "color": SUN_YELLOW})     # rev 2: a clearer pool on the carpet; rev 3: a yellow sun (your note)
+    spot.rotation_euler = (0.0, -tilt, 0.0)
+    haze = marker("FOG_haze__sun", r, ((2.0 + floor_hit) / 2, 2.0, DOME_CROWN / 2),
+                  {"fog_size": [half * 1.6, half * 1.6, DOME_CROWN / cz], "density": 0.03,
+                   "albedo": [1.0, 0.94, 0.78], "emission": [0.62, 0.5, 0.36], "emission_energy": 0.03})     # rev 4: warmer, not olive
+    haze.rotation_euler = (0.0, -tilt, 0.0)
+    marker("LIGHT_bounce__carpet", r, (floor_hit, 2.0, 0.9), {"range": 6.0, "energy": 0.45, "color": [1.0, 0.42, 0.3]})
+
+
+def chain(bm, z0):
+    add_box(bm, -0.012, 0.012, -0.012, 0.012, z0, DOME_CROWN + 0.1)
+
+
+def lantern_oil(r):
+    """A small brass oil lamp low on a chain from a dome: a dim warm pool."""
+    bm = bmesh.new()
+    add_lathe(bm, [(0.0, 2.9), (0.09, 2.92), (0.13, 2.98), (0.12, 3.02), (0.04, 3.04), (0.0, 3.04)], segs=8)
+    add_lathe(bm, [(0.0, 3.16), (0.1, 3.16), (0.06, 3.22), (0.015, 3.3), (0.0, 3.3)], segs=8)
+    for i in range(3):
+        a = 2 * math.pi * i / 3
+        add_tube(bm, [(0.11 * math.cos(a), 0.11 * math.sin(a), 3.0), (0.0, 0.0, 3.3)], 0.006, segs=3)
+    chain(bm, 3.3)
+    mesh_object("lantern_oil__body", bm, ["brass"], r)
+    glass = bmesh.new()
+    add_lathe(glass, [(0.0, 3.03), (0.05, 3.04), (0.06, 3.09), (0.03, 3.15), (0.0, 3.16)], segs=8)
+    mesh_object("lantern_oil__flame", glass, ["emit_redfire"], r)     # rev 2: red fire (your note)
+    marker("LIGHT_lamp_dim__oil", r, (0.0, 0.0, 3.0), {"color": HALL_RED})
+    marker("SOCKET_lamp_state__oil", r, (0.0, 0.0, 3.0), LAMP_SOCKET)
+
+
+MOROCCAN_GLASS = [(0.0, 2.56), (0.1, 2.6), (0.19, 2.72), (0.23, 2.88), (0.2, 3.03), (0.12, 3.13), (0.0, 3.16)]
+
+
+def lantern_moroccan(r):
+    """A pierced-brass Moroccan lantern with red glass, hung low on a long chain:
+    eight brass ribs over an octagonal glass bulb, a crown and a finial."""
+    glass = bmesh.new()
+    add_lathe(glass, MOROCCAN_GLASS, segs=8)
+    mesh_object("lantern_moroccan__glass", glass, ["emit_redfire"], r)
+    bm = bmesh.new()
+    add_lathe(bm, [(0.0, 2.36), (0.025, 2.38), (0.05, 2.47), (0.12, 2.56), (0.13, 2.6), (0.0, 2.6)], segs=8)
+    add_lathe(bm, [(0.0, 3.1), (0.15, 3.1), (0.17, 3.14), (0.11, 3.24), (0.05, 3.34), (0.02, 3.44), (0.0, 3.5)], segs=8)
+    for i in range(8):
+        a = 2 * math.pi * (i + 0.5) / 8
+        add_tube(bm, [((rr * 1.06 + 0.004) * math.cos(a), (rr * 1.06 + 0.004) * math.sin(a), z) for (rr, z) in MOROCCAN_GLASS[1:-1]], 0.011, segs=3)
+    for z in (2.74, 2.88, 3.02):
+        rr = 0.235 if z == 2.88 else 0.205
+        add_lathe(bm, [(rr - 0.03, z - 0.012), (rr + 0.012, z - 0.012), (rr + 0.012, z + 0.012), (rr - 0.03, z + 0.012)], segs=8)
+    chain(bm, 3.5)
+    mesh_object("lantern_moroccan__body", bm, ["brass"], r)
+    marker("LIGHT_redfire__moroccan", r, (0.0, 0.0, 2.86))
+    marker("SOCKET_lamp_state__moroccan", r, (0.0, 0.0, 2.86), LAMP_SOCKET)
+
+
+# Step 2, the grand landmark: a hauz (an octagonal pool) under the centre dome,
+# its sunbeam straight down onto the water, and a takht (a raised reading
+# platform) beside it.
+
+HAUZ_IN = 1.36      # the basin's inner radius (octagon corners)
+HAUZ_OUT = 1.7
+HAUZ_TOP = 0.45
+HAUZ_WATER = 0.36
+
+
+def landmark_hauz(r):
+    """The hall's landmark: an octagonal pool with a stone rim to sit on, red
+    and gold tile under clear water, and a small stone fountain in the middle.
+    Centred on the module origin (the centre bay's middle)."""
+    bm = bmesh.new()
+    revolve_loop(bm, [(HAUZ_IN, 0.0), (HAUZ_IN, HAUZ_TOP), (HAUZ_OUT, HAUZ_TOP), (HAUZ_OUT, 0.0)], 0.0, 0.0, 8)
+    mesh_object("landmark_hauz__rim-col", bm, ["arch_stone"], r)
+    bm = bmesh.new()      # the coping, a lip proud of the rim both ways
+    revolve_loop(bm, [(HAUZ_IN - 0.05, HAUZ_TOP), (HAUZ_IN - 0.05, HAUZ_TOP + 0.07), (HAUZ_OUT + 0.06, HAUZ_TOP + 0.07), (HAUZ_OUT + 0.06, HAUZ_TOP)], 0.0, 0.0, 8)
+    mesh_object("landmark_hauz__coping", bm, ["persian_stone"], r)
+    bm = bmesh.new()
+    vs = [bm.verts.new((HAUZ_IN * math.cos(2 * math.pi * i / 8), HAUZ_IN * math.sin(2 * math.pi * i / 8), 0.06)) for i in range(8)]
+    bm.faces.new(vs)
+    mesh_object("landmark_hauz__floor", bm, ["tile_hall"], r)
+    bm = bmesh.new()
+    vs = [bm.verts.new(((HAUZ_IN + 0.01) * math.cos(2 * math.pi * i / 8), (HAUZ_IN + 0.01) * math.sin(2 * math.pi * i / 8), HAUZ_WATER)) for i in range(8)]
+    bm.faces.new(vs)
+    mesh_object("landmark_hauz__water", bm, ["hauz_water"], r)
+    bm = bmesh.new()      # the fountain: a stone cup on a short shaft
+    add_lathe(bm, [(0.0, 0.06), (0.26, 0.06), (0.26, 0.16), (0.12, 0.2), (0.09, 0.5), (0.24, 0.56), (0.27, 0.64),
+                   (0.2, 0.62), (0.0, 0.62)], segs=8)
+    mesh_object("landmark_hauz__fountain", bm, ["arch_stone"], r)
+    bm = bmesh.new()
+    add_lathe(bm, [(0.0, 0.6), (0.035, 0.6), (0.025, 0.74), (0.0, 0.78)], segs=6)
+    mesh_object("landmark_hauz__spout", bm, ["brass"], r)
+
+
+def landmark_takht(r):
+    """A takht: a raised wooden platform 3 x 2.4 m, 0.48 m high, with a low rail
+    round its back and sides, a carpet, cushions against the rail, a rahl with
+    an open book and a small red-glass lamp. Its open side (Blender +Y) faces
+    the pool; a step leads up there."""
+    w, d, h = 1.5, 1.2, 0.48
+    bm = bmesh.new()
+    add_box(bm, -w, w, -d, d, h - 0.08, h)                      # the deck
+    add_box(bm, -w + 0.08, w - 0.08, -d + 0.08, d - 0.08, 0.14, h - 0.08)   # the apron
+    for sx in (-1, 0, 1):
+        for sy in (-1, 1):
+            x = sx * (w - 0.1)
+            y = sy * (d - 0.1)
+            add_box(bm, x - 0.07, x + 0.07, y - 0.07, y + 0.07, 0.0, 0.14)
+    add_box(bm, -0.7, 0.7, d, d + 0.32, 0.0, 0.22)              # the step
+    for (x0, x1, y0, y1) in ((-w, w, -d, -d + 0.06), (-w, -w + 0.06, -d, d), (w - 0.06, w, -d, d)):
+        add_box(bm, x0, x1, y0, y1, h + 0.32, h + 0.38)         # rail
+        n = max(2, int(round(max(x1 - x0, y1 - y0) / 0.3)))
+        for k in range(n + 1):
+            t = k / n
+            x = x0 + (x1 - x0) * t if x1 - x0 > 0.1 else (x0 + x1) / 2
+            y = y0 + (y1 - y0) * t if y1 - y0 > 0.1 else (y0 + y1) / 2
+            add_box(bm, x - 0.025, x + 0.025, y - 0.025, y + 0.025, h, h + 0.32)
+    mesh_object("landmark_takht__frame", bm, ["persian_wood"], r)
+    bm = bmesh.new()
+    add_box(bm, -w, w, -d, d, 0.0, h)
+    add_box(bm, -0.7, 0.7, d, d + 0.32, 0.0, 0.22)
+    mesh_object("landmark_takht__col-colonly", bm, ["persian_wood"], r)
+    bm = bmesh.new()                                             # the carpet, its long side along X
+    uv = bm.loops.layers.uv.new("UVMap")
+    cw, cd = 2.7, 2.0
+    vs = [bm.verts.new((x, y, h + 0.012)) for (x, y) in ((-cw / 2, -cd / 2), (cw / 2, -cd / 2), (cw / 2, cd / 2), (-cw / 2, cd / 2))]
+    f = bm.faces.new(vs)
+    for loop in f.loops:
+        loop[uv].uv = ((loop.vert.co.x + cw / 2) / cw, (loop.vert.co.y + cd / 2) / cd)
+    mesh_object("landmark_takht__rug", bm, ["rug_medallion_small"], r, recalc=False)
+    bm = bmesh.new()                                             # bolsters along the rail, leaning back
+    for x in (-0.95, 0.0, 0.95):
+        add_obox(bm, (x, -d + 0.22, h + 0.24), (0.8, 0.16, 0.42), (math.radians(-14), 0.0, 0.0))
+    for (x, y) in ((-w + 0.24, -0.2), (w - 0.24, -0.2)):
+        add_obox(bm, (x, y, h + 0.2), (0.16, 0.7, 0.36), (0.0, math.radians(12 if x > 0 else -12), 0.0))
+    mesh_object("landmark_takht__bolsters", bm, ["cushion_termeh"], r)
+    bm = bmesh.new()                                             # floor cushions to sit on
+    for x in (-0.65, 0.65):
+        add_box(bm, x - 0.32, x + 0.32, -0.55, 0.05, h + 0.012, h + 0.11)
+    mesh_object("landmark_takht__cushions", bm, ["cushion_ikat"], r)
+    stand, books = bmesh.new(), bmesh.new()
+    for s in (-1, 1):                                            # a rahl (book stand), the book open toward the pool
+        add_obox(stand, (0.0, 0.35 + s * 0.06, h + 0.1), (0.34, 0.015, 0.24), (math.radians(-s * 38), 0.0, 0.0))
+    for s in (-1, 1):
+        add_obox(books, (0.0, 0.35 + s * 0.1, h + 0.2), (0.28, 0.17, 0.02), (math.radians(s * 35), 0.0, 0.0), 0)
+        add_obox(books, (0.0, 0.35 + s * 0.11, h + 0.19), (0.3, 0.19, 0.008), (math.radians(s * 35), 0.0, 0.0), 1)
+    for (k, (x, y)) in enumerate(((1.05, 0.55), (1.1, 0.25))):  # a stack of closed books at the front corner
+        add_obox(books, (x, y, h + 0.04), (0.32, 0.24, 0.07), (0.0, 0.0, math.radians(8 * k)), 1)
+        add_obox(books, (x, y, h + 0.1), (0.28, 0.2, 0.05), (0.0, 0.0, math.radians(-10 + 8 * k)), 1)
+    mesh_object("landmark_takht__rahl", stand, ["persian_wood"], r)
+    mesh_object("landmark_takht__books", books, ["pages", "book_leather"], r)
+    x, y, z = -1.15, 0.6, h                                      # the lamp, front corner
+    bm = bmesh.new()
+    add_lathe(bm, [(0.0, z), (0.09, z), (0.1, z + 0.02), (0.04, z + 0.05), (0.03, z + 0.16), (0.11, z + 0.2),
+                   (0.12, z + 0.23), (0.0, z + 0.23)], cx=x, cy=y, segs=8)
+    add_lathe(bm, [(0.0, z + 0.46), (0.09, z + 0.46), (0.05, z + 0.52), (0.0, z + 0.58)], cx=x, cy=y, segs=8)
+    for k in range(4):
+        a = (k + 0.5) * math.pi / 2
+        add_box(bm, x + math.cos(a) * 0.09 - 0.008, x + math.cos(a) * 0.09 + 0.008,
+                y + math.sin(a) * 0.09 - 0.008, y + math.sin(a) * 0.09 + 0.008, z + 0.23, z + 0.46)
+    mesh_object("landmark_takht__lamp", bm, ["brass"], r)
+    bm = bmesh.new()
+    add_lathe(bm, [(0.0, z + 0.23), (0.075, z + 0.25), (0.08, z + 0.36), (0.06, z + 0.44), (0.0, z + 0.46)], cx=x, cy=y, segs=8)
+    mesh_object("landmark_takht__glass", bm, ["emit_redfire"], r)
+    marker("LIGHT_lamp_dim__takht", r, (x, y, z + 0.34), {"color": HALL_RED, "range": 5.0})
+    marker("SOCKET_lamp_state__takht", r, (x, y, z + 0.34), LAMP_SOCKET)
+
+
+def dome_sun_centre(r):
+    """The landmark's dome: as dome_sun_4m, the beam straight down onto the pool."""
+    dome_sun(r, tilt=0.0, name="dome_sun_4m_centre")
+
+
+# Step 3, scholars at work: a reading nook, a book cart and a sorting table,
+# each filling one bay off the aisles (centred on the module origin, inside
+# +-1.6 m so the columns at the bay's corners stay clear).
+
+import random as _random
+
+
+def book_stack(bm, x, y, z, n, rng, yaw=0.0):
+    """n closed books piled at (x, y, z), each a little turned."""
+    for i in range(n):
+        w, d, t = rng.uniform(0.2, 0.32), rng.uniform(0.15, 0.24), rng.uniform(0.035, 0.07)
+        add_obox(bm, (x, y, z + t / 2), (w, d, t), (0.0, 0.0, yaw + rng.uniform(-0.3, 0.3)))
+        z += t
+    return z
+
+
+def books_row(bm, x0, x1, y, z, rng, lean=0.0, depth=0.18):
+    """Books standing on a shelf from x0 to x1 (spines toward -Y)."""
+    x = x0
+    while x < x1 - 0.03:
+        t = rng.uniform(0.03, 0.06)
+        h = rng.uniform(0.18, 0.28)
+        add_obox(bm, (x + t / 2, y, z + h / 2), (t, depth, h), (lean, 0.0, 0.0))
+        x += t + 0.004
+
+
+def wheel(bm, cx, cy, cz, radius, width, segs=12):
+    """A wheel turning about Y."""
+    for (y0, y1) in ((cy - width / 2, cy + width / 2),):
+        a = [bm.verts.new((cx + radius * math.cos(2 * math.pi * i / segs), y0, cz + radius * math.sin(2 * math.pi * i / segs))) for i in range(segs)]
+        b = [bm.verts.new((cx + radius * math.cos(2 * math.pi * i / segs), y1, cz + radius * math.sin(2 * math.pi * i / segs))) for i in range(segs)]
+        bm.faces.new(a)
+        bm.faces.new(list(reversed(b)))
+        for i in range(segs):
+            j = (i + 1) % segs
+            bm.faces.new((a[j], a[i], b[i], b[j]))
+
+
+def red_lamp(r, prefix, x, y, z):
+    """A small brass lamp with red glass and no light of its own (the hall's
+    dim lamps light the bay; your walk: every lamp here burns red)."""
+    bm = bmesh.new()
+    add_lathe(bm, [(0.0, z), (0.07, z), (0.075, z + 0.015), (0.03, z + 0.04), (0.025, z + 0.1), (0.06, z + 0.12), (0.0, z + 0.12)], cx=x, cy=y, segs=8)
+    add_lathe(bm, [(0.0, z + 0.3), (0.06, z + 0.3), (0.03, z + 0.34), (0.0, z + 0.36)], cx=x, cy=y, segs=8)
+    mesh_object(prefix + "__lamp", bm, ["brass"], r)
+    bm = bmesh.new()
+    add_lathe(bm, [(0.0, z + 0.12), (0.055, z + 0.14), (0.06, z + 0.22), (0.045, z + 0.29), (0.0, z + 0.3)], cx=x, cy=y, segs=8)
+    mesh_object(prefix + "__glass", bm, ["emit_redfire"], r)
+
+
+def hall_reading_nook(r):
+    """A scholar's reading spot on the floor: a kilim, a low table with a rahl
+    and an open book, cushions round it, books piled to hand, a red lamp."""
+    rng = _random.Random(31)
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    cw, cd = 2.5, 1.75
+    vs = [bm.verts.new((x, y, 0.024)) for (x, y) in ((-cw / 2, -cd / 2), (cw / 2, -cd / 2), (cw / 2, cd / 2), (-cw / 2, cd / 2))]
+    f = bm.faces.new(vs)
+    for loop in f.loops:
+        loop[uv].uv = ((loop.vert.co.x + cw / 2) / cw, (loop.vert.co.y + cd / 2) / cd)
+    mesh_object("hall_reading_nook__rug", bm, ["rug_kilim_small"], r, recalc=False)
+    bm = bmesh.new()
+    add_box(bm, -0.55, 0.55, -0.3, 0.3, 0.3, 0.34)
+    add_box(bm, -0.5, 0.5, -0.25, 0.25, 0.24, 0.3)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            add_box(bm, sx * 0.47 - 0.04, sx * 0.47 + 0.04, sy * 0.22 - 0.04, sy * 0.22 + 0.04, 0.024, 0.24)
+    mesh_object("hall_reading_nook__table", bm, ["persian_wood"], r)
+    bm = bmesh.new()
+    add_box(bm, -0.55, 0.55, -0.3, 0.3, 0.0, 0.34)
+    mesh_object("hall_reading_nook__col-colonly", bm, ["persian_wood"], r)
+    stand, books = bmesh.new(), bmesh.new()
+    for s in (-1, 1):
+        add_obox(stand, (0.0, s * 0.06, 0.44), (0.3, 0.015, 0.24), (math.radians(-s * 38), 0.0, 0.0))
+    for s in (-1, 1):
+        add_obox(books, (0.0, s * 0.1, 0.54), (0.26, 0.17, 0.02), (math.radians(s * 35), 0.0, 0.0), 0)
+        add_obox(books, (0.0, s * 0.11, 0.53), (0.28, 0.19, 0.008), (math.radians(s * 35), 0.0, 0.0), 1)
+    mesh_object("hall_reading_nook__rahl", stand, ["persian_wood"], r)
+    mesh_object("hall_reading_nook__open", books, ["pages", "book_leather"], r)
+    bm = bmesh.new()
+    book_stack(bm, 0.38, 0.05, 0.34, 3, rng)
+    book_stack(bm, 1.0, 0.55, 0.024, 5, rng, 0.4)
+    book_stack(bm, 1.05, 0.2, 0.024, 3, rng, -0.2)
+    book_stack(bm, -1.05, -0.6, 0.024, 4, rng, 0.9)
+    mesh_object("hall_reading_nook__books", bm, ["book_leather"], r)
+    bm = bmesh.new()
+    for (x, y, sx, sy) in ((0.0, -0.62, 0.62, 0.5), (0.0, 0.62, 0.62, 0.5), (-0.9, 0.05, 0.45, 0.6)):
+        add_box(bm, x - sx / 2, x + sx / 2, y - sy / 2, y + sy / 2, 0.024, 0.14)
+    mesh_object("hall_reading_nook__cushions", bm, ["cushion_termeh"], r)
+    bm = bmesh.new()
+    add_obox(bm, (0.0, -0.95, 0.24), (0.7, 0.16, 0.34), (math.radians(-12), 0.0, 0.0))
+    mesh_object("hall_reading_nook__bolster", bm, ["cushion_ikat"], r)
+    bm = bmesh.new()                                     # a brass tray with a tea glass
+    add_lathe(bm, [(0.0, 0.024), (0.2, 0.024), (0.21, 0.05), (0.19, 0.05), (0.0, 0.035)], cx=-0.95, cy=0.6, segs=12)
+    add_lathe(bm, [(0.0, 0.05), (0.03, 0.05), (0.035, 0.13), (0.0, 0.13)], cx=-0.9, cy=0.62, segs=6)
+    mesh_object("hall_reading_nook__tray", bm, ["brass"], r)
+    red_lamp(r, "hall_reading_nook", -0.42, 0.12, 0.34)
+
+
+def hall_book_cart(r):
+    """A librarian's book cart: two wheels, an A-frame of sloped shelves full of
+    books on both faces, a handle; a few books waiting on the floor by it."""
+    rng = _random.Random(47)
+    bm = bmesh.new()
+    add_box(bm, -0.75, 0.75, -0.32, 0.32, 0.36, 0.42)            # the bed
+    for sx in (-1, 1):
+        add_box(bm, sx * 0.7 - 0.03, sx * 0.7 + 0.03, -0.03, 0.03, 0.42, 1.25)    # A-frame ends
+        for sy in (-1, 1):
+            add_obox(bm, (sx * 0.7, sy * 0.17, 0.82), (0.05, 0.05, 0.85), (math.radians(sy * 22), 0.0, 0.0))
+    add_box(bm, -0.72, 0.72, -0.025, 0.025, 1.18, 1.24)          # ridge
+    for sy in (-1, 1):                                           # two sloped shelves each side
+        for (z, off) in ((0.48, 0.27), (0.85, 0.14)):
+            add_obox(bm, (0.0, sy * off, z), (1.36, 0.22, 0.02), (math.radians(-sy * 8), 0.0, 0.0))
+    add_box(bm, 0.75, 1.2, -0.3, -0.26, 0.4, 0.44)                # the handle
+    add_box(bm, 0.75, 1.2, 0.26, 0.3, 0.4, 0.44)
+    add_box(bm, 1.16, 1.22, -0.3, 0.3, 0.4, 0.46)
+    add_box(bm, -0.7, -0.64, -0.3, 0.3, 0.0, 0.36)                # the rest at the back
+    mesh_object("hall_book_cart__frame", bm, ["persian_wood"], r)
+    bm = bmesh.new()
+    for sy in (-1, 1):
+        wheel(bm, 0.35, sy * 0.38, 0.3, 0.3, 0.06)
+    add_box(bm, 0.33, 0.37, -0.42, 0.42, 0.28, 0.32)              # axle
+    mesh_object("hall_book_cart__wheels", bm, ["iron"], r)
+    bm = bmesh.new()
+    add_box(bm, -0.75, 1.22, -0.45, 0.45, 0.0, 1.25)
+    mesh_object("hall_book_cart__col-colonly", bm, ["persian_wood"], r)
+    bm = bmesh.new()
+    for sy in (-1, 1):
+        for (z, off) in ((0.49, 0.22), (0.86, 0.1)):
+            books_row(bm, -0.62, 0.62, sy * off, z, rng, lean=math.radians(-sy * 8), depth=0.16)
+    book_stack(bm, -1.1, 0.45, 0.0, 4, rng, 0.3)
+    book_stack(bm, -1.15, 0.05, 0.0, 6, rng, -0.5)
+    book_stack(bm, 0.2, 0.75, 0.0, 2, rng, 1.1)
+    mesh_object("hall_book_cart__books", bm, ["book_leather"], r)
+
+
+def hall_sorting_table(r):
+    """Where the scholars sort what comes up from the stacks: a long table piled
+    with books, an open ledger, an inkwell and scrolls, two stools, and a crate
+    of books waiting beside it."""
+    rng = _random.Random(59)
+    h = 0.8
+    bm = bmesh.new()
+    add_box(bm, -1.2, 1.2, -0.45, 0.45, h - 0.05, h)
+    for sx in (-1, 1):
+        for sy in (-1, 1):
+            add_box(bm, sx * 1.1 - 0.05, sx * 1.1 + 0.05, sy * 0.36 - 0.05, sy * 0.36 + 0.05, 0.0, h - 0.05)
+        add_box(bm, sx * 1.1 - 0.03, sx * 1.1 + 0.03, -0.36, 0.36, 0.18, 0.24)
+    add_box(bm, -1.1, 1.1, -0.03, 0.03, 0.18, 0.24)               # stretcher
+    for x in (-0.5, 0.6):                                         # stools on the -Y side
+        add_ngon_prism(bm, 8, 0.2, 0.42, 0.47, cx=x, cy=-0.75)
+        for k in range(3):
+            a = 2 * math.pi * k / 3
+            add_box(bm, x + 0.13 * math.cos(a) - 0.02, x + 0.13 * math.cos(a) + 0.02, -0.75 + 0.13 * math.sin(a) - 0.02, -0.75 + 0.13 * math.sin(a) + 0.02, 0.0, 0.42)
+    add_box(bm, 1.3, 1.9, -0.3, 0.3, 0.0, 0.04)                   # the crate
+    for (x0, x1, y0, y1) in ((1.3, 1.9, -0.3, -0.27), (1.3, 1.9, 0.27, 0.3), (1.3, 1.33, -0.3, 0.3), (1.87, 1.9, -0.3, 0.3)):
+        add_box(bm, x0, x1, y0, y1, 0.0, 0.42)
+    mesh_object("hall_sorting_table__wood", bm, ["persian_wood"], r)
+    bm = bmesh.new()
+    add_box(bm, -1.2, 1.2, -0.45, 0.45, 0.0, h)
+    add_box(bm, 1.3, 1.9, -0.3, 0.3, 0.0, 0.42)
+    mesh_object("hall_sorting_table__col-colonly", bm, ["persian_wood"], r)
+    bm = bmesh.new()
+    for (x, y, n) in ((-1.0, 0.2, 5), (-0.65, 0.25, 3), (0.95, 0.15, 6), (0.65, -0.25, 2), (0.3, 0.3, 4)):
+        book_stack(bm, x, y, h, n, rng)
+    books_row(bm, 1.36, 1.84, 0.0, 0.04, rng, depth=0.5)          # in the crate, spines up
+    book_stack(bm, -1.55, 0.35, 0.0, 5, rng, 0.6)
+    book_stack(bm, -1.5, -0.1, 0.0, 3, rng, -0.3)
+    mesh_object("hall_sorting_table__books", bm, ["book_leather"], r)
+    paper = bmesh.new()
+    add_obox(paper, (-0.15, -0.12, h + 0.015), (0.5, 0.36, 0.02), (0.0, 0.0, math.radians(-6)))   # the ledger, open
+    for (x, y, a) in ((0.2, -0.3, 10), (0.4, -0.22, -25), (-0.45, -0.32, 70)):
+        ca, sa = math.cos(math.radians(a)), math.sin(math.radians(a))
+        add_tube(paper, [(x - 0.17 * ca, y - 0.17 * sa, h + 0.025), (x + 0.17 * ca, y + 0.17 * sa, h + 0.025)], 0.022, segs=6)
+    mesh_object("hall_sorting_table__papers", paper, ["pages"], r)
+    bm = bmesh.new()
+    add_lathe(bm, [(0.0, h), (0.045, h), (0.05, h + 0.04), (0.02, h + 0.06), (0.0, h + 0.06)], cx=0.15, cy=0.05, segs=8)
+    add_tube(bm, [(0.16, 0.05, h + 0.05), (0.22, 0.12, h + 0.22)], 0.004, segs=3)     # a reed pen in it
+    mesh_object("hall_sorting_table__inkwell", bm, ["brass"], r)
+    red_lamp(r, "hall_sorting_table", -0.95, -0.25, h)
+
+
+# Step 4, ornament: kashi tile wainscots on the columns and piers, a tile frame
+# round every arch with a geometric frieze over it (and along the walls'
+# band), gilt ribs and a star medallion painted in the domes. The gilt and the
+# lacquer glow faintly so the ceiling reads in the dim hall; the frieze is lit only by the lamps.
+# Every piece is added to the modules already in kit_hall.blend (ORNAMENT in
+# main), so nothing built by hand there is lost.
+
+PAINTED = ("dome_cell_4m_a", "dome_cell_4m_b", "dome_sun_4m", "dome_sun_4m_centre")
+FRIEZE = (5.92, 6.18)        # the arcades' frieze, over the arch frame's crown (5.9)
+
+
+def face_toward(bm, verts, want, mat=0, uv=None, uvs=None):
+    """A face over `verts` turned to face `want`; UVs by vertex if given."""
+    from mathutils import Vector
+    f = bm.faces.new(verts)
+    f.material_index = mat
+    f.normal_update()
+    if f.normal.dot(Vector(want)) < 0:
+        f.normal_flip()
+    if uv is not None:
+        for loop in f.loops:
+            loop[uv].uv = uvs[loop.vert]
+    return f
+
+
+def frieze(bm, uv, x0, x1, y, z0, z1, side):
+    """A frieze panel in the plane y, facing +y (side 1) or -y (side -1),
+    the texture read left to right from that side."""
+    vs = [bm.verts.new(p) for p in ((x0, y, z0), (x1, y, z0), (x1, y, z1), (x0, y, z1))]
+    uvs = {}
+    for v in vs:
+        u = (x1 - v.co.x) / (x1 - x0) if side > 0 else (v.co.x - x0) / (x1 - x0)
+        uvs[v] = (u, (v.co.z - z0) / (z1 - z0))
+    face_toward(bm, vs, (0.0, side, 0.0), 0, uv, uvs)
+
+
+def column_wainscot(r):
+    """A tiled octagonal pedestal up to 1.13 m, gilt fillets and a stone cap:
+    the column's spiral starts over it."""
+    bm = bmesh.new()
+    add_ngon_prism(bm, 8, 0.40, 0.16, 1.05, mat=0)
+    add_ngon_prism(bm, 8, 0.44, 1.05, 1.13, mat=1)
+    for z in (0.2, 0.97):
+        add_ngon_prism(bm, 8, 0.408, z, z + 0.03, mat=2)
+    mesh_object("post_column_twisted__wainscot", bm, ["tile_hall", "arch_stone", "hall_gild"], r)
+    bm = bmesh.new()
+    add_ngon_prism(bm, 8, 0.40, 0.0, 1.13)
+    mesh_object("post_column_twisted__pedestal-colonly", bm, ["arch_stone"], r)
+
+
+def pier_wainscot(r):
+    """The wall piers' dado: stone plinth, tile, a gilt fillet, stone cap."""
+    bm = bmesh.new()
+    add_box(bm, -0.39, 0.39, -0.39, 0.39, 0.0, 0.12, mat=1)
+    add_box(bm, -0.365, 0.365, -0.365, 0.365, 0.12, 1.05, mat=0)
+    add_box(bm, -0.372, 0.372, -0.372, 0.372, 0.96, 0.99, mat=2)
+    add_box(bm, -0.39, 0.39, -0.39, 0.39, 1.05, 1.12, mat=1)
+    mesh_object("post_hall_pier__wainscot", bm, ["tile_hall", "arch_stone", "hall_gild"], r)
+
+
+def arch_ornament(r):
+    """A band of tile round the arch on both faces (an archivolt), and the
+    frieze over its crown on both faces."""
+    span, k, w, x0, zs = 3.3, 0.55, 0.09, 0.35, CAP
+    rr = span * k
+    mid = x0 + span / 2
+    ta = math.acos((span / 2 - rr) / rr)
+    def arch_ring(a, b):
+        """The band between a and b metres outside the arch, foot to foot (an XZ outline)."""
+        n = 10
+        def side(o):
+            pts = [(x0 + rr + (rr + o) * math.cos(t), zs + (rr + o) * math.sin(t))
+                   for t in (math.pi + (ta - math.pi) * i / n for i in range(n + 1))]
+            pts[-1] = (mid, zs + math.sqrt((rr + o) ** 2 - (span / 2 - rr) ** 2))
+            return pts + [(2 * mid - x, z) for (x, z) in reversed(pts[:-1])]
+        return side(b) + list(reversed(side(a)))
+    bm = bmesh.new()
+    for (y0, y1) in ((0.25, 0.262), (-0.262, -0.25)):
+        add_prism(bm, arch_ring(0.0, w), 0.0, 0.0, y0, y1)
+    mesh_object("arcade_arch_4m__archivolt", bm, ["tile_hall"], r)
+    bm = bmesh.new()       # rev 2: gilt lines along both its edges, so the frame reads in the dim
+    for (a, b) in ((0.0, 0.02), (w - 0.02, w)):
+        for (y0, y1) in ((0.262, 0.266), (-0.266, -0.262)):
+            add_prism(bm, arch_ring(a, b), 0.0, 0.0, y0, y1)
+    mesh_object("arcade_arch_4m__gilt", bm, ["hall_gild"], r)
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    for s in (1, -1):
+        frieze(bm, uv, 0.0, 4.0, s * 0.254, FRIEZE[0], FRIEZE[1], s)
+    mesh_object("arcade_arch_4m__frieze", bm, ["hall_frieze"], r, recalc=False)
+
+
+def band_frieze(r):
+    """The frieze along the hall's walls, on the band's inner face."""
+    bm = bmesh.new()
+    uv = bm.loops.layers.uv.new("UVMap")
+    frieze(bm, uv, 0.0, 4.0, T + 0.034, 5.5, 5.78, 1)
+    mesh_object("wall_hall_band_4m__frieze", bm, ["hall_frieze"], r, recalc=False)
+
+
+def dome_paint(r, name, hole, band):
+    """Painted in the dome: twelve gilt ribs from the foot (or the tile band)
+    to the crown, and at the crown a gilt twelve-point star with a lacquer-red
+    star and a gilt boss in it; an open dome gets a gilt ring round its eye."""
+    prof = dome_loop(hole)[:9]                  # the inner face, foot to crown
+    def seg_normal(i):                          # the inward normal of chord i
+        (r0, z0), (r1, z1) = prof[i], prof[i + 1]
+        dr, dz = r1 - r0, z1 - z0
+        l = math.hypot(dr, dz)
+        return (-dz / l, dr / l)
+    def vert_normal(i):
+        ns = [seg_normal(j) for j in (i - 1, i) if 0 <= j < len(prof) - 1]
+        a, b = sum(n[0] for n in ns), sum(n[1] for n in ns)
+        l = math.hypot(a, b)
+        return (a / l, b / l)
+    def surf_z(rho):
+        for i in range(len(prof) - 1):
+            (r0, z0), (r1, z1) = prof[i], prof[i + 1]
+            if r1 <= rho <= r0 and r0 > r1:
+                return z0 + (z1 - z0) * (r0 - rho) / (r0 - r1)
+        return prof[-1][1]
+    def at(rho, phi, z):
+        return (2.0 + rho * math.cos(phi), 2.0 + rho * math.sin(phi), z)
+    bm = bmesh.new()
+    d = 0.012
+    k0, k1 = (3 if band else 1), 6
+    for j in range(12):                         # the ribs
+        phi = j * math.pi / 6
+        rows = []
+        for k in range(k0, k1 + 1):
+            nr, nz = vert_normal(k)
+            rho, z = prof[k][0] + nr * d, prof[k][1] + nz * d
+            hw = 0.022 / rho
+            rows.append(([bm.verts.new(at(rho, phi - hw, z)), bm.verts.new(at(rho, phi + hw, z))], (math.cos(phi) * nr, math.sin(phi) * nr, nz)))
+        for (a, wa), (b, _wb) in zip(rows, rows[1:]):
+            face_toward(bm, [a[0], a[1], b[1], b[0]], wa, 0)
+    if hole < 0.1:                              # the crown medallion
+        for (ro, ri, off, rot, mat, pts) in ((0.62, 0.42, 0.016, 0.0, 0, 12), (0.42, 0.32, 0.05, math.pi / 12, 1, 12),
+                                             (0.1, 0.1, 0.065, 0.0, 0, 8)):   # rev 3: clear of the gold star's flat fan
+            c = bm.verts.new((2.0, 2.0, surf_z(0.0) - off))
+            ring = []
+            for i in range(pts * 2):
+                rho = ro if i % 2 == 0 else ri
+                ring.append(bm.verts.new(at(rho, rot + math.pi * i / pts, surf_z(rho) - off)))
+            for i in range(len(ring)):
+                face_toward(bm, [c, ring[i], ring[(i + 1) % len(ring)]], (0.0, 0.0, -1.0), mat)
+    else:                                       # a gilt ring round the eye
+        rows = []
+        for k in (6, 7):
+            nr, nz = vert_normal(k)
+            rows.append(([bm.verts.new(at(prof[k][0] + nr * d, i * math.pi / 12, prof[k][1] + nz * d)) for i in range(24)], nr, nz))
+        (a, nr, nz), (b, _r, _z) = rows
+        for i in range(24):
+            phi = (i + 0.5) * math.pi / 12
+            face_toward(bm, [a[i], a[(i + 1) % 24], b[(i + 1) % 24], b[i]], (math.cos(phi) * nr, math.sin(phi) * nr, nz), 0)
+    mesh_object(name + "__paint", bm, ["hall_gild", "hall_lacquer"], r, recalc=False)
+
+
+ORNAMENT = [   # (module, revision, the pieces it adds, builder); a higher revision remakes them
+    ("M_post_column_twisted", 1, ["post_column_twisted__wainscot", "post_column_twisted__pedestal-colonly"], column_wainscot),
+    ("M_post_hall_pier", 1, ["post_hall_pier__wainscot"], pier_wainscot),
+    ("M_arcade_arch_4m", 3, ["arcade_arch_4m__archivolt", "arcade_arch_4m__gilt", "arcade_arch_4m__frieze"], arch_ornament),   # rev 2: gilt edges; rev 3: the geometric frieze (your note)
+    ("M_wall_hall_band_4m", 2, ["wall_hall_band_4m__frieze"], band_frieze)] + [   # band rev 2: the geometric frieze
+    ("M_" + n, 3, [n + "__paint"], (lambda n, h, b: lambda r: dome_paint(r, n, h, b))(n, h, b))   # rev 2: a fuller red star; rev 3: in front of the gold
+    for (n, h, b) in (("dome_cell_4m_a", 0.02, False), ("dome_cell_4m_b", 0.02, True), ("dome_sun_4m", 0.55, True), ("dome_sun_4m_centre", 0.55, True))]
 
 
 def rubble_heap(r):
@@ -399,7 +973,7 @@ def rubble_heap(r):
         z = max(0.02, 1.1 * max(0.0, 1.0 - d / 1.55) ** 1.2) + 0.03
         add_obox(bm, (2.0 + d * math.cos(t), 2.0 + d * math.sin(t), z), (rng.uniform(0.25, 0.5), rng.uniform(0.2, 0.4), 0.035),
                  (rng.uniform(-0.7, 0.7), rng.uniform(-0.7, 0.7), rng.uniform(0, math.pi)))
-    mesh_object("rubble_heap_4m__tiles", bm, ["tile"], r)
+    mesh_object("rubble_heap_4m__tiles", bm, ["tile_hall"], r)
     bm = bmesh.new()
     add_box(bm, 0.5, 3.5, 0.5, 3.5, 0.0, 1.2)
     mesh_object("rubble_heap_4m__block-colonly", bm, ["arch_stone"], r)
@@ -1081,8 +1655,8 @@ MODULES = [
     ("M_lantern_dome", props("free", [0, 1, 0], "", "brass,light,hall"), lantern_dome),
     ("M_case_freestanding_4m", props("free", [1, 0, 1], "", "wood,storage,hall", family="dressing"), case),
     ("M_landmark_plinth", props("free", [1, 0, 1], "", "stone,landmark,hall", family="dressing"), plinth),
-    ("M_landmark_great_lamp", props("free", [0, 1, 0], "", "brass,light,landmark", family="dressing"), great_lamp),
-    ("M_landmark_catalogue_desk", props("free", [1, 0, 1], "", "wood,landmark", family="dressing"), catalogue_desk),
+    ("M_landmark_great_lamp", dict(props("free", [0, 1, 0], "", "brass,light,landmark", family="dressing"), kit_rev=3), great_lamp),
+    ("M_landmark_catalogue_desk", dict(props("free", [1, 0, 1], "", "wood,landmark", family="dressing"), kit_rev=3), catalogue_desk),
     # Step 2: the big hall.
     ("M_lantern_dome_cluster", props("free", [0, 1, 0], "", "brass,light,hall"), lantern_dome_cluster),
     ("M_dome_cell_4m_fallen", props("cell", [1, 1, 1], "", "tile,dome,ruin,hall"), dome_fallen),
@@ -1097,6 +1671,19 @@ MODULES = [
     ("M_dome_cell_4m_brick", props("cell", [1, 1, 1], "", "brick,dome,cistern"), dome_brick),
     ("M_platform_cell_4m", props("free", [1, 0, 1], "", "wood,storage,cistern", family="dressing"), platform),
     ("M_wall_vault_door_4m", dict(props("edge", [1, 1, 0], "solid", "brass,door,light,fungus,cistern"), kit_rev=2), vault_door),
+    # The hall rework, step 1: carpet, sun domes, dim lamps, red lanterns.
+    ("M_floor_carpet_4m", props("cell", [1, 0, 1], "", "stone,cloth,floor,hall"), floor_carpet),
+    ("M_dome_sun_4m", dict(props("cell", [1, 1, 1], "", "tile,dome,light,hall"), kit_rev=4), dome_sun),
+    ("M_lantern_oil", dict(props("free", [0, 1, 0], "", "brass,light,hall"), kit_rev=5), lantern_oil),
+    ("M_lantern_moroccan", dict(props("free", [0, 1, 0], "", "brass,light,hall"), kit_rev=2), lantern_moroccan),
+    # Step 2: the grand landmark.
+    ("M_landmark_hauz", props("free", [1, 0, 1], "", "stone,water,landmark,hall", family="dressing"), landmark_hauz),
+    ("M_landmark_takht", props("free", [1, 0, 1], "", "wood,cloth,light,landmark,hall", family="dressing"), landmark_takht),
+    ("M_dome_sun_4m_centre", props("cell", [1, 1, 1], "", "tile,dome,light,hall"), dome_sun_centre),
+    # Step 3: scholars at work.
+    ("M_hall_reading_nook", props("free", [1, 0, 1], "", "wood,cloth,books,scholar,hall", family="dressing"), hall_reading_nook),
+    ("M_hall_book_cart", props("free", [1, 0, 1], "", "wood,books,scholar,hall", family="dressing"), hall_book_cart),
+    ("M_hall_sorting_table", props("free", [1, 0, 1], "", "wood,books,scholar,hall", family="dressing"), hall_sorting_table),
 ] + cone_modules() + [
 ]
 
@@ -1105,7 +1692,8 @@ MODULES = [
 REBUILD = [("M_post_column_twisted", 3), ("M_dome_cell_4m_b", 2),
            ("M_basin_cell_4m", 2), ("M_basin_cell_4m_deep", 2), ("M_causeway_cell_4m", 3),   # rev 2: the cistern's own water; causeway rev 3: gentler sides
            ("M_cone_lantern", 3),   # rev 2: the lantern over the head; rev 3: dimmer (room rework step 6)
-           ("M_wall_vault_door_4m", 2)] + [   # rev 2: glowing vines, no lanterns (room rework step 5)
+           ("M_wall_vault_door_4m", 2), ("M_dome_sun_4m", 4), ("M_lantern_oil", 5),
+           ("M_landmark_great_lamp", 3), ("M_landmark_catalogue_desk", 3), ("M_lantern_moroccan", 2)] + [   # rev 2: glowing vines, no lanterns (room rework step 5)
     (n, 9 if n.startswith("M_cone_base") else 15 if n.startswith("M_cone_cap") else 10) for (n, _p, _b) in cone_modules() if n.startswith(("M_cone_c", "M_cone_cap", "M_cone_base"))]   # rev 2: smooth collision, the light shaft; rev 3: the floor's ramp; rev 4: smooth walk edges, softer bounce; rev 5: even collision sweeps; rev 6: the fills between; rev 7: the floor fill reaches the first turn; chunks rev 6 / caps rev 14: columns on a thicker parapet, its footprint the walk edge (your walk); chunks rev 7: stepped bookcases and taghcheh in place of the tall niches; chunks rev 8 / caps rev 15: orosi glass backs, a narrower beam; chunks rev 9: softer glass; chunks rev 10: cases clear of the step above
 
 
@@ -1127,11 +1715,23 @@ def main():
             added.append(name)
         x += 40.0 if name.startswith("M_cone") else 8.0
     rebuilt = ["%s (rev %d)" % (n, v) for (n, v) in REBUILD if rebuild(n, v, MODULES)]
-    if not added and not rebuilt and not retired:
+    ornamented = []
+    for (mod, rev, pieces, build) in ORNAMENT:      # step 4: added to the modules already built
+        root = bpy.data.objects.get(mod)
+        if root is None or int(root.get("orn_rev", 0)) >= rev:
+            continue
+        for n in pieces:
+            ob = bpy.data.objects.get(n)
+            if ob is not None:
+                bpy.data.objects.remove(ob, do_unlink=True)
+        build(root)
+        root["orn_rev"] = rev
+        ornamented.append("%s (rev %d)" % (mod, rev))
+    if not added and not rebuilt and not retired and not ornamented:
         print("kit_add_r03: everything already present; nothing to do.")
         return
     bpy.ops.wm.save_as_mainfile(filepath=BLEND)
-    print("kit_add_r03: added %s; rebuilt %s; removed %s" % (", ".join(added) or "nothing", ", ".join(rebuilt) or "nothing", ", ".join(retired) or "nothing"))
+    print("kit_add_r03: added %s; rebuilt %s; removed %s; ornamented %s" % (", ".join(added) or "nothing", ", ".join(rebuilt) or "nothing", ", ".join(retired) or "nothing", ", ".join(ornamented) or "nothing"))
 
 
 main()

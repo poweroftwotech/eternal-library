@@ -350,6 +350,13 @@
     56
    ]
   },
+  "rug_hall_bay": {
+   "mapping": "uv",
+   "size": [
+    116,
+    116
+   ]
+  },
   "rug_herati_grand": {
    "mapping": "uv",
    "size": [

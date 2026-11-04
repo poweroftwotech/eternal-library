@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_euxqg"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/hall_reading_nook.glb" id="2_0mvnu"]
+
+[node name="hall_reading_nook" type="Node3D" unique_id=1257859442]
+script = ExtResource("1_euxqg")
+family = "dressing"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("wood", "cloth", "books", "scholar", "hall")
+source_glb = "res://assets/kit/dressing/hall_reading_nook.glb"
+
+[node name="Mesh" parent="." unique_id=1120765351 instance=ExtResource("2_0mvnu")]

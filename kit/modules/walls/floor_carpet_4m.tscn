@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_71vdo"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/floor_carpet_4m.glb" id="2_6e53f"]
+
+[node name="floor_carpet_4m" type="Node3D" unique_id=2047167979]
+script = ExtResource("1_71vdo")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "cloth", "floor", "hall")
+source_glb = "res://assets/kit/walls/floor_carpet_4m.glb"
+
+[node name="Mesh" parent="." unique_id=695598864 instance=ExtResource("2_6e53f")]

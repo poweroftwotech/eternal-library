@@ -35,6 +35,10 @@ const LIGHT_PROFILES: Dictionary = {
 	# The Reading Room's table lamps (room rework, step 1): a small warm pool on
 	# the table and the seats round it, not the walls. No shadows.
 	"desk": {"color": Color(1.0, 0.66, 0.32), "energy": 1.1, "range": 3.2, "attenuation": 1.6, "shadow": false},
+	# The Hypostyle Stacks (hall rework step 1, your note): a dim oil lamp's small
+	# warm pool, and the red-fire glow of a Moroccan lantern's red glass.
+	"lamp_dim": {"color": Color(1.0, 0.54, 0.34), "energy": 1.0, "range": 6.5, "attenuation": 1.4, "shadow": false},
+	"redfire": {"color": Color(1.0, 0.5, 0.3), "energy": 1.5, "range": 7.5, "attenuation": 1.1, "shadow": false},
 }
 const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_", "FOG_"]
 ## Physics layer 8: walls only the player collides with (project layer names).

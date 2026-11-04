@@ -1,6 +1,6 @@
 # Room rework: the existing rooms before phase 12
 
-[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED feca290 after your walks; step 5 (Cistern Archive) COMMITTED 8865b41 2026-11-03; step 6 (Light-Well Stair) COMMITTED 7c844bb 2026-11-04 (frame gate accepted as borderline, 11 ms)**
+[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED feca290 after your walks; step 5 (Cistern Archive) COMMITTED 8865b41 2026-11-03; step 6 (Light-Well Stair) COMMITTED 7c844bb 2026-11-04 (frame gate accepted as borderline, 11 ms); step 7 (Hypostyle Stacks reworked) walked and tested 2026-11-04, frame gate accepted as borderline (10.5 ms)**
 
 ## Why
 
@@ -59,6 +59,65 @@ Proposed steps, each walked by you before the next:
   stair edges and the oculus; some gallery shelves become plant and
   decoration niches. The missing face seen from the Upper Stacks is fixed
   here too.
+
+## Step 7: the Hypostyle Stacks reworked (2026-11-04, four walks; frame gate accepted as borderline, 10.5 ms)
+
+You asked for a second pass over the big domed hall, in four parts, each
+walked before the next.
+
+### What you can try
+
+Walk the Hypostyle Stacks (the domed hall of the Lower Stacks).
+
+- **Red and warm:** a red Persian carpet across the floor, a few red-fire
+  Moroccan lanterns scattered over the aisles (never two within two bays,
+  never under a sunbeam), and dim oil lamps so no corner is left dark.
+- **Sunbeams:** about one dome in twelve is open to the sky, and a shaft of
+  light falls through it onto the carpet.
+- **The pool and the takht:** in the middle, under an open dome whose beam
+  falls straight down, a hauz (a stone pool). Beside it stands a takht (a
+  raised reading platform) facing the pool, set back so you can walk
+  between them.
+- **Scholars' bays:** about a quarter of the bays off the aisles hold a
+  reading nook, a book cart or a sorting table, each with a lamp overhead.
+- **Ornament:** columns and piers stand on tiled feet with gold fillets;
+  the arches have a tiled frame with gold edge lines, and a patterned
+  frieze runs along each arch and under the domes: red rules, a gold scroll
+  on black, and a cream field with black, red and orange lozenges. It is lit
+  only by the lamps, not self-lit. The painted domes have twelve gold ribs and a
+  red-and-gold star at the crown.
+
+### What changed
+
+- Kit (`tools/kit_add_r03.py` → `kit_hall.blend`): carpet floor, sunlit
+  domes (`dome_sun_4m`, `dome_sun_4m_centre`), the two lanterns, the hauz and
+  takht, the three scholar pieces, and the ornament. The ornament is added to
+  modules already in the file by an `orn_rev` pass, so hand edits survive.
+  New materials: `hall_frieze` (texture by `tools/hall_frieze.gd`),
+  `hall_gild`, `hall_lacquer`.
+- `HypostyleGrammar`: `lantern_per_bays` 9, `sun_per_bays` 12,
+  `grand_landmark`, `scholar_chance` 0.25, `fill_dark_bays`, a red
+  `mood_tint` (all in `gen/grammars/r03_hypostyle.tres`).
+- **Light budget (final pass, your pick "fewer dim lamps"):** the hall at
+  Lower Stacks seed 1 had 9 dim lamps and the frame gate counted 52 lights
+  in reach of 50. Now the scholars' lamps are hung first, an aisle lamp is
+  left out when a lamp or lantern already hangs a bay away, and each fill
+  lamp goes where it lights the most dark bays. Every bay is still under or
+  beside a light; that hall now has 5 dim lamps.
+
+### Tests
+
+- R03 layout (14,896 checks across 40 halls; new checks for the pool's
+  open dome, takhts beside the pool and off the aisles, lanterns apart and
+  out of sunbeams, scholar bays off the aisles with a lamp over each) and
+  route (51; new: the capsule walks between each takht and the pool): pass.
+- Lower Stacks area route (254) and generation signatures (93): pass.
+- Lower Stacks frame gate: lights in reach 48 of 50 (was 52), draw calls
+  peak 845 of 1,500, frame 1.5 ms mean, GPU 0.96 ms mean. Worst frame 10.5
+  ms, on a gallery loading in (the hall's own worst is 8.6 ms); this is the
+  same borderline kind as step 6.
+- Captures: `previews/hall_rework/` (per step; `final/` after the lamp
+  change).
 
 ## Step 6: the Light-Well Stair (2026-11-04, committed 7c844bb)
 

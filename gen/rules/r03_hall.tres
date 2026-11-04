@@ -8,22 +8,27 @@
 [ext_resource type="PackedScene" path="res://kit/modules/walls/wall_arch_3m.tscn" id="5_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/arcade_arch_4m.tscn" id="6_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/wall_hall_band_4m.tscn" id="7_m"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/floor_4m.tscn" id="8_m"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/floor_carpet_4m.tscn" id="8_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/dome_cell_4m_a.tscn" id="9_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/dome_cell_4m_b.tscn" id="10_m"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/oculus_cell_4m.tscn" id="11_m"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/dome_sun_4m.tscn" id="11_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/post_hall_pier.tscn" id="12_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/post_column_twisted.tscn" id="13_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/post_hall_pier_cap.tscn" id="14_m"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_dome.tscn" id="15_m"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_oil.tscn" id="15_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/case_freestanding_4m.tscn" id="16_m"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/landmark_plinth.tscn" id="17_m"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/landmark_hauz.tscn" id="17_m"]
 [ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="18_m"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_dome_cluster.tscn" id="19_m"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lantern_moroccan.tscn" id="19_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/dome_cell_4m_fallen.tscn" id="20_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/rubble_heap_4m.tscn" id="21_m"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/case_wall_tall_4m.tscn" id="22_wcase"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/case_wall_tall_ladder_4m.tscn" id="23_wcase"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/landmark_takht.tscn" id="24_takht"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/dome_sun_4m_centre.tscn" id="25_suncentre"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/hall_reading_nook.tscn" id="26_nook"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/hall_book_cart.tscn" id="27_cart"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/hall_sorting_table.tscn" id="28_sort"]
 
 [sub_resource type="Resource" id="Choice_1"]
 script = ExtResource("2_choice")
@@ -230,6 +235,46 @@ script = ExtResource("1_rule")
 slot = "dressing:wall_case"
 choices = Array[ExtResource("2_choice")]([SubResource("Choice_wcase"), SubResource("Choice_wcase_ladder")])
 
+[sub_resource type="Resource" id="Choice_takht"]
+script = ExtResource("2_choice")
+scene = ExtResource("24_takht")
+weight = 1.0
+
+[sub_resource type="Resource" id="Rule_takht"]
+script = ExtResource("1_rule")
+slot = "landmark:takht"
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_takht")])
+
+[sub_resource type="Resource" id="Choice_suncentre"]
+script = ExtResource("2_choice")
+scene = ExtResource("25_suncentre")
+weight = 1.0
+
+[sub_resource type="Resource" id="Rule_suncentre"]
+script = ExtResource("1_rule")
+slot = "cell:oculus_centre"
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_suncentre")])
+
+[sub_resource type="Resource" id="Choice_nook"]
+script = ExtResource("2_choice")
+scene = ExtResource("26_nook")
+weight = 2.0
+
+[sub_resource type="Resource" id="Choice_cart"]
+script = ExtResource("2_choice")
+scene = ExtResource("27_cart")
+weight = 1.0
+
+[sub_resource type="Resource" id="Choice_sort"]
+script = ExtResource("2_choice")
+scene = ExtResource("28_sort")
+weight = 1.0
+
+[sub_resource type="Resource" id="Rule_scholar"]
+script = ExtResource("1_rule")
+slot = "dressing:scholar"
+choices = Array[ExtResource("2_choice")]([SubResource("Choice_nook"), SubResource("Choice_cart"), SubResource("Choice_sort")])
+
 [resource]
 script = ExtResource("0_rules")
-rules = Array[ExtResource("1_rule")]([SubResource("Rule_1"), SubResource("Rule_2"), SubResource("Rule_3"), SubResource("Rule_4"), SubResource("Rule_5"), SubResource("Rule_6"), SubResource("Rule_7"), SubResource("Rule_8"), SubResource("Rule_9"), SubResource("Rule_10"), SubResource("Rule_11"), SubResource("Rule_12"), SubResource("Rule_13"), SubResource("Rule_14"), SubResource("Rule_15"), SubResource("Rule_16"), SubResource("Rule_17"), SubResource("Rule_plain"), SubResource("Rule_wcase")])
+rules = Array[ExtResource("1_rule")]([SubResource("Rule_1"), SubResource("Rule_2"), SubResource("Rule_3"), SubResource("Rule_4"), SubResource("Rule_5"), SubResource("Rule_6"), SubResource("Rule_7"), SubResource("Rule_8"), SubResource("Rule_9"), SubResource("Rule_10"), SubResource("Rule_11"), SubResource("Rule_12"), SubResource("Rule_13"), SubResource("Rule_14"), SubResource("Rule_15"), SubResource("Rule_16"), SubResource("Rule_17"), SubResource("Rule_plain"), SubResource("Rule_wcase"), SubResource("Rule_takht"), SubResource("Rule_suncentre"), SubResource("Rule_scholar")])

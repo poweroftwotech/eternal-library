@@ -76,6 +76,39 @@ extends RoomGrammar
 	set(value):
 		lamp_cluster_every = value
 		emit_changed()
+## Scatter the lantern clusters instead (hall rework step 1, your note: "a few
+## hanging red-fire lanterns ... scattered across the room"): one per this many
+## bays, seeded over the walked bays, never two within two bays of each other.
+## 0 = the lattice of lamp_cluster_every.
+@export_range(0, 40) var lantern_per_bays: int = 0:
+	set(value):
+		lantern_per_bays = value
+		emit_changed()
+## Sunlit domes (hall rework step 1): besides the landmark's, one dome per
+## this many bays opens to the sky (cell:oculus), seeded over the bays that
+## stay open, never two side by side. 0 = the landmark's only.
+## The grand landmark (hall rework step 2): the landmark slot holds a pool
+## under a dome whose sunbeam falls straight down (cell:oculus_centre), with a
+## takht (a raised reading platform, landmark:takht) beside it facing the pool.
+@export var grand_landmark: bool = false:
+	set(value):
+		grand_landmark = value
+		emit_changed()
+## Chance that a bay off the aisles and the walls holds scholars' furniture (a
+## reading nook, a book cart or a sorting table; hall rework step 3).
+@export_range(0.0, 1.0, 0.01) var scholar_chance: float = 0.0:
+	set(value):
+		scholar_chance = value
+		emit_changed()
+## Hang a dim lamp over any bay left with no light over it or a bay next to it.
+@export var fill_dark_bays: bool = false:
+	set(value):
+		fill_dark_bays = value
+		emit_changed()
+@export_range(0, 40) var sun_per_bays: int = 0:
+	set(value):
+		sun_per_bays = value
+		emit_changed()
 ## Chance that a bay off the aisles has collapsed: its dome lies in a heap of
 ## rubble on the floor and the bay can't be entered.
 @export_range(0.0, 1.0, 0.01) var collapse_chance: float = 0.06:
@@ -85,6 +118,9 @@ extends RoomGrammar
 
 ## A bookcase's long side runs along X or Z (the seed picks one per hall).
 const CASE_AXES: Array[Vector3i] = [Vector3i(0, 0, 1), Vector3i(1, 0, 0)]
+## A takht stands this far back from its bay's centre, away from the pool (your
+## walk: room to walk between them, ~1.2 m).
+const TAKHT_BACK: float = 0.5
 
 
 func layout(grid: CellGrid, seed_value: int) -> void:
@@ -128,15 +164,124 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 	place_posts(grid, rect)
 	grid.props["landmark"] = {"slot": "landmark", "xf": Transform3D(Basis(), CellGrid.cell_centre(centre))}
 	grid.cells[centre]["blocked"] = true      # its plinth and what stands on it: walk round
+	if grand_landmark:
+		grid.cells[centre]["ceiling_slot"] = "cell:oculus_centre"     # the beam straight down onto the pool
+		for t: Vector3i in pick_takhts(grid, centre, aisle, wide):
+			clear[t] = true      # no heap here
+			var face: Vector3 = CellGrid.cell_centre(centre) - CellGrid.cell_centre(t)
+			grid.props["takht_" + CellGrid.cell_name(t)] = {"slot": "landmark:takht",
+				"xf": Transform3D(Basis.looking_at(face, Vector3.UP), CellGrid.cell_centre(t) - face.normalized() * TAKHT_BACK)}
+			grid.cells[t]["blocked"] = true
 	var fallen: Dictionary = pick_collapses(cells, clear, seed_value)
 	place_cases(grid, cells, clear, fallen, seed_value)
+	place_scholars(grid, cells, clear, fallen, seed_value)
 	var walk: Dictionary = aisle.duplicate()
 	if wall_aisle:
 		for c: Vector3i in cells:
 			if c.x == rect.position.x or c.x == rect.end.x - 1 or c.z == rect.position.y or c.z == rect.end.y - 1:
 				walk[c] = true
-	place_lamps(grid, walk, centre, fallen, seed_value)
+	var sunlit: Dictionary = pick_suns(grid, cells, centre, seed_value)
+	place_lamps(grid, walk, centre, fallen, seed_value, sunlit)
 	lanes(grid, doors, centre)
+
+
+## Scholars at work (hall rework step 3): a reading nook, a book cart or a
+## sorting table (the rules' dressing:scholar) in bays off the aisles and the
+## walk round the walls, by scholar_chance, each turned a seeded quarter. A bay
+## with one is blocked; any that would cut a bay off from the entry is taken
+## out again, nearest that bay first.
+func place_scholars(grid: CellGrid, cells: Array[Vector3i], clear: Dictionary, fallen: Dictionary, seed_value: int) -> void:
+	if scholar_chance <= 0.0:
+		return
+	var placed: Dictionary = {}
+	for c: Vector3i in cells:
+		if clear.has(c) or fallen.has(c) or grid.cells[c].get("blocked", false):
+			continue
+		var roll := RandomNumberGenerator.new()
+		roll.seed = hash([seed_value, "scholar", CellGrid.cell_name(c)])
+		if roll.randf() < scholar_chance:
+			placed[c] = roll.randi_range(0, 3)
+	var walls: Dictionary = fallen.duplicate()      # bays you can't enter: heaps, the landmark, takhts
+	for c: Vector3i in cells:
+		if grid.cells[c].get("blocked", false):
+			walls[c] = true
+	while true:
+		var cut_off: Vector3i = _first_cut_off(grid, {}, walls.merged(placed), Vector3i.ZERO)
+		if cut_off == Vector3i.MAX or placed.is_empty():
+			break
+		var best: Vector3i = Vector3i.MAX
+		var order: Array = placed.keys()
+		order.sort()
+		for c: Vector3i in order:
+			if best == Vector3i.MAX or (c - cut_off).length_squared() < (best - cut_off).length_squared():
+				best = c
+		placed.erase(best)
+	var keys: Array = placed.keys()
+	keys.sort()
+	for c: Vector3i in keys:
+		grid.props["scholar_" + CellGrid.cell_name(c)] = {"slot": "dressing:scholar",
+			"xf": Transform3D(Basis(Vector3.UP, placed[c] * PI / 2.0), CellGrid.cell_centre(c))}
+		grid.cells[c]["blocked"] = true
+		grid.cells[c]["scholar"] = true      # a lamp hangs over it (place_lamps)
+
+
+## The takhts' bays: beside the landmark, never on an aisle (the way from
+## every door to the landmark stays clear). One in a hall whose landmark is a
+## single bay; in a wide hall a pair on opposite sides when both are free.
+func pick_takhts(grid: CellGrid, centre: Vector3i, aisle: Dictionary, wide: bool) -> Array[Vector3i]:
+	var out: Array[Vector3i] = []
+	for pair: Array in [[CellGrid.Side.N, CellGrid.Side.S], [CellGrid.Side.W, CellGrid.Side.E]]:
+		var free: Array[Vector3i] = []
+		for side: int in pair:
+			var n: Vector3i = CellGrid.neighbour(centre, side)
+			if grid.cells.has(n) and not aisle.has(n):
+				free.append(n)
+		if free.size() == 2 and wide:
+			return free
+		if out.is_empty() and not free.is_empty():
+			out.append(free[0])
+	return out
+
+
+## Domes open to the sky, by sun_per_bays: cell -> true (the landmark's too).
+## Only over bays you can walk into (no case, heap or landmark under the beam).
+func pick_suns(grid: CellGrid, cells: Array[Vector3i], centre: Vector3i, seed_value: int) -> Dictionary:
+	var out: Dictionary = {centre: true}
+	if sun_per_bays <= 0:
+		return out
+	var options: Array[Vector3i] = []
+	for c: Vector3i in cells:
+		if not grid.cells[c].get("blocked", false):
+			options.append(c)
+	_shuffle(options, hash([seed_value, "sun"]))
+	var want: int = maxi(1, cells.size() / sun_per_bays)
+	for c: Vector3i in options:
+		if out.size() > want:
+			break
+		if _near(out, c, 1):
+			continue
+		out[c] = true
+		grid.cells[c]["ceiling_slot"] = "cell:oculus"
+	return out
+
+
+## Whether any cell in `taken` is within `bays` of c (both ways).
+static func _near(taken: Dictionary, c: Vector3i, bays: int) -> bool:
+	for o: Vector3i in taken:
+		if absi(o.x - c.x) <= bays and absi(o.z - c.z) <= bays:
+			return true
+	return false
+
+
+static func _shuffle(list: Array[Vector3i], seed_hash: int) -> void:
+	list.sort()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = seed_hash
+	for i: int in range(list.size() - 1, 0, -1):
+		var j: int = rng.randi_range(0, i)
+		var t: Vector3i = list[i]
+		list[i] = list[j]
+		list[j] = t
 
 
 ## The hall's rectangle (x, z cells), or a zero rect if even size_min won't fit.
@@ -371,10 +516,25 @@ func _first_cut_off(grid: CellGrid, cased: Dictionary, fallen: Dictionary, axis:
 ## landmark (not over a collapsed bay); single lamps over every
 ## lamp_every_bays-th bay of the aisles and the walk along the walls (counted
 ## from the landmark) where no cluster hangs. Never over the landmark, whose
-## oculus lights it.
-func place_lamps(grid: CellGrid, aisle: Dictionary, centre: Vector3i, fallen: Dictionary, _seed_value: int) -> void:
+## oculus lights it, nor under a sunlit dome; lantern_per_bays scatters the
+## clusters instead of the lattice.
+func place_lamps(grid: CellGrid, aisle: Dictionary, centre: Vector3i, fallen: Dictionary, seed_value: int, sunlit: Dictionary = {}) -> void:
 	var clustered: Dictionary = {}
-	if lamp_cluster_every > 0:
+	if lantern_per_bays > 0:
+		var options: Array[Vector3i] = []
+		for c: Vector3i in aisle:
+			if not sunlit.has(c) and not fallen.has(c):
+				options.append(c)
+		_shuffle(options, hash([seed_value, "red_lantern"]))
+		var want: int = maxi(1, grid.cells.size() / lantern_per_bays)
+		for c: Vector3i in options:
+			if clustered.size() >= want:
+				break
+			if _near(clustered, c, 2):
+				continue
+			grid.props["cluster_" + CellGrid.cell_name(c)] = {"slot": "lamp:cluster", "xf": Transform3D(Basis(), CellGrid.cell_centre(c))}
+			clustered[c] = true
+	elif lamp_cluster_every > 0:
 		for c: Vector3i in grid.cells:
 			var d: Vector3i = c - centre
 			if c != centre and not fallen.has(c) and d.x % lamp_cluster_every == 0 and d.z % lamp_cluster_every == 0:
@@ -382,12 +542,62 @@ func place_lamps(grid: CellGrid, aisle: Dictionary, centre: Vector3i, fallen: Di
 				clustered[c] = true
 	if lamp_every_bays <= 0:
 		return
-	for c: Vector3i in aisle:
-		if c == centre or clustered.has(c):
+	if fill_dark_bays:
+		for c: Vector3i in grid.cells:     # scholars work under a lamp (your walk: their bays were dim)
+			if grid.cells[c].get("scholar", false) and not clustered.has(c):
+				grid.lamps[c] = 0.0
+	# Light budget (rework final pass): an aisle lamp is left out where a lamp
+	# or a lantern cluster already hangs over a bay next to it.
+	var hung: Dictionary = clustered.duplicate()
+	hung.merge(grid.lamps)
+	var aisle_keys: Array = aisle.keys()
+	aisle_keys.sort()
+	for c: Vector3i in aisle_keys:
+		if c == centre or clustered.has(c) or sunlit.has(c):
 			continue
 		var d: Vector3i = (c - centre).abs()
 		if (d.x + d.z) % lamp_every_bays == 1 % lamp_every_bays:
+			if fill_dark_bays and _near(hung, c, 1):
+				continue
 			grid.lamps[c] = 0.0
+			hung[c] = true
+	if not fill_dark_bays:
+		return
+	# Your walk (hall rework step 1): no dark corners. Any bay with no lamp
+	# over it or a bay next to it gets a dim one (not over a heap or the
+	# landmark), in a fixed order so the fill is the same every time.
+	var lit: Dictionary = clustered.duplicate()     # a sunbeam lights only where it lands, not its neighbours
+	for c: Vector3i in grid.lamps:
+		lit[c] = true
+	# Light budget (rework final pass, your pick "fewer dim lamps"): each dim
+	# lamp goes where it lights the most dark bays (itself and the 8 around it),
+	# ties in a fixed order, so the same bays end up lit with fewer lamps.
+	var keys: Array = grid.cells.keys()
+	keys.sort()
+	var dark: Dictionary = {}
+	for c: Vector3i in keys:
+		if not fallen.has(c) and c != centre and not _near(lit, c, 1):
+			dark[c] = true
+	while not dark.is_empty():
+		var best: Vector3i = Vector3i.MAX
+		var best_n: int = 0
+		for c: Vector3i in keys:
+			if fallen.has(c) or c == centre or sunlit.has(c):     # no lamp in a sunbeam
+				continue
+			var n: int = 0
+			for dx: int in range(-1, 2):
+				for dz: int in range(-1, 2):
+					if dark.has(c + Vector3i(dx, 0, dz)):
+						n += 1
+			if n > best_n:
+				best_n = n
+				best = c
+		if best_n == 0:
+			break
+		grid.lamps[best] = 0.0
+		for dx: int in range(-1, 2):
+			for dz: int in range(-1, 2):
+				dark.erase(best + Vector3i(dx, 0, dz))
 
 
 ## Walked lanes along the aisles: from each door to the landmark, busiest from

@@ -9,6 +9,9 @@ extends SceneTree
 ## (body_test_motion, not blocked), and straight across it is blocked. The
 ## validator is clean on the hall. Collapsed bays (step 2) are left out of the
 ## tour, and walking into one from any neighbouring bay is blocked.
+## Hall rework (2026-11-04): the landmark is found by its prop (open domes
+## are no longer only over it); the takht and scholar bays are left out of
+## the tour and the paths; the capsule passes between each takht and the pool.
 
 const RECIPE: String = "res://gen/recipes/lower_stacks.tres"
 const SEEDS: int = 5
@@ -69,10 +72,14 @@ func walk_seed(s: int) -> void:
 			var at: Vector3i = AreaPlan.cell_of((g.props[k]["xf"] as Transform3D) * Vector3(2.0, 0.1, -2.0))
 			heaps[Vector3i(at.x, 0, at.z)] = true
 	total_heaps += heaps.size()
-	var centre: Vector3i = Vector3i.MAX
+	var furnished: Dictionary = {}
+	var centre: Vector3i = AreaPlan.cell_of((g.props["landmark"]["xf"] as Transform3D).origin + Vector3(0, 0.1, 0))
+	centre = Vector3i(centre.x, 0, centre.z)
+	# Hall rework: takht and scholar bays are furnished and blocked; the tour
+	# and the paths go round them like the cases.
 	for c: Vector3i in g.cells:
-		if g.cells[c].get("ceiling_slot", "") == "cell:oculus":
-			centre = c
+		if c != centre and g.cells[c].get("blocked", false) and not cases.has(c) and not heaps.has(c):
+			furnished[c] = true
 	var body: CharacterBody3D = make_capsule(area)
 	body.global_position = area.spawn_transform().origin + Vector3(0, 0.95, 0)
 	for _i: int in 3:
@@ -80,9 +87,9 @@ func walk_seed(s: int) -> void:
 	# A tour of the clear bays: depth first from the entry, back out of each branch.
 	var tour: Array[Vector3] = []
 	var seen: Dictionary = {}
-	_tour(g, Vector3i.ZERO, cases.merged(heaps), centre, seen, tour, hall)
+	_tour(g, Vector3i.ZERO, cases.merged(heaps).merged(furnished), centre, seen, tour, hall)
 	var reached: int = await follow(body, tour)
-	var clear_bays: int = g.cells.size() - cases.size() - heaps.size() - 1
+	var clear_bays: int = g.cells.size() - cases.size() - heaps.size() - furnished.size() - 1
 	check(reached == tour.size(), "%s: the capsule walks the tour of the clear bays (%d of %d points)" % [tag, reached, tour.size()])
 	check(seen.size() >= clear_bays * 0.9, "%s: the tour covers the clear bays (%d of %d; the rest sit between bookcases)" % [tag, seen.size(), clear_bays])
 	# Out through every joined door and back.
@@ -94,7 +101,7 @@ func walk_seed(s: int) -> void:
 		var door_xf: Transform3D = conn["xf"]
 		var inside: Vector3 = door_xf.origin + door_xf.basis.z * 2.0     # connectors point -Z out of the room
 		var outside: Vector3 = door_xf.origin - door_xf.basis.z * 2.5
-		var path: Array[Vector3] = _path_to(g, AreaPlan.cell_of(hall.to_local(body.global_position)), AreaPlan.cell_of(hall.to_local(inside)), cases.merged(heaps), centre, hall)
+		var path: Array[Vector3] = _path_to(g, AreaPlan.cell_of(hall.to_local(body.global_position)), AreaPlan.cell_of(hall.to_local(inside)), cases.merged(heaps).merged(furnished), centre, hall)
 		path.append_array([inside, outside, inside])
 		var got: int = await follow(body, path)
 		check(got == path.size(), "%s: out through %s into %s and back (%d of %d)" % [tag, name, conn["joined"], got, path.size()])
@@ -126,7 +133,19 @@ func walk_seed(s: int) -> void:
 			if not await blocked(body, from, to - from):
 				heaps_open.append("%s from %s" % [c, n])
 	check(heaps_open.is_empty(), "%s: no collapsed bay can be walked into (%s)" % [tag, heaps_open.slice(0, 6)])
-	print("  %s: hall %d bays, %d cases, %d collapsed, tour %d points, %d doors" % [tag, g.cells.size(), cases.size(), heaps.size(), tour.size(), doors])
+	# Your walk of step 2: room to walk between each takht and the pool. The
+	# capsule slides along the takht's front through the gap (about 1.2 m),
+	# short of the columns at the bay's corners.
+	var pool: Vector3 = hall.to_global(CellGrid.cell_centre(centre))
+	for k: String in g.props:
+		if g.props[k]["slot"] != "landmark:takht":
+			continue
+		var t: Vector3 = hall.to_global((g.props[k]["xf"] as Transform3D).origin)
+		var out: Vector3 = Vector3(t.x - pool.x, 0.0, t.z - pool.z).normalized()
+		var perp := Vector3(out.z, 0.0, -out.x)
+		var gap: Vector3 = pool + out * 2.37 + Vector3(0, 1.0, 0)
+		check(not await blocked(body, gap - perp * 1.2, perp * 2.4), "%s: the way between the takht %s and the pool is open" % [tag, k])
+	print("  %s: hall %d bays, %d cases, %d collapsed, %d furnished, tour %d points, %d doors" % [tag, g.cells.size(), cases.size(), heaps.size(), furnished.size(), tour.size(), doors])
 	area.queue_free()
 	await process_frame
 	await process_frame

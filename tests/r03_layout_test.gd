@@ -16,6 +16,12 @@ extends SceneTree
 ## on the lattice, never over a heap or with a single lamp; bays with a case,
 ## a heap or the landmark are marked blocked. Across all halls, some collapse, some reach
 ## 9 or 10 bays, and every hall has clusters.
+## Hall rework (2026-11-04): the landmark is a pool under an open dome
+## ("cell:oculus_centre") with a takht beside it, off the aisles, set back from
+## the pool (when a bay beside it is off the aisles); red lanterns (lamp:cluster) scatter over the aisles at least 3
+## bays apart, never under a sunlit dome; scholars' furniture stands off the
+## aisles and the walls, under a lamp; takht and scholar bays are blocked, and
+## every other bay can still be reached.
 
 const RECIPE: String = "res://gen/recipes/lower_stacks.tres"
 const GRAMMAR: String = "res://gen/grammars/r03_hypostyle.tres"
@@ -97,7 +103,8 @@ func audit(tag: String, g: CellGrid, planned: bool) -> Array:
 	var entry: Dictionary = g.edge(Vector3i.ZERO, CellGrid.Side.S)
 	check(not entry.is_empty() and entry["mark"] == CellGrid.Mark.DOOR, "%s: the entry is a door" % tag)
 	var centre := Vector3i(xs.min() + w / 2, 0, zs.min() + d / 2)
-	check(g.cells[centre].get("ceiling_slot", "") == "cell:oculus", "%s: the oculus is over the centre" % tag)
+	var over_centre: String = "cell:oculus_centre" if grammar.grand_landmark else "cell:oculus"
+	check(g.cells[centre].get("ceiling_slot", "") == over_centre, "%s: the open dome (%s) is over the centre" % [tag, over_centre])
 	var landmarks: Array = g.props.keys().filter(func(k: String) -> bool: return g.props[k]["slot"] == "landmark")
 	check(landmarks.size() == 1 and (g.props[landmarks[0]]["xf"] as Transform3D).origin.is_equal_approx(CellGrid.cell_centre(centre)), "%s: one landmark, at the centre" % tag)
 	# Doors.
@@ -123,19 +130,34 @@ func audit(tag: String, g: CellGrid, planned: bool) -> Array:
 			case_at[c] = Vector3i(roundi(absf(along.x)), 0, roundi(absf(along.z)))
 	var heap_at: Dictionary = {}
 	var cluster_at: Dictionary = {}
+	var scholar_at: Dictionary = {}
+	var takht_at: Dictionary = {}
 	for k: String in g.props:
 		var at: Vector3i = AreaPlan.cell_of((g.props[k]["xf"] as Transform3D) * Vector3(2.0, 0.1, -2.0))
 		if g.props[k]["slot"] == "dressing:rubble_heap":
 			heap_at[Vector3i(at.x, 0, at.z)] = true
 		elif g.props[k]["slot"] == "lamp:cluster":
 			cluster_at[AreaPlan.cell_of((g.props[k]["xf"] as Transform3D).origin + Vector3(0, 0.1, 0))] = true
+		elif g.props[k]["slot"] == "dressing:scholar" or g.props[k]["slot"] == "landmark:takht":
+			var o: Vector3 = (g.props[k]["xf"] as Transform3D).origin
+			var oc: Vector3i = AreaPlan.cell_of(o + Vector3(0, 0.1, 0))
+			oc = Vector3i(oc.x, 0, oc.z)
+			if g.props[k]["slot"] == "landmark:takht":
+				takht_at[oc] = o
+			else:
+				scholar_at[oc] = true
 	for c: Vector3i in g.cells:
 		check((g.cells[c].get("ceiling_slot", "") == "cell:dome_fallen") == heap_at.has(c), "%s: a fallen dome over every heap and only there (%s)" % [tag, c])
-		check(bool(g.cells[c].get("blocked", false)) == (heap_at.has(c) or case_at.has(c) or c == centre), "%s: bays with a case, a heap or the landmark, and only those, are marked blocked (%s)" % [tag, c])
+		check(bool(g.cells[c].get("blocked", false)) == (heap_at.has(c) or case_at.has(c) or c == centre or takht_at.has(c) or scholar_at.has(c)), "%s: bays with a case, a heap, the landmark, a takht or a scholar, and only those, are marked blocked (%s)" % [tag, c])
 		check(not (heap_at.has(c) and case_at.has(c)), "%s: no case in a collapsed bay (%s)" % [tag, c])
 	for c: Vector3i in cluster_at:
 		var dc: Vector3i = c - centre
-		check(c != centre and dc.x % grammar.lamp_cluster_every == 0 and dc.z % grammar.lamp_cluster_every == 0, "%s: the cluster at %s is on the lattice" % [tag, c])
+		if grammar.lantern_per_bays > 0:
+			check(c != centre and not String(g.cells[c].get("ceiling_slot", "")).begins_with("cell:oculus"), "%s: the red lantern at %s is not under a sunlit dome" % [tag, c])
+			for o: Vector3i in cluster_at:
+				check(o == c or absi(o.x - c.x) > 2 or absi(o.z - c.z) > 2, "%s: red lanterns at %s and %s are at least 3 bays apart" % [tag, c, o])
+		else:
+			check(c != centre and dc.x % grammar.lamp_cluster_every == 0 and dc.z % grammar.lamp_cluster_every == 0, "%s: the cluster at %s is on the lattice" % [tag, c])
 		check(not heap_at.has(c) and not g.lamps.has(c), "%s: no heap or single lamp under the cluster at %s" % [tag, c])
 	for dr: Array in doors:
 		check(not case_at.has(dr[0]), "%s: no bookcase in the door bay %s" % [tag, dr[0]])
@@ -155,8 +177,10 @@ func audit(tag: String, g: CellGrid, planned: bool) -> Array:
 		var near_centre: bool = (c - centre).abs().x <= 1 and (c - centre).abs().z <= 1
 		if ring:
 			check(not case_at.has(c) and not heap_at.has(c), "%s: no bookcase or heap along the walls (%s)" % [tag, c])
+			check(not scholar_at.has(c), "%s: no scholar's furniture along the walls (%s)" % [tag, c])
 		if aisles.has(c):
 			check(not heap_at.has(c), "%s: no heap on an aisle (%s)" % [tag, c])
+			check(not scholar_at.has(c) and not takht_at.has(c), "%s: no scholar's furniture or takht on an aisle (%s)" % [tag, c])
 		if c == centre or (near_centre and w >= grammar.landmark_wide_from and d >= grammar.landmark_wide_from):
 			check(not case_at.has(c) and not heap_at.has(c), "%s: no bookcase or heap in the landmark square (%s)" % [tag, c])
 		elif not ring and not aisles.has(c) and not heap_at.has(c):
@@ -168,14 +192,21 @@ func audit(tag: String, g: CellGrid, planned: bool) -> Array:
 		var c: Vector3i = todo.pop_back()
 		for side: int in CellGrid.ALL_SIDES:
 			var n: Vector3i = CellGrid.neighbour(c, side)
-			if not g.cells.has(n) or seen.has(n) or heap_at.has(n):
+			if not g.cells.has(n) or seen.has(n) or heap_at.has(n) or scholar_at.has(n) or takht_at.has(n):
 				continue
 			var step: Vector3i = (n - c).abs()
 			if (case_at.has(c) and case_at[c] != step) or (case_at.has(n) and case_at[n] != step):
 				continue
 			seen[n] = true
 			todo.append(n)
-	check(seen.size() == g.cells.size() - heap_at.size(), "%s: all %d bays but the %d collapsed can be reached from the entry (%d)" % [tag, g.cells.size(), heap_at.size(), seen.size()])
+	var out: int = heap_at.size() + scholar_at.size() + takht_at.size()
+	check(seen.size() == g.cells.size() - out, "%s: all %d bays but the %d collapsed or furnished can be reached from the entry (%d)" % [tag, g.cells.size(), out, seen.size()])
+	for c: Vector3i in scholar_at:
+		check(g.lamps.has(c) or cluster_at.has(c), "%s: a lamp over the scholar at %s" % [tag, c])
+	for c: Vector3i in takht_at:
+		check((c - centre).abs().x + (c - centre).abs().z == 1, "%s: the takht at %s is beside the landmark" % [tag, c])
+		var o: Vector3 = takht_at[c]
+		check(absf(o.distance_to(CellGrid.cell_centre(centre)) - CellGrid.BAY - HypostyleGrammar.TAKHT_BACK) < 0.01, "%s: the takht at %s stands back from the pool" % [tag, c])
 	if planned:
 		check(not g.lamps.has(centre), "%s: no lamp over the landmark" % tag)
 	return [free_bays, case_at.size(), heap_at.size(), maxi(w, d), cluster_at.size()]

@@ -914,14 +914,20 @@ const RUG_PALETTES: Dictionary = {
 	"medallion": ["#160c0a", "#8a2a1e", "#78241a", "#1d2a4a", "#2a4a6a", "#e6d4a6", "#d8c290", "#8a2a1e"],
 	"gabbeh": ["#1e140c", "#b0702c", "#9c6026", "#7c2a1c", "#3a4a5a", "#e3cf9c", "#5a1d14", "#c8913f"],
 	"garden": ["#121410", "#3c5a34", "#5e7e40", "#7c2a1c", "#2a5a7a", "#e3cf9c", "#5a1d14", "#c8913f"],
+	# The Hypostyle Stacks' bay carpets (hall rework step 1, your note: a red
+	# carpet pattern on the floor): madder field, gold and indigo, a deep border.
+	"hall": ["#1a0a08", "#8e2418", "#7e1f15", "#c8913f", "#1d2a4a", "#e3cf9c", "#5a1610", "#c8913f"],
 }
 
 func rugs() -> void:
 	var k: int = 0
-	for design: String in RUG_PALETTES:
+	for design: String in RUG_PALETTES.keys().filter(func(d: String) -> bool: return d != "hall"):
 		for size: String in RUG_SIZES:
 			k += 1
 			carpet("rug_%s_%s" % [design, size], design, RUG_SIZES[size][0], RUG_SIZES[size][1], 300 + k)
+	# One square carpet per hall bay, 3.625 m (116 knots) across, laid wall to
+	# wall between the columns.
+	carpet("rug_hall_bay", "hall", 116, 116, 400)
 	cushions()
 
 ## The floor seating's cloths (room rework, your note after step 1: Persian
@@ -1056,7 +1062,7 @@ func _rug_border(design: String, along: int, cross: int, width: int) -> int:
 		"kilim", "gabbeh":
 			var t: float = absf(float(along % 10) - 5.0) / 5.0
 			return 5 if absf(cross - (width - 1) * t) < 1.0 else 6
-		"medallion":
+		"medallion", "hall":
 			var wave: float = mid + sin(along * TAU / 14.0) * mid * 0.7
 			if absf(cross - wave) < 0.8:
 				return 3
@@ -1093,7 +1099,7 @@ func _rug_field(design: String, fx: int, fy: int, fw: int, fh: int, lot: int, sp
 			if absf(absf(cx) - absf(cy)) < 0.8 and d >= 2.8 and d < 4.2:
 				return 4
 			return lot
-		"medallion":
+		"medallion", "hall":
 			var dx: float = absf(fx - (fw - 1) * 0.5)
 			var dy: float = absf(fy - (fh - 1) * 0.5)
 			var r: float = dx / (fw * 0.24) + dy / (fh * 0.4)
