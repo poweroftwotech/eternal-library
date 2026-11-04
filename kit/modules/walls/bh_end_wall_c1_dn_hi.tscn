@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_a8gpc"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bh_end_wall_c1_dn_hi.glb" id="2_wk3is"]
+
+[node name="bh_end_wall_c1_dn_hi" type="Node3D" unique_id=241193592]
+script = ExtResource("1_a8gpc")
+shape = 0
+family = "walls"
+size_cells = Vector3i(5, 6, 0)
+tags = PackedStringArray("rock", "cavern", "r21")
+source_glb = "res://assets/kit/walls/bh_end_wall_c1_dn_hi.glb"
+
+[node name="Mesh" parent="." unique_id=443028385 instance=ExtResource("2_wk3is")]

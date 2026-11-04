@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_qiwcg"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bh_cave_bend.glb" id="2_wvr1w"]
+
+[node name="bh_cave_bend" type="Node3D" unique_id=656055420]
+script = ExtResource("1_qiwcg")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 1, 1)
+tags = PackedStringArray("rock", "cave", "r21", "walled")
+source_glb = "res://assets/kit/walls/bh_cave_bend.glb"
+
+[node name="Mesh" parent="." unique_id=1037924110 instance=ExtResource("2_wvr1w")]

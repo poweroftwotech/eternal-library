@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_6jt51"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bh_cave_straight.glb" id="2_olyte"]
+
+[node name="bh_cave_straight" type="Node3D" unique_id=54004223]
+script = ExtResource("1_6jt51")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 1, 1)
+tags = PackedStringArray("rock", "cave", "r21", "walled")
+source_glb = "res://assets/kit/walls/bh_cave_straight.glb"
+
+[node name="Mesh" parent="." unique_id=1128780024 instance=ExtResource("2_olyte")]

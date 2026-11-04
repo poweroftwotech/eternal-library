@@ -461,13 +461,17 @@ func _pin_from_grid() -> void:
 
 ## AGENTS.md: a temporary floor under unfinished areas, 4 m past the cells,
 ## as R01 has. Its top is 2.5 m down, below the deepest water bay's bed (a
-## cistern), because it reaches under the rooms beside this one.
+## cistern), because it reaches under the rooms beside this one. A room with
+## cells below its floor (the Bridge Hall's drop) has it 2.5 m under its
+## lowest storey instead, or the lower deck would stand on it.
 func _add_safety_floor() -> void:
 	if grid.cells.is_empty() or planned_storey > 0:
 		return
 	var box := AABB()
 	var first: bool = true
+	var lowest: int = 0
 	for c: Vector3i in grid.cells:
+		lowest = mini(lowest, c.y)
 		var cell := AABB(Vector3(c.x * CellGrid.BAY, c.y * CellGrid.BAY, -c.z * CellGrid.BAY - CellGrid.BAY), Vector3(CellGrid.BAY, 0, CellGrid.BAY))
 		box = cell if first else box.merge(cell)
 		first = false
@@ -480,7 +484,7 @@ func _add_safety_floor() -> void:
 	var b := BoxShape3D.new()
 	b.size = Vector3(box.size.x + 8.0, 0.5, box.size.z + 8.0)
 	shape.shape = b
-	shape.position = Vector3(box.get_center().x, -2.75, box.get_center().z)
+	shape.position = Vector3(box.get_center().x, lowest * CellGrid.BAY - 2.75, box.get_center().z)
 	body.add_child(shape)
 	add_child(body)
 

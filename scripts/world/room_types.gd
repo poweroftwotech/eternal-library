@@ -5,10 +5,10 @@ extends RefCounted
 ## (ConnectionTable) and the Strata Board use them.
 
 ## By the start of the file name.
-const BY_FILE: Dictionary = {"r02": "R02", "r03": "R03", "r05": "R05", "r09": "R09", "r10": "R10", "r11": "R11",
+const BY_FILE: Dictionary = {"r02": "R02", "r03": "R03", "r05": "R05", "r09": "R09", "r10": "R10", "r11": "R11", "r21": "R21",
 	"reading_room": "R01", "stack_gallery": "R02", "caravanserai": "R05", "overlook": "R10"}
 const NAMES: Dictionary = {"R01": "Reading Room", "R02": "Stack gallery", "R03": "Hypostyle hall", "R05": "Caravanserai",
-	"R09": "Light-well stair", "R10": "Chasm span", "R11": "Cistern"}
+	"R09": "Light-well stair", "R10": "Chasm span", "R11": "Cistern", "R21": "Bridge hall"}
 
 
 ## The type of a room made from the grammar or scene at `path` ("" if none).

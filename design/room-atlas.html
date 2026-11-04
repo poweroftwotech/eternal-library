@@ -1258,12 +1258,12 @@ const CHAR={
     motion:'Water lapping, lanterns bobbing, boats.',
     life:'Ferries to other areas.',
     story:'Each lit landing across the water is a real destination.'},
-  R21:{sw:'#6c86a6',colour:'Cold blue-grey from below',feel:'Vertiginous, echoing',
-    light:'Mist glow rising from the drop below; lamps only at the doors and bridge ends.',
-    landmark:'The straight bridges, side by side.',
-    motion:'Mist rising from below.',
-    life:'Crossing; seeing the other bridges from yours.',
-    story:'Older bridges weathered and patched, newer ones plain.'}};
+  R21:{sw:'linear-gradient(90deg,#d8dcd6,#e0a458)',colour:'Silver-white mist with warm windows',feel:'Vertiginous, echoing, awed',
+    light:'A dark cave passage at each door so the light changes slowly; mist glowing from a pale pool far below; lamps only at the bridge ends; lit facade windows. The cavern roof stays dark.',
+    landmark:'The bridges side by side: yours, and an older one at another height ending in sealed doors.',
+    motion:'Mist rising and drifting under the decks, a waterfall through the old bridge\'s arch, echoing drips.',
+    life:'Hanging gardens under the lit windows (figs, grapes, herbs to pick); mushrooms, moss and ferns in the dark; a halfway landing with a bench.',
+    story:'Your bridge newer and plain; the older one weathered and patched with timber.'}};
 const pal=document.getElementById('palette');
 for(const R of ROOMS){const K=CHAR[R.id];if(K)pal.insertAdjacentHTML('beforeend',`<a href="#${R.id}"><i class="swatch" style="background:${K.sw}"></i><span>${R.id} ${R.name}<br><span class="when">${K.colour}${K.built?' · built':''}</span></span></a>`)}
 for(const R of ROOMS){

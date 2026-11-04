@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ptfet"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bh_roof_5x7.glb" id="2_b2am8"]
+
+[node name="bh_roof_5x7" type="Node3D" unique_id=1261606765]
+script = ExtResource("1_ptfet")
+shape = 1
+family = "walls"
+size_cells = Vector3i(5, 1, 7)
+tags = PackedStringArray("rock", "cavern", "r21")
+source_glb = "res://assets/kit/walls/bh_roof_5x7.glb"
+
+[node name="Mesh" parent="." unique_id=831986160 instance=ExtResource("2_b2am8")]

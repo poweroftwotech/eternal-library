@@ -2356,6 +2356,159 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "bh_cave_bend",
+"scene": "res://kit/modules/walls/bh_cave_bend.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("rock", "cave", "r21", "walled"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_cave_mouth",
+"scene": "res://kit/modules/walls/bh_cave_mouth.tscn",
+"shape": "edge",
+"size_cells": Vector3i(1, 1, 0),
+"tags": PackedStringArray("rock", "cave", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_cave_straight",
+"scene": "res://kit/modules/walls/bh_cave_straight.tscn",
+"shape": "cell",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("rock", "cave", "r21", "walled"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_end_wall_c1_dn_hi",
+"scene": "res://kit/modules/walls/bh_end_wall_c1_dn_hi.tscn",
+"shape": "edge",
+"size_cells": Vector3i(5, 6, 0),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_end_wall_c1_lv_hi",
+"scene": "res://kit/modules/walls/bh_end_wall_c1_lv_hi.tscn",
+"shape": "edge",
+"size_cells": Vector3i(5, 6, 0),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_end_wall_c1_lv_lo",
+"scene": "res://kit/modules/walls/bh_end_wall_c1_lv_lo.tscn",
+"shape": "edge",
+"size_cells": Vector3i(5, 6, 0),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_end_wall_c1_up_lo",
+"scene": "res://kit/modules/walls/bh_end_wall_c1_up_lo.tscn",
+"shape": "edge",
+"size_cells": Vector3i(5, 6, 0),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_end_wall_c3_dn_hi",
+"scene": "res://kit/modules/walls/bh_end_wall_c3_dn_hi.tscn",
+"shape": "edge",
+"size_cells": Vector3i(5, 6, 0),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_end_wall_c3_lv_hi",
+"scene": "res://kit/modules/walls/bh_end_wall_c3_lv_hi.tscn",
+"shape": "edge",
+"size_cells": Vector3i(5, 6, 0),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_end_wall_c3_lv_lo",
+"scene": "res://kit/modules/walls/bh_end_wall_c3_lv_lo.tscn",
+"shape": "edge",
+"size_cells": Vector3i(5, 6, 0),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_end_wall_c3_up_lo",
+"scene": "res://kit/modules/walls/bh_end_wall_c3_up_lo.tscn",
+"shape": "edge",
+"size_cells": Vector3i(5, 6, 0),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_pit_5x6",
+"scene": "res://kit/modules/walls/bh_pit_5x6.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 1, 6),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_pit_5x7",
+"scene": "res://kit/modules/walls/bh_pit_5x7.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 1, 7),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_pit_5x8",
+"scene": "res://kit/modules/walls/bh_pit_5x8.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 1, 8),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_roof_5x6",
+"scene": "res://kit/modules/walls/bh_roof_5x6.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 1, 6),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_roof_5x7",
+"scene": "res://kit/modules/walls/bh_roof_5x7.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 1, 7),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bh_roof_5x8",
+"scene": "res://kit/modules/walls/bh_roof_5x8.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 1, 8),
+"tags": PackedStringArray("rock", "cavern", "r21"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "causeway_cell_4m",
 "scene": "res://kit/modules/walls/causeway_cell_4m.tscn",
 "shape": "cell",
