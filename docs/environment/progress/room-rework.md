@@ -1,6 +1,6 @@
 # Room rework: the existing rooms before phase 12
 
-[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED feca290 after your walks; step 5 (Cistern Archive) COMMITTED 8865b41 2026-11-03; step 6 (Light-Well Stair) COMMITTED 7c844bb 2026-11-04 (frame gate accepted as borderline, 11 ms); step 7 (Hypostyle Stacks reworked) walked and tested 2026-11-04, frame gate accepted as borderline (10.5 ms)**
+[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED feca290 after your walks; step 5 (Cistern Archive) COMMITTED 8865b41 2026-11-03; step 6 (Light-Well Stair) COMMITTED 7c844bb 2026-11-04 (frame gate accepted as borderline, 11 ms); step 7 (Hypostyle Stacks reworked) walked and tested 2026-11-04, frame gate accepted as borderline (10.5 ms), COMMITTED 100361f**
 
 ## Why
 
@@ -60,7 +60,7 @@ Proposed steps, each walked by you before the next:
   decoration niches. The missing face seen from the Upper Stacks is fixed
   here too.
 
-## Step 7: the Hypostyle Stacks reworked (2026-11-04, four walks; frame gate accepted as borderline, 10.5 ms)
+## Step 7: the Hypostyle Stacks reworked (2026-11-04, committed 100361f; frame gate accepted as borderline, 10.5 ms)
 
 You asked for a second pass over the big domed hall, in four parts, each
 walked before the next.
