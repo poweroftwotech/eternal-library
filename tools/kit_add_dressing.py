@@ -55,6 +55,33 @@ def recess_shelves(r):
     mesh_object("recess_shelves__boards", bm, ["wood"], r)
 
 
+TALL_BOARDS = (0.12, 0.54, 0.96, 1.38, 1.80, 2.22, 2.64, 3.06)
+TALL_UPRIGHTS = (-0.5, 0.5)
+
+
+def recess_arch_half(z):
+    """Half-width of M_wall_shelfbay_4m's recess (arch_outline(3.0, 1.9), k 0.6) at height z."""
+    if z <= 1.9:
+        return 1.5
+    r = 1.8
+    return 1.5 - (r - math.sqrt(max(0.0, r * r - (z - 1.9) ** 2)))
+
+
+def recess_shelves_tall(r):
+    """Stacks rework part 1: the gallery's bookcase fills the whole recess, eight
+    boards up into the arch (each as wide as the arch allows) and two uprights
+    making three bays, so the stacks read as walls of books. ShelfFill's
+    level_half_widths and dividers match these."""
+    bm = bmesh.new()
+    for z in TALL_BOARDS:
+        hw = min(1.48, recess_arch_half(z + 0.05) - 0.02)
+        add_box(bm, -hw, hw, BACK, FRONT, z, z + 0.05)
+    for x in TALL_UPRIGHTS:
+        top = 1.9 + math.sqrt(1.8 ** 2 - (1.8 - (1.5 - abs(x) - 0.03)) ** 2) - 0.03
+        add_box(bm, x - 0.025, x + 0.025, BACK, FRONT, TALL_BOARDS[0], top)
+    mesh_object("recess_shelves_tall__boards", bm, ["wood"], r)
+
+
 def recess_shelves_broken(r):
     bm = bmesh.new()
     for z in (BOARDS[0], BOARDS[3], BOARDS[4]):
@@ -1092,6 +1119,8 @@ MODULES = [
     ("M_growth_parapet_strands", props("plant,ivy,parapet"), growth_parapet_strands),
     ("M_growth_parapet_stair", props("plant,ivy,parapet"), growth_parapet_stair),
     ("M_growth_parapet_stair_r", props("plant,ivy,parapet"), growth_parapet_stair_r),
+    # Stacks rework part 1: a bookcase filling the whole shelf recess.
+    ("M_recess_shelves_tall", props("wood,storage,recess"), recess_shelves_tall),
 ]
 
 

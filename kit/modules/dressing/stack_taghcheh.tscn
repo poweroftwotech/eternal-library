@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_paijy"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/stack_taghcheh.glb" id="2_ki4bb"]
+
+[node name="stack_taghcheh" type="Node3D" unique_id=1623104391]
+script = ExtResource("1_paijy")
+family = "dressing"
+tags = PackedStringArray("plaster", "tile", "recess", "landmark")
+source_glb = "res://assets/kit/dressing/stack_taghcheh.glb"
+
+[node name="Mesh" parent="." unique_id=604345209 instance=ExtResource("2_ki4bb")]

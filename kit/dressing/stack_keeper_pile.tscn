@@ -1,0 +1,26 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_km"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_book_stack.tscn" id="2_stack"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_book_open.tscn" id="3_open"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/floor_cushion.tscn" id="4_cush"]
+
+[node name="stack_keeper_pile" type="Node3D"]
+script = ExtResource("1_km")
+family = "dressing"
+tags = PackedStringArray("keeper", "books")
+
+[node name="StackA" parent="." instance=ExtResource("2_stack")]
+transform = Transform3D(0.96, 0, 0.28, 0, 1, 0, -0.28, 0, 0.96, -0.55, 0, 0.05)
+
+[node name="StackB" parent="." instance=ExtResource("2_stack")]
+transform = Transform3D(0.8, 0, -0.6, 0, 1, 0, 0.6, 0, 0.8, -0.2, 0, 0.12)
+
+[node name="StackC" parent="." instance=ExtResource("2_stack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.55, 0.2, 0.05)
+
+[node name="Cushion" parent="." instance=ExtResource("4_cush")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.35, 0, -0.15)
+
+[node name="Open" parent="." instance=ExtResource("3_open")]
+transform = Transform3D(0.94, 0, 0.34, 0, 1, 0, -0.34, 0, 0.94, 0.35, 0.14, -0.15)

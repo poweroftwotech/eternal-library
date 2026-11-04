@@ -251,3 +251,9 @@ static func _xz(v: Vector3) -> Vector2:
 	set(value):
 		mood_tint = value
 		emit_changed()
+
+
+## The tint at a room-space point (the camera's): mood_tint everywhere unless
+## a grammar varies it across the room (the stacks turn blue where abandoned).
+func tint_at(_grid: CellGrid, _local: Vector3) -> Color:
+	return mood_tint

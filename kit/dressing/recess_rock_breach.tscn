@@ -1,0 +1,11 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_km"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/stack_rock_breach.tscn" id="2_rock"]
+
+[node name="recess_rock_breach" type="Node3D"]
+script = ExtResource("1_km")
+family = "dressing"
+tags = PackedStringArray("recess", "rock")
+
+[node name="Rock" parent="." instance=ExtResource("2_rock")]

@@ -384,6 +384,19 @@ static func _span_room(p: AreaPlan, s: AreaSlot, seed_value: int, parent_room: A
 	return r
 
 
+## How abandoned the stacks are where a room opens off `parent` (stacks rework,
+## StackGalleryGrammar.abandon_over_bays): a gallery's far end carries on into
+## the next gallery; the lived-in rooms (the Reading Room, the caravanserai,
+## the hall) start the stacks kept; the Light-Well Stair and the Cistern Archive
+## are further out.
+static func _abandon_after(parent: AreaPlan.Room) -> float:
+	if parent == null:
+		return 0.0
+	if parent.grid != null and parent.grid.meta.has("abandon_end"):
+		return float(parent.grid.meta["abandon_end"])
+	return {"R09": 0.35, "R11": 0.5}.get(parent.room_type, 0.0)
+
+
 static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, display_name: String, grammar: RoomGrammar,
 		rules: ModuleRules, seed_value: int, parent_room: AreaPlan.Room, conn: StringName, end_kind: String) -> AreaPlan.Room:
 	var r := AreaPlan.Room.new()
@@ -409,6 +422,7 @@ static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, di
 	if grammar == null:
 		r.grid = grid
 		return r
+	grid.meta["abandon_start"] = _abandon_after(parent_room)
 	grammar.layout(grid, seed_value)
 	grammar.wear_lanes(grid, seed_value)
 	r.grid = grid

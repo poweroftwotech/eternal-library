@@ -102,7 +102,7 @@ func _ease_room_glow(delta: float) -> void:
 		var g: RoomGrammar = room.grammar
 		want = Vector3(g.glow_bloom if g.glow_bloom >= 0.0 else want.x, g.glow_intensity if g.glow_intensity >= 0.0 else want.y,
 				g.glow_threshold if g.glow_threshold >= 0.0 else want.z)
-		tint = g.mood_tint
+		tint = g.tint_at(room.grid, room.to_local(cam.global_position)) if room.grid != null else g.mood_tint
 	elif plan_room != null:
 		tint = Color(1, 1, 1, 0)
 	_glow_want = want

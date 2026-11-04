@@ -157,6 +157,22 @@ func layout_view(g: GeneratedRoom, view_name: String) -> Array:
 				for a: Array in grid.alcoves_of(c):
 					var into: Vector3 = CellGrid.cell_centre(a[0]) - CellGrid.cell_centre(c)
 					return [CellGrid.cell_centre(c) - into * 0.45 + Vector3(0, 1.3, 0), CellGrid.cell_centre(a[0]) + into * 0.1, 68.0, false]
+		"shelf_near", "shelf_mid", "shelf_far":
+			# Stacks rework part 1: a side wall's shelves at the start, middle and
+			# far end of the run, from across the bay and a little along it.
+			var want: int = {"shelf_near": 1, "shelf_mid": order.size() / 2, "shelf_far": order.size() - 1}[view_name]
+			for j: int in range(want, -1, -1):
+				var c: Vector3i = order[j]
+				var walls: Array[int] = StackGalleryGrammar.side_walls(grid, c)
+				if walls.is_empty():
+					continue
+				for side: int in walls:
+					if grid.edge(c, side)["mark"] != CellGrid.Mark.SOLID:
+						continue
+					var wall: Vector3 = CellGrid.door_transform(c, side).origin
+					var centre: Vector3 = CellGrid.cell_centre(c)
+					var along: Vector3 = Vector3(grid.cells[c]["run"]) * Vector3(1, 0, -1)
+					return [centre - (wall - centre) * 0.4 - along * 1.2 + Vector3(0, 1.5, 0), wall + along * 0.3 + Vector3(0, 0.9, 0), 70.0, false]
 		"falloff":
 			var last: Vector3i = order[0]
 			for c: Vector3i in order.slice(1):

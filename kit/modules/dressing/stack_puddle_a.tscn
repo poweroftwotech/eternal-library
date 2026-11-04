@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_5deeu"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/stack_puddle_a.glb" id="2_cbhft"]
+
+[node name="stack_puddle_a" type="Node3D" unique_id=1527762590]
+script = ExtResource("1_5deeu")
+family = "dressing"
+tags = PackedStringArray("water", "floor")
+source_glb = "res://assets/kit/dressing/stack_puddle_a.glb"
+
+[node name="Mesh" parent="." unique_id=1835274375 instance=ExtResource("2_cbhft")]

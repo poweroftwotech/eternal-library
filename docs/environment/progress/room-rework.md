@@ -1,6 +1,6 @@
 # Room rework: the existing rooms before phase 12
 
-[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED feca290 after your walks; step 5 (Cistern Archive) COMMITTED 8865b41 2026-11-03; step 6 (Light-Well Stair) COMMITTED 7c844bb 2026-11-04 (frame gate accepted as borderline, 11 ms); step 7 (Hypostyle Stacks reworked) walked and tested 2026-11-04, frame gate accepted as borderline (10.5 ms), COMMITTED 100361f**
+[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED feca290 after your walks; step 5 (Cistern Archive) COMMITTED 8865b41 2026-11-03; step 6 (Light-Well Stair) COMMITTED 7c844bb 2026-11-04 (frame gate accepted as borderline, 11 ms); step 7 (Hypostyle Stacks reworked) walked and tested 2026-11-04, frame gate accepted as borderline (10.5 ms), COMMITTED 100361f; step 8 (Stack Galleries reworked) walked part by part, tested 2026-11-04 (frame gate borderline, 10.5 ms), not yet committed**
 
 ## Why
 
@@ -59,6 +59,85 @@ Proposed steps, each walked by you before the next:
   stair edges and the oculus; some gallery shelves become plant and
   decoration niches. The missing face seen from the Upper Stacks is fixed
   here too.
+
+## Step 8: the Stack Galleries reworked (2026-11-04; tested, not yet committed)
+
+You asked for the stacks to have a character of their own: tended near the
+door, abandoned far out, with a blue tint, water, rock, fog and lights off
+the ceiling, "slightly spooky but not dangerous". Four parts, each shown or
+walked before the next; you called it good after part 4.
+
+### What you can try
+
+Walk any stack gallery: the library wing's West/East Stacks, the Lower
+Galleries, the Upper Stacks.
+
+- **Shelves that read as books (part 1):** tall shelves with uprights that
+  narrow into the recess arch. Near the door they are tidy; further in
+  there are gaps, books leaning into them, flat stacks, books dropped on the
+  floor, dust; far out some shelves are bare or collapsed.
+- **Lights off the ceiling (part 2, four walks):** no hanging lamps in the
+  run. Every second pier, on the two walls in turn, has a sconce near the
+  door, a torch, candles or a lamp on a stool further in, and glowing fungus
+  (glowcaps) or spent candles far out. No flame stands beside a glowing
+  alcove or a reading corner. Where the stacks turn blue, the blue comes from
+  glowcaps at a pier foot, with the fill light beside them at 1.3 m, so the
+  vault stays darker than the walls and no stretch is pitch black. Short
+  light reach, glare kept (sconces at 70%).
+- **Rock, water and fog (part 3):** some far shelf recesses have broken
+  through to bare cave rock with rubble at their foot; puddles with drips
+  from the vault lie off the walked line; a low fog bank lies along the
+  abandoned stretches.
+- **Keepers and landmarks (part 4):** near the door, a book cart or a pile
+  of books in front of a tidy shelf (someone is still at work). Once per
+  gallery, a taghcheh: a wall of small arched niches in lime plaster with
+  jars, books and one candle. Once per gallery in the tended part, a
+  reading corner: a rug, a floor seat and a low table with a lamp and an
+  open book. Far out, cobwebs in the shelf arches' corners and roots hanging
+  from the vault.
+- **Not built:** the stair-down landmark. A recess is only 0.3 m deep over
+  solid floor, so there is nowhere for a stair to go; it can come later as
+  a piece of its own.
+
+### What changed
+
+- Kit (`tools/kit_add_r02.py` → new `art_src/kit/kit_stacks.blend`): tall
+  shelves, sconce, torch, candles, spent candles, lamp stool, glowcaps, rock
+  breach, two puddles, taghcheh, cobwebs, roots. New materials `puddle`,
+  `wet_stain`, `cobweb`, `wax`, `emit_glowcap`. Light profiles in
+  `tools/kit_import.gd`: `sconce`, `torch`, `candle`, `glowcap` and a new
+  `candle_one` (the taghcheh and the pantry shelf's single candle).
+- `StackGalleryGrammar`: the abandon gradient and blue tint, `wall_lights`
+  (`place_wall_lights`), fills at glowcaps, and the "Damp and rock" group
+  (`neglect_shelves` pins, `add_landmarks`, `add_keepers`, `add_damp`);
+  values in `gen/grammars/r02_stack_gallery.tres`. `scripts/world/stack_drips.gd`
+  reuses the light-well's drip emitters for the puddles.
+- Found by the tests at the end: keepers now stand only in front of tidy
+  shelves (untidy ones drop books where the cart would be) and make that
+  wall a shelf recess; glowcaps are pinned lit (they had rolled "failing"
+  or "dark" at random, so some fungus flickered). Validate Room no longer
+  probes the spill zone of a pick that never spills (a tidy book fill).
+- The library wing's West Stacks is rebaked
+  (`rooms/baked/stack_gallery_west_7.tscn`).
+
+### Tests
+
+- R02 route (2,381 checks across 60 galleries): pass. Updated for the new
+  look: with `wall_lights`, only alcoves keep hanging lamps, every pier
+  flame shows its pinned state, and lit flames still thin out with distance
+  (100% near the door, 75-83% from bay 8). The grid check leaves out the
+  props placed off the module grid on purpose (pier lights, reading
+  corners, keepers, roots, puddles).
+- R02 bake (105) and its two-process persistence gate (20): pass. Its R01
+  socket count was stale since steps 1-2 (106 → 101).
+- Area route, library wing and Lower Stacks (424): pass.
+- Generation signatures: re-recorded (only the R02 galleries changed), 93
+  pass.
+- Lower Stacks frame gate (Medium, 1080p): lights in reach 48 of 50, draw
+  calls peak 898 of 1,500, triangles 0.59 M, frame 1.56 ms mean, GPU 0.97
+  ms mean. Worst frame 10.5 ms, on a gallery loading in (8 pipelines
+  compile on that frame), the same borderline kind as steps 6 and 7.
+- Captures: `previews/stacks_rework/` (one folder per part).
 
 ## Step 7: the Hypostyle Stacks reworked (2026-11-04, committed 100361f; frame gate accepted as borderline, 10.5 ms)
 

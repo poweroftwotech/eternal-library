@@ -233,7 +233,7 @@ static func _socket_fit(root: Node, modules: Array[KitModule], errors: PackedStr
 				if item[0] != host and slot.intersects(item[1]) and not seen.has([s, item[0]]) and _shape_meets_slot(item, socket_xf, local_slot.grow(-SLOT_MARGIN)):
 					seen[[s, item[0]]] = true
 					warnings.append("socket %s: its %s slot runs into %s" % [label, path.get_file().get_basename(), str(root.get_path_to(item[0]))])
-		if s.socket_set.spill_bounds.has_volume():
+		if s.socket_set.spill_bounds.has_volume() and not _never_spills(root, s):
 			_spill_probe(root, s, socket_xf, bodies, label, warnings, s.socket_set.spill_bounds)
 
 
@@ -468,6 +468,26 @@ static func _pinned_to_nothing(root: Node, s: VariantSocket) -> bool:
 		pin = (root as RoomTemplate).pin_for((root as RoomTemplate).socket_key(s), pin)
 	return pin >= 0 and pin < s.socket_set.entries.size() and s.socket_set.entries[pin] != null \
 		and s.socket_set.entries[pin].scene == null
+
+
+## True when the socket's pick is a book fill that drops nothing on the floor
+## (a ShelfFill neither fallen nor disordered: the tidy stack shelves), so its
+## spill zone is free for whatever stands there (stacks rework part 4: the
+## keepers' carts in front of tidy shelves).
+static func _never_spills(root: Node, s: VariantSocket) -> bool:
+	var idx: int = _pick_of(root, s)
+	if idx < 0 or s.socket_set.entries[idx] == null or s.socket_set.entries[idx].scene == null:
+		return false
+	var inst: Node = s.socket_set.entries[idx].scene.instantiate()
+	var fills: Array[Node] = inst.find_children("*", "ShelfFill", true, false)
+	if inst is ShelfFill:
+		fills.append(inst)
+	var tidy: bool = not fills.is_empty() and inst.find_children("*__spill*", "MeshInstance3D", true, false).is_empty()
+	for n: Node in fills:
+		var f := n as ShelfFill
+		tidy = tidy and not f.fallen and f.disorder <= 0.0
+	inst.free()
+	return tidy
 
 
 ## Claims of the current picks (polish slice A): REPLACE sockets whose picked

@@ -39,6 +39,17 @@ const LIGHT_PROFILES: Dictionary = {
 	# warm pool, and the red-fire glow of a Moroccan lantern's red glass.
 	"lamp_dim": {"color": Color(1.0, 0.54, 0.34), "energy": 1.0, "range": 6.5, "attenuation": 1.4, "shadow": false},
 	"redfire": {"color": Color(1.0, 0.5, 0.3), "energy": 1.5, "range": 7.5, "attenuation": 1.1, "shadow": false},
+	# The Stack Galleries (stacks rework part 2, your note: candles, table lamps,
+	# torches and glowing plants instead of hanging lanterns): a brass sconce on
+	# a pier, an iron torch, a candle cluster on the floor, and blue glowcaps
+	# where the stacks are abandoned.
+	"sconce": {"color": Color(1.0, 0.68, 0.36), "energy": 1.2, "range": 3.6, "attenuation": 1.6, "shadow": false},
+	"torch": {"color": Color(1.0, 0.56, 0.26), "energy": 1.8, "range": 4.5, "attenuation": 1.5, "shadow": false},
+	"candle": {"color": Color(1.0, 0.7, 0.42), "energy": 0.8, "range": 2.2, "attenuation": 1.6, "shadow": false},
+	# One small oil-lamp candle on a pantry shelf (walk 4: "it is just one
+	# candle"): less glare and a quick drop-off.
+	"candle_one": {"color": Color(1.0, 0.7, 0.42), "energy": 0.55, "range": 1.5, "attenuation": 1.8, "shadow": false},
+	"glowcap": {"color": Color(0.45, 0.66, 1.0), "energy": 0.9, "range": 5.0, "attenuation": 1.3, "shadow": false},
 }
 const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_", "FOG_"]
 ## Physics layer 8: walls only the player collides with (project layer names).

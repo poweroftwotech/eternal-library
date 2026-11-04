@@ -100,9 +100,9 @@ func bake_case(s: int, end_kind: String, baked_file: String = "") -> void:
 		check(str(got[k]) == str(live[k]), "%s: same %s as the live room (%s)" % [tag, k, diff(live[k], got[k])])
 	var v: Dictionary = KitValidateRoom.run(b)
 	check((v["errors"] as PackedStringArray).is_empty() and (v["warnings"] as PackedStringArray).is_empty(), "%s: the baked room validates clean (%s)" % [tag, v])
-	check(KitValidate.scene(b).is_empty(), "%s: baked modules on the grid (%s)" % [tag, KitValidate.scene(b)])
+	check(off_grid(b).is_empty(), "%s: baked modules on the grid (%s)" % [tag, off_grid(b)])
 	var rv: Dictionary = KitValidateRoom.run(host)
-	check((rv["errors"] as PackedStringArray).is_empty() and host.sockets().size() == 106, "%s: R01 unchanged beside it (%s, %d sockets)" % [tag, rv["errors"], host.sockets().size()])
+	check((rv["errors"] as PackedStringArray).is_empty() and host.sockets().size() == 101, "%s: R01 unchanged beside it (%s, %d sockets)" % [tag, rv["errors"], host.sockets().size()])
 	check(b.find_children("*", "", true, false).all(func(n: Node) -> bool: return not n.has_meta("generated")), "%s: no node marked generated" % tag)
 	host.queue_free()
 	await process_frame
@@ -184,3 +184,17 @@ func save_persist() -> void:
 	print("r02_bake_test save: %s" % ("wrote " + SAVED if ok else "FAILED"))
 	room.queue_free()
 	await process_frame
+
+
+## KitValidate.scene without the stacks' free-placed props (part 2 pier
+## lights, part 4 reading corners, keepers, roots; part 3 puddles), which sit
+## by the pier faces or at random spots and turns, off the module grid by design.
+func off_grid(root: Node) -> PackedStringArray:
+	var out: PackedStringArray = []
+	for p: String in KitValidate.scene(root):
+		var free: bool = false
+		for pre: String in StackGalleryGrammar.FREE_PROPS:
+			free = free or p.begins_with("Dressing/prop_" + pre)
+		if not free:
+			out.append(p)
+	return out

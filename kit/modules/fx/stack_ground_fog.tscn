@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_module"]
+
+[sub_resource type="FogMaterial" id="FogMaterial_ground"]
+density = 0.22
+albedo = Color(0.72, 0.8, 0.92, 1)
+height_falloff = 3.0
+emission = Color(0.05, 0.07, 0.11, 1)
+edge_fade = 0.35
+
+[node name="stack_ground_fog" type="Node3D"]
+script = ExtResource("1_module")
+family = "fx"
+tags = PackedStringArray("fog", "fx", "stacks")
+show_outline = false
+
+[node name="Fog" type="FogVolume" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.45, 0)
+size = Vector3(4.6, 1.1, 4.6)
+material = SubResource("FogMaterial_ground")

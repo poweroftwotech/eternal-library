@@ -1114,6 +1114,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "recess_shelves_tall",
+"scene": "res://kit/modules/dressing/recess_shelves_tall.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "storage", "recess"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "recess_tile_panel",
 "scene": "res://kit/modules/dressing/recess_tile_panel.tscn",
 "shape": "free",
@@ -1272,6 +1281,114 @@ modules = Array[Dictionary]([{
 "shape": "free",
 "size_cells": Vector3i(0, 0, 0),
 "tags": PackedStringArray("wood", "furniture", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_candles",
+"scene": "res://kit/modules/dressing/stack_candles.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brass", "wax", "light", "floor"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_candles_spent",
+"scene": "res://kit/modules/dressing/stack_candles_spent.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brass", "wax", "floor"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_cobwebs",
+"scene": "res://kit/modules/dressing/stack_cobwebs.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("web", "recess"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_glowcaps",
+"scene": "res://kit/modules/dressing/stack_glowcaps.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "fungus", "light", "floor"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_lamp_stool",
+"scene": "res://kit/modules/dressing/stack_lamp_stool.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "brass", "light", "floor"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_puddle_a",
+"scene": "res://kit/modules/dressing/stack_puddle_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("water", "floor"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_puddle_b",
+"scene": "res://kit/modules/dressing/stack_puddle_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("water", "floor"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_rock_breach",
+"scene": "res://kit/modules/dressing/stack_rock_breach.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("rock", "brick", "recess"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_roots",
+"scene": "res://kit/modules/dressing/stack_roots.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("root", "ceiling"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_sconce",
+"scene": "res://kit/modules/dressing/stack_sconce.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brass", "light", "wall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_taghcheh",
+"scene": "res://kit/modules/dressing/stack_taghcheh.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plaster", "tile", "recess", "landmark"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stack_torch",
+"scene": "res://kit/modules/dressing/stack_torch.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("iron", "wood", "light", "wall"),
 "weight": 1.0
 }, {
 "edge": "",

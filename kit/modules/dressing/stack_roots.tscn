@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_m1wv3"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/stack_roots.glb" id="2_ukfij"]
+
+[node name="stack_roots" type="Node3D" unique_id=1839739814]
+script = ExtResource("1_m1wv3")
+family = "dressing"
+tags = PackedStringArray("root", "ceiling")
+source_glb = "res://assets/kit/dressing/stack_roots.glb"
+
+[node name="Mesh" parent="." unique_id=1939763743 instance=ExtResource("2_ukfij")]

@@ -84,6 +84,116 @@ extends RoomGrammar
 		collapse_chance = value
 		emit_changed()
 
+@export_group("Abandonment")
+## Stacks rework (2026-11-04, your proposal "tended near people, abandoned far
+## out"): each bay's abandon value (grid.cells[c]["abandon"], 0 kept .. 1
+## abandoned) climbs from the room it opens off (grid.meta "abandon_start",
+## set by the area planner; a gallery off a gallery carries on from its far
+## end) by 1 over this many bays. 0 = off: every bay kept.
+@export_range(0, 64) var abandon_over_bays: int = 0:
+	set(value):
+		abandon_over_bays = value
+		emit_changed()
+## Below this abandon a shelf recess keeps its own pick (mostly full shelves);
+## above it, more and more of them are untidy, then abandoned.
+@export_range(0.0, 1.0, 0.01) var untidy_from: float = 0.2:
+	set(value):
+		untidy_from = value
+		emit_changed()
+## Share of shelf recesses that hold something else instead (RECESS_VARIETY:
+## a tile panel, a sealed door, a wall hearth, herb shelf or pantry).
+@export_range(0.0, 1.0, 0.01) var recess_variety: float = 0.12:
+	set(value):
+		recess_variety = value
+		emit_changed()
+const RECESS_VARIETY: Dictionary = {"tile panel": 1.0, "sealed door": 0.7, "hearth niche": 0.4, "herb niche": 0.4, "pantry niche": 0.4}
+
+@export_group("Damp and rock")
+## Stacks rework part 3 (your note: the stacks are caves carved into solid
+## rock; drips and small pools; low fog where abandoned). Share of shelf
+## recesses at full abandon where the brick lining has fallen and the rock
+## shows ("rock breach", with a rubble strip at its foot).
+@export_range(0.0, 1.0, 0.01) var rock_breach_chance: float = 0.0:
+	set(value):
+		rock_breach_chance = value
+		emit_changed()
+## Chance a straight bay holds a puddle with drips from the vault, at full
+## abandon (it rises from puddle_from).
+@export_range(0.0, 1.0, 0.01) var puddle_chance: float = 0.0:
+	set(value):
+		puddle_chance = value
+		emit_changed()
+@export_range(0.0, 1.0, 0.01) var puddle_from: float = 0.3:
+	set(value):
+		puddle_from = value
+		emit_changed()
+## Part 4: keepers' signs where the stacks are kept (a book cart, a pile of
+## books and a cushion), cobwebs and roots where they are not, and a landmark
+## or two per gallery (a taghcheh wall, a reading corner). 0 turns each off.
+@export_range(0.0, 1.0, 0.01) var keeper_chance: float = 0.0:
+	set(value):
+		keeper_chance = value
+		emit_changed()
+@export_range(0.0, 1.0, 0.01) var keeper_until: float = 0.35:
+	set(value):
+		keeper_until = value
+		emit_changed()
+@export_range(0.0, 1.0, 0.01) var cobweb_chance: float = 0.0:
+	set(value):
+		cobweb_chance = value
+		emit_changed()
+@export_range(0.0, 1.0, 0.01) var roots_chance: float = 0.0:
+	set(value):
+		roots_chance = value
+		emit_changed()
+@export var landmarks: bool = false:
+	set(value):
+		landmarks = value
+		emit_changed()
+## Low ground fog on every bay at or past this abandon (1.01: none).
+@export_range(0.0, 1.01, 0.01) var ground_fog_from: float = 1.01:
+	set(value):
+		ground_fog_from = value
+		emit_changed()
+## Collapsed bays happen only out where the stacks are abandoned: the chance is
+## collapse_chance scaled by abandon (x2 at 1). Off when abandon_over_bays is 0.
+
+@export_group("Wall lights")
+## Stacks rework part 2 (your note: fewer lights hung from the ceiling): no
+## lanterns down the corridor. Every wall_light_every-th pier between two bays
+## carries a light by the bay's abandon (light:sconce where the stacks are
+## kept; light:torch, light:candles or light:stool further in; light:glowcaps,
+## spent candles or a guttering torch where they are abandoned), and alcove
+## lamps hang from the alcove's vault (lamp origin on the floor: the rules'
+## lamp is a cluster of glowing roots).
+@export var wall_lights: bool = false:
+	set(value):
+		wall_lights = value
+		emit_changed()
+@export_range(1, 8) var wall_light_every: int = 2:
+	set(value):
+		wall_light_every = value
+		emit_changed()
+## Chance that a pier between the lit ones has something unlit or small at its
+## foot where the stacks are past half abandoned (spent candles, glowcaps).
+@export_range(0.0, 1.0, 0.01) var pier_dressing_chance: float = 0.3:
+	set(value):
+		pier_dressing_chance = value
+		emit_changed()
+## The cool fills' colour where the stacks are abandoned (fill_colour where
+## they are kept): the blue of the far stacks.
+@export var fill_colour_far: Color = Color(0.36, 0.62, 0.64):
+	set(value):
+		fill_colour_far = value
+		emit_changed()
+## Abandon below which the room's mood tint (blue) is not felt (tint_at).
+@export_range(0.0, 1.0, 0.01) var tint_from: float = 0.3:
+	set(value):
+		tint_from = value
+		emit_changed()
+## Pier face: how far a pier stands out from the wall line into the corridor.
+const PIER_OUT: float = 0.48
+
 @export_group("Lamps")
 ## Every corner gets a lamp too, as well as every lamp_every_bays-th bay.
 @export var lamp_on_corners: bool = true:
@@ -238,6 +348,11 @@ func mark(grid: CellGrid, path: Array, seed_value: int) -> void:
 		var corner: bool = out != into
 		grid.add_cell(c, "corner" if corner else "floor", Vector3i.ZERO if corner else out.abs(), i)
 		taken[c] = true
+	var start: float = float(grid.meta.get("abandon_start", 0.0))
+	for i: int in path.size():
+		grid.cells[path[i][0]]["abandon"] = abandon_at(start, i)
+	if abandon_over_bays > 0:
+		grid.meta["abandon_end"] = abandon_at(start, path.size())
 	var exit_side: int = exit_side_for(grid, path, taken)
 	if exit_side >= 0:
 		taken[CellGrid.neighbour(path[-1][0], exit_side)] = true    # kept free for the next room
@@ -263,8 +378,12 @@ func mark(grid: CellGrid, path: Array, seed_value: int) -> void:
 		add_alcoves(grid, path[i][0], taken, behind, seed_value)
 	for i: int in range(1, path.size()):
 		maybe_collapse(grid, path[i][0], seed_value)
+	add_landmarks(grid, seed_value)
+	neglect_shelves(grid, seed_value)
 	place_lamps(grid, seed_value)
 	place_fills(grid)
+	add_keepers(grid, seed_value)
+	add_damp(grid, seed_value)
 
 
 ## The side of the last bay that becomes the exit door: straight on if a room
@@ -342,7 +461,7 @@ func add_alcoves(grid: CellGrid, c: Vector3i, taken: Dictionary, behind: Diction
 		# garden and the larder hang a lamp (plants grow by light, and you need
 		# to see the mushrooms); an empty alcove may have one.
 		if niche in ["garden", "larder"] or (niche == "" and rng.randf() < alcove_lamp_chance):
-			grid.lamps[a] = lamp_height
+			grid.lamps[a] = 0.0 if wall_lights else lamp_height
 			if niche != "":
 				grid.pins["lamp_" + CellGrid.cell_name(a)] = "lit"     # a niche is kept: place_lamps leaves it lit
 
@@ -375,7 +494,8 @@ func maybe_collapse(grid: CellGrid, c: Vector3i, seed_value: int) -> void:
 			return
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([seed_value, "collapse", CellGrid.cell_name(c)])
-	if rng.randf() >= collapse_chance:
+	var chance: float = collapse_chance if abandon_over_bays <= 0 else collapse_chance * 2.0 * float(grid.cells[c].get("abandon", 0.0))
+	if rng.randf() >= chance:
 		return
 	grid.cells[c]["kind"] = "collapsed"
 	for side: int in walls:
@@ -385,12 +505,87 @@ func maybe_collapse(grid: CellGrid, c: Vector3i, seed_value: int) -> void:
 		grid.props["rubble_" + k] = {"slot": "dressing:rubble", "xf": CellGrid.edge_transform(c, side)}
 
 
+## Stacks rework part 2 (your note: a slight blue tint where the stacks feel
+## abandoned): mood_tint eases in with the abandon of the bay you stand in,
+## from nothing at tint_from to all of it at 1.
+func tint_at(grid: CellGrid, local: Vector3) -> Color:
+	if abandon_over_bays <= 0 or grid == null:
+		return mood_tint
+	var c := Vector3i(floori(local.x / CellGrid.BAY), 0, floori(-local.z / CellGrid.BAY))
+	var a: float = float(grid.cells[c].get("abandon", 0.0)) if grid.cells.has(c) else 0.0
+	return Color(mood_tint.r, mood_tint.g, mood_tint.b, mood_tint.a * smoothstep(tint_from, 1.0, a))
+
+
+## abandon at bay i of a run that starts at `start`.
+func abandon_at(start: float, i: int) -> float:
+	if abandon_over_bays <= 0:
+		return 0.0
+	return clampf(start + float(i) / float(abandon_over_bays), 0.0, 1.0)
+
+
+## Every shelf recess (a solid wall with no slot yet, which the rules fill
+## with a shelf recess or plain brick) is pinned to a tall bookcase filling
+## the arch: "stack shelves" where the stacks are kept, then more and more
+## "untidy shelves" and "abandoned shelves" by a roll against the bay's
+## abandon past untidy_from, so the change is gradual and every seed differs;
+## recess_variety of them hold something else. Pins on a plain wall match
+## nothing and are harmless.
+func neglect_shelves(grid: CellGrid, seed_value: int) -> void:
+	if abandon_over_bays <= 0:
+		return
+	for c: Vector3i in grid.cells:
+		var a: float = float(grid.cells[c].get("abandon", 0.0))
+		for side: int in CellGrid.ALL_SIDES:
+			var k: String = CellGrid.key(c, side)
+			if not grid.edges.has(k) or grid.edges[k]["mark"] != CellGrid.Mark.SOLID or grid.pins.has("edge_" + k):
+				continue
+			if grid.edges[k]["slot"] not in ["", "edge:recess"]:
+				continue
+			var rng := RandomNumberGenerator.new()
+			rng.seed = hash([seed_value, "neglect", k])
+			if rng.randf() < recess_variety:
+				grid.pins["edge_" + k] = _pick(rng, RECESS_VARIETY)
+				continue
+			var t: float = maxf(0.0, a - untidy_from) / (1.0 - untidy_from)     # 0 .. 1 past the threshold
+			if rng.randf() < cobweb_chance * smoothstep(0.55, 1.0, a) and grid.cells[c]["kind"] == "floor":
+				grid.pins["edge_" + k] = "webbed shelves"
+				grid.edges[k]["slot"] = "edge:recess"     # a shelf recess, never a plain wall
+				continue
+			if rng.randf() < rock_breach_chance * t * t and grid.cells[c]["kind"] == "floor":
+				grid.pins["edge_" + k] = "rock breach"
+				grid.edges[k]["slot"] = "edge:recess"
+				grid.props["rubble_" + k] = {"slot": "dressing:rubble", "xf": CellGrid.edge_transform(c, side)}
+				continue
+			var r: float = rng.randf()
+			if r < t * t:
+				grid.pins["edge_" + k] = "abandoned shelves"
+			elif r < minf(1.0, t * 1.6):
+				grid.pins["edge_" + k] = "untidy shelves"
+			else:
+				grid.pins["edge_" + k] = "stack shelves"
+
+
+## Weighted pick from {label: weight}.
+static func _pick(rng: RandomNumberGenerator, weights: Dictionary) -> String:
+	var total: float = 0.0
+	for k: String in weights:
+		total += float(weights[k])
+	var roll: float = rng.randf() * total
+	for k: String in weights:
+		roll -= float(weights[k])
+		if roll < 0.0:
+			return k
+	return weights.keys()[-1]
+
+
 ## Lamps on every lamp_every_bays-th bay of the run and on every corner
 ## (alcove lamps come with the alcove), then each one's state by its distance
 ## from the entry (lamp_lit_by_distance), pinned through grid.pins so the
 ## grammar never reaches inside the lamp's socket.
 func place_lamps(grid: CellGrid, seed_value: int) -> void:
-	for c: Vector3i in grid.run_order():
+	if wall_lights:
+		place_wall_lights(grid, seed_value)
+	for c: Vector3i in (grid.run_order() if not wall_lights else [] as Array[Vector3i]):
 		var i: int = grid.cells[c]["bay"]
 		var every: bool = lamp_every_bays > 0 and i % lamp_every_bays == lamp_every_bays - 1
 		if every or (lamp_on_corners and grid.cells[c]["kind"] == "corner"):
@@ -404,6 +599,215 @@ func place_lamps(grid: CellGrid, seed_value: int) -> void:
 		if rng.randf() >= lit_chance(grid.cells[c]["bay"]):
 			state = "failing" if rng.randf() < lamp_failing_share else "dark"
 		grid.pins["lamp_" + CellGrid.cell_name(c)] = state
+
+
+## The piers between consecutive bays of a straight stretch: on every
+## wall_light_every-th one, a light by the bay's abandon, on the two walls in
+## turn; on the others, now and then, spent candles or glowcaps at the foot
+## where the stacks are past half abandoned. Each light's state is pinned
+## (lit, failing or dark) by a roll against its abandon.
+func place_wall_lights(grid: CellGrid, seed_value: int) -> void:
+	var order: Array[Vector3i] = grid.run_order()
+	# Bays beside a light of their own (glow roots in an alcove, a niche's fire
+	# or tray lamp): no flame on the piers next to them, so the plant shines
+	# through (walk 2 of part 2).
+	var glow_bays: Dictionary = {}
+	for c: Vector3i in grid.cells:
+		if (grid.cells[c]["kind"] == "alcove" and (grid.lamps.has(c) or grid.props.has("niche_" + CellGrid.cell_name(c)))) \
+				or grid.cells[c].get("landmark", "") == "reading":     # a reading corner has its table lamp
+			glow_bays[int(grid.cells[c]["bay"])] = true
+	var turn: int = 0
+	for i: int in order.size() - 1:
+		var c: Vector3i = order[i]
+		var nxt: Vector3i = order[i + 1]
+		if grid.cells[c]["kind"] == "corner" or grid.cells[nxt]["kind"] == "corner":
+			continue
+		var walls: Array[int] = side_walls(grid, c)
+		if walls.size() < 2:
+			continue
+		var a: float = float(grid.cells[c].get("abandon", 0.0))
+		var rng := RandomNumberGenerator.new()
+		rng.seed = hash([seed_value, "wall_light", CellGrid.cell_name(c)])
+		# Every wall_light_every-th pier, on the two walls in turn: pools of
+		# light with shadow between (walk 2: "too many artificial lights").
+		var lit: bool = i % wall_light_every == wall_light_every - 1
+		var b: int = int(grid.cells[c]["bay"])
+		var near_glow: bool = glow_bays.has(b - 1) or glow_bays.has(b) or glow_bays.has(b + 1) or glow_bays.has(b + 2)
+		var side: int = walls[turn % 2]
+		if lit:
+			turn += 1
+		var at_side: int = -1
+		for s: int in [side, walls[0] if side == walls[1] else walls[1]]:
+			if grid.edge(c, s)["mark"] != CellGrid.Mark.OPEN and grid.edge(nxt, s)["mark"] != CellGrid.Mark.OPEN:
+				at_side = s
+				break
+		if at_side < 0:
+			continue
+		var kind: String = ""
+		var r: float = rng.randf()
+		if lit:
+			if a < 0.3:
+				kind = "sconce"
+			elif a < 0.65:
+				kind = "torch" if r < 0.55 else ("candles" if r < 0.85 else "stool")
+			else:
+				kind = "glowcaps" if r < 0.6 else ("torch" if r < 0.75 else "candles_spent")
+		elif a > 0.5 and r < pier_dressing_chance:
+			kind = "glowcaps" if rng.randf() < 0.4 * a else "candles_spent"
+		# Where the stacks turn blue, the blue has a source (walk 3): a fill bay
+		# without a flame grows glowcaps, and the fill sits at them.
+		if (kind == "" or kind == "candles_spent") and a >= tint_from and fill_every_bays > 0 \
+				and int(grid.cells[c]["bay"]) % fill_every_bays == fill_every_bays - 1:
+			kind = "glowcaps"
+		if near_glow and kind in ["sconce", "torch", "candles", "stool", "candles_spent"]:
+			kind = ""
+		if kind == "":
+			continue
+		var centre: Vector3 = CellGrid.cell_centre(c)
+		var out: Vector3 = (CellGrid.cell_centre(CellGrid.neighbour(c, at_side)) - centre).normalized()
+		var along: Vector3 = (CellGrid.cell_centre(nxt) - centre).normalized()
+		var at: Vector3 = centre + out * (CellGrid.BAY * 0.5 - PIER_OUT) + along * CellGrid.BAY * 0.5
+		var key: String = "light_" + CellGrid.cell_name(c)
+		grid.props[key] = {"slot": "light:" + kind, "xf": Transform3D(Basis.looking_at(-out), at)}
+		if kind in ["sconce", "torch", "candles", "stool"]:
+			var state: String = "lit"
+			var keep: float = lerpf(1.0, 0.7, a)     # spooky, never pitch dark
+			if rng.randf() >= keep:
+				state = "failing" if rng.randf() < lamp_failing_share else "dark"
+			grid.pins["prop_" + key] = state
+		elif kind == "glowcaps":
+			grid.pins["prop_" + key] = "lit"     # fungus glows steadily, never flickers out
+
+
+## Recess front: how far from a bay's centre a shelf recess's front stands.
+const RECESS_FRONT: float = 1.78
+
+
+## A floor bay's plain shelf-recess walls (solid, nothing pinned or placed
+## there yet), in side order.
+func recess_walls(grid: CellGrid, c: Vector3i) -> Array[int]:
+	var out: Array[int] = []
+	if grid.cells[c]["kind"] != "floor":
+		return out
+	for side: int in side_walls(grid, c):
+		var k: String = CellGrid.key(c, side)
+		var e: Dictionary = grid.edge(c, side)
+		if e["mark"] == CellGrid.Mark.SOLID and e["slot"] in ["", "edge:recess"] and not grid.pins.has("edge_" + k):
+			out.append(side)
+	return out
+
+
+## Facing the corridor from in front of side `side`'s recess, `d` metres out
+## from the recess front (prop frame: +X along the wall, -Z into the corridor).
+func front_xf(c: Vector3i, side: int, d: float) -> Transform3D:
+	var centre: Vector3 = CellGrid.cell_centre(c)
+	var out: Vector3 = (CellGrid.cell_centre(CellGrid.neighbour(c, side)) - centre).normalized()
+	return Transform3D(Basis.looking_at(-out), centre + out * (RECESS_FRONT - d))
+
+
+## Part 4 landmarks, one of each per gallery where it fits (seeded): a
+## taghcheh wall on a recess where the stacks are still kept or half kept, and
+## a reading corner (bench, low table with its lamp, rug) in a kept bay. A
+## reading corner's bay is marked "landmark", so no flame stands beside its lamp.
+func add_landmarks(grid: CellGrid, seed_value: int) -> void:
+	if not landmarks or abandon_over_bays <= 0:
+		return
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([seed_value, "landmarks"])
+	var tag: Array = []
+	var read: Array = []
+	for c: Vector3i in grid.run_order():
+		var a: float = float(grid.cells[c].get("abandon", 0.0))
+		var walls: Array[int] = recess_walls(grid, c)
+		if walls.is_empty() or int(grid.cells[c]["bay"]) < 1:
+			continue
+		for side: int in walls:
+			if a <= 0.8:
+				tag.append([c, side])
+			if a <= 0.45:
+				read.append([c, side])
+	if not tag.is_empty():
+		var t: Array = tag[rng.randi() % tag.size()]
+		grid.pins["edge_" + CellGrid.key(t[0], t[1])] = "taghcheh"
+		grid.edges[CellGrid.key(t[0], t[1])]["slot"] = "edge:recess"
+		grid.cells[t[0]]["landmark"] = "taghcheh"
+	read = read.filter(func(r: Array) -> bool: return not grid.cells[r[0]].has("landmark") and not grid.pins.has("edge_" + CellGrid.key(r[0], r[1])))
+	if not read.is_empty():
+		var r: Array = read[rng.randi() % read.size()]
+		grid.props["reading_" + CellGrid.cell_name(r[0])] = {"slot": "dressing:reading_corner", "xf": front_xf(r[0], r[1], 0.36)}
+		grid.cells[r[0]]["landmark"] = "reading"
+
+
+## Keepers' signs in the kept stacks (a book cart, or books and a cushion at a
+## shelf's foot) and roots hanging from the vault in the abandoned ones.
+func add_keepers(grid: CellGrid, seed_value: int) -> void:
+	if abandon_over_bays <= 0:
+		return
+	for c: Vector3i in grid.run_order():
+		if grid.cells[c]["kind"] != "floor" or grid.cells[c].has("landmark"):
+			continue
+		var a: float = float(grid.cells[c].get("abandon", 0.0))
+		var rng := RandomNumberGenerator.new()
+		rng.seed = hash([seed_value, "keeper", CellGrid.cell_name(c)])
+		if a < keeper_until and rng.randf() < keeper_chance:
+			var walls: Array[int] = []
+			for side: int in side_walls(grid, c):
+				# Only tidy shelves: untidy ones drop books where the cart would
+				# stand. The edge is made a recess below (a pin on a plain wall
+				# shows nothing, and the cart would face bare masonry).
+				var e: Dictionary = grid.edge(c, side)
+				if e["mark"] == CellGrid.Mark.SOLID and e.get("slot", "") in ["", "edge:recess"] \
+						and grid.pins.get("edge_" + CellGrid.key(c, side), "") == "stack shelves":
+					walls.append(side)
+			if not walls.is_empty():
+				var side: int = walls[rng.randi() % walls.size()]
+				grid.edges[CellGrid.key(c, side)]["slot"] = "edge:recess"
+				var cart: bool = rng.randf() < 0.4
+				grid.props["keeper_" + CellGrid.cell_name(c)] = {"slot": "dressing:keeper_cart" if cart else "dressing:keeper_pile",
+					"xf": front_xf(c, side, 0.45 if cart else 0.25)}
+				grid.cells[c]["keeper"] = true
+		if roots_chance > 0.0 and rng.randf() < roots_chance * smoothstep(0.5, 1.0, a):
+			var at: Vector3 = CellGrid.cell_centre(c) + Vector3(rng.randf_range(-0.6, 0.6), ROOTS_Y, rng.randf_range(-0.6, 0.6))
+			grid.props["roots_" + CellGrid.cell_name(c)] = {"slot": "dressing:roots", "xf": Transform3D(Basis(Vector3.UP, rng.randf() * TAU), at)}
+
+
+## Prop key prefixes placed freely, off the module grid (pier-face lights,
+## reading corners, keepers, roots, puddles): the grid check leaves them out.
+const FREE_PROPS: PackedStringArray = ["light_", "reading_", "keeper_", "roots_", "puddle_"]
+
+## The vault's crown over a straight bay (vault_bay_4m), for hanging roots.
+const ROOTS_Y: float = 5.95
+
+
+## Part 3's water and fog. A straight floor bay past puddle_from may hold a
+## puddle (seep water dripping from the vault), off the walked line and clear
+## of the pier feet; every run bay past ground_fog_from gets a low fog patch
+## (they overlap into one bank along the gallery).
+func add_damp(grid: CellGrid, seed_value: int) -> void:
+	if abandon_over_bays <= 0:
+		return
+	for c: Vector3i in grid.run_order():
+		var a: float = float(grid.cells[c].get("abandon", 0.0))
+		var kind: String = grid.cells[c]["kind"]
+		if a >= ground_fog_from and kind != "collapsed":
+			grid.props["fog_" + CellGrid.cell_name(c)] = {"slot": "fx:ground_fog",
+				"xf": Transform3D(Basis(), CellGrid.cell_centre(c))}
+		if kind != "floor" or puddle_chance <= 0.0 or grid.cells[c].has("keeper") or grid.cells[c].has("landmark"):
+			continue
+		var rng := RandomNumberGenerator.new()
+		rng.seed = hash([seed_value, "puddle", CellGrid.cell_name(c)])
+		if rng.randf() >= puddle_chance * smoothstep(puddle_from, 1.0, a):
+			continue
+		var walls: Array[int] = side_walls(grid, c)
+		if walls.is_empty():
+			continue
+		# Toward one wall (off the walked middle), and along the bay but short
+		# of the piers' feet where the lights and candles stand.
+		var out: Vector3 = (CellGrid.cell_centre(CellGrid.neighbour(c, walls[rng.randi() % walls.size()])) - CellGrid.cell_centre(c)).normalized()
+		var along := Vector3(-out.z, 0, out.x)
+		var at: Vector3 = CellGrid.cell_centre(c) + out * rng.randf_range(0.3, 0.75) + along * rng.randf_range(-0.8, 0.8)
+		grid.props["puddle_" + CellGrid.cell_name(c)] = {"slot": "dressing:puddle",
+			"xf": Transform3D(Basis(Vector3.UP, rng.randf() * TAU), at)}
 
 
 ## lamp_lit_by_distance at `bay` bays from the entry.
@@ -421,8 +825,15 @@ func place_fills(grid: CellGrid) -> void:
 	for c: Vector3i in grid.run_order():
 		var i: int = grid.cells[c]["bay"]
 		if i % fill_every_bays == fill_every_bays - 1:
-			grid.fills["fill_" + CellGrid.cell_name(c)] = {"at": CellGrid.cell_centre(c) + Vector3(0, fill_height, 0),
-				"colour": fill_colour, "energy": fill_energy, "range": fill_range}
+			var a: float = float(grid.cells[c].get("abandon", 0.0)) if wall_lights else 0.0
+			var at: Vector3 = CellGrid.cell_centre(c) + Vector3(0, fill_height, 0)
+			var caps: Dictionary = grid.props.get("light_" + CellGrid.cell_name(c), {})
+			if caps.get("slot", "") == "light:glowcaps":
+				# The fill glows off the fungi: a metre out from them, low.
+				var xf: Transform3D = caps["xf"]
+				at = xf.origin - xf.basis.z * 1.0 + Vector3(0, fill_height, 0)
+			grid.fills["fill_" + CellGrid.cell_name(c)] = {"at": at,
+				"colour": fill_colour.lerp(fill_colour_far, a), "energy": fill_energy, "range": fill_range}
 
 
 ## Lengths of the straight stretches of a marked grid, in walk order (corners

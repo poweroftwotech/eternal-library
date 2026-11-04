@@ -19,6 +19,17 @@ extends MultiMeshInstance3D
 ## the storey below for an upper recess with nothing in front (step 4.0 of the
 ## weathering slice). Child meshes named "*__spill*" (broken boards) settle too.
 @export var fallen: bool = false
+## Neglect (stacks rework part 1, 0 = kept): gaps along the shelves with books
+## leaning into them, books lying in flat stacks, a few dropped on the floor in
+## front, and dust greying the spines. 0 keeps the tidy fill exactly as before.
+@export_range(0.0, 1.0, 0.01) var disorder: float = 0.0
+## Half-width of the books on each level (empty = half_width for all): the
+## tall stack shelves narrow into the recess arch (recess_shelves_tall).
+@export var level_half_widths: PackedFloat32Array = []
+## x of uprights the books keep clear of (0.05 m wide, recess_shelves_tall).
+## A fill with uprights uses the neglect fill even at disorder 0.
+@export var dividers: PackedFloat32Array = []
+const DIVIDER_HALF: float = 0.035
 ## Wall face in socket space (the room is -Z): only spill in front of it settles.
 @export var face_z: float = -0.3
 ## Spill rays start this high above the socket floor and reach this far down.
@@ -68,9 +79,9 @@ func _ready() -> void:
 	if room is RoomTemplate and not fallen:
 		lore = (room as RoomTemplate).lore_pins_for((room as RoomTemplate).socket_key(socket))
 	build(int(get_meta("seed", 7)))
-	if fallen:
+	if fallen or not spill_rest.is_empty():
 		_settle_when_ready()
-	elif not Engine.is_editor_hint():
+	if not fallen and not Engine.is_editor_hint():
 		_add_reach()
 	set_process(false)
 
@@ -85,7 +96,10 @@ func build(seed_value: int) -> void:
 	spill_rest.clear()
 	hidden.clear()
 	lore_index.clear()
-	for k: int in shelf_levels.size():
+	var untidy: bool = (disorder > 0.0 or not dividers.is_empty()) and not fallen
+	if untidy:
+		_build_untidy(seed_value, xforms, colors, levels)
+	for k: int in (0 if untidy else shelf_levels.size()):
 		var level: float = shelf_levels[k]
 		var x: float = -half_width
 		while x < half_width - 0.05:
@@ -148,6 +162,84 @@ func build(seed_value: int) -> void:
 	built_colors = colors
 	book_levels = levels
 	material_override = book_material()
+
+
+## The neglected fill (disorder > 0): runs of books broken by gaps, the book
+## beside a gap leaning into it on its foot, flat stacks lying in some gaps,
+## a few books dropped on the floor in front (settled like a collapse's spill),
+## and dust greying every spine. Its own random stream, so the tidy fill's
+## seeds are untouched.
+func _build_untidy(seed_value: int, xforms: Array[Transform3D], colors: Array[Color], levels: PackedInt32Array) -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([seed_value, "untidy"])
+	var dust := Color(0.46, 0.44, 0.41)
+	for k: int in shelf_levels.size():
+		var level: float = shelf_levels[k]
+		var hw: float = level_half_widths[k] if k < level_half_widths.size() else half_width
+		var x: float = -hw
+		var after_gap: bool = false
+		while x < hw - 0.05:
+			var w: float = rng.randf_range(0.04, 0.09)
+			var h: float = rng.randf_range(0.24, 0.36)
+			var d: float = rng.randf_range(0.17, 0.23)
+			var col: Color = (palette[rng.randi() % palette.size()] * rng.randf_range(0.75, 1.1)).lerp(dust, disorder * rng.randf_range(0.25, 0.5))
+			var wall: float = _next_divider(x)
+			if x + w > wall:
+				x = wall + DIVIDER_HALF * 2.0 + 0.002      # past the upright (a hair more, so rounding never lands inside it): a fresh run
+				after_gap = false
+				continue
+			if rng.randf() < density * 0.06 + disorder * 0.1:
+				# A gap; sometimes a flat stack lies in it.
+				var gap: float = rng.randf_range(0.12, 0.2 + 0.35 * disorder)
+				gap = minf(gap, minf(hw - 0.02, wall) - x)
+				if gap > 0.2 and rng.randf() < 0.25 + 0.3 * disorder:
+					var lay_w: float = minf(gap - 0.03, rng.randf_range(0.17, 0.25))
+					var y: float = level
+					for j: int in rng.randi_range(2, 5):
+						var t: float = rng.randf_range(0.03, 0.05)
+						var basis := Basis(Vector3.UP, rng.randf_range(-0.12, 0.12)) * Basis.from_scale(Vector3(lay_w, t, rng.randf_range(0.16, 0.22)))
+						xforms.append(Transform3D(basis, Vector3(x + gap * 0.5, y + t * 0.5, back_z - 0.11)))
+						colors.append(col * rng.randf_range(0.85, 1.1))
+						levels.append(k)
+						y += t + 0.002
+				x += gap
+				after_gap = true
+				continue
+			if rng.randf() > density:
+				x += w + 0.004
+				continue
+			if after_gap and rng.randf() < 0.45 + 0.4 * disorder:
+				# Leans back into the gap beside it (-x), pivoting on its foot.
+				var lean: float = rng.randf_range(0.18, 0.36)
+				var tilt := Basis(Vector3.BACK, lean)
+				var foot := Vector3(x, level, back_z - d * 0.5)
+				xforms.append(Transform3D(tilt * Basis.from_scale(Vector3(w, h, d)), foot + tilt * Vector3(w * 0.5, h * 0.5, 0)))
+				x += w * cos(lean) + 0.004
+			else:
+				xforms.append(Transform3D(Basis().scaled(Vector3(w, h, d)), Vector3(x + w * 0.5, level + h * 0.5, back_z - d * 0.5)))
+				x += w + 0.004
+			colors.append(col)
+			levels.append(k)
+			after_gap = false
+	# Dropped books on the floor in front of the shelves.
+	for i: int in roundi(disorder * rng.randf_range(1.0, 5.0)):
+		var w: float = rng.randf_range(0.14, 0.24)
+		var t: float = rng.randf_range(0.03, 0.06)
+		var rest: float = t * 0.5
+		var p := Vector3(rng.randf_range(-half_width + 0.2, half_width - 0.2), rest, rng.randf_range(front_z - 0.7, front_z - 0.15))
+		spill_rest[xforms.size()] = rest
+		xforms.append(Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3(w, t, rng.randf_range(0.18, 0.26))), p))
+		colors.append((palette[rng.randi() % palette.size()] * 0.8).lerp(dust, disorder * 0.4))
+		levels.append(-1)
+
+
+## Where the next upright's clearance begins at or after x (INF if none).
+func _next_divider(x: float) -> float:
+	var out: float = INF
+	for d: float in dividers:
+		if d + DIVIDER_HALF > x:
+			out = minf(out, d - DIVIDER_HALF)
+	return out
 
 
 static func book_material() -> StandardMaterial3D:

@@ -14,6 +14,12 @@
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/wall_nets.tscn" id="11_cis"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/wall_traps.tscn" id="12_cis"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/wall_grotto.tscn" id="13_cis"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_books_untidy.tscn" id="20_untidy"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_books_abandoned.tscn" id="21_abandoned"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_books_stack.tscn" id="22_stack"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_rock_breach.tscn" id="23_breach"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_taghcheh.tscn" id="24_tag"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_books_webbed.tscn" id="25_web"]
 
 [sub_resource type="Resource" id="Resource_lnars"]
 script = ExtResource("1_mgb78")
@@ -97,8 +103,50 @@ scene = ExtResource("13_cis")
 weight = 0.0
 tags = PackedStringArray()
 
+[sub_resource type="Resource" id="Resource_stack"]
+script = ExtResource("1_mgb78")
+label = "stack shelves"
+scene = ExtResource("22_stack")
+weight = 0.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_untidy"]
+script = ExtResource("1_mgb78")
+label = "untidy shelves"
+scene = ExtResource("20_untidy")
+weight = 0.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_abandoned"]
+script = ExtResource("1_mgb78")
+label = "abandoned shelves"
+scene = ExtResource("21_abandoned")
+weight = 0.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_breach"]
+script = ExtResource("1_mgb78")
+label = "rock breach"
+scene = ExtResource("23_breach")
+weight = 0.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_taghcheh"]
+script = ExtResource("1_mgb78")
+label = "taghcheh"
+scene = ExtResource("24_tag")
+weight = 0.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_webbed"]
+script = ExtResource("1_mgb78")
+label = "webbed shelves"
+scene = ExtResource("25_web")
+weight = 0.0
+tags = PackedStringArray()
+
 [resource]
 script = ExtResource("5_alfd5")
-entries = Array[ExtResource("1_mgb78")]([SubResource("Resource_lnars"), SubResource("Resource_rp607"), SubResource("Resource_ctym8"), SubResource("Resource_alfd5"), SubResource("Resource_lvwha"), SubResource("Resource_niche_hearth"), SubResource("Resource_niche_herbs"), SubResource("Resource_niche_pantry"), SubResource("Resource_cis_paddy"), SubResource("Resource_cis_nets"), SubResource("Resource_cis_traps"), SubResource("Resource_cis_grotto")])
+entries = Array[ExtResource("1_mgb78")]([SubResource("Resource_lnars"), SubResource("Resource_rp607"), SubResource("Resource_ctym8"), SubResource("Resource_alfd5"), SubResource("Resource_lvwha"), SubResource("Resource_niche_hearth"), SubResource("Resource_niche_herbs"), SubResource("Resource_niche_pantry"), SubResource("Resource_cis_paddy"), SubResource("Resource_cis_nets"), SubResource("Resource_cis_traps"), SubResource("Resource_cis_grotto"), SubResource("Resource_stack"), SubResource("Resource_untidy"), SubResource("Resource_abandoned"), SubResource("Resource_breach"), SubResource("Resource_taghcheh"), SubResource("Resource_webbed")])
 slot_bounds = AABB(-1.5, 0, -0.3, 3, 3.7, 0.6)
 spill_bounds = AABB(-1.5, 0, -1.35, 3, 0.6, 1.05)

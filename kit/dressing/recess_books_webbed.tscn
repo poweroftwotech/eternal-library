@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_km"]
+[ext_resource type="PackedScene" path="res://kit/dressing/recess_books_abandoned.tscn" id="2_books"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/stack_cobwebs.tscn" id="3_web"]
+
+[node name="recess_books_webbed" type="Node3D"]
+script = ExtResource("1_km")
+family = "dressing"
+tags = PackedStringArray("recess", "books", "web")
+
+[node name="Books" parent="." instance=ExtResource("2_books")]
+
+[node name="Cobwebs" parent="." instance=ExtResource("3_web")]

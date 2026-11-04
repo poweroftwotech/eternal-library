@@ -1,0 +1,27 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_km"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/floor_seat.tscn" id="2_seat"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/low_reading_table.tscn" id="3_table"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_book_open.tscn" id="4_open"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_gabbeh_small.tscn" id="5_rug"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_book_stack.tscn" id="6_stack"]
+
+[node name="stack_reading_corner" type="Node3D"]
+script = ExtResource("1_km")
+family = "dressing"
+tags = PackedStringArray("keeper", "landmark", "light")
+
+[node name="Rug" parent="." instance=ExtResource("5_rug")]
+transform = Transform3D(0, 0, 1, 0, 1, 0, -1, 0, 0, 0, 0, -0.45)
+
+[node name="Seat" parent="." instance=ExtResource("2_seat")]
+
+[node name="Table" parent="." instance=ExtResource("3_table")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -0.8)
+
+[node name="Open" parent="." instance=ExtResource("4_open")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -0.2, 0.68, -0.8)
+
+[node name="Stack" parent="." instance=ExtResource("6_stack")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0.95, 0, 0.05)

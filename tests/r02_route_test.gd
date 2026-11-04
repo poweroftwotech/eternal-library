@@ -163,7 +163,7 @@ func validate(room: RoomTemplate, g: GeneratedRoom, tag: String) -> void:
 	var gv: Dictionary = KitValidateRoom.run(g)
 	check((gv["errors"] as PackedStringArray).is_empty() and (gv["warnings"] as PackedStringArray).is_empty(),
 		"%s: the corridor validates clean (%s)" % [tag, gv])
-	check(KitValidate.scene(g).is_empty(), "%s: corridor modules on the grid (%s)" % [tag, KitValidate.scene(g)])
+	check(off_grid(g).is_empty(), "%s: corridor modules on the grid (%s)" % [tag, off_grid(g)])
 	var rv: Dictionary = KitValidateRoom.run(room)
 	check((rv["errors"] as PackedStringArray).is_empty(), "%s: R01 still validates without errors (%s)" % [tag, rv["errors"]])
 	var r01_sockets: int = room.sockets().size()
@@ -290,13 +290,20 @@ func features(g: GeneratedRoom, grammar: StackGalleryGrammar, tag: String) -> vo
 	stats["collapsed_seeds"] += 1 if collapsed > 0 else 0
 	# Lamps: on every lamp_every_bays-th bay and every corner; each lamp's state
 	# socket shows the grammar's pin. Tally lit lamps by distance.
+	# With wall_lights (stacks rework part 2) the run has no hanging lamps: only
+	# alcoves keep theirs (glow roots), and the pier lights are checked below.
 	bad = []
-	for c: Vector3i in grid.run_order():
+	if grammar.wall_lights:
+		for c: Vector3i in grid.lamps:
+			if grid.cells[c]["kind"] != "alcove":
+				bad.append("hanging lamp in run bay %d" % grid.cells[c]["bay"])
+		wall_light_states(g, by_name, tag)
+	for c: Vector3i in (grid.run_order() if not grammar.wall_lights else [] as Array[Vector3i]):
 		var i: int = grid.cells[c]["bay"]
 		var want: bool = i % grammar.lamp_every_bays == grammar.lamp_every_bays - 1 or (grammar.lamp_on_corners and grid.cells[c]["kind"] == "corner")
 		if want != grid.lamps.has(c):
 			bad.append("bay %d" % i)
-	for c: Vector3i in grid.lamps:
+	for c: Vector3i in (grid.lamps if not grammar.wall_lights else {}):
 		var lamp: Node3D = by_name.get("lamp_" + CellGrid.cell_name(c))
 		var state: String = ""
 		for n: Node in lamp.find_children("*", "VariantSocket", true, false) if lamp != null else []:
@@ -616,3 +623,49 @@ func clashes(names: Array, prints: Array) -> PackedStringArray:
 
 func snap_xz(p: Vector3) -> Vector2i:
 	return Vector2i(roundi(p.x), roundi(p.z))
+
+
+## Pier lights (stacks rework part 2): every flame (sconce, torch, candles,
+## stool) has a state socket showing its pinned state. Tallies, for the
+## distance falloff check, each pier light near the door (bays 0-3) and far
+## out (bay 8 on) and whether it is a lit flame: far out more are glowcaps,
+## spent candles or failing.
+func wall_light_states(g: GeneratedRoom, by_name: Dictionary, tag: String) -> void:
+	var grid: CellGrid = g.grid
+	var cell_of: Dictionary = {}
+	for c: Vector3i in grid.cells:
+		cell_of[CellGrid.cell_name(c)] = c
+	var bad: Array = []
+	for k: String in grid.props:
+		if not k.begins_with("light_"):
+			continue
+		var c: Vector3i = cell_of[k.trim_prefix("light_")]
+		var node: Node3D = by_name.get("prop_" + k)
+		var state: String = ""
+		for n: Node in node.find_children("*", "VariantSocket", true, false) if node != null else []:
+			var s := n as VariantSocket
+			if s.mode == VariantSocket.Mode.STATE:
+				state = s.entry_label(s.last_pick)
+		var pin: String = grid.pins.get("prop_" + k, "")
+		if node == null or state != pin:
+			bad.append("%s: state %s, pinned %s" % [k, state, pin])
+		var bay: int = int(grid.cells[c]["bay"])
+		var band: String = "near" if bay <= 3 else ("far" if bay >= 8 else "")
+		if band != "":
+			stats[band] += 1
+			stats[band + "_lit"] += 1 if state == "lit" else 0
+	check(bad.is_empty(), "%s: pier lights show their pinned states (%s)" % [tag, bad])
+
+
+## KitValidate.scene without the stacks' free-placed props (part 2 pier
+## lights, part 4 reading corners, keepers, roots; part 3 puddles), which sit
+## by the pier faces or at random spots and turns, off the module grid by design.
+func off_grid(root: Node) -> PackedStringArray:
+	var out: PackedStringArray = []
+	for p: String in KitValidate.scene(root):
+		var free: bool = false
+		for pre: String in StackGalleryGrammar.FREE_PROPS:
+			free = free or p.begins_with("Dressing/prop_" + pre)
+		if not free:
+			out.append(p)
+	return out

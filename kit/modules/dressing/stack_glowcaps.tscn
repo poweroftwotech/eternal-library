@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_rkmp1"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/stack_glowcaps.glb" id="2_sjyl8"]
+
+[node name="stack_glowcaps" type="Node3D" unique_id=44943696]
+script = ExtResource("1_rkmp1")
+family = "dressing"
+tags = PackedStringArray("plant", "fungus", "light", "floor")
+source_glb = "res://assets/kit/dressing/stack_glowcaps.glb"
+
+[node name="Mesh" parent="." unique_id=185328115 instance=ExtResource("2_sjyl8")]

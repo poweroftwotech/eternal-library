@@ -9,7 +9,7 @@
 [ext_resource type="PackedScene" uid="uid://15b4ufkmyodi" path="res://kit/modules/walls/floor_4m.tscn" id="7_45fml"]
 [ext_resource type="PackedScene" uid="uid://vmbu2qx41og8" path="res://kit/modules/walls/vault_bay_4m.tscn" id="8_wkd8s"]
 [ext_resource type="PackedScene" uid="uid://kod60r0y57w" path="res://kit/modules/walls/post_pier.tscn" id="9_af66h"]
-[ext_resource type="PackedScene" uid="uid://cpydak8e2r1kv" path="res://kit/modules/walls/lantern_hanging.tscn" id="10_4gphm"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/glow_roots_dome.tscn" id="10_4gphm"]
 [ext_resource type="Script" uid="uid://dh6xpvr5r77nt" path="res://scripts/gen/module_rules.gd" id="11_47oyu"]
 [ext_resource type="PackedScene" path="res://kit/modules/walls/vault_cross_4m.tscn" id="11_orsei"]
 [ext_resource type="PackedScene" path="res://gen/modules/rubble_strip.tscn" id="12_nesut"]
@@ -20,6 +20,19 @@
 [ext_resource type="PackedScene" path="res://kit/dressing/niche_art_0.tscn" id="23_niche"]
 [ext_resource type="PackedScene" path="res://kit/dressing/niche_art_1.tscn" id="24_niche"]
 [ext_resource type="PackedScene" path="res://kit/dressing/niche_art_2.tscn" id="25_niche"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/stack_sconce.tscn" id="40_light"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/stack_torch.tscn" id="41_light"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/stack_candles.tscn" id="42_light"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/stack_candles_spent.tscn" id="43_light"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/stack_lamp_stool.tscn" id="44_light"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/stack_glowcaps.tscn" id="45_light"]
+[ext_resource type="PackedScene" path="res://kit/dressing/stack_puddle_drip_a.tscn" id="50_damp"]
+[ext_resource type="PackedScene" path="res://kit/dressing/stack_puddle_drip_b.tscn" id="51_damp"]
+[ext_resource type="PackedScene" path="res://kit/modules/fx/stack_ground_fog.tscn" id="52_damp"]
+[ext_resource type="PackedScene" path="res://kit/dressing/stack_keeper_cart.tscn" id="60_keep"]
+[ext_resource type="PackedScene" path="res://kit/dressing/stack_keeper_pile.tscn" id="61_keep"]
+[ext_resource type="PackedScene" path="res://kit/dressing/stack_reading_corner.tscn" id="62_keep"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/stack_roots.tscn" id="63_keep"]
 
 [sub_resource type="Resource" id="Resource_4m81t"]
 script = ExtResource("2_orsei")
@@ -210,6 +223,130 @@ slot = "dressing:niche_art"
 styles = PackedStringArray("brick")
 choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_art_0"), SubResource("Resource_c_art_1"), SubResource("Resource_c_art_2")])
 
+[sub_resource type="Resource" id="Resource_c_light_sconce"]
+script = ExtResource("2_orsei")
+scene = ExtResource("40_light")
+
+[sub_resource type="Resource" id="Resource_light_sconce"]
+script = ExtResource("1_7scms")
+slot = "light:sconce"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_light_sconce")])
+
+[sub_resource type="Resource" id="Resource_c_light_torch"]
+script = ExtResource("2_orsei")
+scene = ExtResource("41_light")
+
+[sub_resource type="Resource" id="Resource_light_torch"]
+script = ExtResource("1_7scms")
+slot = "light:torch"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_light_torch")])
+
+[sub_resource type="Resource" id="Resource_c_light_candles"]
+script = ExtResource("2_orsei")
+scene = ExtResource("42_light")
+
+[sub_resource type="Resource" id="Resource_light_candles"]
+script = ExtResource("1_7scms")
+slot = "light:candles"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_light_candles")])
+
+[sub_resource type="Resource" id="Resource_c_light_candles_spent"]
+script = ExtResource("2_orsei")
+scene = ExtResource("43_light")
+
+[sub_resource type="Resource" id="Resource_light_candles_spent"]
+script = ExtResource("1_7scms")
+slot = "light:candles_spent"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_light_candles_spent")])
+
+[sub_resource type="Resource" id="Resource_c_light_stool"]
+script = ExtResource("2_orsei")
+scene = ExtResource("44_light")
+
+[sub_resource type="Resource" id="Resource_light_stool"]
+script = ExtResource("1_7scms")
+slot = "light:stool"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_light_stool")])
+
+[sub_resource type="Resource" id="Resource_c_light_glowcaps"]
+script = ExtResource("2_orsei")
+scene = ExtResource("45_light")
+
+[sub_resource type="Resource" id="Resource_light_glowcaps"]
+script = ExtResource("1_7scms")
+slot = "light:glowcaps"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_light_glowcaps")])
+
+[sub_resource type="Resource" id="Resource_c_puddle_a"]
+script = ExtResource("2_orsei")
+scene = ExtResource("50_damp")
+
+[sub_resource type="Resource" id="Resource_c_puddle_b"]
+script = ExtResource("2_orsei")
+scene = ExtResource("51_damp")
+
+[sub_resource type="Resource" id="Resource_damp_puddle"]
+script = ExtResource("1_7scms")
+slot = "dressing:puddle"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_puddle_a"), SubResource("Resource_c_puddle_b")])
+
+[sub_resource type="Resource" id="Resource_c_ground_fog"]
+script = ExtResource("2_orsei")
+scene = ExtResource("52_damp")
+
+[sub_resource type="Resource" id="Resource_damp_fog"]
+script = ExtResource("1_7scms")
+slot = "fx:ground_fog"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_ground_fog")])
+
+[sub_resource type="Resource" id="Resource_c_keeper_cart"]
+script = ExtResource("2_orsei")
+scene = ExtResource("60_keep")
+
+[sub_resource type="Resource" id="Resource_p4_keeper_cart"]
+script = ExtResource("1_7scms")
+slot = "dressing:keeper_cart"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_keeper_cart")])
+
+[sub_resource type="Resource" id="Resource_c_keeper_pile"]
+script = ExtResource("2_orsei")
+scene = ExtResource("61_keep")
+
+[sub_resource type="Resource" id="Resource_p4_keeper_pile"]
+script = ExtResource("1_7scms")
+slot = "dressing:keeper_pile"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_keeper_pile")])
+
+[sub_resource type="Resource" id="Resource_c_reading_corner"]
+script = ExtResource("2_orsei")
+scene = ExtResource("62_keep")
+
+[sub_resource type="Resource" id="Resource_p4_reading_corner"]
+script = ExtResource("1_7scms")
+slot = "dressing:reading_corner"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_reading_corner")])
+
+[sub_resource type="Resource" id="Resource_c_roots"]
+script = ExtResource("2_orsei")
+scene = ExtResource("63_keep")
+
+[sub_resource type="Resource" id="Resource_p4_roots"]
+script = ExtResource("1_7scms")
+slot = "dressing:roots"
+styles = PackedStringArray("brick")
+choices = Array[ExtResource("2_orsei")]([SubResource("Resource_c_roots")])
+
 [resource]
 script = ExtResource("11_47oyu")
-rules = Array[ExtResource("1_7scms")]([SubResource("Resource_kjaeu"), SubResource("Resource_uidj1"), SubResource("Resource_a6cyo"), SubResource("Resource_nomh4"), SubResource("Resource_iu605"), SubResource("Resource_l0etk"), SubResource("Resource_bpxti"), SubResource("Resource_4yvrr"), SubResource("Resource_nesut"), SubResource("Resource_jj3bs"), SubResource("Resource_45fml"), SubResource("Resource_af66h"), SubResource("Resource_47oyu"), SubResource("Resource_plain"), SubResource("Resource_niche_hearth"), SubResource("Resource_niche_garden"), SubResource("Resource_niche_larder"), SubResource("Resource_niche_art")])
+rules = Array[ExtResource("1_7scms")]([SubResource("Resource_kjaeu"), SubResource("Resource_uidj1"), SubResource("Resource_a6cyo"), SubResource("Resource_nomh4"), SubResource("Resource_iu605"), SubResource("Resource_l0etk"), SubResource("Resource_bpxti"), SubResource("Resource_4yvrr"), SubResource("Resource_nesut"), SubResource("Resource_jj3bs"), SubResource("Resource_45fml"), SubResource("Resource_af66h"), SubResource("Resource_47oyu"), SubResource("Resource_plain"), SubResource("Resource_niche_hearth"), SubResource("Resource_niche_garden"), SubResource("Resource_niche_larder"), SubResource("Resource_niche_art"), SubResource("Resource_light_sconce"), SubResource("Resource_light_torch"), SubResource("Resource_light_candles"), SubResource("Resource_light_candles_spent"), SubResource("Resource_light_stool"), SubResource("Resource_light_glowcaps"), SubResource("Resource_damp_puddle"), SubResource("Resource_damp_fog"), SubResource("Resource_p4_keeper_cart"), SubResource("Resource_p4_keeper_pile"), SubResource("Resource_p4_reading_corner"), SubResource("Resource_p4_roots")])

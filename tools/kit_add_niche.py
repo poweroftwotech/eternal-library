@@ -179,7 +179,7 @@ def wall_pantry(r):
     bm = bmesh.new()
     add_lathe(bm, [(0.0, 1.36), (0.03, 1.38), (0.035, 1.43), (0.0, 1.47)], cx=-0.15, cy=-0.12, segs=8)
     mesh_object("wall_pantry__glass", bm, ["emit_lantern"], r)
-    marker("LIGHT_desk__pantry", r, (-0.15, -0.12, 1.42))
+    marker("LIGHT_candle_one__pantry", r, (-0.15, -0.12, 1.42))
     to_recess(r)
 
 
@@ -188,9 +188,9 @@ MODULES = [
     ("M_niche_log", props("wood,moss,garden,niche"), niche_log),
     ("M_wall_hearth", dict(props("brick,fire,niche"), kit_rev=5), wall_hearth),
     ("M_wall_herbs", dict(props("wood,soil,garden,light,niche"), kit_rev=2), wall_herbs),
-    ("M_wall_pantry", dict(props("wood,earthenware,storage,light,niche"), kit_rev=2), wall_pantry),
+    ("M_wall_pantry", dict(props("wood,earthenware,storage,light,niche"), kit_rev=3), wall_pantry),
 ]
-REBUILD = [("M_wall_hearth", 5), ("M_wall_herbs", 2), ("M_wall_pantry", 2)]
+REBUILD = [("M_wall_hearth", 5), ("M_wall_herbs", 2), ("M_wall_pantry", 3)]
 
 
 def main():
