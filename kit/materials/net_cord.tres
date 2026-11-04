@@ -1,0 +1,8 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "net_cord"
+cull_mode = 2
+albedo_color = Color(0.52, 0.44, 0.3, 1)
+roughness = 0.95
+texture_filter = 4

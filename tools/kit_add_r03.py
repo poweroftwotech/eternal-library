@@ -45,7 +45,7 @@ import bmesh
 import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kit_blender import (T, add_box, add_lathe, add_ngon_prism, add_obox, add_plan_prism, add_prism, arch_outline, cut, rebuild, wall_body,  # noqa: E402
+from kit_blender import (T, add_box, add_lathe, add_ngon_prism, add_tube, add_obox, add_plan_prism, add_prism, arch_outline, cut, rebuild, wall_body,  # noqa: E402
                          marker, mesh_object, module)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
@@ -514,8 +514,11 @@ def platform(r):
 
 
 def vault_door(r):
-    """The far wall's sealed bronze door, under a 3 m arch, a lantern on a
-    bracket each side (on the room side, Blender +Y)."""
+    """The far wall's sealed bronze door, under a 3 m arch. Rev 2 (room rework
+    step 5, your word: no lanterns in the cistern): in place of the two
+    lanterns, glowing vines climb the jambs and meet over the arch, pods
+    along them and strands hanging into the opening (on the room side,
+    Blender +Y)."""
     body = wall_body("wall_vault_door_4m__body-col", r)
     bm = bmesh.new()
     add_prism(bm, arch_outline(3.0, 1.9, 0.6, 10), 0.5, -0.01, -T - 0.1, T + 0.1)
@@ -527,15 +530,29 @@ def vault_door(r):
         add_box(bm, x - 0.04, x + 0.04, 0.08, 0.12, 0.1, 2.2)       # bands across the leaves
     add_box(bm, 1.98, 2.02, 0.08, 0.14, 0.0, 2.85)                    # the seam
     mesh_object("wall_vault_door_4m__door-col", bm, ["brass"], r)
-    glass = bmesh.new()
-    bm = bmesh.new()
-    for x in (0.2, 3.8):
-        lantern_at(bm, glass, x, T + 0.25, 2.3, 0.14, 0.42)
-        add_box(bm, x - 0.02, x + 0.02, T, T + 0.25, 2.76, 2.8)      # bracket
-    mesh_object("wall_vault_door_4m__lanterns", bm, ["brass"], r)
-    mesh_object("wall_vault_door_4m__glass", glass, ["emit_lantern"], r)
-    marker("LIGHT_lantern__door_l", r, (0.2, T + 0.25, 2.5))
-    marker("LIGHT_lantern__door_r", r, (3.8, T + 0.25, 2.5))
+    vines, pods = bmesh.new(), bmesh.new()
+    y = T + 0.05
+    for side in (-1, 1):
+        x0 = 2.0 + side * 1.75           # up the jamb beside the arch
+        climb = [(x0 + 0.06 * math.sin(k * 1.7), y, 0.05 + k * 0.32) for k in range(10)]
+        top = climb[-1]
+        over = [(top[0] - side * 0.3 * k, y, top[2] + 0.12 * math.sin(k * 0.6)) for k in range(1, 6)]
+        path = climb + over
+        add_tube(vines, path, 0.035, segs=5)
+        for k, (px, py, pz) in enumerate(path):
+            if k % 2 == 1:
+                R = 0.06 + 0.03 * ((k * 7) % 3) / 2.0
+                add_lathe(pods, [(0.0, pz - R * 1.5), (R, pz - R * 0.6), (R * 0.75, pz + R * 0.2), (0.0, pz + R * 0.4)],
+                          px, py + 0.05, segs=6)
+        for j, (sx, length) in enumerate(((top[0] - side * 0.45, 0.7), (top[0] - side * 0.95, 0.45), (top[0] - side * 1.35, 0.3))):
+            sz = top[2] + 0.1
+            strand = [(sx, y + 0.03, sz - length * t / 3) for t in range(4)]
+            add_tube(vines, strand, [0.016, 0.013, 0.01, 0.008], segs=4)
+            (ex, ey, ez) = strand[-1]
+            add_lathe(pods, [(0.0, ez - 0.1), (0.05, ez - 0.05), (0.04, ez), (0.0, ez + 0.02)], ex, ey, segs=6)
+        marker("LIGHT_fungus__door_%s" % ("l" if side < 0 else "r"), r, (x0, T + 0.4, 2.0), {"range": 4.5, "energy": 0.8})
+    mesh_object("wall_vault_door_4m__vines", vines, ["camp_root"], r)
+    mesh_object("wall_vault_door_4m__pods", pods, ["emit_fungus"], r)
 
 
 # --- step 4: the Light-Well Stair (R09), rev 2: a cone ----------------------------
@@ -1012,7 +1029,7 @@ MODULES = [
     ("M_post_pier_brick", props("post", [0, 1, 0], "", "brick,structure,cistern"), pier_brick),
     ("M_dome_cell_4m_brick", props("cell", [1, 1, 1], "", "brick,dome,cistern"), dome_brick),
     ("M_platform_cell_4m", props("free", [1, 0, 1], "", "wood,storage,cistern", family="dressing"), platform),
-    ("M_wall_vault_door_4m", props("edge", [1, 1, 0], "solid", "brass,door,light,cistern"), vault_door),
+    ("M_wall_vault_door_4m", dict(props("edge", [1, 1, 0], "solid", "brass,door,light,fungus,cistern"), kit_rev=2), vault_door),
 ] + cone_modules() + [
 ]
 
@@ -1020,7 +1037,8 @@ MODULES = [
 # hand edits to them are lost, so only list ones nobody has changed in Blender.
 REBUILD = [("M_post_column_twisted", 3), ("M_dome_cell_4m_b", 2),
            ("M_basin_cell_4m", 2), ("M_basin_cell_4m_deep", 2), ("M_causeway_cell_4m", 3),   # rev 2: the cistern's own water; causeway rev 3: gentler sides
-           ("M_cone_lantern", 2)] + [   # rev 2: the lantern over the head
+           ("M_cone_lantern", 2),   # rev 2: the lantern over the head
+           ("M_wall_vault_door_4m", 2)] + [   # rev 2: glowing vines, no lanterns (room rework step 5)
     (n, 7 if n.startswith("M_cone_base") else 6 if n.startswith("M_cone_cap") else 5) for (n, _p, _b) in cone_modules() if n.startswith(("M_cone_c", "M_cone_cap", "M_cone_base"))]   # rev 2: smooth collision, the light shaft; rev 3: the floor's ramp; rev 4: smooth walk edges, softer bounce; rev 5: even collision sweeps; rev 6: the fills between; rev 7: the floor fill reaches the first turn
 
 

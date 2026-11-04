@@ -18,6 +18,13 @@ extends HypostyleGrammar
 		deep_chance = value
 		emit_changed()
 
+## The wall niches a cistern's shelf bays hold (room rework step 5: rice
+## paddies, nets and spears, eel traps, a mushroom grotto; labels in
+## kit/sockets/recess_library.tres, where they weigh 0 so no other room picks
+## them), by weight. Each niche glows: with the dome's hanging roots they
+## are the room's only light.
+const NICHES: Dictionary = {"paddy niche": 3.0, "net niche": 2.0, "trap niche": 2.0, "grotto niche": 2.0}
+
 ## Floor heights of the water pieces (tools/kit_add_r03.py), kept on each bay
 ## as "floor_y" for the tests.
 const SHALLOW_Y: float = -0.9
@@ -106,6 +113,7 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 			cell["blocked"] = true
 	mark_edges(grid, rect, doors)
 	grid.set_edge(far, CellGrid.Side.N, CellGrid.Mark.SOLID, false, "edge:vault_door")
+	pin_niches(grid, seed_value)
 	# Below the floor, the walls go down to the bed wherever there is water.
 	for k: String in grid.edges:
 		var e: Dictionary = grid.edges[k]
@@ -126,3 +134,37 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 		for z: int in range(0, rect.end.y):
 			pts.append([_xz(CellGrid.cell_centre(Vector3i(0, 0, z))), traffic(z)])
 		_add_lane(grid, pts)
+
+
+## Pins every plain solid wall to one of NICHES: a shelf bay there holds that
+## niche, a plain wall ignores it. No two walls side by side along a wall
+## hold the same niche.
+func pin_niches(grid: CellGrid, seed_value: int) -> void:
+	var keys: Array = grid.edges.keys()
+	keys.sort()
+	var total: float = 0.0
+	for k: String in NICHES:
+		total += float(NICHES[k])
+	for k: String in keys:
+		var e: Dictionary = grid.edges[k]
+		if e["mark"] != CellGrid.Mark.SOLID or e["slot"] != "":
+			continue
+		var avoid: Array = []
+		var along: Vector3i = Vector3i(1, 0, 0) if e["side"] in [CellGrid.Side.N, CellGrid.Side.S] else Vector3i(0, 0, 1)
+		for n: Vector3i in [e["cell"] - along, e["cell"] + along]:
+			var nk: String = CellGrid.key(n, e["side"])
+			if grid.pins.has("edge_" + nk):
+				avoid.append(grid.pins["edge_" + nk])
+		var roll := RandomNumberGenerator.new()
+		roll.seed = hash([seed_value, "niche", k])
+		var pick: String = ""
+		for _try: int in 4:
+			var r: float = roll.randf() * total
+			for label: String in NICHES:
+				r -= float(NICHES[label])
+				if r < 0.0:
+					pick = label
+					break
+			if not avoid.has(pick):
+				break
+		grid.pins["edge_" + k] = pick

@@ -538,6 +538,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "glow_roots_dome",
+"scene": "res://kit/modules/dressing/glow_roots_dome.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("fungus", "light", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "gorge_banner_0",
 "scene": "res://kit/modules/dressing/gorge_banner_0.tscn",
 "shape": "free",
@@ -1222,6 +1231,15 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "wall_grotto",
+"scene": "res://kit/modules/dressing/wall_grotto.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "moss", "fungus", "light", "niche", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "wall_hearth",
 "scene": "res://kit/modules/dressing/wall_hearth.tscn",
 "shape": "free",
@@ -1240,11 +1258,38 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "wall_nets",
+"scene": "res://kit/modules/dressing/wall_nets.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "iron", "storage", "light", "niche", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "wall_paddy",
+"scene": "res://kit/modules/dressing/wall_paddy.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "water", "garden", "light", "niche", "cistern"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "wall_pantry",
 "scene": "res://kit/modules/dressing/wall_pantry.tscn",
 "shape": "free",
 "size_cells": Vector3i(0, 0, 0),
 "tags": PackedStringArray("wood", "earthenware", "storage", "light", "niche"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "wall_traps",
+"scene": "res://kit/modules/dressing/wall_traps.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "water", "storage", "light", "niche", "cistern"),
 "weight": 1.0
 }, {
 "edge": "none",

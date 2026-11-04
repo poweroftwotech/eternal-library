@@ -11,5 +11,5 @@ size_min = 3
 size_max = 7
 exit_min = 0
 exit_max = 0
-case_density = 0.4
+case_density = 0.0
 lamp_every_bays = 2

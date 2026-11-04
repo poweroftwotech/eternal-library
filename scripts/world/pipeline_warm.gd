@@ -18,6 +18,9 @@ const SCENES: PackedStringArray = [
 	"res://kit/dressing/recess_pantry.tscn",
 	"res://kit/dressing/court_cell_sitting.tscn", "res://kit/dressing/court_cell_cooking.tscn",
 	"res://kit/dressing/court_cell_garden.tscn", "res://kit/dressing/court_cell_reading.tscn",
+	"res://kit/modules/dressing/wall_paddy.tscn", "res://kit/modules/dressing/wall_nets.tscn",
+	"res://kit/modules/dressing/wall_traps.tscn", "res://kit/modules/dressing/wall_grotto.tscn",
+	"res://kit/modules/dressing/glow_roots_dome.tscn",
 ]
 
 var _left: int = FRAMES

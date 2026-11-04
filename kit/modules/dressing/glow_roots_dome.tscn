@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_pys5q"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/glow_roots_dome.glb" id="2_2h0qb"]
+
+[node name="glow_roots_dome" type="Node3D" unique_id=1930805555]
+script = ExtResource("1_pys5q")
+family = "dressing"
+tags = PackedStringArray("fungus", "light", "cistern")
+source_glb = "res://assets/kit/dressing/glow_roots_dome.glb"
+
+[node name="Mesh" parent="." unique_id=1086002047 instance=ExtResource("2_2h0qb")]

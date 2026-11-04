@@ -10,6 +10,10 @@
 [ext_resource type="PackedScene" path="res://kit/dressing/recess_hearth.tscn" id="7_niche"]
 [ext_resource type="PackedScene" path="res://kit/dressing/recess_herbs.tscn" id="8_niche"]
 [ext_resource type="PackedScene" path="res://kit/dressing/recess_pantry.tscn" id="9_niche"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/wall_paddy.tscn" id="10_cis"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/wall_nets.tscn" id="11_cis"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/wall_traps.tscn" id="12_cis"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/wall_grotto.tscn" id="13_cis"]
 
 [sub_resource type="Resource" id="Resource_lnars"]
 script = ExtResource("1_mgb78")
@@ -65,8 +69,36 @@ scene = ExtResource("9_niche")
 weight = 0.4
 tags = PackedStringArray()
 
+[sub_resource type="Resource" id="Resource_cis_paddy"]
+script = ExtResource("1_mgb78")
+label = "paddy niche"
+scene = ExtResource("10_cis")
+weight = 0.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_cis_nets"]
+script = ExtResource("1_mgb78")
+label = "net niche"
+scene = ExtResource("11_cis")
+weight = 0.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_cis_traps"]
+script = ExtResource("1_mgb78")
+label = "trap niche"
+scene = ExtResource("12_cis")
+weight = 0.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_cis_grotto"]
+script = ExtResource("1_mgb78")
+label = "grotto niche"
+scene = ExtResource("13_cis")
+weight = 0.0
+tags = PackedStringArray()
+
 [resource]
 script = ExtResource("5_alfd5")
-entries = Array[ExtResource("1_mgb78")]([SubResource("Resource_lnars"), SubResource("Resource_rp607"), SubResource("Resource_ctym8"), SubResource("Resource_alfd5"), SubResource("Resource_lvwha"), SubResource("Resource_niche_hearth"), SubResource("Resource_niche_herbs"), SubResource("Resource_niche_pantry")])
+entries = Array[ExtResource("1_mgb78")]([SubResource("Resource_lnars"), SubResource("Resource_rp607"), SubResource("Resource_ctym8"), SubResource("Resource_alfd5"), SubResource("Resource_lvwha"), SubResource("Resource_niche_hearth"), SubResource("Resource_niche_herbs"), SubResource("Resource_niche_pantry"), SubResource("Resource_cis_paddy"), SubResource("Resource_cis_nets"), SubResource("Resource_cis_traps"), SubResource("Resource_cis_grotto")])
 slot_bounds = AABB(-1.5, 0, -0.3, 3, 3.7, 0.6)
 spill_bounds = AABB(-1.5, 0, -1.35, 3, 0.6, 1.05)

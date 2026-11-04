@@ -62,7 +62,7 @@ func run() -> void:
 	# The light-well (grown first, phase 5 step 4) takes the space a cistern
 	# would have had in about a quarter of the seeds.
 	check(found >= 14, "most Lower Stacks seeds have a cistern (%d of 20)" % found)
-	check(int(totals.get("cell:basin", 0)) > 0 and int(totals.get("cell:basin_deep", 0)) > 0 and int(totals.get("platform", 0)) > 0, "the cisterns have shallow bays, deep bays and platforms (%s)" % [totals])
+	check(int(totals.get("cell:basin", 0)) > 0 and int(totals.get("cell:basin_deep", 0)) > 0 and int(totals.get("platform", 0)) == 0, "the cisterns have shallow bays and deep bays, and no platforms since room rework step 5 (%s)" % [totals])
 	print("r11_layout_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures.slice(0, 30):
 		print("  FAIL ", f)
@@ -96,6 +96,12 @@ func audit(tag: String, g: CellGrid, totals: Dictionary) -> void:
 			var at: Vector3i = AreaPlan.cell_of((g.props[k]["xf"] as Transform3D) * Vector3(2.0, 0.1, -2.0))
 			platform[Vector3i(at.x, 0, at.z)] = true
 	totals["platform"] = int(totals.get("platform", 0)) + platform.size()
+	# Room rework step 5: every plain wall is pinned to a water niche (a shelf bay
+	# there holds it), and no two walls side by side hold the same one.
+	for k: String in g.edges:
+		var e: Dictionary = g.edges[k]
+		if e["mark"] == CellGrid.Mark.SOLID and e["slot"] == "":
+			check(CisternGrammar.NICHES.has(g.pins.get("edge_" + k, "")), "%s: wall %s is pinned to a water niche (%s)" % [tag, k, g.pins.get("edge_" + k, "")])
 	var causeway: Dictionary = {}
 	for c: Vector3i in g.cells:
 		var cell: Dictionary = g.cells[c]

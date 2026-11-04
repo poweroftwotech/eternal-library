@@ -1,6 +1,6 @@
 # Room rework: the existing rooms before phase 12
 
-[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED 2026-11-03 after your walks; next: step 5, the Cistern Archive**
+[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED feca290 after your walks; step 5 (Cistern Archive) BUILT 2026-11-03, waiting for your walk; then step 6, the Light-Well Stair**
 
 ## Why
 
@@ -21,7 +21,7 @@ carpets). **Step 2** covers the last two: niches in the stacks and the
 Reading Room's shelf bays. You chose working niches, so the plants can be
 foraged, the pot cooks and the hearth warms.
 
-## The Lower Stacks (your walk of 2026-11-03; steps 3 and 4 committed, 5 and 6 next)
+## The Lower Stacks (your walk of 2026-11-03; steps 3 and 4 committed, 5 built, 6 next)
 
 Your walk left ten reports in four rooms and one geometry gap:
 
@@ -59,6 +59,63 @@ Proposed steps, each walked by you before the next:
   stair edges and the oculus; some gallery shelves become plant and
   decoration niches. The missing face seen from the Upper Stacks is fixed
   here too.
+
+## Step 5: the Cistern Archive (2026-11-03, built, waiting for your walk)
+
+### What you can try
+
+- Walk the Lower Stacks to the cistern (seed 1 has one off the galleries;
+  `area_seed` 5–7 too). The plank tables in the water are gone.
+- The shelf bays round the walls are now water niches, a different one from
+  its neighbour along a wall:
+  - **paddy:** two stone troughs of water, one on the floor and one on
+    brackets, with rice growing out of them; the grain heads glow green-white,
+    and a few glowing mushrooms grow on the trough ends;
+  - **nets:** a net hung from two pegs with cork floats, three trident
+    fishing spears in the corner, a coil of rope and a fish basket, and
+    glowing fungus strands hanging from the niche's head;
+  - **traps:** wicker eel traps on the floor, on a shelf and soaking in a
+    small trough, with glowing bracket fungi on the back;
+  - **grotto:** a mossy log with tall glowing mushrooms.
+- No lanterns: roots hang from the domes with glowing pods, and the niches
+  glow. Everything is the teal fungus light, dim and shadowless, so it stays
+  dark between the glows. After your first look ("the green glow is nice")
+  the sealed door's two lanterns went too: glowing vines climb its jambs and
+  meet over the arch, strands hanging into it (`wall_vault_door_4m` rev 2 in
+  `tools/kit_add_r03.py`). The whole room is lit by plants.
+
+### What changed
+
+- New pieces (`tools/kit_add_cistern_niche.py` → `kit_dressing.blend`):
+  `wall_paddy`, `wall_nets`, `wall_traps`, `wall_grotto` (shelf-bay recess
+  fills) and `glow_roots_dome` (the cistern's lamp slot, in place of
+  `lantern_dome`). New materials `rice_blade`, `emit_rice`, `net_cord`,
+  `wicker`.
+- `kit/sockets/recess_library.tres`: the four niches added at weight 0, so
+  only a room that pins them gets them (added at the end; baked rooms keep
+  their picks).
+- `CisternGrammar.pin_niches` pins every plain wall to one of the four
+  (paddy 3, nets 2, traps 2, grotto 2), never the same as the wall beside it.
+  A plain brick wall ignores the pin.
+- `gen/grammars/r11_cistern.tres`: `case_density` 0.4 → 0 (no platforms).
+- `PipelineWarm` pre-draws the five new pieces.
+- `tests/r11_layout_test.gd`: no platforms now; every plain wall is pinned
+  to a niche. `tests/r11_capture.gd`: a close view of each niche.
+
+### Tests
+
+- R11 layout (6,267 checks) and route (46) tests, generation signatures
+  (93): pass. The first route run caught rice blades and the grotto's big
+  caps poking through the recess's back and out past its face; the caps are
+  now pressed front to back and nothing above 0.6 m stands proud of the wall.
+- Area route test, Lower Stacks (254): pass.
+- Lower Stacks frame gate (Medium, 1080p): worst frame 8.29 ms (the borderline
+  you accepted; no frame over 8.3 ms), mean 1.46 ms, GPU 0.91 mean, lights in
+  reach 42 of 50 (peak in the caravanserai, as before: the fungus lights cast
+  no shadows).
+- After the door change: R11 route test (46) passes again.
+- Captures: `previews/room_rework_step5/` (seed 1: entry, door, across,
+  wading, and one view per niche).
 
 ## Step 4: the Hypostyle Stacks (2026-11-03, committed after your walk, no reports)
 

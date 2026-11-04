@@ -73,6 +73,20 @@ func run() -> void:
 		views["wading"] = [CellGrid.cell_centre(shallow) + Vector3(0, -0.9 + 1.62, 0), CellGrid.cell_centre(Vector3i(0, 0, shallow.z)) + Vector3(0, 0.4, 0)]
 	if deck != Vector3i.MAX:
 		views["platform"] = [CellGrid.cell_centre(Vector3i(0, 0, deck.z)) + Vector3(0, 1.62, 1.5), CellGrid.cell_centre(deck) + Vector3(0, 0.6, 0)]
+	# Room rework step 5: one close view of each water niche a shelf bay holds.
+	for k: String in g.edges:
+		var label: String = str(g.pins.get("edge_" + k, ""))
+		var m: Node = null
+		for mod: Node3D in room.modules:
+			if String(mod.name) == "edge_" + k:
+				m = mod
+		if label == "" or m == null or not m.scene_file_path.contains("shelfbay"):
+			continue
+		var view_name: String = label.replace(" niche", "")
+		if views.has(view_name):
+			continue
+		var xf: Transform3D = CellGrid.edge_transform(g.edges[k]["cell"], g.edges[k]["side"])
+		views[view_name] = [xf * Vector3(2.0, 1.62, -3.0), xf * Vector3(2.0, 1.1, 0.0)]
 	var vp_rid: RID = root.get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(vp_rid, true)
 	var kinds: Dictionary = {}
