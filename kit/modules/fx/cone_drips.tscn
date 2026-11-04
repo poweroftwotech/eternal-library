@@ -1,0 +1,13 @@
+[gd_scene load_steps=3 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_module"]
+[ext_resource type="Script" path="res://scripts/world/cone_drips.gd" id="2_drips"]
+
+[node name="cone_drips" type="Node3D"]
+script = ExtResource("1_module")
+family = "fx"
+tags = PackedStringArray("water", "fx", "lightwell")
+show_outline = false
+
+[node name="Drips" type="Node3D" parent="."]
+script = ExtResource("2_drips")

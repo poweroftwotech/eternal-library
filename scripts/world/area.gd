@@ -76,6 +76,45 @@ var _reveal_token: int = 0
 func _process(delta: float) -> void:
 	_water_time += delta
 	KIT_WATER.set_shader_parameter("simulation_time", _water_time)
+	_ease_room_glow(delta)
+
+
+## Room rework step 6: a room's grammar may lift the glow while you're in it
+## (RoomGrammar.glow_*); the area's environment eases toward it and back.
+const GLOW_EASE: float = 1.5      # per second
+var _glow_want: Vector3 = Vector3.INF
+var _tint_want: Color = Color(1, 1, 1, 0)
+func _ease_room_glow(delta: float) -> void:
+	if _env == null or _env.environment == null or recipe == null or recipe.atmosphere == null:
+		return
+	var cam: Camera3D = get_viewport().get_camera_3d()
+	if cam == null:
+		return
+	var p: AtmosphereProfile = recipe.atmosphere
+	var want := Vector3(p.glow_bloom, p.glow_intensity, p.glow_threshold)
+	var tint := Color(p.ambient_color, 0.0)
+	var plan_room: AreaPlan.Room = room_at(cam.global_position)
+	if plan_room == null:     # a doorway, or outside: keep easing to the last room's
+		want = _glow_want if _glow_want != Vector3.INF else want
+		tint = _tint_want
+	var room: GeneratedRoom = (rooms.get(plan_room.slot_id) if plan_room != null else null) as GeneratedRoom
+	if room != null and room.grammar != null:
+		var g: RoomGrammar = room.grammar
+		want = Vector3(g.glow_bloom if g.glow_bloom >= 0.0 else want.x, g.glow_intensity if g.glow_intensity >= 0.0 else want.y,
+				g.glow_threshold if g.glow_threshold >= 0.0 else want.z)
+		tint = g.mood_tint
+	elif plan_room != null:
+		tint = Color(1, 1, 1, 0)
+	_glow_want = want
+	_tint_want = tint
+	var env: Environment = _env.environment
+	var k: float = 1.0 - exp(-GLOW_EASE * delta)
+	env.glow_bloom = lerpf(env.glow_bloom, want.x, k)
+	env.glow_intensity = lerpf(env.glow_intensity, want.y, k)
+	env.glow_hdr_threshold = lerpf(env.glow_hdr_threshold, want.z, k)
+	var rgb := Color(tint.r, tint.g, tint.b)
+	env.ambient_light_color = env.ambient_light_color.lerp(p.ambient_color.lerp(rgb, tint.a), k)
+	env.volumetric_fog_albedo = env.volumetric_fog_albedo.lerp(p.fog_albedo.lerp(rgb, tint.a), k)
 
 
 ## The variants this world's save kept for area `id` (Q5); none when

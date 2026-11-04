@@ -56,6 +56,7 @@ static func plan(recipe: AreaRecipe, area_seed: int, keep: Dictionary = {}) -> A
 	if recipe.network != null:
 		AreaNetwork.plan(p, recipe.network)
 	_plain_backed_walls(p)
+	_gables_at_ring_doors(p)
 	var sight: Dictionary = p.compute_sight()
 	for v: String in sight["violations"]:
 		p.errors.append(v)
@@ -464,6 +465,24 @@ static func _plain_backed_walls(p: AreaPlan) -> void:
 				# case beside it) holds on a plain wall too.
 				if r.grid.pins.get("edge_" + k, "") != "nothing":
 					r.grid.pins.erase("edge_" + k)
+
+
+## A light-well's doorway is a plain arched wall the height of a storey and it
+## builds no gables, so a room it opens into closes its own vault over that
+## doorway (room rework step 6: the Upper Stacks' vault end stood open onto
+## the cone's outside). RoomBuilder places a gable on a door edge marked so.
+static func _gables_at_ring_doors(p: AreaPlan) -> void:
+	for r: AreaPlan.Room in p.rooms:
+		if r.grid == null:
+			continue
+		for k: String in r.grid.edges:
+			var e: Dictionary = r.grid.edges[k]
+			if e["mark"] != CellGrid.Mark.DOOR or not e["host"]:
+				continue
+			var behind: Vector3i = AreaPlan.cell_of(r.xf * _centre(CellGrid.neighbour(e["cell"], e["side"])))
+			for o: AreaPlan.Room in p.rooms:
+				if o != r and o.grid != null and o.cells.has(behind) and bool(o.grid.meta.get("ring", false)):
+					e["gable"] = true
 
 
 ## Every edge between two of a scene room's floor cells is open to sight (its

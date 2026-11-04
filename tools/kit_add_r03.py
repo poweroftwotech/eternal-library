@@ -592,9 +592,13 @@ CONE_RISERS = 20      # steps per storey (0.2 m each)
 CONE_RT = 2.5         # the oculus's radius
 CONE_LEDGE = 0.8      # the stone ledge's reach into the shaft
 CONE_PARAPET = 0.85
-CONE_COL_R = 0.17
+CONE_COL_R = 0.11       # rev 6 chunks / rev 14 caps (your walk of step 6): columns stand on the parapet
+CONE_PAR_W = 0.36       # the parapet's thickness (0.2 before): the columns' bases fit on it
 CONE_BAY = 4.8        # stair length between columns
 NICHE_D = 0.55        # niche depth (the socket sits 0.25 in front of its back)
+SUN_FLOOR = 3.6     # the sun's pool across the floor, about (rev 8 caps: 4 m before; 7 m at rev 9-10, too wide on your walk; rev 11 4.8); rev 15: 3.6, three quarters (your walk)
+SUN_GOLD = [1.0, 0.97, 0.78]       # a green-gold daylight after your reference (rev 12), whiter at rev 13 (your note)
+LEAF_FILL = [0.86, 0.94, 0.76]     # its bounce off the garden
 TURN = 1.5 * math.pi  # angle per storey
 CONE_SIZES = ((12.0, (3, 4, 5)), (10.0, (3, 4)))   # floor radius, level counts
 EPS = 0.0015          # half the width of a riser in a sweep (radians)
@@ -762,10 +766,13 @@ def tangent_prism(bm, outline, t, r_back, v0, v1, z0):
         bm.faces.new((a[i], a[j], b[j], b[i]))
 
 
-def stair_edge(r, root, a, b, tag, parapet_from=0.0):
+def stair_edge(r, root, a, b, tag, parapet_from=0.0, newel=False):
     """The ledge, the parapet (where the tread is at least parapet_from up),
     the columns (at the bays' ends between a and b) and the collision ramp of
-    a storey with radius r, between angles a and b."""
+    a storey with radius r, between angles a and b. Your walk of step 6: the
+    columns stood half on the walk and half in the parapet and caught you; now
+    they stand on a thicker parapet, whose smooth inner face is the walk's
+    edge, and `newel` puts a post where the parapet starts."""
     phis = c_samples(r, a, b)
     bm = bmesh.new()
     sweep(bm, phis, lambda p: [(c_face(r, c_tread(r, p)) - CONE_LEDGE, c_tread(r, p) - 0.25),
@@ -777,17 +784,19 @@ def stair_edge(r, root, a, b, tag, parapet_from=0.0):
     if len(pa) > 1:
         bm = bmesh.new()
         sweep(bm, pa, lambda p: [(c_face(r, c_tread(r, p)) - CONE_LEDGE, c_tread(r, p)),
-                                 (c_face(r, c_tread(r, p)) - CONE_LEDGE + 0.2, c_tread(r, p)),
-                                 (c_face(r, c_tread(r, p)) - CONE_LEDGE + 0.2, c_tread(r, p) + CONE_PARAPET),
+                                 (c_face(r, c_tread(r, p)) - CONE_LEDGE + CONE_PAR_W, c_tread(r, p)),
+                                 (c_face(r, c_tread(r, p)) - CONE_LEDGE + CONE_PAR_W, c_tread(r, p) + CONE_PARAPET),
                                  (c_face(r, c_tread(r, p)) - CONE_LEDGE, c_tread(r, p) + CONE_PARAPET)])
         mesh_object("cone_%s__parapet" % tag, bm, ["arch_stone"], root)
-        # The walk's inner edge, smooth, 0.22 inside the wall's face: you slide
-        # along it instead of catching on the parapet and the columns' bases.
+        # The walk's inner edge: the parapet's whole footprint, smooth (the
+        # parapet itself jogs at each riser), up past the columns: you slide
+        # along it, and there is no strip of ledge outside it to get onto.
+        g = CONE_LEDGE - CONE_PAR_W
         bm = bmesh.new()
-        sweep(bm, c_even(pa[0], pa[-1]), lambda p: [(c_edge(r, p) - 0.32, c_line(r, p) - 0.3),
-                                                    (c_edge(r, p) - 0.22, c_line(r, p) - 0.3),
-                                                    (c_edge(r, p) - 0.22, c_line(r, p) + 2.3),
-                                                    (c_edge(r, p) - 0.32, c_line(r, p) + 2.3)])
+        sweep(bm, c_even(pa[0], pa[-1]), lambda p: [(c_edge(r, p) - CONE_LEDGE, c_line(r, p) - 0.3),
+                                                    (c_edge(r, p) - g, c_line(r, p) - 0.3),
+                                                    (c_edge(r, p) - g, c_line(r, p) + 2.3),
+                                                    (c_edge(r, p) - CONE_LEDGE, c_line(r, p) + 2.3)])
         mesh_object("cone_%s__guide-colonly" % tag, bm, ["arch_stone"], root)
     # Columns at the bays' ends, each on the middle of its step.
     s0, s1 = c_span(r)
@@ -803,10 +812,18 @@ def stair_edge(r, root, a, b, tag, parapet_from=0.0):
                 t = min(max((rs[k] + rs[k + 1]) / 2, a + 0.01), b - 0.01)
                 break
         z = c_tread(r, t)
-        x, y = polar(c_face(r, z) - 0.55, t)
-        add_lathe(bm, [(CONE_COL_R + 0.08, z - 0.05), (CONE_COL_R + 0.08, z + 0.22), (CONE_COL_R, z + 0.3),
-                       (CONE_COL_R, z + CONE_HEAD - 0.34), (CONE_COL_R + 0.12, z + CONE_HEAD - 0.24),
-                       (CONE_COL_R + 0.12, z + CONE_HEAD + 0.05)], x, y, segs=12)
+        if z < parapet_from:
+            continue
+        x, y = polar(c_face(r, z) - CONE_LEDGE + CONE_PAR_W / 2, t)     # on the parapet's middle
+        zp = z + CONE_PARAPET
+        add_lathe(bm, [(CONE_COL_R + 0.05, zp - 0.02), (CONE_COL_R + 0.05, zp + 0.12), (CONE_COL_R, zp + 0.18),
+                       (CONE_COL_R, z + CONE_HEAD - 0.3), (CONE_COL_R + 0.06, z + CONE_HEAD - 0.2),
+                       (CONE_COL_R + 0.06, z + CONE_HEAD + 0.05)], x, y, segs=12)
+    if newel and len(pa) > 1:     # a post where the parapet starts
+        t = pa[0] + 0.12 / r
+        z = c_tread(r, pa[0])
+        x, y = polar(c_face(r, z) - CONE_LEDGE + CONE_PAR_W / 2, t)
+        add_lathe(bm, [(0.2, z - 0.02), (0.2, z + 1.0), (0.24, z + 1.06), (0.24, z + 1.14), (0.12, z + 1.24), (0.0, z + 1.3)], x, y, segs=12)
     if bm.verts:
         mesh_object("cone_%s__columns" % tag, bm, ["arch_stone"], root)
     else:
@@ -827,6 +844,65 @@ def door_cutter(bm, r):
     tangent_prism(bm, arch_outline(2.2, 1.9), 0.0, c_face(r, 0.0) + CONE_DEPTH, -0.3, CONE_W - CONE_DEPTH + 0.8, -0.05)
 
 
+# Rev 7 chunks (your walk of step 6): the tall arched niches cut up through
+# the stair's ceiling (2.6 m over the tread) and sat level in a sloping wall.
+# Now, on the reading storeys (floor radius 12 and 10, the bottom two), a
+# bookcase let into the back wall on every full tread, level on its tread, so
+# the cases step up with the stair; higher up, small arched taghcheh at varied
+# heights (one, two or none a tread). Each holds a socket at its back, facing
+# the shaft (Blender +Y): cone_bookcase or cone_cubby.
+READING_R = (12.0, 10.5, 10.0, 8.5)
+CASE_W, CASE_H, CASE_D, CASE_SILL = 1.6, 2.0, 0.45, 0.22
+CUBBY_D = 0.4
+
+
+def stair_wall_slots(r, root, tag, cutters, exit_door, glass=None):
+    reading = any(abs(r - x) < 1e-6 for x in READING_R)
+    s0, s1 = c_span(r)
+    rs = [s0] + c_risers(r) + [s1]
+    spots = [(k, (rs[k] + rs[k + 1]) / 2) for k in range(1, len(rs) - 2)]
+    if not exit_door:
+        spots = [(0, 0.0)] + spots     # the landing's back wall
+    n = 0
+    for (k, t) in spots:
+        z = c_tread(r, t)
+        rb = c_edge(r, t) + CONE_DEPTH
+        if reading:
+            # Chunks rev 10 (the route gate): where the case spans a riser (the
+            # small cone's tight second storey) it sits clear of the higher step.
+            hw = (CASE_W / 2 + 0.15) / rb
+            top = max(c_tread(r, t - hw), c_tread(r, t + hw))
+            slots = [(0.0, [(0.0, 0.0), (0.0, CASE_H), (CASE_W, CASE_H), (CASE_W, 0.0)], CASE_D, max(z + CASE_SILL, top + 0.16), "cone_bookcase")]
+        elif k % 3 == 0:
+            slots = [(s * 0.42, arch_outline(0.6, 0.55), CUBBY_D, z + 1.05, "cone_cubby") for s in (-1, 1)]
+        elif k % 3 == 1:
+            slots = [(0.0, arch_outline(0.8, 0.7), CUBBY_D, z + 0.8, "cone_cubby")]
+        else:
+            slots = []
+        for (off, outline, depth, sill, kind) in slots:
+            tt = t + off / rb
+            tangent_prism(cutters, outline, tt, rb, -0.3, depth, sill)
+            if kind == "cone_cubby" and glass is not None:
+                orosi_pane(glass, outline, tt, rb + depth - 0.006, sill)
+            o = marker("SOCKET_%s__%s_%d" % (kind, tag, n), root, (*polar(rb + depth, tt), sill), {"socket_set": kind})
+            o.rotation_euler = (0.0, 0.0, tt)
+            n += 1
+
+
+def orosi_pane(bm, outline, t, r_back, z0):
+    """Coloured glass (emit_orosi) filling a taghcheh's arch at radius r_back,
+    its UVs the outline's box (your walk of step 6: orosi backs that glow)."""
+    w = max(u for (u, _v) in outline)
+    h = max(v for (_u, v) in outline)
+    uv = bm.loops.layers.uv.verify()
+    o = (math.sin(t), -math.cos(t))
+    tg = (math.cos(t), math.sin(t))
+    vs = [bm.verts.new((o[0] * r_back + tg[0] * (u - w / 2), o[1] * r_back + tg[1] * (u - w / 2), z0 + zz)) for (u, zz) in outline]
+    f = bm.faces.new(vs)
+    for loop, (u, zz) in zip(f.loops, outline):
+        loop[uv].uv = (u / w, zz / h)
+
+
 def cone_chunk(r, exit_door):
     """One storey: the wall from its treads to the treads one turn above, from
     its landing to the next storey's, with the cut, niches and stair edge."""
@@ -838,27 +914,17 @@ def cone_chunk(r, exit_door):
         sweep(bm, c_samples(r, a, b, (0.0, 2 * math.pi)), groove_section(r, lambda p: c_tread(r, p + 2 * math.pi)))
         body = mesh_object("cone_%s__wall-col" % tag, bm, ["brick"], root)
         cutters = bmesh.new()
-        # Niches between the columns: the climb's bays, and the landing's if no door.
-        s0, s1 = c_span(r)
-        nb = c_bays(r)
-        mids = [s0 + (s1 - s0) * (i + 0.5) / nb for i in range(nb)]
-        if not exit_door:
-            mids = [0.0] + mids
-        for i, t in enumerate(mids):
-            rb = c_edge(r, t) + CONE_DEPTH
-            reach = 1.6 / rb
-            sill = max(c_tread(r, t + d * reach / 4) for d in range(-4, 5)) + 0.15
-            tangent_prism(cutters, arch_outline(3.0, 1.9), t, rb, -0.3, NICHE_D, sill)
-            o = marker("SOCKET_cone_niche__%s_%d" % (tag, i), root, (*polar(rb + NICHE_D - 0.25, t), sill),
-                       {"socket_set": "cone_niche"})
-            o.rotation_euler = (0.0, 0.0, t)
+        glass = bmesh.new()
+        stair_wall_slots(r, root, tag, cutters, exit_door, glass)
         if exit_door:
             door_cutter(cutters, r)
         cutter = mesh_object("cutter", cutters, ["brick"], root)
         cut(body, cutter)
+        if glass.faces:
+            mesh_object("cone_%s__orosi" % tag, glass, ["emit_orosi_soft"], root, recalc=False)   # half the Gorge window glow
         # Storey 0 starts on the floor: no ledge or parapet on its landing.
         floor = any(abs(r - s) < 1e-6 for (s, _l) in CONE_SIZES)
-        stair_edge(r, root, c_hb(r) if floor else a, b, tag, 0.6 if floor else 0.0)
+        stair_edge(r, root, c_hb(r) if floor else a, b, tag, 0.0, newel=floor)     # rev 6: the parapet from the stair's foot (your walk)
     return build
 
 
@@ -883,16 +949,16 @@ def cone_cap(R0, L):
         vs = [sky.verts.new((*polar(CONE_RT + 0.1, 2 * math.pi * i / 32), z_oc + 0.02)) for i in range(32)]
         sky.faces.new(list(reversed(vs)))
         mesh_object("cone_%s__sky" % tag, sky, ["emit_glass_cool"], root, recalc=False)
-        marker("LIGHT_cold__oculus", root, (0.0, 0.0, z_oc - 0.6))
+        marker("LIGHT_cold__oculus", root, (0.0, 0.0, z_oc - 0.6), {"color": [0.93, 0.98, 0.84]})
         # Sunlight down the shaft (your review): a spot far over the oculus, its
         # beam the oculus's width at the top and ~4 m across on the floor, seen in
         # a column of haze; a fill halfway down for the light it bounces.
         total = STOREY * (L - 1) + z_oc
-        lift = (CONE_RT - 0.2) * total / (4.0 - CONE_RT + 0.2)
+        lift = (CONE_RT - 0.2) * total / (SUN_FLOOR - CONE_RT + 0.2)
         marker("LIGHT_shaft__oculus", root, (0.0, 0.0, z_oc + lift),
-               {"range": total + lift + 2.0, "spot_angle": math.degrees(math.atan((4.0 - CONE_RT + 0.2) / total))})
-        marker("FOG_haze__shaft", root, (0.0, 0.0, z_oc - total / 2.0), {"fog_size": [6.5, 6.5, total], "density": 0.05})
-        marker("LIGHT_bounce__mid", root, (0.0, 0.0, z_oc - total / 2.0), {"range": 12.0})
+               {"range": total + lift + 2.0, "spot_angle": math.degrees(math.atan((SUN_FLOOR - CONE_RT + 0.2) / total)), "energy": 40.0, "color": SUN_GOLD})     # rev 9: much brighter, a sunlit floor (room rework step 6)
+        marker("FOG_haze__shaft", root, (0.0, 0.0, z_oc - total / 2.0), {"fog_size": [3.45, 3.45, total], "density": 0.035, "albedo": [0.95, 0.97, 0.85], "emission": [0.66, 0.68, 0.45], "emission_energy": 0.04})     # rev 11: narrower; rev 12 green-gold (your walk); rev 15: 75% (your walk)
+        marker("LIGHT_bounce__mid", root, (0.0, 0.0, z_oc - total / 2.0), {"range": 12.0, "energy": 0.3, "color": LEAF_FILL})     # rev 7: less fill, more contrast
     return build
 
 
@@ -916,7 +982,7 @@ def cone_base(R0):
         vs = [bm.verts.new((*polar(1.62, 2 * math.pi * i / 24), 0.3)) for i in range(24)]
         bm.faces.new(list(reversed(vs)))
         mesh_object("cone_%s__water" % tag, bm, ["cistern_water"], root, recalc=False)
-        marker("LIGHT_bounce__floor", root, (0.0, 0.0, 2.5), {"range": R0 + 4.0})     # the sunlit floor's bounce
+        marker("LIGHT_bounce__floor", root, (0.0, 0.0, 2.5), {"range": R0 + 4.0, "color": LEAF_FILL})     # the sunlit floor's bounce (rev 8: green-gold)
     return build
 
 
@@ -943,7 +1009,8 @@ def cone_lantern(root):
     add_box(bm, -0.02, 0.02, -0.02, 0.02, 2.5, CONE_HEAD + 0.05)
     mesh_object("cone_lantern__body", bm, ["brass"], root)
     mesh_object("cone_lantern__glass", glass, ["emit_lantern"], root)
-    marker("LIGHT_lantern__cone", root, (0.0, 0.0, 2.25))
+    # Rev 3 (room rework step 6): dimmer, so the daylight down the shaft leads.
+    marker("LIGHT_lantern__cone", root, (0.0, 0.0, 2.25), {"energy": 0.6, "range": 5.0})
     marker("SOCKET_lamp_state__cone", root, (0.0, 0.0, 2.25), LAMP_SOCKET)
 
 
@@ -1037,9 +1104,9 @@ MODULES = [
 # hand edits to them are lost, so only list ones nobody has changed in Blender.
 REBUILD = [("M_post_column_twisted", 3), ("M_dome_cell_4m_b", 2),
            ("M_basin_cell_4m", 2), ("M_basin_cell_4m_deep", 2), ("M_causeway_cell_4m", 3),   # rev 2: the cistern's own water; causeway rev 3: gentler sides
-           ("M_cone_lantern", 2),   # rev 2: the lantern over the head
+           ("M_cone_lantern", 3),   # rev 2: the lantern over the head; rev 3: dimmer (room rework step 6)
            ("M_wall_vault_door_4m", 2)] + [   # rev 2: glowing vines, no lanterns (room rework step 5)
-    (n, 7 if n.startswith("M_cone_base") else 6 if n.startswith("M_cone_cap") else 5) for (n, _p, _b) in cone_modules() if n.startswith(("M_cone_c", "M_cone_cap", "M_cone_base"))]   # rev 2: smooth collision, the light shaft; rev 3: the floor's ramp; rev 4: smooth walk edges, softer bounce; rev 5: even collision sweeps; rev 6: the fills between; rev 7: the floor fill reaches the first turn
+    (n, 9 if n.startswith("M_cone_base") else 15 if n.startswith("M_cone_cap") else 10) for (n, _p, _b) in cone_modules() if n.startswith(("M_cone_c", "M_cone_cap", "M_cone_base"))]   # rev 2: smooth collision, the light shaft; rev 3: the floor's ramp; rev 4: smooth walk edges, softer bounce; rev 5: even collision sweeps; rev 6: the fills between; rev 7: the floor fill reaches the first turn; chunks rev 6 / caps rev 14: columns on a thicker parapet, its footprint the walk edge (your walk); chunks rev 7: stepped bookcases and taghcheh in place of the tall niches; chunks rev 8 / caps rev 15: orosi glass backs, a narrower beam; chunks rev 9: softer glass; chunks rev 10: cases clear of the step above
 
 
 def main():

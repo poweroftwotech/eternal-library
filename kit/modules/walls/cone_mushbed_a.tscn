@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ag4m5"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/cone_mushbed_a.glb" id="2_pw634"]
+
+[node name="cone_mushbed_a" type="Node3D" unique_id=1657639556]
+script = ExtResource("1_ag4m5")
+family = "walls"
+tags = PackedStringArray("plant", "fungus", "light", "lightwell")
+source_glb = "res://assets/kit/walls/cone_mushbed_a.glb"
+
+[node name="Mesh" parent="." unique_id=1239303794 instance=ExtResource("2_pw634")]

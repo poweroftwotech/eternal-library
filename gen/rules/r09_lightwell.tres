@@ -28,6 +28,17 @@
 [ext_resource type="PackedScene" path="res://kit/modules/walls/post_pier.tscn" id="26_ya6bh"]
 [ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="27_e4ab1"]
 [ext_resource type="Script" path="res://scripts/gen/module_rules.gd" id="28_uipif"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cone_garden100.tscn" id="rw6_garden100"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cone_garden120.tscn" id="rw6_garden120"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cone_vine_a.tscn" id="rw6_vine_a"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cone_vine_b.tscn" id="rw6_vine_b"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cone_vines_oculus.tscn" id="rw6_vines_oc"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cone_mushbed_a.tscn" id="rw6b_mush_a"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cone_mushbed_b.tscn" id="rw6b_mush_b"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cone_nook.tscn" id="rw6b_nook"]
+[ext_resource type="PackedScene" path="res://kit/modules/fx/cone_drips.tscn" id="rw6b_drips"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cone_glowvines.tscn" id="rw6b_glowvines"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cone_rail_planter.tscn" id="rw6c_railp"]
 
 [sub_resource type="Resource" id="Resource_lqkxk"]
 script = ExtResource("2_j3tr6")
@@ -279,6 +290,116 @@ slot = "stub:exit"
 styles = PackedStringArray()
 choices = Array[ExtResource("2_j3tr6")]([SubResource("Resource_b55s2")])
 
+[sub_resource type="Resource" id="Choice_rw6_garden100"]
+script = ExtResource("2_j3tr6")
+scene = ExtResource("rw6_garden100")
+
+[sub_resource type="Resource" id="Rule_rw6_garden100"]
+script = ExtResource("1_710bf")
+slot = "cone:garden100"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_j3tr6")]([SubResource("Choice_rw6_garden100")])
+
+[sub_resource type="Resource" id="Choice_rw6_garden120"]
+script = ExtResource("2_j3tr6")
+scene = ExtResource("rw6_garden120")
+
+[sub_resource type="Resource" id="Rule_rw6_garden120"]
+script = ExtResource("1_710bf")
+slot = "cone:garden120"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_j3tr6")]([SubResource("Choice_rw6_garden120")])
+
+[sub_resource type="Resource" id="Choice_rw6_vine_a"]
+script = ExtResource("2_j3tr6")
+scene = ExtResource("rw6_vine_a")
+
+[sub_resource type="Resource" id="Rule_rw6_vine_a"]
+script = ExtResource("1_710bf")
+slot = "cone:vine_a"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_j3tr6")]([SubResource("Choice_rw6_vine_a")])
+
+[sub_resource type="Resource" id="Choice_rw6_vine_b"]
+script = ExtResource("2_j3tr6")
+scene = ExtResource("rw6_vine_b")
+
+[sub_resource type="Resource" id="Rule_rw6_vine_b"]
+script = ExtResource("1_710bf")
+slot = "cone:vine_b"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_j3tr6")]([SubResource("Choice_rw6_vine_b")])
+
+[sub_resource type="Resource" id="Choice_rw6_vines_oc"]
+script = ExtResource("2_j3tr6")
+scene = ExtResource("rw6_vines_oc")
+
+[sub_resource type="Resource" id="Rule_rw6_vines_oc"]
+script = ExtResource("1_710bf")
+slot = "cone:vines_oculus"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_j3tr6")]([SubResource("Choice_rw6_vines_oc")])
+
+[sub_resource type="Resource" id="Choice_rw6b_mush_a"]
+script = ExtResource("2_j3tr6")
+scene = ExtResource("rw6b_mush_a")
+
+[sub_resource type="Resource" id="Rule_rw6b_mush_a"]
+script = ExtResource("1_710bf")
+slot = "cone:mushbed_a"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_j3tr6")]([SubResource("Choice_rw6b_mush_a")])
+
+[sub_resource type="Resource" id="Choice_rw6b_mush_b"]
+script = ExtResource("2_j3tr6")
+scene = ExtResource("rw6b_mush_b")
+
+[sub_resource type="Resource" id="Rule_rw6b_mush_b"]
+script = ExtResource("1_710bf")
+slot = "cone:mushbed_b"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_j3tr6")]([SubResource("Choice_rw6b_mush_b")])
+
+[sub_resource type="Resource" id="Choice_rw6b_nook"]
+script = ExtResource("2_j3tr6")
+scene = ExtResource("rw6b_nook")
+
+[sub_resource type="Resource" id="Rule_rw6b_nook"]
+script = ExtResource("1_710bf")
+slot = "cone:nook"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_j3tr6")]([SubResource("Choice_rw6b_nook")])
+
+[sub_resource type="Resource" id="Choice_rw6b_drips"]
+script = ExtResource("2_j3tr6")
+scene = ExtResource("rw6b_drips")
+
+[sub_resource type="Resource" id="Rule_rw6b_drips"]
+script = ExtResource("1_710bf")
+slot = "cone:drips"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_j3tr6")]([SubResource("Choice_rw6b_drips")])
+
+[sub_resource type="Resource" id="Choice_rw6b_glowvines"]
+script = ExtResource("2_j3tr6")
+scene = ExtResource("rw6b_glowvines")
+
+[sub_resource type="Resource" id="Rule_rw6b_glowvines"]
+script = ExtResource("1_710bf")
+slot = "cone:glowvines"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_j3tr6")]([SubResource("Choice_rw6b_glowvines")])
+
+[sub_resource type="Resource" id="Choice_rw6c_railp"]
+script = ExtResource("2_j3tr6")
+scene = ExtResource("rw6c_railp")
+
+[sub_resource type="Resource" id="Rule_rw6c_railp"]
+script = ExtResource("1_710bf")
+slot = "cone:rail_planter"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_j3tr6")]([SubResource("Choice_rw6c_railp")])
+
 [resource]
 script = ExtResource("28_uipif")
-rules = Array[ExtResource("1_710bf")]([SubResource("Resource_prveo"), SubResource("Resource_j35v5"), SubResource("Resource_5pxgq"), SubResource("Resource_xjjr0"), SubResource("Resource_i62cc"), SubResource("Resource_ms777"), SubResource("Resource_c6d31"), SubResource("Resource_jeyru"), SubResource("Resource_ijr0k"), SubResource("Resource_3ii3k"), SubResource("Resource_aq3gj"), SubResource("Resource_bbn6d"), SubResource("Resource_ifblb"), SubResource("Resource_gnht1"), SubResource("Resource_ccq07"), SubResource("Resource_re34i"), SubResource("Resource_a6m1a"), SubResource("Resource_taa3i"), SubResource("Resource_3hb0y"), SubResource("Resource_3grsw"), SubResource("Resource_h1thi"), SubResource("Resource_buted"), SubResource("Resource_3f23d"), SubResource("Resource_6c1yy"), SubResource("Resource_fw0nt")])
+rules = Array[ExtResource("1_710bf")]([SubResource("Resource_prveo"), SubResource("Resource_j35v5"), SubResource("Resource_5pxgq"), SubResource("Resource_xjjr0"), SubResource("Resource_i62cc"), SubResource("Resource_ms777"), SubResource("Resource_c6d31"), SubResource("Resource_jeyru"), SubResource("Resource_ijr0k"), SubResource("Resource_3ii3k"), SubResource("Resource_aq3gj"), SubResource("Resource_bbn6d"), SubResource("Resource_ifblb"), SubResource("Resource_gnht1"), SubResource("Resource_ccq07"), SubResource("Resource_re34i"), SubResource("Resource_a6m1a"), SubResource("Resource_taa3i"), SubResource("Resource_3hb0y"), SubResource("Resource_3grsw"), SubResource("Resource_h1thi"), SubResource("Resource_buted"), SubResource("Resource_3f23d"), SubResource("Resource_6c1yy"), SubResource("Resource_fw0nt"), SubResource("Rule_rw6_garden100"), SubResource("Rule_rw6_garden120"), SubResource("Rule_rw6_vine_a"), SubResource("Rule_rw6_vine_b"), SubResource("Rule_rw6_vines_oc"), SubResource("Rule_rw6b_mush_a"), SubResource("Rule_rw6b_mush_b"), SubResource("Rule_rw6b_nook"), SubResource("Rule_rw6b_drips"), SubResource("Rule_rw6b_glowvines"), SubResource("Rule_rw6c_railp")])

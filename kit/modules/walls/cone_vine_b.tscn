@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_8ceos"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/cone_vine_b.glb" id="2_vdl5w"]
+
+[node name="cone_vine_b" type="Node3D" unique_id=1161100249]
+script = ExtResource("1_8ceos")
+family = "walls"
+tags = PackedStringArray("plant", "vine", "lightwell")
+source_glb = "res://assets/kit/walls/cone_vine_b.glb"
+
+[node name="Mesh" parent="." unique_id=507018056 instance=ExtResource("2_vdl5w")]

@@ -186,6 +186,9 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 				omni.omni_attenuation = profile["attenuation"]
 				light = omni
 			light.light_color = profile["color"]
+			if extras.get("color") is Array:     # a marker's own tint [r, g, b] (the light-well's green-gold, room rework step 6)
+				var c: Array = extras["color"]
+				light.light_color = Color(float(c[0]), float(c[1]), float(c[2]))
 			light.light_energy = float(extras.get("energy", profile["energy"]))
 			if profile.has("fog"):
 				light.light_volumetric_fog_energy = profile["fog"]
@@ -241,6 +244,12 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 			var fm := FogMaterial.new()
 			fm.density = float(extras.get("density", 0.04))
 			fm.albedo = Color(0.9, 0.92, 0.95)
+			if extras.get("albedo") is Array:     # optional tint [r, g, b] and glow [r, g, b] (+ emission_energy)
+				var a: Array = extras["albedo"]
+				fm.albedo = Color(float(a[0]), float(a[1]), float(a[2]))
+			if extras.get("emission") is Array:
+				var e: Array = extras["emission"]
+				fm.emission = Color(float(e[0]), float(e[1]), float(e[2])) * float(extras.get("emission_energy", 1.0))
 			fog.material = fm
 			replacement = fog
 		_:

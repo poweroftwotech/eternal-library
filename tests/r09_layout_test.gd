@@ -11,10 +11,11 @@ extends SceneTree
 ## for every level but the top (with a doorway where a door is, and on the
 ## floor), the cap for this size and height, each turned 0.75 turns a storey
 ## and 4 m up; a passage from every doorway out to the square's edge, never
-## past it; the upper storeys' niches pinned plain; rooms grown off an exit
+## past it; no niche pins (rev 3); rooms grown off an exit
 ## stand on that exit's storey; the same seed gives the same layout. Every
-## rule's module is in the kit, and each storey piece carries a niche socket
-## of the cone_niche set (with its "plain" entry).
+## rule's module is in the kit. Room rework step 6: the stair wall's slots are
+## bookcases (cone_bookcase sockets) on the two reading storeys and taghcheh
+## (cone_cubby, with orosi glass) above, in place of the cone_niche niches.
 
 const RECIPE: String = "res://gen/recipes/lower_stacks.tres"
 const GRAMMAR: String = "res://gen/grammars/r09_lightwell.tres"
@@ -38,11 +39,14 @@ func run() -> void:
 	grammar = load(GRAMMAR)
 	var rules: ModuleRules = grammar.rules
 	check(rules.check().is_empty(), "the light-well's module rules check clean (%s)" % [rules.check()])
-	var chunk: Node = (load("res://kit/modules/walls/cone_c105_closed.tscn") as PackedScene).instantiate()
-	var niches: Array[Node] = chunk.find_children("*", "VariantSocket", true, false)
-	check(not niches.is_empty() and niches.all(func(s: Node) -> bool: return (s as VariantSocket).socket_set != null and (s as VariantSocket).socket_set.index_of("plain") >= 0),
-		"a storey piece's niches are cone_niche sockets with a plain entry (%d)" % niches.size())
-	chunk.free()
+	for want: Array in [["cone_c105_closed", "cone_bookcase"], ["cone_c85_exit", "cone_bookcase"], ["cone_c75_closed", "cone_cubby"], ["cone_c70_exit", "cone_cubby"]]:
+		var chunk: Node = (load("res://kit/modules/walls/%s.tscn" % want[0]) as PackedScene).instantiate()
+		var slots: Array[Node] = chunk.find_children("*", "VariantSocket", true, false)
+		check(slots.size() >= 3 and slots.all(func(s: Node) -> bool: return (s as VariantSocket).socket_set != null and (s as VariantSocket).socket_set.resource_path.get_file().get_basename() == want[1]),
+			"%s's stair-wall slots are %s sockets (%d)" % [want[0], want[1], slots.size()])
+		if want[1] == "cone_cubby":
+			check(not chunk.find_children("*__orosi*", "", true, false).is_empty(), "%s's taghcheh have their orosi glass" % want[0])
+		chunk.free()
 	var recipe: AreaRecipe = load(RECIPE)
 	var found: int = 0
 	var seen: Dictionary = {}
@@ -115,7 +119,7 @@ func audit(tag: String, g: CellGrid, seen: Dictionary) -> void:
 		var want := Transform3D(Basis(Vector3.UP, RingGrammar.TURN * j), centre + Vector3(0, j * RingGrammar.STOREY, 0))
 		check(not pr.is_empty() and str(pr["slot"]) == "cone:c%d_%s" % [roundi((r0 - 1.5 * j) * 10), kind] and (pr["xf"] as Transform3D).is_equal_approx(want),
 			"%s: storey %d's piece (%s), turned and raised" % [tag, j, pr.get("slot", "none")])
-		check((j >= grammar.shelf_levels) == (str(g.pins.get("prop_cone_c_%d" % j, "")) == "plain"), "%s: storey %d's niches %s" % [tag, j, "plain" if j >= grammar.shelf_levels else "rolled"])
+		check(not g.pins.has("prop_cone_c_%d" % j), "%s: storey %d's wall slots roll freely (no pin)" % [tag, j])
 		check(rules_has(str(pr.get("slot", ""))), "%s: a module for %s" % [tag, pr.get("slot", "")])
 	var cap: Dictionary = g.props.get("cone_cap", {})
 	check(str(cap.get("slot", "")) == "cone:cap%d_%d" % [r10, levels] and rules_has(str(cap.get("slot", ""))), "%s: the cap for %d levels (%s)" % [tag, levels, cap.get("slot", "none")])

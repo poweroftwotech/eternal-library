@@ -1,0 +1,18 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/orosi_glass.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/persian_orosi_earth.png" id="2_glass"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/persian_orosi_normal.png" id="3_normal"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/persian_orosi_rough.png" id="4_rough"]
+
+[resource]
+resource_name = "emit_orosi_soft"
+shader = ExtResource("1_shader")
+shader_parameter/glass_tex = ExtResource("2_glass")
+shader_parameter/normal_tex = ExtResource("3_normal")
+shader_parameter/rough_tex = ExtResource("4_rough")
+shader_parameter/brightness = 0.14
+shader_parameter/gloss_roughness = 0.04
+shader_parameter/shine = 1.0
+shader_parameter/bump = 2.0
+shader_parameter/light_pickup = 0.3

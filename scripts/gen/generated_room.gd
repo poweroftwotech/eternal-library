@@ -193,6 +193,7 @@ func _finish_build(s: int, styles: Dictionary, resolve: bool) -> void:
 	_pin_from_grid()
 	_add_safety_floor()
 	_add_floor_wear()
+	_wet_shell()
 	style_overrides = styles.duplicate()
 	if resolve:
 		resolve_sockets(s)
@@ -575,3 +576,34 @@ func _draw_overlay() -> void:
 	lines.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF
 	_overlay_node.add_child(lines)
 	add_child(_overlay_node, false, Node.INTERNAL_MODE_BACK)    # internal: never saved
+
+
+## Damp copies of the kit's world material, one per (material, wetness).
+static var _wet_copies: Dictionary = {}
+const PX_WORLD_SHADER: String = "res://shaders/kit_px_world.gdshader"
+
+
+## Room rework step 6: a damp room's shell (grammar.wetness > 0) uses wet
+## copies of its kit_px_world materials (darker, glossy runs; the shader's
+## wetness), set as surface overrides so the shared materials stay dry.
+func _wet_shell() -> void:
+	if grammar == null or grammar.wetness <= 0.0:
+		return
+	var shell: Node = get_node_or_null("Shell")
+	if shell == null:
+		return
+	for mi: Node in shell.find_children("*", "MeshInstance3D", true, false):
+		var m: MeshInstance3D = mi as MeshInstance3D
+		if m.mesh == null:
+			continue
+		for s: int in m.mesh.get_surface_count():
+			var mat: ShaderMaterial = m.get_active_material(s) as ShaderMaterial
+			if mat == null or mat.shader == null or mat.shader.resource_path != PX_WORLD_SHADER:
+				continue
+			var key: String = "%s|%.2f" % [mat.resource_path if mat.resource_path != "" else str(mat.get_instance_id()), grammar.wetness]
+			var wet: ShaderMaterial = _wet_copies.get(key)
+			if wet == null:
+				wet = mat.duplicate() as ShaderMaterial
+				wet.set_shader_parameter("wetness", grammar.wetness)
+				_wet_copies[key] = wet
+			m.set_surface_override_material(s, wet)

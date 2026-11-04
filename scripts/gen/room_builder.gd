@@ -71,7 +71,7 @@ static func plan(shell: Node3D, grid: CellGrid, rules: ModuleRules, styles: Pack
 		var ends: Array[int] = CellGrid.ALL_SIDES if grid.cells[c]["kind"] == "corner" else CellGrid.run_ends(grid.cells[c]["run"])
 		for side: int in ends:
 			var e: Dictionary = grid.edge(c, side)
-			if e.is_empty() or e["mark"] == CellGrid.Mark.OPEN or (e["mark"] == CellGrid.Mark.DOOR and e["host"]):
+			if e.is_empty() or e["mark"] == CellGrid.Mark.OPEN or (e["mark"] == CellGrid.Mark.DOOR and e["host"] and not e.get("gable", false)):
 				continue
 			var k: String = CellGrid.key(c, side)
 			_place(out, shell, rules, styles, seed_value, "gable", k, "gable_" + k, CellGrid.edge_transform(c, side))

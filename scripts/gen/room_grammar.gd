@@ -220,3 +220,34 @@ static func _dir(a: Vector3i, b: Vector3i) -> Vector2:
 
 static func _xz(v: Vector3) -> Vector2:
 	return Vector2(v.x, v.z)
+
+
+@export_group("Mood")
+## Damp stone (room rework step 6, the light-well): the shell's kit_px_world
+## materials get a copy with this wetness (darker, glossy runs down the walls,
+## wet patches on the floors). 0: dry, the shared materials.
+@export_range(0.0, 1.0, 0.01) var wetness: float = 0.0:
+	set(value):
+		wetness = value
+		emit_changed()
+## Glow while you're in this room (the area's environment eases to it):
+## bloom off bright light and glowing plants. A negative value keeps the
+## area profile's.
+@export_range(-1.0, 1.0, 0.01) var glow_bloom: float = -1.0:
+	set(value):
+		glow_bloom = value
+		emit_changed()
+@export_range(-1.0, 4.0, 0.01) var glow_intensity: float = -1.0:
+	set(value):
+		glow_intensity = value
+		emit_changed()
+@export_range(-1.0, 4.0, 0.01) var glow_threshold: float = -1.0:
+	set(value):
+		glow_threshold = value
+		emit_changed()
+## The room's light tint while you're in it (the area's ambient light and haze
+## ease toward it): the colour, and in alpha how far (0: the area's own).
+@export var mood_tint: Color = Color(1, 1, 1, 0):
+	set(value):
+		mood_tint = value
+		emit_changed()

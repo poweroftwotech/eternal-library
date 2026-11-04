@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_p3kpn"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/cone_nook.glb" id="2_gn2p6"]
+
+[node name="cone_nook" type="Node3D" unique_id=378189215]
+script = ExtResource("1_p3kpn")
+family = "walls"
+tags = PackedStringArray("cloth", "furniture", "seat", "fungus", "light", "lightwell")
+source_glb = "res://assets/kit/walls/cone_nook.glb"
+
+[node name="Mesh" parent="." unique_id=334692317 instance=ExtResource("2_gn2p6")]

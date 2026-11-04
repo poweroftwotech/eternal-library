@@ -1,0 +1,41 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_entry"]
+[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="2_set"]
+[ext_resource type="PackedScene" path="res://kit/dressing/stair_books_full.tscn" id="s1"]
+[ext_resource type="PackedScene" path="res://kit/dressing/stair_books_sparse.tscn" id="s2"]
+[ext_resource type="PackedScene" path="res://kit/dressing/stair_books_plant.tscn" id="s3"]
+[ext_resource type="PackedScene" path="res://kit/dressing/stair_books_deco.tscn" id="s4"]
+
+[sub_resource type="Resource" id="E1"]
+script = ExtResource("1_entry")
+label = "full shelves"
+scene = ExtResource("s1")
+weight = 6.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="E2"]
+script = ExtResource("1_entry")
+label = "sparse shelves"
+scene = ExtResource("s2")
+weight = 3.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="E3"]
+script = ExtResource("1_entry")
+label = "books and ferns"
+scene = ExtResource("s3")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="E4"]
+script = ExtResource("1_entry")
+label = "books and an urn"
+scene = ExtResource("s4")
+weight = 2.0
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("2_set")
+entries = Array[ExtResource("1_entry")]([SubResource("E1"), SubResource("E2"), SubResource("E3"), SubResource("E4")])
+slot_bounds = AABB(-0.95, -0.08, -0.52, 1.9, 2.25, 0.54)

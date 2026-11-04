@@ -1,0 +1,49 @@
+[gd_resource type="Resource" script_class="SocketSet" format=3]
+
+[ext_resource type="Script" uid="uid://cipu0ig6tohbv" path="res://scripts/world/socket_entry.gd" id="1_entry"]
+[ext_resource type="Script" uid="uid://b8uey43wnf604" path="res://scripts/world/socket_set.gd" id="2_set"]
+[ext_resource type="PackedScene" path="res://kit/dressing/cubby_books.tscn" id="s1"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/cubby_vase.tscn" id="s2"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/cubby_fern.tscn" id="s3"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/cubby_glow.tscn" id="s4"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/cubby_tile.tscn" id="s5"]
+
+[sub_resource type="Resource" id="E1"]
+script = ExtResource("1_entry")
+label = "books"
+scene = ExtResource("s1")
+weight = 3.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="E2"]
+script = ExtResource("1_entry")
+label = "vase"
+scene = ExtResource("s2")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="E3"]
+script = ExtResource("1_entry")
+label = "fern"
+scene = ExtResource("s3")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="E4"]
+script = ExtResource("1_entry")
+label = "glowing mushrooms"
+scene = ExtResource("s4")
+weight = 2.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="E5"]
+script = ExtResource("1_entry")
+label = "empty"
+scene = ExtResource("s5")
+weight = 0.6
+tags = PackedStringArray()
+
+[resource]
+script = ExtResource("2_set")
+entries = Array[ExtResource("1_entry")]([SubResource("E1"), SubResource("E2"), SubResource("E3"), SubResource("E4"), SubResource("E5")])
+slot_bounds = AABB(-0.4, 0, -0.42, 0.8, 1.2, 0.44)

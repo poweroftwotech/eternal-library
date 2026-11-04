@@ -8,6 +8,8 @@
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/recess_tile_panel.tscn" id="5_anl2g"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/recess_sealed_door.tscn" id="6_ywqle"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/recess_plain_cone.tscn" id="7_plain"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/niche_planter.tscn" id="8_planter"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/niche_urn.tscn" id="9_urn"]
 
 [sub_resource type="Resource" id="Resource_lnars"]
 script = ExtResource("1_mgb78")
@@ -49,8 +51,22 @@ scene = ExtResource("7_plain")
 weight = 0.0
 tags = PackedStringArray()
 
+[sub_resource type="Resource" id="Resource_planter"]
+script = ExtResource("1_mgb78")
+label = "planter"
+scene = ExtResource("8_planter")
+weight = 3.0
+tags = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_urn"]
+script = ExtResource("1_mgb78")
+label = "urn"
+scene = ExtResource("9_urn")
+weight = 2.0
+tags = PackedStringArray()
+
 [resource]
 script = ExtResource("5_alfd5")
-entries = Array[ExtResource("1_mgb78")]([SubResource("Resource_lnars"), SubResource("Resource_rp607"), SubResource("Resource_ctym8"), SubResource("Resource_alfd5"), SubResource("Resource_lvwha"), SubResource("Resource_plain")])
+entries = Array[ExtResource("1_mgb78")]([SubResource("Resource_lnars"), SubResource("Resource_rp607"), SubResource("Resource_ctym8"), SubResource("Resource_alfd5"), SubResource("Resource_lvwha"), SubResource("Resource_plain"), SubResource("Resource_planter"), SubResource("Resource_urn")])
 slot_bounds = AABB(-1.5, 0, -0.3, 3, 3.7, 0.6)
 spill_bounds = AABB(-1.5, 0, -1.35, 3, 0.6, 1.05)

@@ -21,6 +21,17 @@ const SCENES: PackedStringArray = [
 	"res://kit/modules/dressing/wall_paddy.tscn", "res://kit/modules/dressing/wall_nets.tscn",
 	"res://kit/modules/dressing/wall_traps.tscn", "res://kit/modules/dressing/wall_grotto.tscn",
 	"res://kit/modules/dressing/glow_roots_dome.tscn",
+	"res://kit/modules/walls/cone_garden100.tscn", "res://kit/modules/walls/cone_garden120.tscn",
+	"res://kit/modules/walls/cone_vine_a.tscn", "res://kit/modules/walls/cone_vines_oculus.tscn",
+	"res://kit/modules/dressing/niche_planter.tscn", "res://kit/modules/dressing/niche_urn.tscn",
+	# Room rework step 6, final look: the light-well's beds, nook, glowing
+	# vines, rail planters, stair-wall fills and its orosi glass (a storey
+	# piece with taghcheh carries the glass's shader).
+	"res://kit/modules/walls/cone_mushbed_a.tscn", "res://kit/modules/walls/cone_nook.tscn",
+	"res://kit/modules/walls/cone_glowvines.tscn", "res://kit/modules/walls/cone_rail_planter.tscn",
+	"res://kit/modules/dressing/stair_case_plant.tscn", "res://kit/modules/dressing/stair_case_deco.tscn",
+	"res://kit/modules/dressing/cubby_vase.tscn", "res://kit/modules/dressing/cubby_fern.tscn",
+	"res://kit/modules/dressing/cubby_glow.tscn", "res://kit/modules/walls/cone_c75_closed.tscn",
 ]
 
 var _left: int = FRAMES
@@ -44,6 +55,9 @@ static func add(parent: Node) -> PipelineWarm:
 			copy.scale = Vector3.ONE * 0.001
 			w.add_child(copy)
 		src.free()
+	for p: GPUParticles3D in ConeDrips.warm():     # the light-well's water
+		p.scale = Vector3.ONE * 0.001
+		w.add_child(p)
 	parent.add_child(w)
 	return w
 

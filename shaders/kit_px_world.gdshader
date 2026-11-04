@@ -27,6 +27,8 @@ uniform vec3 albedo_scale = vec3(1.0);  // a paler or darker copy of a texture (
 group_uniforms wear;
 uniform float wear_strength = 0.0;     // 0 off; floor_stone polishes walked paths
 uniform float wear_roughness = 0.3;    // roughness at full wear
+group_uniforms wet;
+uniform float wetness = 0.0;          // 0 dry; a damp room's copy (RoomGrammar.wetness): darker, glossy streaks
 group_uniforms;
 
 global uniform sampler2DArray kit_wear_map : filter_nearest;   // TILE-texel tiles, row by row
@@ -117,6 +119,18 @@ void fragment() {
 			rough = mix(rough, wear_roughness, wear);
 			tint *= 1.0 - wear * 0.05;   // polish deepens the colour a touch
 		}
+	}
+
+	if (wetness > 0.0) {
+		// Damp stone: darker everywhere, and glossy where water runs. On walls
+		// the runs are streaks down the face (narrow in x/z, long in y); on
+		// floors and treads, patches of standing wet.
+		float run = n.y > 0.7
+			? value_noise(vec3(centre.xz / 1.3, 3.0))
+			: value_noise(vec3(centre.x / 0.35, centre.y / 4.0, centre.z / 0.35) + 7.0);
+		float wet = clamp(floor((run - 0.35) * 2.0 * tint_steps + 0.5 + d * 0.9) / tint_steps, 0.0, 1.0);
+		tint *= 1.0 - wetness * (0.22 + 0.2 * wet);
+		rough = mix(rough, 0.12, wetness * (0.35 + 0.65 * wet));
 	}
 
 	ALBEDO = albedo_tex.rgb * tint * albedo_scale;

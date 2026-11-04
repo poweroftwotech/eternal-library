@@ -412,6 +412,42 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "cubby_fern",
+"scene": "res://kit/modules/dressing/cubby_fern.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "niche", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "cubby_glow",
+"scene": "res://kit/modules/dressing/cubby_glow.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("fungus", "niche", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "cubby_tile",
+"scene": "res://kit/modules/dressing/cubby_tile.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("tile", "niche", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "cubby_vase",
+"scene": "res://kit/modules/dressing/cubby_vase.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("tile", "plant", "niche", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "debris_brick",
 "scene": "res://kit/modules/dressing/debris_brick.tscn",
 "shape": "free",
@@ -826,6 +862,24 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "niche_planter",
+"scene": "res://kit/modules/dressing/niche_planter.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "plant", "niche", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "niche_urn",
+"scene": "res://kit/modules/dressing/niche_urn.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("tile", "plant", "niche", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "plant_crack_tuft",
 "scene": "res://kit/modules/dressing/plant_crack_tuft.tscn",
 "shape": "free",
@@ -1173,6 +1227,33 @@ modules = Array[Dictionary]([{
 "shape": "free",
 "size_cells": Vector3i(0, 0, 0),
 "tags": PackedStringArray("wood", "furniture", "reading"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stair_case_boards",
+"scene": "res://kit/modules/dressing/stair_case_boards.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "shelf", "book", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stair_case_deco",
+"scene": "res://kit/modules/dressing/stair_case_deco.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "shelf", "tile", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "stair_case_plant",
+"scene": "res://kit/modules/dressing/stair_case_plant.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "shelf", "plant", "lightwell"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -2374,11 +2455,65 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "cone_garden100",
+"scene": "res://kit/modules/walls/cone_garden100.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "garden", "plant", "water", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_garden120",
+"scene": "res://kit/modules/walls/cone_garden120.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "garden", "plant", "water", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_glowvines",
+"scene": "res://kit/modules/walls/cone_glowvines.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "fungus", "light", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "cone_lantern",
 "scene": "res://kit/modules/walls/cone_lantern.tscn",
 "shape": "free",
 "size_cells": Vector3i(0, 1, 0),
 "tags": PackedStringArray("brass", "light", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_mushbed_a",
+"scene": "res://kit/modules/walls/cone_mushbed_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "fungus", "light", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_mushbed_b",
+"scene": "res://kit/modules/walls/cone_mushbed_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "fungus", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_nook",
+"scene": "res://kit/modules/walls/cone_nook.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("cloth", "furniture", "seat", "fungus", "light", "lightwell"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -2397,6 +2532,42 @@ modules = Array[Dictionary]([{
 "shape": "free",
 "size_cells": Vector3i(0, 1, 0),
 "tags": PackedStringArray("brick", "cone", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_rail_planter",
+"scene": "res://kit/modules/walls/cone_rail_planter.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "plant", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_vine_a",
+"scene": "res://kit/modules/walls/cone_vine_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "vine", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_vine_b",
+"scene": "res://kit/modules/walls/cone_vine_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "vine", "lightwell"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "cone_vines_oculus",
+"scene": "res://kit/modules/walls/cone_vines_oculus.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("plant", "vine", "lightwell"),
 "weight": 1.0
 }, {
 "edge": "",

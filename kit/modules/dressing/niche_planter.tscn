@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_s03pj"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/niche_planter.glb" id="2_wixut"]
+
+[node name="niche_planter" type="Node3D" unique_id=1731258904]
+script = ExtResource("1_s03pj")
+family = "dressing"
+tags = PackedStringArray("stone", "plant", "niche", "lightwell")
+source_glb = "res://assets/kit/dressing/niche_planter.glb"
+
+[node name="Mesh" parent="." unique_id=1010121464 instance=ExtResource("2_wixut")]

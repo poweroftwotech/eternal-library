@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_0e2qc"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/cone_garden120.glb" id="2_p76dx"]
+
+[node name="cone_garden120" type="Node3D" unique_id=1445725513]
+script = ExtResource("1_0e2qc")
+family = "walls"
+tags = PackedStringArray("stone", "garden", "plant", "water", "lightwell")
+source_glb = "res://assets/kit/walls/cone_garden120.glb"
+
+[node name="Mesh" parent="." unique_id=1450540594 instance=ExtResource("2_p76dx")]

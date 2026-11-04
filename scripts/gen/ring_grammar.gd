@@ -58,10 +58,33 @@ extends RoomGrammar
 	set(value):
 		shelf_lamp_every_bays = value
 		emit_changed()
+## Glowing plants hung from the stair's ceiling (cone:glowvines; room rework
+## step 6, in place of the lanterns): every glow_every_bays-th bay of a
+## climb, every shelf_glow_every_bays-th on the reading floors. 0: none.
+@export_range(0, 12) var glow_every_bays: int = 0:
+	set(value):
+		glow_every_bays = value
+		emit_changed()
+@export_range(0, 12) var shelf_glow_every_bays: int = 0:
+	set(value):
+		shelf_glow_every_bays = value
+		emit_changed()
+
+## Room rework step 6: the chance that a stretch of the stair's parapet (two
+## a bay) has vines hanging from it into the shaft.
+@export_range(0.0, 1.0, 0.01) var vine_chance: float = 0.55:
+	set(value):
+		vine_chance = value
+		emit_changed()
 
 const STOREY: float = 4.0
 ## The Blender twin's constants (tools/kit_add_r03.py, CONE_*).
 const LEAN: float = 0.375
+## The oculus's radius, the parapet's reach into the shaft and its height
+## (tools/kit_add_r03.py CONE_RT, CONE_LEDGE, CONE_PARAPET).
+const OCULUS: float = 2.5
+const LEDGE: float = 0.8
+const PARAPET: float = 0.85
 const WALL: float = 3.6
 const DEPTH: float = 1.0
 const HEAD: float = 2.6
@@ -217,8 +240,6 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 		var r: float = r0 - 1.5 * j
 		var kind: String = "exit" if j == 0 or door_levels.has(j) else "closed"
 		_piece(grid, "c_%d" % j, "cone:c%d_%s" % [roundi(r * 10), kind], _at(centre, j, 0.0, 0.0, 0.0))
-		if j >= shelf_levels:
-			grid.pins["prop_cone_c_%d" % j] = "plain"
 		if lamp_every_bays > 0:
 			var c: Vector2 = climb(r)
 			var nb: int = bays(r)
@@ -229,11 +250,27 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 				var t: float = step_middle(r, c.x + (c.y - c.x) * (b + 0.5) / nb)
 				var z: float = tread(r, t)
 				_piece(grid, "l_%d_%d" % [j, b], "cone:lantern", _at(centre, j, t, face(r, z) + WALK + 0.1, z))
+		if glow_every_bays > 0:
+			var cg: Vector2 = climb(r)
+			var ng: int = bays(r)
+			var ge: int = shelf_glow_every_bays if j < shelf_levels and shelf_glow_every_bays > 0 else glow_every_bays
+			for b: int in ng:
+				if b % ge != ge / 2:
+					continue
+				var tg: float = step_middle(r, cg.x + (cg.y - cg.x) * (b + 0.5) / ng)
+				var zg: float = tread(r, tg)
+				_piece(grid, "g_%d_%d" % [j, b], "cone:glowvines", _at(centre, j, tg, face(r, zg) + WALK + 0.1, zg))
 	_piece(grid, "cap", "cone:cap%d_%d" % [r10, levels], _at(centre, levels - 1, 0.0, 0.0, 0.0))
-	for y: int in door_levels:
-		var r: float = r0 - 1.5 * y
-		if lamp_every_bays > 0:
-			_piece(grid, "l_%d_door" % y, "cone:lantern", _at(centre, y, 0.0, face(r, 0.0) + WALK + 0.1, 0.0))
+	# Room rework step 6: the floor garden round the well, vines from the
+	# stair's parapet and a fringe of them round the oculus.
+	_piece(grid, "garden", "cone:garden%d" % r10, Transform3D(Basis(), centre))
+	place_vines(grid, seed_value, centre, r0, levels)
+	var r_top: float = r0 - 1.5 * (levels - 1)
+	_piece(grid, "vines_oculus", "cone:vines_oculus", Transform3D(Basis(), centre + Vector3(0.0, (levels - 1) * STOREY + (r_top - OCULUS) / LEAN, 0.0)))
+	# No lanterns at the doorways (your walk of step 6): the shaft lights them.
+	place_under_stair(grid, seed_value, centre, r0)
+	place_rail_planters(grid, seed_value, centre, r0, levels)
+	_piece(grid, "drips", "cone:drips", Transform3D(Basis(), centre))
 	# Passages from each doorway out to the square's edge, 2 m pieces from the
 	# edge in, then 0.5 m ones (cone:passage_2m, cone:passage_05m).
 	for d: Array in doors:
@@ -341,3 +378,78 @@ static func _point(centre: Vector3, j: int, t: float, rad: float, z: float) -> V
 
 func wear_lanes(_grid: CellGrid, _seed_value: int) -> void:
 	pass
+
+
+## Vines hanging from the parapet into the shaft (cone:vine_a, the short one,
+## or cone:vine_b), two chances a bay on every storey's climb; none on the
+## floor storey's first, low steps (the parapet starts 0.6 m up and the vines
+## would lie on the floor).
+func place_vines(grid: CellGrid, seed_value: int, centre: Vector3, r0: int, levels: int) -> void:
+	for j: int in levels - 1:
+		var r: float = r0 - 1.5 * j
+		var c: Vector2 = climb(r)
+		var nb: int = bays(r)
+		for b: int in nb:
+			for half: int in 2:
+				var roll := RandomNumberGenerator.new()
+				roll.seed = hash([seed_value, "vine", j, b, half])
+				if roll.randf() >= vine_chance:
+					continue
+				var t: float = c.x + (c.y - c.x) * (b + 0.3 + 0.45 * half) / nb
+				var z: float = tread(r, t)
+				if j == 0 and z < 1.6:
+					continue
+				var kind: String = "cone:vine_b" if roll.randf() < 0.4 else "cone:vine_a"
+				_piece(grid, "v_%d_%d_%d" % [j, b, half], kind, _at(centre, j, t, face(r, z) - LEDGE, z + PARAPET))
+
+
+## Under the floor storey's stair (your walk of step 6), where it has climbed
+## past UNDER_FROM: glowing mushroom beds against the wall (cone:mushbed_a,
+## with a light, or _b), and a sitting nook (cone:nook) one place in three or
+## so, at least one. The floor by the entry and the stair's foot stays clear.
+const UNDER_FROM: float = 2.2
+const UNDER_PIECE: float = 3.0      # metres of wall a piece
+const UNDER_CLEAR: float = 0.7      # radians short of a full turn (the entry)
+func place_under_stair(grid: CellGrid, seed_value: int, centre: Vector3, r0: int) -> void:
+	var c: Vector2 = climb(float(r0))
+	var t0: float = c.x + (c.y - c.x) * UNDER_FROM / STOREY
+	var n: int = int(floor((TAU - UNDER_CLEAR - t0) * r0 / UNDER_PIECE))
+	var nooks: int = 0
+	var lit: bool = true
+	for k: int in n:
+		var roll := RandomNumberGenerator.new()
+		roll.seed = hash([seed_value, "under", k])
+		var nook: bool = roll.randf() < 0.3 or (k == n / 2 and nooks == 0)
+		var slot: String = "cone:nook"
+		if nook:
+			nooks += 1
+		else:
+			slot = "cone:mushbed_a" if lit else "cone:mushbed_b"
+			lit = not lit
+		var t: float = t0 + (k + 0.5) * UNDER_PIECE / r0
+		_piece(grid, "u_%d" % k, slot, _at(centre, 0, t, float(r0), 0.0))
+
+
+## Planters on the stair's parapet (cone:rail_planter; room rework step 6,
+## with the bookcases and taghcheh in the stair wall): one bay in three or so,
+## on the bay's middle step, between its columns.
+const PAR_W: float = 0.36           # tools/kit_add_r03.py CONE_PAR_W
+@export_range(0.0, 1.0, 0.01) var rail_planter_chance: float = 0.35:
+	set(value):
+		rail_planter_chance = value
+		emit_changed()
+func place_rail_planters(grid: CellGrid, seed_value: int, centre: Vector3, r0: int, levels: int) -> void:
+	for j: int in levels - 1:
+		var r: float = r0 - 1.5 * j
+		var c: Vector2 = climb(r)
+		var nb: int = bays(r)
+		for b: int in nb:
+			var roll := RandomNumberGenerator.new()
+			roll.seed = hash([seed_value, "rail", j, b])
+			if roll.randf() >= rail_planter_chance:
+				continue
+			var t: float = step_middle(r, c.x + (c.y - c.x) * (b + 0.5) / nb)
+			var z: float = tread(r, t)
+			if z < 0.4:
+				continue
+			_piece(grid, "rp_%d_%d" % [j, b], "cone:rail_planter", _at(centre, j, t, face(r, z) - LEDGE + PAR_W / 2.0, z + PARAPET))

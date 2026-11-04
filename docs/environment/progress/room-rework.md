@@ -1,6 +1,6 @@
 # Room rework: the existing rooms before phase 12
 
-[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED feca290 after your walks; step 5 (Cistern Archive) COMMITTED 8865b41 2026-11-03; next: step 6, the Light-Well Stair**
+[Back to the front page](../../../ENVIRONMENT_PLAN.md) · Asked for 2026-11-03 · Status: **step 1 COMMITTED a75a767 2026-11-03; step 2 (working niches) COMMITTED 97ea375; steps 3 (Caravanserai cells) and 4 (Hypostyle Stacks) COMMITTED feca290 after your walks; step 5 (Cistern Archive) COMMITTED 8865b41 2026-11-03; step 6 (Light-Well Stair) look final after your walks 2026-11-04, tests pass, frame gate accepted as borderline (11 ms), not yet committed**
 
 ## Why
 
@@ -59,6 +59,116 @@ Proposed steps, each walked by you before the next:
   stair edges and the oculus; some gallery shelves become plant and
   decoration niches. The missing face seen from the Upper Stacks is fixed
   here too.
+
+## Step 6: the Light-Well Stair (2026-11-04, final look after your walks)
+
+Built 2026-11-03, then walked and reworked over six walks: seven reports
+on the first walk (garden, beam, contrast, entrance lamp, bloom, the space
+under the stairs, moisture), then the lanterns, the tint, the columns, the
+stair wall and its glass. You called the look final on 2026-11-04.
+
+### What you can try
+
+- Walk the Lower Stacks to the light-well (every seed has one; seed 1 is a
+  12 m cone with three storeys).
+- **Daylight:** a narrow green-gold beam from the oculus (its sunlit pool
+  on the floor is about 3.6 m across, three quarters of the last walk), in a
+  haze column of the same width. There are no lanterns anywhere in the room
+  any more: the light-well lights itself.
+- **Mood:** the room has its own look, eased in as you walk in and out: a
+  green-gold tint pulled toward white, a little bloom off the plants and
+  the lit centre, and wet stone (darker, glossier patches on the walls and
+  floor).
+- **Water:** drops fall from the oculus's vines through the beam into the
+  pool, drips fall from under each storey's ledge about 60% of the way out
+  from the centre, and small splashes break on the pool.
+- **The garden:** a flat ring of soil round the pool, with stepping stones
+  across it, dense ferns, flowers, moss, grass and small trees, glowing
+  mushrooms in clusters, and three clearings with stone benches, a low
+  wooden table and a glowing mushroom on it. Three dim fungus lights.
+- **Under the stairs:** mushroom beds (a log, mushrooms, ferns, moss;
+  some glow) and, in at least one place a light-well, a sitting nook (kilim,
+  toshak, poshti, a low table, glowing mushrooms).
+- **The stair:**
+  - Glowing vines hang from the stair's underside every second bay, with
+    green-gold pods (a dim light each) in place of the lanterns.
+  - The columns stand on a thicker parapet whose whole top is the walk's
+    edge, so nothing snags the walk and nothing clips the rail; a newel post
+    at the stair's foot.
+  - Stone planters (ferns, flowers, ivy over the shaft) on the parapet in
+    about a third of the bays.
+- **The stair wall** (in place of the tall arched niches, which cut up
+  through the stair's ceiling):
+  - On the two reading storeys, a bookcase set into the wall on every step,
+    stepping up with the stair, in a stone frame: full, half full, books with
+    a fern trough on the middle shelf, or books with an urn, a bowl and a
+    stack lying flat.
+  - Higher up, small arched taghcheh at varied heights (a pair, a single,
+    or plain wall), each backed with orosi glass: an earth-tone copy of the
+    Gorge's (umber for the red, honey for the near-white), dark and glossy,
+    catching sharp glints from the beam and the glowing plants and a slight
+    green from the plants beside it. Each holds books, a vase of flowers, a
+    potted fern or a bowl of glowing mushrooms on a tile plate.
+- **Missing wall fixed (15-29-46):** where the Upper Stacks open into the
+  light-well, the end of their vault no longer stands open onto the cone.
+
+### What changed
+
+- `tools/kit_add_r03.py` (the cone; base rev 9, caps rev 15, storey pieces
+  rev 10): the beam (`SUN_FLOOR` 3.6, energy 40, `SUN_GOLD`) and haze (3.45 m
+  column, green-gold albedo and emission); the fill lights `LEAF_FILL`; the
+  thicker parapet with its columns, guide and newel (`stair_edge`);
+  `stair_wall_slots` cuts the bookcases (`cone_bookcase` sockets, lifted
+  clear of the step above where a case spans a riser) and the taghcheh
+  (`cone_cubby` sockets, `orosi_pane` glass in `emit_orosi_soft`).
+- `tools/kit_add_lightwell.py` (`kit_hall.blend`): the garden (rev 4),
+  `cone_mushbed_a/_b`, `cone_nook`, `cone_glowvines`, the vines, the stair
+  wall's fills (`stair_case_boards/_plant/_deco`, `cubby_tile/_vase/_fern/_glow`)
+  and `cone_rail_planter`.
+- New look pieces: `shaders/orosi_glass.gdshader` (own colour, no ambient or
+  reflections, highlights and a little colour from real lights only);
+  `tools/orosi_earth.gd` writes `persian_orosi_earth.png`;
+  `kit/materials/emit_orosi_soft.tres`, `emit_gills_bright`,
+  `emit_fungus_bright`; `kit_px_world.gdshader` gains `wetness`.
+- Per-room mood: `RoomGrammar` exports `wetness`, `glow_*` and `mood_tint`;
+  `GeneratedRoom` applies the wet stone; `Area` eases glow, ambient and fog
+  toward the room the camera is in.
+- `ConeDrips` (`kit/modules/fx/cone_drips.tscn`, a kit module) makes the
+  water.
+- `RingGrammar`: no lanterns (`lamp_every_bays` 0), glowing vines
+  (`glow_every_bays` 2), `place_under_stair`, `place_rail_planters`
+  (`rail_planter_chance` 0.35), the drips; rules in
+  `gen/rules/r09_lightwell.tres`; socket sets `kit/sockets/cone_bookcase.tres`
+  and `cone_cubby.tres`; fills in `kit/dressing/stair_books_*` and
+  `cubby_books`.
+- `kit_import.gd`: optional light colour and fog albedo and emission on
+  markers.
+- `AreaPlanner._gables_at_ring_doors` and `RoomBuilder` close the vault end
+  onto the light-well.
+
+### Tests
+
+- R09 layout (1,053 checks, updated for the bookcases, taghcheh and their
+  glass in place of the old niches) and route (69: the climb, both edges,
+  every doorway, the rails, no snags) tests, the Lower Stacks area route test
+  (254), generation signatures (93) and the streaming test (seed 1): pass.
+  The route test's validator caught the fern trough and the cubby fern
+  spilling past their slots (now kept inside) and, in the 10 m cone's second
+  storey, a bookcase spanning a riser so the step above rose 6 cm into it
+  (such cases now sit clear of it).
+- Frame gate (Lower Stacks, Medium, 1080p): **accepted as borderline at
+  your word (2026-11-04)**, worst 10.8-11.2 ms against 8 ms. The first run
+  had a 102 ms frame as the light-well loaded: the drips built all three
+  emitters in one frame and none of the new pieces were pre-warmed; now the
+  drips build one emitter a frame and `PipelineWarm` draws the new pieces
+  and the drips' particles. What is left: each drip emitter still costs about
+  10 ms on the frame it arrives (a run without the drips confirmed it),
+  8 pipelines still compile on the load frame (not yet traced), and one
+  10.5 ms frame in the light-well. Not yet tried: the drips as CPU particles
+  and tracing the 8 pipelines.
+- Captures: `previews/room_rework_step6/` (`walk2`-`walk4`, `columns`,
+  `stairwall`, `orosi`-`orosi8` the glass's steps, `final` the stair after
+  the route fixes; `before/` is the light-well before this step).
 
 ## Step 5: the Cistern Archive (2026-11-03, committed 8865b41)
 
