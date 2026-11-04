@@ -74,6 +74,25 @@ td a:hover{text-decoration-color:var(--amber)}
 .built{font-family:var(--mono);font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--bg);background:var(--ink);padding:0 8px;border-radius:2px;white-space:nowrap}
 .when{font-family:var(--mono);font-size:1.05rem;color:var(--muted);white-space:nowrap}
 .ingame{font-size:.98rem;border-left:3px solid var(--ink);padding:4px 0 4px 12px}
+.character{display:grid;gap:8px;border:1px solid var(--line);border-radius:3px;padding:12px 14px;background:var(--panel)}
+.character-head{display:flex;flex-wrap:wrap;align-items:center;gap:6px 12px}
+.character-head b{font-family:var(--mono);font-weight:400;font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase}
+.character .feel{font-style:italic}
+.character dl{gap:6px}
+.character dl div{display:grid;grid-template-columns:7.5em minmax(0,1fr);gap:10px}
+.character dd{margin:0}
+.state{font-family:var(--mono);font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;padding:0 7px;border-radius:2px;border:1px solid var(--line);color:var(--muted);white-space:nowrap}
+.state.is-built{color:var(--bg);background:var(--ink);border-color:var(--ink)}
+.swatch{display:inline-block;width:1.6em;height:1em;border-radius:2px;border:1px solid var(--line);vertical-align:-2px;flex:none}
+.palette{display:grid;grid-template-columns:repeat(auto-fill,minmax(150px,1fr));gap:8px 14px;margin-top:6px}
+.palette a{display:flex;gap:8px;align-items:center;color:var(--ink);text-decoration:none;font-size:.95rem;line-height:1.25}
+.palette a:hover span:last-child{text-decoration:underline;text-decoration-color:var(--amber)}
+.palette .swatch{width:2.4em;height:1.4em}
+.palette .when{white-space:normal}
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 26px;padding:0;margin:0 0 26px;list-style:none}
+.principles li{border-left:3px solid var(--amber);padding:2px 0 2px 12px;font-size:.98rem}
+.principles b{display:block}
+@media (max-width:560px){.character dl div{grid-template-columns:minmax(0,1fr);gap:0}}
 .toc a.is-built{background:var(--panel)}
 .toc a.is-built::after{content:' · built';color:var(--muted)}
 figure{margin:0;display:grid;gap:10px;align-content:start;min-width:0}
@@ -123,7 +142,7 @@ summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 <div class="wrap">
 <header>
-  <p class="eyebrow">The Eternal Library · environment design · draft 0.1 · 2026-10-18</p>
+  <p class="eyebrow">The Eternal Library · environment design · draft 0.2 · 2026-10-18, character briefs 2026-11-04</p>
   <h1>Library Room Atlas</h1>
   <p class="lede">Twenty-one room types for the Library, in three batches (the third so far just R21), built from one shared kit of modules on a 4 m grid. Each plate shows a mock of the room, which parts are hand-placed in the Godot editor and which are picked or laid out at generation time, the modules it needs, and a prompt for producing a painted concept.</p>
   <p class="lede">The mocks are drawn live in this page at the game's texel scale. <b>Reroll sockets</b> re-seeds the variation points, so each click shows another version of the same room.</p>
@@ -183,6 +202,26 @@ summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
     </tbody>
   </table>
   </div>
+</section>
+
+<section id="character">
+  <h2>Every room its own character</h2>
+  <p class="section-intro">The rooms share one kit, so their character can't come from the walls. It comes from light, colour, motion, one landmark and the life in the room. These rules come from reworking every built room (eight steps, walked part by part). The full guide is <code>docs/environment/room-character.md</code>. Each plate below has a character brief: <span class="state is-built">In the game</span> for what was built, <span class="state">Proposed</span> for rooms still to come, to be agreed before building.</p>
+  <ul class="principles">
+    <li><b>A brief before building</b>Feel, colour, light, landmark, motion, life and story, agreed before any kit work.</li>
+    <li><b>One family of light</b>Plants only, daylight and vines, lamps on the furniture: never every kind at once. Every light has a visible source.</li>
+    <li><b>Pools and shadow</b>Short reach, glare kept, dark between pools but never pitch black. Vaults darker than the walls.</li>
+    <li><b>Natural glow shines alone</b>No flame within a bay of a glowing plant, fungus or root.</li>
+    <li><b>Dark doorways</b>Room ends stay dark so the next room's light bleeds through and announces the change.</li>
+    <li><b>Neighbours differ</b>At least the colour and the light family change across each doorway. Big and small, bright and dark alternate.</li>
+    <li><b>One landmark</b>The thing you navigate and remember the room by, placed first.</li>
+    <li><b>Lived in</b>Working niches (cook, forage, read, rest), people's traces, Persian everyday furniture.</li>
+    <li><b>Story in space</b>A gradient across the room (tended to abandoned), rock and roots showing through, time passing on return.</li>
+    <li><b>Spooky, not dangerous</b>Eerie is welcome; threat is not, unless the room's purpose says so.</li>
+  </ul>
+  <h3>Room colours</h3>
+  <p class="section-intro">One colour per room. A new room picks one not already taken, or the same hue at a clearly different strength and source.</p>
+  <div class="palette" id="palette"></div>
 </section>
 
 <section>
@@ -1090,15 +1129,148 @@ const host=document.getElementById('rooms'),ov=document.getElementById('overview
 const seeds={};
 /* which room types are in the game today (keep in step with ENVIRONMENT_PLAN.md) */
 const BUILT={
-  R01:{when:'Phase 1, 2026-10-19',where:'The library wing, as its entrance',how:'Built by hand in Godot from kit pieces (<code>rooms/authored/reading_room.tscn</code>), then weathered: fallen books, plants, stains, floor wear.'},
-  R02:{when:'Phase 2, 2026-10-20',where:'The library wing and the Lower Stacks',how:'Generated off any door by the stack gallery grammar; some seeds baked to scenes.'},
-  R03:{when:'Phase 5, 2026-10-23',where:'The Lower Stacks',how:'Generated halls of columns up to 10 × 10 bays, with lamp clusters and collapsed bays (left dark by your choice).'},
-  R05:{when:'Phase 5, 2026-10-24',where:'The Lower Stacks, as its entrance',how:'Built by the courtyard grammar and baked in three sizes: 3 × 3, 5 × 5 and 7 × 5.'},
-  R09:{when:'Phase 5, 2026-10-23',where:'The Lower Stacks',how:'Rebuilt as your cone: 3–5 storeys, wide at the floor and narrow at the oculus, with a masonry stair cut into its wall.'},
+  R01:{when:'Phase 1, 2026-10-19',where:'The library wing, as its entrance',how:'Built by hand in Godot from kit pieces (<code>rooms/authored/reading_room.tscn</code>), then weathered: fallen books, plants, stains, floor wear. Reworked 2026-11-03: Persian floor seating, lamps on the furniture, seed-picked carpets, working shelf niches.'},
+  R02:{when:'Phase 2, 2026-10-20',where:'The library wing and the Lower Stacks',how:'Generated off any door by the stack gallery grammar; some seeds baked to scenes. Reworked 2026-11-04: tended to abandoned, pier lights, blue fungus, rock, water and fog, keepers and landmarks.'},
+  R03:{when:'Phase 5, 2026-10-23',where:'The Lower Stacks',how:'Generated halls of columns up to 10 × 10 bays, with collapsed bays (left dark by your choice). Reworked 2026-11-04: tall wall shelves, red carpet and lanterns, sunbeams, a hauz and takht, scholars\x27 bays, lamp-lit ornament.'},
+  R05:{when:'Phase 5, 2026-10-24',where:'The Lower Stacks, as its entrance',how:'Built by the courtyard grammar and baked in three sizes: 3 × 3, 5 × 5 and 7 × 5. Reworked 2026-11-03: cells can be sitting rooms, kitchens, garden beds or reading corners.'},
+  R09:{when:'Phase 5, 2026-10-23',where:'The Lower Stacks',how:'Rebuilt as your cone: 3–5 storeys, wide at the floor and narrow at the oculus, with a masonry stair cut into its wall. Reworked 2026-11-04: a green-gold beam, an underground garden, glowing vines, no lanterns.'},
   R10:{when:'Phase 6, 2026-10-25',where:'The Gorge',how:'The span grammar joins cliff ledges with bridges or stair chains; the Overlook is its hand-built end (<code>rooms/gorge/overlook.tscn</code>). Restyled in the Persian look in phase 8.'},
-  R11:{when:'Phase 5, 2026-10-23',where:'The Lower Stacks',how:'R03\'s grid of columns with water.'}};
+  R11:{when:'Phase 5, 2026-10-23',where:'The Lower Stacks',how:'R03\'s grid of columns with water. Reworked 2026-11-03: lit only by plants, water niches (paddies, nets, traps, a grotto).'}};
+/* each room's character brief (docs/environment/room-character.md): built = as in the game after the room rework (2026-11-04), else proposed */
+const CHAR={
+  R01:{built:1,sw:'#d9a35a',colour:'Warm amber',feel:'Quiet, warm, a place of reading',
+    light:'Oil lamps built into the low reading tables and tray tables; chandeliers dimmed to 45%. Warm pools, the arcades dark between them.',
+    landmark:'The tiled iwan at the far end; Persian floor seating either side of a seed-picked carpet.',
+    motion:'Lamp flames; the hearth in a working shelf niche.',
+    life:'Read at a low table with a rahl, sit on the toshak, cook at a wall hearth, gather from a herb shelf.',
+    story:'The entrance to the library wing: kept and used, with fallen books, plants and floor wear from the years.'},
+  R02:{built:1,sw:'#6f8fd8',colour:'Blue, growing with distance',feel:'Hushed, neglected, slightly spooky, never dangerous',
+    light:'Off the ceiling: every second pier, walls in turn. Sconces near the door, torches, candles and stool lamps further in, glowing fungus far out. No flame beside a glow.',
+    landmark:'A taghcheh wall of niches and a reading corner in each gallery.',
+    motion:'Drips into puddles, low fog along the abandoned stretches, flickering flames.',
+    life:'Keepers\' carts and book piles near the door; alcoves to cook, forage and rest in.',
+    story:'Tended near the door, abandoned far out: shelves tidy, then gapped and leaning, then bare; cave rock breaks through, roots hang from the vault, cobwebs in the arches.'},
+  R03:{built:1,sw:'#c4473a',colour:'Red',feel:'Grand, warm, scholarly, a place to get lost in',
+    light:'Red-fire Moroccan lanterns over the aisles, sunbeams through about one dome in twelve, a few dim lamps so no corner is black.',
+    landmark:'A hauz under a straight-down sunbeam in the middle, a takht beside it.',
+    motion:'Dust in the sunbeams.',
+    life:'Scholars\' bays: a reading nook, a book cart or a sorting table under a lamp.',
+    story:'Tall shelves line the walls; tiled column feet, gold-edged arches and a frieze lit only by the lamps; collapsed bays left dark.'},
+  R04:{sw:'#e3b23c',colour:'Saffron gold',feel:'Busy, loud, colourful, the heart of a settlement',
+    light:'Daylight down the crossing\'s light well; lantern strings along the shop rows; coloured glass high up throwing patches on the floor.',
+    landmark:'The domed chaharsu crossing with its light well.',
+    motion:'Hanging cloth stirring, steam and smoke from food stalls, crowds.',
+    life:'Shops by trade (rugs, copper, lamps, books, spices); rumours.',
+    story:'Busier and brighter toward the crossing; shuttered and dusty rows at the edges.'},
+  R05:{built:1,sw:'#e07b39',colour:'Hearth orange',feel:'Safe, sociable, a place to rest',
+    light:'Lanterns at the gate and strung over the court; each cell lit by its own hearth or lamp.',
+    landmark:'The raised hearth platform in the court; the pishtaq gate.',
+    motion:'Hearth fires and lantern flames.',
+    life:'Cells that are sitting rooms, kitchens with a working hearth, garden beds or reading corners, among bedrolls, stores, stables and stalls.',
+    story:'Some cells in use, some stored, some ruined: travellers come and go.'},
+  R06:{sw:'#c98a7a',colour:'Rose clay at dusk',feel:'Homely, close, everyday',
+    light:'Lit windows and open doorways from inside the homes; a lamp by each door. The lanes themselves stay dim.',
+    landmark:'A small hauz at a lane crossing under a sabat.',
+    motion:'Laundry and hung textiles, smoke from cooking, people at their doors.',
+    life:'Homes dressed by who lives there; side stories.',
+    story:'Lived-in at the centre, abandoned houses toward the edge.'},
+  R07:{sw:'#f2efdc',colour:'Daylight white with blossom',feel:'Bright, calm, alive: the brightest place in a stratum',
+    light:'Broad daylight from a big light shaft over the whole court. No lanterns by day. Distinct from the light-well\'s narrow green-gold beam: here the light fills the court.',
+    landmark:'The four-part garden round its pool, closed by a grand iwan.',
+    motion:'Running water in the channels, the fountain, moths and petals.',
+    life:'Foraging beds, benches in the shade of the arcades.',
+    story:'What grows changes with the seasons and the stratum (sockets).'},
+  R08:{sw:'linear-gradient(90deg,#c0392b,#e0b030,#2f6fb0)',colour:'Jewel colours from orosi glass',feel:'Studious, precious, hushed',
+    light:'Backlit orosi windows casting red, gold and blue patches across the desks; small desk lamps.',
+    landmark:'The great orosi wall.',
+    motion:'Dust motes in the coloured light.',
+    life:'Copyists at work; trust and knowledge.',
+    story:'Desks show work in progress; some copies abandoned half done.'},
+  R09:{built:1,sw:'#c9d98a',colour:'Green-gold, pulled to white',feel:'Airy, green, a breath of daylight underground',
+    light:'A narrow green-gold beam from the oculus in a haze column; glowing vines under the stair; glowing mushrooms. No lanterns.',
+    landmark:'The beam onto the garden pool at the foot of the cone.',
+    motion:'Drops falling through the beam into the pool, drips from the ledges.',
+    life:'A garden ring with benches and a nook under the stairs.',
+    story:'Wet stone; bookcases stepping up the stair wall, small taghcheh of orosi glass higher up.'},
+  R10:{built:1,sw:'#a9b8c4',colour:'Daylight and mist',feel:'Open, vast, vertigo',
+    light:'The gorge\'s daylight and the glow of its mist.',
+    landmark:'The Overlook; the bank facades across the gorge.',
+    motion:'Waterfalls off the spans, drifting mist.',
+    life:'Crossing between areas; the camp at the gorge\'s edge.',
+    story:'Grander buildings and richer ornament further along the banks.'},
+  R11:{built:1,sw:'#3fb3a0',colour:'Teal',feel:'Still, damp, gently glowing',
+    light:'Plants only: roots with glowing pods hanging from the domes, glowing rice, fungus and vines. Dim and shadowless, dark between the glows.',
+    landmark:'The sealed bronze vault door at the end of the causeway, wreathed in glowing vines.',
+    motion:'Still water reflecting the glow.',
+    life:'Water niches: rice paddies, nets and spears, eel traps, a mushroom grotto.',
+    story:'Books survive above the waterline; the water has taken the rest.'},
+  R12:{sw:'#cfeaf2',colour:'Ice pale cyan',feel:'Cold, silent, preserving',
+    light:'Grey daylight from the vent at the top of the cone; frost glinting. No flames anywhere: fire would melt the store.',
+    landmark:'The ice pit at the foot of the stepped cone.',
+    motion:'Your breath, falling frost.',
+    life:'Preserved books that rot elsewhere; enduring the cold.',
+    story:'Ice thick near the pit, thinning toward the warmer ring.'},
+  R13:{sw:'linear-gradient(90deg,#46b5b9,#f0c27a)',colour:'Turquoise tile under amber steam',feel:'Warm, steamy, restoring',
+    light:'Star-shaped glass skylights in the vault, each a dot of light through the steam; a glow from the hot room beyond.',
+    landmark:'The central warm pool.',
+    motion:'Rising steam, dripping water.',
+    life:'Warmth, treating injuries, gossip.',
+    story:'Tile bright and clean near the pool, stained and cracked in the far alcoves.'},
+  R14:{sw:'#8a4b2a',colour:'Copper brown',feel:'Intimate, smoky, convivial',
+    light:'Low and close: the samovar\'s glow, lamps on the takhts. Lower ceilings than the hall, so it never reads as R03\'s red.',
+    landmark:'The samovar counter at the back.',
+    motion:'Steam from the samovar, smoke, a musician.',
+    life:'Rumours, music, stories; companion scenes.',
+    story:'Busy or quiet by the hour; regulars leave their marks.'},
+  R15:{sw:'#a35ad0',colour:'Violet',feel:'Fertile, strange, humming with work',
+    light:'The crop itself: violet glowing caps on every terrace. Workers carry no flames (spores).',
+    landmark:'The water cascade down the middle of the terraces.',
+    motion:'Drifting spores, falling water.',
+    life:'Farming and foraging; the workers.',
+    story:'Tended terraces near the paths, wild overgrown ones far up the slope.'},
+  R16:{sw:'#b8894a',colour:'Dusty ochre',feel:'Disciplined, rhythmic, physical',
+    light:'One shaft from the dome\'s crown onto the pit; a ring of oil lamps round it; the gallery dark.',
+    landmark:'The octagonal sunken pit.',
+    motion:'Dust in the shaft, the drummer.',
+    life:'Faction training: clubs, wrestling, body skills.',
+    story:'Worn floor in the pit, trophies and old clubs on the walls.'},
+  R17:{sw:'#a7b39a',colour:'Bone grey-green',feel:'Eerie, reverent, the spookiest room, yet not horror',
+    light:'Single candles in the tended niches only; long dark stretches between them.',
+    landmark:'A tended shrine niche among the stacked dead.',
+    motion:'Guttering candles, dust falling.',
+    life:'Mourners\' traces; dead hosts for possession.',
+    story:'Tended niches near the entry, forgotten ones deeper in.'},
+  R18:{sw:'#c9b8f0',colour:'Pale spirit violet',feel:'Sacred, safe, recognisable everywhere',
+    light:'The anchor stone glows and pulses, multiplied by the mirror mosaic. Nothing else.',
+    landmark:'The anchor stone in its brass lattice cage.',
+    motion:'Slow floating motes, stirring votive ribbons.',
+    life:'The checkpoint where a banished spirit returns.',
+    story:'Ribbons and offerings build up with visits.'},
+  R19:{sw:'linear-gradient(90deg,#d4562a,#3a6fb5,#e2b23a)',colour:'Forge orange and dye colours',feel:'Hot, busy, colourful, skilled',
+    light:'Kiln and forge glow in the cells; daylight or lantern light over the vats.',
+    landmark:'The dye vats in the middle of the yard.',
+    motion:'Sparks, smoke, dyed yarn drying on lines.',
+    life:'Crafting: learning techniques from people, trading materials.',
+    story:'Active workshops and cold, abandoned ones.'},
+  R20:{sw:'linear-gradient(90deg,#22325f,#e4a65a)',colour:'Deep indigo with lantern gold',feel:'Dark, wide, a threshold to elsewhere',
+    light:'Lanterns on the pier and the boats, doubled in the black water; the lit landings of other settlements far across.',
+    landmark:'The quay with moored boats.',
+    motion:'Water lapping, lanterns bobbing, boats.',
+    life:'Ferries to other areas.',
+    story:'Each lit landing across the water is a real destination.'},
+  R21:{sw:'#6c86a6',colour:'Cold blue-grey from below',feel:'Vertiginous, echoing',
+    light:'Mist glow rising from the drop below; lamps only at the doors and bridge ends.',
+    landmark:'The straight bridges, side by side.',
+    motion:'Mist rising from below.',
+    life:'Crossing; seeing the other bridges from yours.',
+    story:'Older bridges weathered and patched, newer ones plain.'}};
+const pal=document.getElementById('palette');
+for(const R of ROOMS){const K=CHAR[R.id];if(K)pal.insertAdjacentHTML('beforeend',`<a href="#${R.id}"><i class="swatch" style="background:${K.sw}"></i><span>${R.id} ${R.name}<br><span class="when">${K.colour}${K.built?' · built':''}</span></span></a>`)}
 for(const R of ROOMS){
   const B=BUILT[R.id];
+  const K=CHAR[R.id];
+  const charHTML=K?`<div class="character"><div class="character-head"><i class="swatch" style="background:${K.sw}"></i><b>Character</b><span class="state${K.built?' is-built':''}">${K.built?'In the game':'Proposed'}</span><span class="feel">${K.feel}</span></div>
+      <dl><div><dt>Colour</dt><dd>${K.colour}</dd></div><div><dt>Light</dt><dd>${K.light}</dd></div><div><dt>Landmark</dt><dd>${K.landmark}</dd></div><div><dt>Motion</dt><dd>${K.motion}</dd></div><div><dt>Life</dt><dd>${K.life}</dd></div><div><dt>Story</dt><dd>${K.story}</dd></div></dl></div>`:'';
   toc.insertAdjacentHTML('beforeend',`<a class="m-${R.mode}${B?' is-built':''}" href="#${R.id}">${R.id} ${R.name}</a>`);
   ov.insertAdjacentHTML('beforeend',`<tr><td class="id">${R.id}</td><td><a href="#${R.id}">${R.name}</a></td><td><span class="chip m-${R.mode}"><i class="dot"></i>${MODE[R.mode]}</span></td><td>${R.role}</td><td>${R.layout}</td><td>${B?`<span class="built">In the game</span> <span class="when">${B.when}</span>`:'<span class="when">Not yet</span>'}</td></tr>`);
   const full=R.prompt+' '+STYLE;
@@ -1116,6 +1288,7 @@ for(const R of ROOMS){
       <div class="facts">${R.facts.map(f=>`<span><b>${f}</b></span>`).join('')}</div>
       <p class="desc">${R.desc}</p>
       ${B?`<div class="ingame"><b>In the game since ${B.when}.</b> ${B.where}. ${B.how}</div>`:''}
+      ${charHTML}
       <dl>
         <div><dt>Kit pieces</dt><dd>${R.kit}</dd></div>
         <div><dt>Sockets and variation</dt><dd>${R.sockets}</dd></div>

@@ -43,6 +43,10 @@ approximate it.
 6. **Lighting is modern, texels are retro.** Detail comes from light, haze and
    bloom, not from higher-resolution textures.
 
+These rules make every room look like the same game. What makes one room
+feel unlike the next (its colour, light family, landmark, motion and life)
+is in [docs/environment/room-character.md](docs/environment/room-character.md).
+
 ## 3. What v0.11 changed
 
 | File | Change |

@@ -21,6 +21,7 @@
 | Look, materials, lighting, concept matching | `ART_DIRECTION.md` |
 | Level building: kit, rooms, generation, props, roadmap | `ENVIRONMENT_PLAN.md` (front page: status, what needs approval, roadmap; detail and progress logs in `docs/environment/`) |
 | Room types and their mocks | `design/room-atlas.html` |
+| Room character and ambience (how each room gets its own feel; every new room starts with a character brief) | `docs/environment/room-character.md` |
 | Game design | `design/The_Eternal_Library_Game_Design_Foundation_v0.1 (1).docx` |
 
 ## 3. UI layout
