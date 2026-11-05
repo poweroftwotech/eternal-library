@@ -457,6 +457,8 @@ func add_alcoves(grid: CellGrid, c: Vector3i, taken: Dictionary, behind: Diction
 			var back := Vector3(out.x, 0, -out.z)
 			grid.props["niche_" + CellGrid.cell_name(a)] = {"slot": "dressing:niche_" + niche,
 				"xf": Transform3D(Basis.looking_at(back), CellGrid.cell_centre(a))}
+			if niche == "hearth":
+				grid.cells[a]["blocked"] = true     # its fire stands mid-alcove: walks stop short of it
 		# A hearth's fire and an art niche's tray lamp light their niche; the
 		# garden and the larder hang a lamp (plants grow by light, and you need
 		# to see the mushrooms); an empty alcove may have one.
@@ -551,7 +553,9 @@ func neglect_shelves(grid: CellGrid, seed_value: int) -> void:
 				grid.pins["edge_" + k] = "webbed shelves"
 				grid.edges[k]["slot"] = "edge:recess"     # a shelf recess, never a plain wall
 				continue
-			if rng.randf() < rock_breach_chance * t * t and grid.cells[c]["kind"] == "floor":
+			# Not across from a reading corner: its rubble strip would spill under the bench.
+			if rng.randf() < rock_breach_chance * t * t and grid.cells[c]["kind"] == "floor" \
+					and grid.cells[c].get("landmark", "") != "reading":
 				grid.pins["edge_" + k] = "rock breach"
 				grid.edges[k]["slot"] = "edge:recess"
 				grid.props["rubble_" + k] = {"slot": "dressing:rubble", "xf": CellGrid.edge_transform(c, side)}

@@ -380,6 +380,7 @@ func mark_edges(grid: CellGrid, rect: Rect2i, doors: Array, seed_value: int = 0)
 	var door_of: Dictionary = {}
 	var walls: Dictionary = {}       # solid edge key -> its two ends (for the cases' corners)
 	var cased: Array[String] = []
+	var door_ends: Dictionary = {}   # door edge key -> its two ends
 	for i: int in doors.size():
 		door_of[CellGrid.key(doors[i][0], doors[i][1])] = i
 	for c: Vector3i in grid.cells:
@@ -390,6 +391,9 @@ func mark_edges(grid: CellGrid, rect: Rect2i, doors: Array, seed_value: int = 0)
 				grid.set_edge(c, side, CellGrid.Mark.OPEN, false, "edge:arcade")
 				continue
 			grid.props["band_" + k] = {"slot": "edge:band", "xf": CellGrid.edge_transform(c, side), "shell": true}
+			if door_of.has(k):
+				var dxf: Transform3D = CellGrid.edge_transform(c, side)
+				door_ends[k] = [dxf.origin, dxf * Vector3(CellGrid.BAY, 0, 0)]
 			if not door_of.has(k):
 				grid.set_edge(c, side, CellGrid.Mark.SOLID)
 				var xf: Transform3D = CellGrid.edge_transform(c, side)
@@ -418,6 +422,12 @@ func mark_edges(grid: CellGrid, rect: Rect2i, doors: Array, seed_value: int = 0)
 			for e: Vector3 in walls[other]:
 				if e.distance_to(walls[k][0]) < 0.01 or e.distance_to(walls[k][1]) < 0.01:
 					grid.pins["edge_" + other] = "nothing"
+		# A door meeting a case at its corner grows no ivy under its arch: the
+		# growth would hang into the case's end.
+		for d: String in door_ends:
+			for e: Vector3 in door_ends[d]:
+				if e.distance_to(walls[k][0]) < 0.01 or e.distance_to(walls[k][1]) < 0.01:
+					grid.pins["edge_" + d] = "nothing"
 
 
 ## Columns on every inner corner; the top of a pier over the host door's two

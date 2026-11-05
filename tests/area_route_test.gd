@@ -35,14 +35,18 @@ func check(ok: bool, what: String) -> void:
 func run() -> void:
 	var seeds: int = SEEDS
 	var areas: Array = RECIPES.keys()
+	var only: Array = []      # only=8,10,13: just those seeds
 	for a: String in OS.get_cmdline_user_args():
 		if a.begins_with("seeds="):
 			seeds = a.trim_prefix("seeds=").to_int()
 		elif a.begins_with("area="):
 			areas = [a.trim_prefix("area=")]
+		elif a.begins_with("only="):
+			for n: String in a.trim_prefix("only=").split(","):
+				only.append(n.to_int())
 	save_format()
 	for id: String in areas:
-		for s: int in range(1, seeds + 1):
+		for s: int in (only if not only.is_empty() else range(1, seeds + 1)):
 			await audit(id, s)
 	Area.seed_override = -1
 	print("area_route_test: %d checks, %d failures" % [checks, failures.size()])
@@ -315,6 +319,8 @@ func follow(body: CharacterBody3D, points: Array[Vector3]) -> int:
 			body.move_and_slide()
 			await physics_frame
 		if not ok:
+			var hit: KinematicCollision3D = body.get_last_slide_collision()
+			print("  walk stuck at ", body.global_position, " short of ", target, " against ", str((hit.get_collider() as Node).get_path()) if hit != null and hit.get_collider() is Node else "nothing")
 			break
 		reached += 1
 	return reached
