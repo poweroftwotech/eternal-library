@@ -413,6 +413,8 @@ static func _modules(node: Node, out: Array[KitModule]) -> void:
 	for child: Node in node.get_children():
 		if child is RoomTemplate:
 			continue      # a nested room is validated on its own (5.5.1)
+		if child.get_meta("off_grid", false):
+			continue      # pieces set off the grid (a Bridge Hall's spans), like an off_grid room
 		if child is KitModule:
 			out.append(child as KitModule)
 			continue

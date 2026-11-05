@@ -116,6 +116,13 @@ func _lay(grid: CellGrid, p: Dictionary, seed_value: int) -> void:
 		cell["ceiling_slot"] = ""
 		cell["gables"] = false
 		cell["no_floor"] = true
+	# The map draws the bridge (its column on the deck's storeys) and the
+	# passages, not the hall's air (phase 12 step 4).
+	var lo: int = mini(0, int(p["rise"]))
+	var hi: int = maxi(0, int(p["rise"]))
+	for c: Vector3i in _hall_cells(p):
+		if not (c.x == bx and c.y >= lo and c.y <= hi):
+			grid.cells[c]["no_map"] = true
 	# Open between the hall's cells and along each passage; the passages open
 	# into the hall's bridge cells at the ends; the rest solid, building nothing.
 	var links: Array = []          # [cell, side] pairs open between room cells
@@ -248,10 +255,16 @@ func _lay(grid: CellGrid, p: Dictionary, seed_value: int) -> void:
 	# The bridge: its run from the entry mouth, -Z along the room.
 	var start := Transform3D(Basis(), Vector3(bx * BAY + BAY * 0.5, 0.0, -2 * BAY))
 	_piece(grid, "bridge", "bh:bridge", start)
+	# The walk (AreaTour, the tests): along the entry passage, the bridge's
+	# deck (its span plan's walk, at the deck's height up or down its flight),
+	# the far passage.
 	var route: Array[Vector3] = []
-	for c: Vector3i in chain + far_chain:
-		var q: Vector3 = CellGrid.cell_centre(c)
-		route.append(Vector3(q.x, q.y, q.z))
+	for c: Vector3i in chain.slice(0, chain.size() - 1):
+		route.append(CellGrid.cell_centre(c))
+	for w: Variant in BridgeHallBridge.plan(n, rise, BridgeHallBridge.PIT, false)["walk"]:
+		route.append(start * (w as Vector3))
+	for c: Vector3i in far_chain.slice(1):
+		route.append(CellGrid.cell_centre(c))
 	route.push_front(Vector3(BAY * 0.5, 0.0, 0.6))
 	var exit_at: Vector3 = CellGrid.door_transform(a2, CellGrid.Side.N).origin
 	route.append(Vector3(exit_at.x, exit_at.y, exit_at.z + 0.6))

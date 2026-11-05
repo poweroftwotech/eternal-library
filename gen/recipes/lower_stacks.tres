@@ -12,6 +12,7 @@
 [ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_5x5.tscn" id="10_r05"]
 [ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_7x5.tscn" id="11_r05"]
 [ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_3x3.tscn" id="12_r05"]
+[ext_resource type="Resource" path="res://gen/grammars/r21_bridge_hall.tres" id="13_r21"]
 
 [sub_resource type="Resource" id="Resource_court"]
 script = ExtResource("2_slot")
@@ -58,6 +59,14 @@ count = Vector2i(1, 1)
 slot_prefix = "lightwell"
 from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
 
+[sub_resource type="Resource" id="Resource_bridge"]
+script = ExtResource("3_grow")
+grammar = ExtResource("13_r21")
+display_name = "The Bridge Hall"
+count = Vector2i(1, 1)
+slot_prefix = "bridge"
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+
 [sub_resource type="Resource" id="Resource_upper"]
 script = ExtResource("3_grow")
 grammar = ExtResource("6_r02")
@@ -75,8 +84,8 @@ script = ExtResource("1_recipe")
 id = "lower_stacks"
 display_name = "The Lower Stacks"
 slots = Array[ExtResource("2_slot")]([SubResource("Resource_court"), SubResource("Resource_hall")])
-grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow"), SubResource("Resource_lightwell"), SubResource("Resource_cistern"), SubResource("Resource_upper")])
+grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow"), SubResource("Resource_lightwell"), SubResource("Resource_bridge"), SubResource("Resource_cistern"), SubResource("Resource_upper")])
 room_count = Vector2i(6, 11)
-version = 8
+version = 9
 placement = SubResource("Resource_place")
 atmosphere = ExtResource("7_atmos")

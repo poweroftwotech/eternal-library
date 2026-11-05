@@ -501,7 +501,13 @@ static func sketch_of(r: AreaPlan.Room) -> Dictionary:
 		else:
 			door["kind"] = "sealed"
 		doors.append(door)
-	var cells: Array = r.floor_cells.keys().map(func(c: Vector3i) -> Array: return [c.x, c.y, c.z])
+	# Cells a grammar keeps off the map (a Bridge Hall's air: no_map).
+	var hidden: Dictionary = {}
+	if r.grid != null:
+		for c: Vector3i in r.grid.cells:
+			if r.grid.cells[c].get("no_map", false):
+				hidden[AreaPlan.cell_of(r.xf * (CellGrid.cell_centre(c) + Vector3(0, 0.1, 0)))] = true
+	var cells: Array = r.floor_cells.keys().filter(func(c: Vector3i) -> bool: return not hidden.has(c)).map(func(c: Vector3i) -> Array: return [c.x, c.y, c.z])
 	var blocked: Array = r.blocked_cells.keys().map(func(c: Vector3i) -> Array: return [c.x, c.y, c.z])
 	var shown: String = r.display_name if r.display_name != "" else str(RoomTypes.NAMES.get(r.room_type, ""))
 	return {"name": shown, "cells": cells, "blocked": blocked, "doors": doors}

@@ -1,7 +1,7 @@
 extends SceneTree
 ## Gate for a whole area built from its plan, everything loaded at once
 ## (phase-4-design.md 8.1.7, step 1).
-##   godot --headless --path . --script res://tests/area_route_test.gd [-- seeds=N] [area=<id>]
+##   godot --headless --path . --script res://tests/area_route_test.gd [-- seeds=N] [area=<id>] [only=<seed>,<seed>...]
 ## For area seeds 1-5 of the library wing and the Lower Stacks (phase 5),
 ## streaming off: every planned room is built as a
 ## direct child of the Area; Validate Room is clean on every generated room
@@ -12,8 +12,9 @@ extends SceneTree
 ## back, through every room on the way. Prints what each room cost to build
 ## (to size step 2) and the wear map's size and time.
 
-## Both areas (phase-5-design.md 5.6.9); `area=<id>` runs one.
-const RECIPES: Dictionary = {"library": "res://gen/recipes/library_wing.tres", "lower_stacks": "res://gen/recipes/lower_stacks.tres"}
+## The areas (phase-5-design.md 5.6.9; the Forgotten Wing, phase 12 step 4);
+## `area=<id>` runs one.
+const RECIPES: Dictionary = {"library": "res://gen/recipes/library_wing.tres", "lower_stacks": "res://gen/recipes/lower_stacks.tres", "forgotten_wing": "res://gen/recipes/forgotten_wing.tres"}
 const SEEDS: int = 5
 ## Audit walking speed: 0.13 m per physics step, well under the capsule radius.
 const SPEED: float = 8.0
@@ -35,14 +36,17 @@ func check(ok: bool, what: String) -> void:
 func run() -> void:
 	var seeds: int = SEEDS
 	var areas: Array = RECIPES.keys()
+	var only: Array = []
 	for a: String in OS.get_cmdline_user_args():
 		if a.begins_with("seeds="):
 			seeds = a.trim_prefix("seeds=").to_int()
 		elif a.begins_with("area="):
 			areas = [a.trim_prefix("area=")]
+		elif a.begins_with("only="):
+			only = Array(a.trim_prefix("only=").split(",")).map(func(x: String) -> int: return x.to_int())
 	save_format()
 	for id: String in areas:
-		for s: int in range(1, seeds + 1):
+		for s: int in (only if not only.is_empty() else range(1, seeds + 1)):
 			await audit(id, s)
 	Area.seed_override = -1
 	print("area_route_test: %d checks, %d failures" % [checks, failures.size()])
@@ -116,15 +120,19 @@ func audit(id: String, s: int) -> void:
 		if g.grid.meta.get("ring", false):
 			await audit_ring(tag, r, g, space, body)
 			continue
+		# Cells over a drop (a Bridge Hall's: no_floor) are walked on their
+		# bridge instead (the tour below; tests/r21_flight_probe.gd).
+		var floored: Array = g.grid.cells.keys().filter(func(k: Vector3i) -> bool: return not g.grid.cells[k].get("no_floor", false))
 		var floors: int = 0
 		var leaks: PackedStringArray = []
 		for cell: Vector3i in g.grid.cells:
 			var c: Vector3 = g.to_global(CellGrid.cell_centre(cell))
+			var needs_floor: bool = not g.grid.cells[cell].get("no_floor", false)
 			# Down to the floor at its height (a cistern's water bays are lower), through
 			# whatever stands on it (a hall's cases, heaps, landmark).
 			var floor_y: float = float(g.grid.cells[cell].get("floor_y", 0.0))
 			var ray := PhysicsRayQueryParameters3D.create(c + Vector3(0, 0.5, 0), c - Vector3(0, 2.5, 0), 1)
-			for _try: int in 4:
+			for _try: int in (4 if needs_floor else 0):
 				var hit: Dictionary = space.intersect_ray(ray)
 				if hit.is_empty():
 					break
@@ -132,6 +140,12 @@ func audit(id: String, s: int) -> void:
 					floors += 1
 					break
 				ray.exclude = ray.exclude + [hit["rid"]]
+			# A Bridge Hall's air (no_map) can't be reached on foot; its facade
+			# fronts stand proud of the cell edge, into the cell, so a capsule at
+			# the cell's middle can start against them (seed 6: a window 0.5 m
+			# off, solid at every height).
+			if g.grid.cells[cell].get("no_map", false):
+				continue
 			for side: int in CellGrid.ALL_SIDES:
 				var edge: Dictionary = g.grid.edge(cell, side)
 				if edge.is_empty() or edge["host"]:
@@ -142,7 +156,7 @@ func audit(id: String, s: int) -> void:
 				var out: Vector3 = g.global_basis * (Vector3(CellGrid.neighbour(cell, side) - cell) * Vector3(1, 0, -1))
 				if not await blocked(body, c + Vector3(0, 0.95, 0), out * 3.0):
 					leaks.append("%s %s" % [cell, CellGrid.SIDE_NAMES[side]])
-		check(floors == g.grid.cells.size(), "%s: %s has floor under all %d cells (%d)" % [tag, r.slot_id, g.grid.cells.size(), floors])
+		check(floors == floored.size(), "%s: %s has floor under all %d cells that should have one (%d)" % [tag, r.slot_id, floored.size(), floors])
 		check(leaks.is_empty(), "%s: %s: every solid side and unjoined exit blocks (%s)" % [tag, r.slot_id, leaks])
 	# The baked gallery's own exit: blocked unless a room joined it.
 	for r: AreaPlan.Room in p.rooms:
