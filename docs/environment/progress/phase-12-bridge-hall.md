@@ -268,7 +268,7 @@ Captures in `previews/phase12_step3e/` (your seed 177102574, and 3).
   Their lamps are taken out, and 2 dim teal lights stand by tall clumps
   instead (at least 8 m apart). The caps glow on their own.
 
-## Step 4: the hall in the real areas, and the tests (built 2026-11-04, waiting for your OK)
+## Step 4: the hall in the real areas, and the tests (committed 317a856, 2026-11-04)
 
 What you can see: the Bridge Hall now grows in the real Lower Stacks and the
 Forgotten Wing, not only in the test copy. It grows off the hypostyle hall or
