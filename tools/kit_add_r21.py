@@ -294,8 +294,8 @@ for _h in (1, 3):
     for (_s, _o) in ((0, 1), (0, -1), (1, -1), (-1, 1)):
         MODULES.append(("M_" + end_wall_name(_h, _s, _o), props("edge", [5, 6, 0], "", "rock,cavern,r21"), end_wall(_h, _s, _o)))
 for _b in (6, 7, 8):
-    MODULES.append(("M_bh_roof_5x%d" % _b, props("cell", [5, 1, _b], "", "rock,cavern,r21"), roof(_b)))
-    MODULES.append(("M_bh_pit_5x%d" % _b, props("cell", [5, 1, _b], "", "rock,cavern,r21"), pit(_b)))
+    MODULES.append(("M_bh_roof_5x%d" % _b, props("cell", [5, 1, _b], "", "rock,cavern,r21,walled,scenery"), roof(_b)))   # out of reach: no collision
+    MODULES.append(("M_bh_pit_5x%d" % _b, props("cell", [5, 1, _b], "", "rock,cavern,r21,walled"), pit(_b)))
 
 # Script-made modules remade in place at a new revision (kit_blender.rebuild).
 REBUILD = []

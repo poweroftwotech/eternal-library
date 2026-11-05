@@ -83,6 +83,13 @@ static func leg(p: AreaPlan, r: AreaPlan.Room) -> Array[Vector3]:
 			for q: Vector3 in RingGrammar.route(room.grid.meta, [0, CellGrid.Side.S], to):
 				out.append(room.xf * q)
 			continue
+		if room.grid != null and room.grid.meta.get("bridge_hall", false):
+			# A Bridge Hall (phase 12): its cells are mostly air over the drop;
+			# along its passages and its bridge's deck to the far door, the
+			# only way on.
+			for q: Vector3 in room.grid.meta["route"]:
+				out.append(room.xf * q)
+			continue
 		var in_xf: Transform3D = room.connectors[room.entry]["xf"]
 		var from: Vector3i = AreaPlan.cell_of(in_xf.origin + in_xf.basis.z * 2.0)
 		var goal: Vector3i = Vector3i.MAX

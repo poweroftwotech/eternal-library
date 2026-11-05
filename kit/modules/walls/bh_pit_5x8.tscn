@@ -8,7 +8,7 @@ script = ExtResource("1_kln80")
 shape = 1
 family = "walls"
 size_cells = Vector3i(5, 1, 8)
-tags = PackedStringArray("rock", "cavern", "r21")
+tags = PackedStringArray("rock", "cavern", "r21", "walled")
 source_glb = "res://assets/kit/walls/bh_pit_5x8.glb"
 
 [node name="Mesh" parent="." unique_id=581261600 instance=ExtResource("2_0eawn")]

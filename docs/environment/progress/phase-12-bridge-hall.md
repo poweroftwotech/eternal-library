@@ -267,3 +267,57 @@ Captures in `previews/phase12_step3e/` (your seed 177102574, and 3).
   would have added up to about 36 lights, far past the room's limit of 50.
   Their lamps are taken out, and 2 dim teal lights stand by tall clumps
   instead (at least 8 m apart). The caps glow on their own.
+
+## Step 4: the hall in the real areas, and the tests (committed 317a856, 2026-11-04)
+
+What you can see: the Bridge Hall now grows in the real Lower Stacks and the
+Forgotten Wing, not only in the test copy. It grows off the hypostyle hall or
+one of the galleries, after the light-well and before the cistern (your
+choice). On the map it shows as its bridge and its two passages; the air over
+the drop isn't drawn.
+
+### Where it fits (20 seeds per order, both areas plan the same for a seed)
+
+| Order | Bridge Hall | Light-well | Upper | Cistern |
+|---|---|---|---|---|
+| Hall last | 4/20 | 20/20 | 20/20 | 16/20 |
+| Hall after the galleries | 20/20 | 10/20 | 9/20 | 12/20 |
+| **Hall after the light-well (chosen)** | **11/20** | **20/20** | **20/20** | **11/20** |
+
+So a Bridge Hall turns up in about half of all seeds, and costs the cistern in
+5 of them. Recipes: `gen/recipes/lower_stacks.tres` (v9) and
+`gen/recipes/forgotten_wing.tres` (v2). Sweep tool: `tests/r21_fit_sweep.gd`.
+
+### What changed to make it pass
+
+- The walking route through the hall follows the passages and the bridge's
+  deck (`BridgeHallGrammar` route; `AreaTour` uses it), not the hall's cells,
+  which are mostly air.
+- The hall's air cells are marked `no_map`: the map leaves them out, and the
+  route audit doesn't look for floor or leaks there.
+- The bridge and its life aren't checked against the cell grid (`off_grid`),
+  and the pit and roof pieces close their own cells (`walled`; the roof is
+  `scenery`, out of reach with no collision). Tags set in
+  `art_src/kit/kit_bridgehall.blend` and re-exported.
+
+### Checks
+
+- **Route audit** (`tests/area_route_test.gd`, now with `area=forgotten_wing`
+  and `only=`): every Bridge Hall walk passes (Lower Stacks seeds 1, 6, 11,
+  13, 14, 16, 19, 20, Forgotten Wing seed 6). The failures left were already
+  there before phase 12, the same with the old recipe: arch growth against a
+  wall case in the hypostyle hall (seeds 8, 13, 16), rubble against a reading
+  desk (10, 15), a walk one stop short (15, 17). They're on a separate task.
+- **Frame gate** (Medium, `tests/area_walk_capture.gd`): in the Bridge Hall,
+  seed 6: CPU mean 1.6 ms, worst 11.1 ms (one frame over 8), GPU mean 1.0 ms,
+  29 lights in reach, 1 shadowed, 0.61 M triangles; seed 11: CPU worst 8.3 ms,
+  22 lights, 0.40 M triangles. The whole-area gate still fails elsewhere, as
+  before: a 105-117 ms hitch in the caravanserai and 60-80 lights in reach at
+  the caravanserai and hypostyle hall (the hall adds 1). CSVs in
+  `previews/phase12_step4/`.
+- **Save and resume** (`tests/r21_resume_test.gd`, two processes): saved on
+  the middle of the bridge, a new process resumes there on the deck. Stepping
+  off the bridge puts you back in the passage you came in by. The map draws
+  the hall as its bridge and passages, none of its air, with you on it
+  (`previews/phase12_step4/map.png`).
+- **Kit gate** (`tests/kit_test.gd`): 7751 checks, 0 failures.

@@ -36,6 +36,8 @@ var _walk: Array = []                     # the run's walk points (plan), for th
 
 
 func _ready() -> void:
+	# Its spans stand off the room's grid (KitValidateRoom skips them).
+	set_meta("off_grid", true)
 	_room = _find_room()
 	if _room == null or _room.get("grid") == null:
 		return

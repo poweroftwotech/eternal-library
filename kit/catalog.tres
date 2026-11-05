@@ -2459,7 +2459,7 @@ modules = Array[Dictionary]([{
 "scene": "res://kit/modules/walls/bh_pit_5x6.tscn",
 "shape": "cell",
 "size_cells": Vector3i(5, 1, 6),
-"tags": PackedStringArray("rock", "cavern", "r21"),
+"tags": PackedStringArray("rock", "cavern", "r21", "walled"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -2468,7 +2468,7 @@ modules = Array[Dictionary]([{
 "scene": "res://kit/modules/walls/bh_pit_5x7.tscn",
 "shape": "cell",
 "size_cells": Vector3i(5, 1, 7),
-"tags": PackedStringArray("rock", "cavern", "r21"),
+"tags": PackedStringArray("rock", "cavern", "r21", "walled"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -2477,7 +2477,7 @@ modules = Array[Dictionary]([{
 "scene": "res://kit/modules/walls/bh_pit_5x8.tscn",
 "shape": "cell",
 "size_cells": Vector3i(5, 1, 8),
-"tags": PackedStringArray("rock", "cavern", "r21"),
+"tags": PackedStringArray("rock", "cavern", "r21", "walled"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -2486,7 +2486,7 @@ modules = Array[Dictionary]([{
 "scene": "res://kit/modules/walls/bh_roof_5x6.tscn",
 "shape": "cell",
 "size_cells": Vector3i(5, 1, 6),
-"tags": PackedStringArray("rock", "cavern", "r21"),
+"tags": PackedStringArray("rock", "cavern", "r21", "walled", "scenery"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -2495,7 +2495,7 @@ modules = Array[Dictionary]([{
 "scene": "res://kit/modules/walls/bh_roof_5x7.tscn",
 "shape": "cell",
 "size_cells": Vector3i(5, 1, 7),
-"tags": PackedStringArray("rock", "cavern", "r21"),
+"tags": PackedStringArray("rock", "cavern", "r21", "walled", "scenery"),
 "weight": 1.0
 }, {
 "edge": "",
@@ -2504,7 +2504,7 @@ modules = Array[Dictionary]([{
 "scene": "res://kit/modules/walls/bh_roof_5x8.tscn",
 "shape": "cell",
 "size_cells": Vector3i(5, 1, 8),
-"tags": PackedStringArray("rock", "cavern", "r21"),
+"tags": PackedStringArray("rock", "cavern", "r21", "walled", "scenery"),
 "weight": 1.0
 }, {
 "edge": "",
