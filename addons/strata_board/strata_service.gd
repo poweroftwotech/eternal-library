@@ -192,9 +192,9 @@ static func moved(old: AreaRecipe, new: AreaRecipe, worlds: Array, old_table: Co
 	for w: int in worlds:
 		if old_table != null:
 			ConnectionTable.use(old_table)
-		var before: AreaPlan = AreaPlanner.plan(old, AreaPlanner.area_seed_for(old, w))
+		var before: AreaPlan = AreaPlanner.plan_world(old, w)
 		ConnectionTable.use(new_table)
-		var after: AreaPlan = AreaPlanner.plan(new, AreaPlanner.area_seed_for(new, w), before.variants)
+		var after: AreaPlan = AreaPlanner.plan_world(new, w, before.variants)
 		if before.signature() != after.signature():
 			out.append(w)
 	return out
@@ -606,7 +606,7 @@ static func _slug(s: String) -> String:
 static func layout(world_seed: int) -> Dictionary:
 	var sp: StratumPlan = _stratum_plan()
 	var gorge: AreaRecipe = _load_recipe(sp.path_of("gorge"), false)
-	var gp: AreaPlan = AreaPlanner.plan(gorge, AreaPlanner.area_seed_for(gorge, world_seed))
+	var gp: AreaPlan = AreaPlanner.plan_world(gorge, world_seed)
 	var areas: Array = [{"id": "gorge", "name": gorge.display_name, "quads": _quads(gp, Transform3D()), "error": ""}]
 	var placed: Dictionary = {}     # id -> [plan, frame]
 	var recipe_paths: Dictionary = sp.recipes()
@@ -619,7 +619,7 @@ static func layout(world_seed: int) -> Dictionary:
 		if sp.door_slot(id) == StratumPlan.CAMP_BACK_DOOR:
 			areas.append({"id": id, "name": recipe.display_name, "quads": [], "error": "", "camp": true})
 			continue     # behind the camp's back door: it loads as its own scene, nowhere in the Gorge
-		var ip: AreaPlan = AreaPlanner.plan(recipe, AreaPlanner.area_seed_for(recipe, world_seed))
+		var ip: AreaPlan = AreaPlanner.plan_world(recipe, world_seed)
 		if gp.threshold(id).is_empty() or ip.threshold("gorge").is_empty():
 			areas.append({"id": id, "name": recipe.display_name, "quads": [],
 				"error": "no door to it from the Gorge in this world" if gp.threshold(id).is_empty() else "no door back to the Gorge"})
@@ -711,7 +711,7 @@ static func describe(recipe: AreaRecipe) -> Dictionary:
 ## "the plan checks clean"). map_px > 0 adds the top-down map as a PNG.
 static func plan(recipe: AreaRecipe, world_seed: int, map_px: int = 10) -> Dictionary:
 	var area_seed: int = AreaPlanner.area_seed_for(recipe, world_seed)
-	var p: AreaPlan = AreaPlanner.plan(recipe, area_seed)
+	var p: AreaPlan = AreaPlanner.plan(recipe, area_seed, {}, world_seed)
 	var problems: PackedStringArray = p.check()
 	var prefixes: PackedStringArray = []
 	for g: AreaGrow in recipe.grow:

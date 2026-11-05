@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_wi4cq"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/garden_bed_clip_4m.glb" id="2_37si4"]
+
+[node name="garden_bed_clip_4m" type="Node3D" unique_id=1366990274]
+script = ExtResource("1_wi4cq")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("plant", "garden", "lit")
+source_glb = "res://assets/kit/walls/garden_bed_clip_4m.glb"
+
+[node name="Mesh" parent="." unique_id=349148109 instance=ExtResource("2_37si4")]

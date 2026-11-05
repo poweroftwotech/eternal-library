@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/gen/garden_court_life.gd" id="1_gcl"]
+
+[node name="garden_life" type="Node3D"]
+script = ExtResource("1_gcl")

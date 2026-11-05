@@ -1,0 +1,619 @@
+[gd_resource type="Resource" script_class="ModuleRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/gen/module_rule.gd" id="1_o1ydw"]
+[ext_resource type="Script" path="res://scripts/gen/module_choice.gd" id="2_5us2g"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_cell_bay.tscn" id="3_5obgp"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_cell_bay_upper.tscn" id="4_xbvsa"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_block.tscn" id="5_c8l0v"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_upper.tscn" id="6_dnwtn"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_upper_stair.tscn" id="7_xdywv"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_upper_stair_r.tscn" id="8_6ojtf"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_stair.tscn" id="9_42xnn"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_corner_stair_r.tscn" id="10_es10p"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_pishtaq_gate.tscn" id="11_jyup6"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_passage.tscn" id="12_3nl5i"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_floor_4m.tscn" id="13_3ngcm"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cavern_ceiling_5x5.tscn" id="14_kiu0a"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/court_hearth_platform.tscn" id="15_lk3ri"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/court_well.tscn" id="16_6e0ef"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_lantern_string.tscn" id="17_y13y5"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_loggia_lantern.tscn" id="18_x81sr"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_cell_lantern.tscn" id="19_7f72y"]
+[ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="20_ng7i3"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cavern_ceiling_7x5.tscn" id="21_64pra"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/cavern_ceiling_3x3.tscn" id="22_ml05j"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/court_lantern_string_12m.tscn" id="23_rypoh"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_iwan.tscn" id="24_cd12g"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_shaft_5x5.tscn" id="25_najqm"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_pool.tscn" id="26_nu077"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_rill_4m.tscn" id="27_mxoab"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_bed_4m.tscn" id="28_qcqrh"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_talar_bay.tscn" id="29_wsted"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_talar_door.tscn" id="30_6f86p"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_talar_corner.tscn" id="31_phe1g"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_corridor_4m.tscn" id="32_djrla"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_pomegranate.tscn" id="33_62v1f"]
+[ext_resource type="PackedScene" path="res://gen/modules/garden_life.tscn" id="34_oc3ya"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_pool_dry.tscn" id="35_rwlk4"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_rill_dry_4m.tscn" id="36_c5ngy"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_bed_wild_4m.tscn" id="37_ht3c0"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_bed_clip_4m.tscn" id="38_kc4ti"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/garden_bed_clip_wild_4m.tscn" id="39_x404p"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_talar_vines.tscn" id="40_ltsgh"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_column.tscn" id="41_xflka"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_column_ivy_0.tscn" id="42_dgd1k"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_column_ivy_1.tscn" id="43_0vrx0"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_planter.tscn" id="44_cteve"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_planter_wild.tscn" id="45_aap7x"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_shrub.tscn" id="46_r4c4u"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_tree_old.tscn" id="47_i7vfo"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_tree_old_wild.tscn" id="48_0gl2g"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_niche_shelves.tscn" id="49_y7ha0"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_bench.tscn" id="50_y5823"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_traces.tscn" id="51_rot83"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_traces_old.tscn" id="52_imw3o"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/landmark_takht.tscn" id="53_u3j8a"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_garden_small.tscn" id="54_oyids"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/floor_cushion.tscn" id="55_hpbua"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/tray_table.tscn" id="56_0uney"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/debris_rubble.tscn" id="57_v3ket"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_vase_floor_broken.tscn" id="58_kkrga"]
+[ext_resource type="Script" path="res://scripts/gen/module_rules.gd" id="59_57jpi"]
+
+[sub_resource type="Resource" id="Resource_sxubu"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("3_5obgp")
+
+[sub_resource type="Resource" id="Resource_qnlb2"]
+script = ExtResource("1_o1ydw")
+slot = "cell:court_bay"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_sxubu")])
+
+[sub_resource type="Resource" id="Resource_v7uqa"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("4_xbvsa")
+
+[sub_resource type="Resource" id="Resource_ruirv"]
+script = ExtResource("1_o1ydw")
+slot = "cell:court_bay_upper"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_v7uqa")])
+
+[sub_resource type="Resource" id="Resource_4w0vf"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("5_c8l0v")
+
+[sub_resource type="Resource" id="Resource_oyb1k"]
+script = ExtResource("1_o1ydw")
+slot = "cell:court_corner"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_4w0vf")])
+
+[sub_resource type="Resource" id="Resource_kiyt7"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("6_dnwtn")
+
+[sub_resource type="Resource" id="Resource_2hiaq"]
+script = ExtResource("1_o1ydw")
+slot = "cell:court_corner_upper"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_kiyt7")])
+
+[sub_resource type="Resource" id="Resource_24wn8"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("7_xdywv")
+
+[sub_resource type="Resource" id="Resource_5vapq"]
+script = ExtResource("1_o1ydw")
+slot = "cell:court_corner_upper_stair"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_24wn8")])
+
+[sub_resource type="Resource" id="Resource_u3stg"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("8_6ojtf")
+
+[sub_resource type="Resource" id="Resource_ikybg"]
+script = ExtResource("1_o1ydw")
+slot = "cell:court_corner_upper_stair_r"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_u3stg")])
+
+[sub_resource type="Resource" id="Resource_fmcd6"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("9_42xnn")
+
+[sub_resource type="Resource" id="Resource_a0yef"]
+script = ExtResource("1_o1ydw")
+slot = "cell:court_stair"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_fmcd6")])
+
+[sub_resource type="Resource" id="Resource_035r1"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("10_es10p")
+
+[sub_resource type="Resource" id="Resource_kvtsc"]
+script = ExtResource("1_o1ydw")
+slot = "cell:court_stair_r"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_035r1")])
+
+[sub_resource type="Resource" id="Resource_ue140"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("11_jyup6")
+
+[sub_resource type="Resource" id="Resource_5funi"]
+script = ExtResource("1_o1ydw")
+slot = "cell:court_gate"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_ue140")])
+
+[sub_resource type="Resource" id="Resource_aqngb"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("12_3nl5i")
+
+[sub_resource type="Resource" id="Resource_3n60w"]
+script = ExtResource("1_o1ydw")
+slot = "cell:court_passage"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_aqngb")])
+
+[sub_resource type="Resource" id="Resource_a6yiu"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("13_3ngcm")
+
+[sub_resource type="Resource" id="Resource_d3lay"]
+script = ExtResource("1_o1ydw")
+slot = "cell:court_floor"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_a6yiu")])
+
+[sub_resource type="Resource" id="Resource_p07si"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("14_kiu0a")
+
+[sub_resource type="Resource" id="Resource_3xmeq"]
+script = ExtResource("1_o1ydw")
+slot = "cell:cavern_5x5"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_p07si")])
+
+[sub_resource type="Resource" id="Resource_4xbc1"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("15_lk3ri")
+
+[sub_resource type="Resource" id="Resource_0kg8t"]
+script = ExtResource("1_o1ydw")
+slot = "court:hearth"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_4xbc1")])
+
+[sub_resource type="Resource" id="Resource_cjltj"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("16_6e0ef")
+
+[sub_resource type="Resource" id="Resource_66p3y"]
+script = ExtResource("1_o1ydw")
+slot = "court:well"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_cjltj")])
+
+[sub_resource type="Resource" id="Resource_f3ovk"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("17_y13y5")
+
+[sub_resource type="Resource" id="Resource_a0s8q"]
+script = ExtResource("1_o1ydw")
+slot = "court:lantern_string"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_f3ovk")])
+
+[sub_resource type="Resource" id="Resource_5kdw1"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("18_x81sr")
+
+[sub_resource type="Resource" id="Resource_kn8sa"]
+script = ExtResource("1_o1ydw")
+slot = "court:loggia_lantern"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_5kdw1")])
+
+[sub_resource type="Resource" id="Resource_omfiv"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("19_7f72y")
+
+[sub_resource type="Resource" id="Resource_ohhx2"]
+script = ExtResource("1_o1ydw")
+slot = "court:cell_lantern"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_omfiv")])
+
+[sub_resource type="Resource" id="Resource_ed7pe"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("20_ng7i3")
+
+[sub_resource type="Resource" id="Resource_baege"]
+script = ExtResource("1_o1ydw")
+slot = "stub:exit"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_ed7pe")])
+
+[sub_resource type="Resource" id="Resource_r7spn"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("21_64pra")
+
+[sub_resource type="Resource" id="Resource_dee42"]
+script = ExtResource("1_o1ydw")
+slot = "cell:cavern_7x5"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_r7spn")])
+
+[sub_resource type="Resource" id="Resource_jlkpk"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("22_ml05j")
+
+[sub_resource type="Resource" id="Resource_ay8fs"]
+script = ExtResource("1_o1ydw")
+slot = "cell:cavern_3x3"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_jlkpk")])
+
+[sub_resource type="Resource" id="Resource_avft6"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("23_rypoh")
+
+[sub_resource type="Resource" id="Resource_si7cc"]
+script = ExtResource("1_o1ydw")
+slot = "court:lantern_string_12m"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_avft6")])
+
+[sub_resource type="Resource" id="Resource_ea54d"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("24_cd12g")
+
+[sub_resource type="Resource" id="Resource_h10ke"]
+script = ExtResource("1_o1ydw")
+slot = "garden:iwan"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_ea54d")])
+
+[sub_resource type="Resource" id="Resource_2kx10"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("25_najqm")
+
+[sub_resource type="Resource" id="Resource_5xlor"]
+script = ExtResource("1_o1ydw")
+slot = "garden:shaft"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_2kx10")])
+
+[sub_resource type="Resource" id="Resource_fscmb"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("26_nu077")
+
+[sub_resource type="Resource" id="Resource_0owbu"]
+script = ExtResource("1_o1ydw")
+slot = "garden:pool"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_fscmb")])
+
+[sub_resource type="Resource" id="Resource_rrndj"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("27_mxoab")
+
+[sub_resource type="Resource" id="Resource_2i84q"]
+script = ExtResource("1_o1ydw")
+slot = "garden:rill"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_rrndj")])
+
+[sub_resource type="Resource" id="Resource_dofkl"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("28_qcqrh")
+
+[sub_resource type="Resource" id="Resource_fvp85"]
+script = ExtResource("1_o1ydw")
+slot = "garden:bed"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_dofkl")])
+
+[sub_resource type="Resource" id="Resource_byhlj"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("29_wsted")
+
+[sub_resource type="Resource" id="Resource_ik3pg"]
+script = ExtResource("1_o1ydw")
+slot = "garden:talar"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_byhlj")])
+
+[sub_resource type="Resource" id="Resource_g6en7"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("30_6f86p")
+
+[sub_resource type="Resource" id="Resource_6up8e"]
+script = ExtResource("1_o1ydw")
+slot = "garden:talar_door"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_g6en7")])
+
+[sub_resource type="Resource" id="Resource_lp67i"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("31_phe1g")
+
+[sub_resource type="Resource" id="Resource_6kqtl"]
+script = ExtResource("1_o1ydw")
+slot = "garden:talar_corner"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_lp67i")])
+
+[sub_resource type="Resource" id="Resource_e4ugr"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("32_djrla")
+
+[sub_resource type="Resource" id="Resource_kqgmo"]
+script = ExtResource("1_o1ydw")
+slot = "garden:corridor"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_e4ugr")])
+
+[sub_resource type="Resource" id="Resource_bap18"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("33_62v1f")
+
+[sub_resource type="Resource" id="Resource_hy8ip"]
+script = ExtResource("1_o1ydw")
+slot = "garden:tree_orchard"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_bap18")])
+
+[sub_resource type="Resource" id="Resource_djexk"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("34_oc3ya")
+
+[sub_resource type="Resource" id="Resource_hgbb7"]
+script = ExtResource("1_o1ydw")
+slot = "garden:life"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_djexk")])
+
+[sub_resource type="Resource" id="Resource_dq0iq"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("35_rwlk4")
+
+[sub_resource type="Resource" id="Resource_2lmq5"]
+script = ExtResource("1_o1ydw")
+slot = "garden:pool_dry"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_dq0iq")])
+
+[sub_resource type="Resource" id="Resource_raqco"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("36_c5ngy")
+
+[sub_resource type="Resource" id="Resource_3qg0k"]
+script = ExtResource("1_o1ydw")
+slot = "garden:rill_dry"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_raqco")])
+
+[sub_resource type="Resource" id="Resource_lings"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("37_ht3c0")
+
+[sub_resource type="Resource" id="Resource_ylqpo"]
+script = ExtResource("1_o1ydw")
+slot = "garden:bed_wild"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_lings")])
+
+[sub_resource type="Resource" id="Resource_p4fbo"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("38_kc4ti")
+
+[sub_resource type="Resource" id="Resource_5sv70"]
+script = ExtResource("1_o1ydw")
+slot = "garden:bed_clip"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_p4fbo")])
+
+[sub_resource type="Resource" id="Resource_cv05d"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("39_x404p")
+
+[sub_resource type="Resource" id="Resource_1hcte"]
+script = ExtResource("1_o1ydw")
+slot = "garden:bed_clip_wild"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_cv05d")])
+
+[sub_resource type="Resource" id="Resource_v5ort"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("40_ltsgh")
+
+[sub_resource type="Resource" id="Resource_weca8"]
+script = ExtResource("1_o1ydw")
+slot = "garden:talar_vines"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_v5ort")])
+
+[sub_resource type="Resource" id="Resource_ac1a8"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("41_xflka")
+
+[sub_resource type="Resource" id="Resource_f7cms"]
+script = ExtResource("1_o1ydw")
+slot = "garden:column"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_ac1a8")])
+
+[sub_resource type="Resource" id="Resource_1vcs4"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("42_dgd1k")
+
+[sub_resource type="Resource" id="Resource_pjty3"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("43_0vrx0")
+
+[sub_resource type="Resource" id="Resource_xwtyt"]
+script = ExtResource("1_o1ydw")
+slot = "garden:column_ivy"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_1vcs4"), SubResource("Resource_pjty3")])
+
+[sub_resource type="Resource" id="Resource_g6n3b"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("44_cteve")
+
+[sub_resource type="Resource" id="Resource_af63i"]
+script = ExtResource("1_o1ydw")
+slot = "garden:planter"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_g6n3b")])
+
+[sub_resource type="Resource" id="Resource_b1nwn"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("45_aap7x")
+
+[sub_resource type="Resource" id="Resource_32nky"]
+script = ExtResource("1_o1ydw")
+slot = "garden:planter_wild"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_b1nwn")])
+
+[sub_resource type="Resource" id="Resource_b0clo"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("46_r4c4u")
+
+[sub_resource type="Resource" id="Resource_q0tlr"]
+script = ExtResource("1_o1ydw")
+slot = "garden:shrub"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_b0clo")])
+
+[sub_resource type="Resource" id="Resource_hjk4d"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("47_i7vfo")
+
+[sub_resource type="Resource" id="Resource_e02w5"]
+script = ExtResource("1_o1ydw")
+slot = "garden:tree_old"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_hjk4d")])
+
+[sub_resource type="Resource" id="Resource_syvnl"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("48_0gl2g")
+
+[sub_resource type="Resource" id="Resource_myo6e"]
+script = ExtResource("1_o1ydw")
+slot = "garden:tree_old_wild"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_syvnl")])
+
+[sub_resource type="Resource" id="Resource_qykaj"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("49_y7ha0")
+
+[sub_resource type="Resource" id="Resource_tbar2"]
+script = ExtResource("1_o1ydw")
+slot = "garden:shelves"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_qykaj")])
+
+[sub_resource type="Resource" id="Resource_yf2na"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("50_y5823")
+
+[sub_resource type="Resource" id="Resource_lqu0d"]
+script = ExtResource("1_o1ydw")
+slot = "garden:bench"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_yf2na")])
+
+[sub_resource type="Resource" id="Resource_la007"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("51_rot83")
+
+[sub_resource type="Resource" id="Resource_nj0dg"]
+script = ExtResource("1_o1ydw")
+slot = "garden:traces"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_la007")])
+
+[sub_resource type="Resource" id="Resource_7nfpm"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("52_imw3o")
+
+[sub_resource type="Resource" id="Resource_ou1w0"]
+script = ExtResource("1_o1ydw")
+slot = "garden:traces_old"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_7nfpm")])
+
+[sub_resource type="Resource" id="Resource_ayr18"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("53_u3j8a")
+
+[sub_resource type="Resource" id="Resource_u8tf6"]
+script = ExtResource("1_o1ydw")
+slot = "landmark:takht"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_ayr18")])
+
+[sub_resource type="Resource" id="Resource_d8d0n"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("54_oyids")
+
+[sub_resource type="Resource" id="Resource_ugw02"]
+script = ExtResource("1_o1ydw")
+slot = "garden:rug"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_d8d0n")])
+
+[sub_resource type="Resource" id="Resource_riivq"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("55_hpbua")
+
+[sub_resource type="Resource" id="Resource_4eo7s"]
+script = ExtResource("1_o1ydw")
+slot = "garden:cushion"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_riivq")])
+
+[sub_resource type="Resource" id="Resource_75tjd"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("56_0uney")
+
+[sub_resource type="Resource" id="Resource_dq2gm"]
+script = ExtResource("1_o1ydw")
+slot = "garden:tray"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_75tjd")])
+
+[sub_resource type="Resource" id="Resource_n16t6"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("57_v3ket")
+
+[sub_resource type="Resource" id="Resource_66s5v"]
+script = ExtResource("1_o1ydw")
+slot = "garden:rubble"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_n16t6")])
+
+[sub_resource type="Resource" id="Resource_077wu"]
+script = ExtResource("2_5us2g")
+scene = ExtResource("58_kkrga")
+
+[sub_resource type="Resource" id="Resource_51rqq"]
+script = ExtResource("1_o1ydw")
+slot = "garden:vase_broken"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_5us2g")]([SubResource("Resource_077wu")])
+
+[resource]
+script = ExtResource("59_57jpi")
+rules = Array[ExtResource("1_o1ydw")]([SubResource("Resource_qnlb2"), SubResource("Resource_ruirv"), SubResource("Resource_oyb1k"), SubResource("Resource_2hiaq"), SubResource("Resource_5vapq"), SubResource("Resource_ikybg"), SubResource("Resource_a0yef"), SubResource("Resource_kvtsc"), SubResource("Resource_5funi"), SubResource("Resource_3n60w"), SubResource("Resource_d3lay"), SubResource("Resource_3xmeq"), SubResource("Resource_0kg8t"), SubResource("Resource_66p3y"), SubResource("Resource_a0s8q"), SubResource("Resource_kn8sa"), SubResource("Resource_ohhx2"), SubResource("Resource_baege"), SubResource("Resource_dee42"), SubResource("Resource_ay8fs"), SubResource("Resource_si7cc"), SubResource("Resource_h10ke"), SubResource("Resource_5xlor"), SubResource("Resource_0owbu"), SubResource("Resource_2i84q"), SubResource("Resource_fvp85"), SubResource("Resource_ik3pg"), SubResource("Resource_6up8e"), SubResource("Resource_6kqtl"), SubResource("Resource_kqgmo"), SubResource("Resource_hy8ip"), SubResource("Resource_hgbb7"), SubResource("Resource_2lmq5"), SubResource("Resource_3qg0k"), SubResource("Resource_ylqpo"), SubResource("Resource_5sv70"), SubResource("Resource_1hcte"), SubResource("Resource_weca8"), SubResource("Resource_f7cms"), SubResource("Resource_xwtyt"), SubResource("Resource_af63i"), SubResource("Resource_32nky"), SubResource("Resource_q0tlr"), SubResource("Resource_e02w5"), SubResource("Resource_myo6e"), SubResource("Resource_tbar2"), SubResource("Resource_lqu0d"), SubResource("Resource_nj0dg"), SubResource("Resource_ou1w0"), SubResource("Resource_u8tf6"), SubResource("Resource_ugw02"), SubResource("Resource_4eo7s"), SubResource("Resource_dq2gm"), SubResource("Resource_66s5v"), SubResource("Resource_51rqq")])

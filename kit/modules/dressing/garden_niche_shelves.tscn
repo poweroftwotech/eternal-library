@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_e3e2q"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/garden_niche_shelves.glb" id="2_c16j5"]
+
+[node name="garden_niche_shelves" type="Node3D" unique_id=427926304]
+script = ExtResource("1_e3e2q")
+family = "dressing"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("wood", "garden", "books")
+source_glb = "res://assets/kit/dressing/garden_niche_shelves.glb"
+
+[node name="Mesh" parent="." unique_id=116538895 instance=ExtResource("2_c16j5")]

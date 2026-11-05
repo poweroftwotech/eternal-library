@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ufoih"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/garden_column_ivy_1.glb" id="2_63skh"]
+
+[node name="garden_column_ivy_1" type="Node3D" unique_id=1942310659]
+script = ExtResource("1_ufoih")
+family = "dressing"
+size_cells = Vector3i(1, 2, 1)
+tags = PackedStringArray("wood", "plant", "ivy", "garden", "column")
+source_glb = "res://assets/kit/dressing/garden_column_ivy_1.glb"
+
+[node name="Mesh" parent="." unique_id=1837672191 instance=ExtResource("2_63skh")]

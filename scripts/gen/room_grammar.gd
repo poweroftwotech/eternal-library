@@ -230,6 +230,13 @@ static func _xz(v: Vector3) -> Vector2:
 	set(value):
 		wetness = value
 		emit_changed()
+## Daylight only (the Garden Court, phase 13): every flame lamp the room's
+## dressing brings (a reading table's oil lamp) stays dark; the room's own
+## daylight rig (lights marked "far": sun, sky fills) is untouched.
+@export var lamps_dark: bool = false:
+	set(value):
+		lamps_dark = value
+		emit_changed()
 ## Glow while you're in this room (the area's environment eases to it):
 ## bloom off bright light and glowing plants. A negative value keeps the
 ## area profile's.

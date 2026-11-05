@@ -21,3 +21,8 @@ extends Resource
 ## build in a frame's budget while you walk (phase 5 step 3: the cistern,
 ## 2,000 nodes, took 5-6 ms to enter the tree).
 @export var pinned: bool = false
+## The areas of a stratum that share this room (phase 13 Q2: one Garden Court
+## per stratum): the world seed picks one of them and only it grows the room.
+## Empty: every area with this rule grows it. A plan made without a world seed
+## (tools and tests that plan from an area seed) grows it wherever the rule is.
+@export var one_of: PackedStringArray = []

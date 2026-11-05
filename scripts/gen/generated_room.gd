@@ -195,6 +195,7 @@ func _finish_build(s: int, styles: Dictionary, resolve: bool) -> void:
 	_add_floor_wear()
 	_wet_shell()
 	style_overrides = styles.duplicate()
+	lamps_dark = grammar.lamps_dark
 	if resolve:
 		resolve_sockets(s)
 	_draw_overlay()

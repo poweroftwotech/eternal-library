@@ -126,6 +126,15 @@ static func kept_variants(id: String) -> Dictionary:
 	return ws.call("kept_variants", id) if ws != null else {}
 
 
+## The world seed its plan is made in (-1 under a seed override: tests and
+## captures plan from an area seed, and shared rooms grow everywhere).
+static func plan_world_seed() -> int:
+	if seed_override >= 0:
+		return -1
+	var ws: Node = Engine.get_main_loop().root.get_node_or_null("/root/WorldState") if Engine.get_main_loop() is SceneTree else null
+	return int((ws.get("data") as Dictionary).get("world_seed", 1)) if ws != null else 1
+
+
 ## The seed this area plans from.
 func area_seed() -> int:
 	if seed_override >= 0:
@@ -150,7 +159,7 @@ func _ready() -> void:
 	var ws: Node = get_node_or_null("/root/WorldState")
 	if ws != null and active:
 		ws.call("enter_area", recipe.id, recipe.version)
-	plan = prepared_plan if prepared_plan != null else AreaPlanner.plan(recipe, area_seed(), kept_variants(recipe.id))
+	plan = prepared_plan if prepared_plan != null else AreaPlanner.plan(recipe, area_seed(), kept_variants(recipe.id), plan_world_seed())
 	if ws != null and seed_override < 0:
 		ws.call("keep_variants", recipe.id, plan.variants, recipe.version)
 	if not plan.checked:

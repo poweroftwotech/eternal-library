@@ -146,6 +146,11 @@ func audit(id: String, s: int) -> void:
 			# off, solid at every height).
 			if g.grid.cells[cell].get("no_map", false):
 				continue
+			# Nor is a blocked cell stood in (a garden's great tree is on its
+			# centre: a capsule there starts inside the trunk).
+			if g.grid.cells[cell].get("blocked", false):
+				continue
+			var reach: float = float(g.grid.meta.get("side_reach", 3.0))
 			for side: int in CellGrid.ALL_SIDES:
 				var edge: Dictionary = g.grid.edge(cell, side)
 				if edge.is_empty() or edge["host"]:
@@ -154,7 +159,7 @@ func audit(id: String, s: int) -> void:
 				if not (edge["mark"] == CellGrid.Mark.SOLID or (edge["mark"] == CellGrid.Mark.DOOR and not joined)):
 					continue
 				var out: Vector3 = g.global_basis * (Vector3(CellGrid.neighbour(cell, side) - cell) * Vector3(1, 0, -1))
-				if not await blocked(body, c + Vector3(0, 0.95, 0), out * 3.0):
+				if not await blocked(body, c + Vector3(0, 0.95, 0), out * reach):
 					leaks.append("%s %s" % [cell, CellGrid.SIDE_NAMES[side]])
 		check(floors == floored.size(), "%s: %s has floor under all %d cells that should have one (%d)" % [tag, r.slot_id, floored.size(), floors])
 		check(leaks.is_empty(), "%s: %s: every solid side and unjoined exit blocks (%s)" % [tag, r.slot_id, leaks])

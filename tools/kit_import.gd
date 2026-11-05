@@ -27,6 +27,9 @@ const LIGHT_PROFILES: Dictionary = {
 	# Blender properties "range", "spot_angle" and "energy" override these.
 	"shaft": {"color": Color(1.0, 0.95, 0.86), "energy": 8.0, "range": 30.0, "attenuation": 0.35, "shadow": false, "spot": 15.0, "spot_falloff": 2.0, "fog": 4.0, "far": true},
 	"bounce": {"color": Color(0.84, 0.87, 0.92), "energy": 0.55, "range": 12.0, "attenuation": 0.8, "shadow": false, "fog": 0.0, "far": true},
+	# The Garden Court (phase 13): the sun down its broad shaft, the one shadowed
+	# light in the room; the shaft's walls shape its patch on the court.
+	"sun": {"color": Color(1.0, 0.95, 0.84), "energy": 14.0, "range": 70.0, "attenuation": 0.3, "shadow": true, "spot": 14.0, "spot_falloff": 1.2, "fog": 0.45, "far": true, "size": 0.6},     # fog 0.12 -> 0.45 after walk 5: the haze column
 	# The Persian kit (phase-8-design.md 8.4): a lumen stone's warm-white light,
 	# the light green gardens grow in; and the small teal glow of a fungus
 	# grove. Neither casts shadows, so they cost no shadow budget.
@@ -50,6 +53,9 @@ const LIGHT_PROFILES: Dictionary = {
 	# candle"): less glare and a quick drop-off.
 	"candle_one": {"color": Color(1.0, 0.7, 0.42), "energy": 0.55, "range": 1.5, "attenuation": 1.8, "shadow": false},
 	"glowcap": {"color": Color(0.45, 0.66, 1.0), "energy": 0.9, "range": 5.0, "attenuation": 1.3, "shadow": false},
+	# The Fungus Terraces (phase 13, R15): the violet crop's glow, one a terrace
+	# low over the stair; no shadows (spores: no flames, and the budget).
+	"violet": {"color": Color(0.74, 0.48, 1.0), "energy": 1.5, "range": 9.0, "attenuation": 1.2, "shadow": false},
 }
 const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_", "FOG_"]
 ## Physics layer 8: walls only the player collides with (project layer names).
@@ -258,6 +264,8 @@ func _convert_empty(node: Node, prefix: String, scene: Node) -> void:
 			fog.size = Vector3(float(fs[0]), float(fs[2]), float(fs[1]))     # Blender y/z -> Godot z/y
 			var fm := FogMaterial.new()
 			fm.density = float(extras.get("density", 0.04))
+			if extras.has("edge_fade"):     # a soft edge (the Garden Court's haze column)
+				fm.edge_fade = float(extras["edge_fade"])
 			fm.albedo = Color(0.9, 0.92, 0.95)
 			if extras.get("albedo") is Array:     # optional tint [r, g, b] and glow [r, g, b] (+ emission_energy)
 				var a: Array = extras["albedo"]

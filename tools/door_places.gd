@@ -26,7 +26,7 @@ func _initialize() -> void:
 		var clean: int = 0
 		var ledges: int = 0
 		for w: int in range(1, worlds + 1):
-			var p: AreaPlan = AreaPlanner.plan(recipe, AreaPlanner.area_seed_for(recipe, w))
+			var p: AreaPlan = AreaPlanner.plan_world(recipe, w)
 			if not p.threshold("door_trial").is_empty():
 				reached += 1
 			if p.check().is_empty():

@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_p0pra"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/garden_talar_corner.glb" id="2_yi1tt"]
+
+[node name="garden_talar_corner" type="Node3D" unique_id=448538141]
+script = ExtResource("1_p0pra")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 3, 1)
+tags = PackedStringArray("wood", "plaster", "garden", "walled")
+source_glb = "res://assets/kit/walls/garden_talar_corner.glb"
+
+[node name="Mesh" parent="." unique_id=941463297 instance=ExtResource("2_yi1tt")]

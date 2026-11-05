@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_quody"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/garden_iwan.glb" id="2_12gjl"]
+
+[node name="garden_iwan" type="Node3D" unique_id=282249701]
+script = ExtResource("1_quody")
+shape = 1
+family = "walls"
+size_cells = Vector3i(3, 3, 1)
+tags = PackedStringArray("brick", "tile", "garden", "door", "landmark", "walled")
+source_glb = "res://assets/kit/walls/garden_iwan.glb"
+
+[node name="Mesh" parent="." unique_id=309734350 instance=ExtResource("2_12gjl")]

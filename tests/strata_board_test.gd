@@ -79,7 +79,7 @@ func service() -> void:
 		check((desc["grow"] as Array).size() == recipe.grow.size(), "%s: every grow rule is described" % id)
 		for w: int in [1, 2, 3]:
 			var answer: Dictionary = Service.handle({"cmd": "plan", "path": INTERIORS[id], "world_seed": w, "map_px": 0})
-			var direct: AreaPlan = AreaPlanner.plan(recipe, AreaPlanner.area_seed_for(recipe, w))
+			var direct: AreaPlan = AreaPlanner.plan_world(recipe, w)
 			check(int(answer["area_seed"]) == AreaPlanner.area_seed_for(recipe, w), "%s world %d: the area seed is the world seed's" % [id, w])
 			check(str(answer["signature"]) == direct.signature().sha256_text(), "%s world %d: the board's plan is the planner's own" % [id, w])
 			check(bool(answer["valid"]) == direct.check().is_empty(), "%s world %d: valid exactly when the plan checks clean" % [id, w])
@@ -185,7 +185,7 @@ func board(capture: String) -> void:
 	var lower: AreaRecipe = load(INTERIORS["lower_stacks"])
 	var same: bool = true
 	for s: int in [1, 7, 20]:
-		same = same and bool(results[s]["valid"]) == AreaPlanner.plan(lower, AreaPlanner.area_seed_for(lower, s)).check().is_empty()
+		same = same and bool(results[s]["valid"]) == AreaPlanner.plan_world(lower, s).check().is_empty()
 	check(same, "the sweep's valid marks are the planner's checks")
 	print("  sweep: 20 Lower Stacks worlds in %.1f s (one process), %d valid" % [(Time.get_ticks_msec() - t0) / 1000.0, valid])
 	await process_frame
@@ -260,7 +260,7 @@ func seed_process(mode: String, save: String) -> void:
 ## new ones recorded) and saves.
 func _plan_kept(ws: Node) -> AreaPlan:
 	var recipe: AreaRecipe = load(INTERIORS["lower_stacks"])
-	var p: AreaPlan = AreaPlanner.plan(recipe, AreaPlanner.area_seed_for(recipe, int(ws.call("world_seed"))), ws.call("kept_variants", recipe.id))
+	var p: AreaPlan = AreaPlanner.plan_world(recipe, int(ws.call("world_seed")), ws.call("kept_variants", recipe.id))
 	ws.call("keep_variants", recipe.id, p.variants, recipe.version)
 	ws.call("save_now")
 	return p
@@ -285,7 +285,7 @@ func edit() -> void:
 		var same: AreaRecipe = Service.build(desc)
 		for w: int in [1, 2, 3]:
 			var a: Dictionary = Service.handle({"cmd": "plan", "desc": desc, "world_seed": w, "map_px": 0})
-			var direct: AreaPlan = AreaPlanner.plan(recipe, AreaPlanner.area_seed_for(recipe, w))
+			var direct: AreaPlan = AreaPlanner.plan_world(recipe, w)
 			check(str(a["signature"]) == direct.signature().sha256_text(), "%s world %d: an unedited description plans as the file" % [id, w])
 		check(Service.moved(recipe, same, [1, 2, 3, 4, 5]).is_empty(), "%s: an unedited description moves nothing" % id)
 
@@ -325,7 +325,7 @@ func edit() -> void:
 	var ng: int = (n["rooms"] as Array).filter(func(r: Dictionary) -> bool: return str(r["type"]) == gtype and not bool(r["required"])).size()
 	check(ng == 0, "with %s never joining anything, none are grown (%d)" % [gtype, ng])
 	var after: Dictionary = Service.handle({"cmd": "plan", "path": INTERIORS["lower_stacks"], "world_seed": 1, "map_px": 0})
-	check(str(after["signature"]) == AreaPlanner.plan(ls, AreaPlanner.area_seed_for(ls, 1)).signature().sha256_text(), "an unsaved table is forgotten after its plan")
+	check(str(after["signature"]) == AreaPlanner.plan_world(ls, 1).signature().sha256_text(), "an unsaved table is forgotten after its plan")
 	# Saving: to a scratch copy, never the game's file.
 	var to: String = "user://test/strata_edit.tres"
 	DirAccess.make_dir_recursive_absolute("user://test")
@@ -336,7 +336,7 @@ func edit() -> void:
 	check(back != null and back.grow[0].count == Vector2i(1, 1) and back.placement != null and back.atmosphere != null and back.slots[0].thresholds.size() == ls.slots[0].thresholds.size(),
 		"the saved recipe has the edit and keeps placement, atmosphere and doors out")
 	if back != null:
-		check(AreaPlanner.plan(back, AreaPlanner.area_seed_for(back, 3)).signature() == AreaPlanner.plan(Service.build(fewer), AreaPlanner.area_seed_for(ls, 3)).signature(),
+		check(AreaPlanner.plan_world(back, 3).signature() == AreaPlanner.plan(Service.build(fewer), AreaPlanner.area_seed_for(ls, 3), {}, 3).signature(),
 			"the saved recipe plans as the edit did")
 	var same_save: Dictionary = Service.handle({"cmd": "save", "desc": base, "to": to, "mtime": 0})
 	check(int(same_save.get("version", 0)) == int(base["version"]), "saving without a change keeps the version (%s)" % same_save.get("version"))
@@ -577,7 +577,7 @@ func stratum_plan() -> void:
 	check((a.get("gorge_version", []) as Array).size() == 2 and int(a["gorge_version"][1]) == int(a["gorge_version"][0]) + 1, "a new door raises the Gorge's version (%s)" % [a.get("gorge_version")])
 	var reached: int = 0
 	for w: int in [1, 2]:
-		var gp: AreaPlan = AreaPlanner.plan(gorge, AreaPlanner.area_seed_for(gorge, w))
+		var gp: AreaPlan = AreaPlanner.plan_world(gorge, w)
 		if not gp.threshold("dome_archive").is_empty() and not gp.threshold("library").is_empty() and not gp.threshold("lower_stacks").is_empty():
 			reached += 1
 	check(reached == 2, "the Gorge's walkways reach the new door and the old ones (worlds 1-2: %d)" % reached)
@@ -593,7 +593,7 @@ func stratum_plan() -> void:
 	check(StratumPlan.current().door_target("dome_archive", "gorge") == "camp" and StratumPlan.current().door_target("lower_stacks", "gorge") == "gorge",
 		"its entrance (\"gorge\" in its recipe) now leads to the camp; the Lower Stacks' still to the Gorge")
 	check((c.get("gorge_version", []) as Array).size() == 2, "taking a door out of the Gorge raises its version")
-	var gp1: AreaPlan = AreaPlanner.plan(gorge, AreaPlanner.area_seed_for(gorge, 1))
+	var gp1: AreaPlan = AreaPlanner.plan_world(gorge, 1)
 	check(gp1.threshold("dome_archive").is_empty(), "the Gorge has no door to it any more")
 	check(Service.handle({"cmd": "set_door", "area": "lower_stacks", "at": StratumPlan.CAMP_BACK_DOOR}).has("error"), "the camp's back door already taken is refused")
 	var lay2: Dictionary = Service.handle({"cmd": "layout", "world_seed": 1})

@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_khbhn"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/garden_talar_vines.glb" id="2_g7cmx"]
+
+[node name="garden_talar_vines" type="Node3D" unique_id=1643054074]
+script = ExtResource("1_khbhn")
+family = "dressing"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("plant", "ivy", "garden", "wild")
+source_glb = "res://assets/kit/dressing/garden_talar_vines.glb"
+
+[node name="Mesh" parent="." unique_id=1672952991 instance=ExtResource("2_g7cmx")]

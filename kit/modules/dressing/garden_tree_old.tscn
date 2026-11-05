@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_xck2d"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/garden_tree_old.glb" id="2_oojk0"]
+
+[node name="garden_tree_old" type="Node3D" unique_id=298299031]
+script = ExtResource("1_xck2d")
+family = "dressing"
+size_cells = Vector3i(2, 2, 2)
+tags = PackedStringArray("plant", "garden", "tree", "landmark")
+source_glb = "res://assets/kit/dressing/garden_tree_old.glb"
+
+[node name="Mesh" parent="." unique_id=2116566223 instance=ExtResource("2_oojk0")]

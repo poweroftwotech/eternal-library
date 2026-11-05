@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_vlski"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/garden_shrub.glb" id="2_e4e01"]
+
+[node name="garden_shrub" type="Node3D" unique_id=579920942]
+script = ExtResource("1_vlski")
+family = "dressing"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("plant", "garden")
+source_glb = "res://assets/kit/dressing/garden_shrub.glb"
+
+[node name="Mesh" parent="." unique_id=1732944782 instance=ExtResource("2_e4e01")]

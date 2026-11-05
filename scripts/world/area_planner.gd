@@ -32,11 +32,23 @@ static func area_seed_for(recipe: AreaRecipe, world_seed: int) -> int:
 	return hash([world_seed, recipe.id]) & 0x7fffffff
 
 
+## The plan of `recipe` in world `world_seed`, as the game makes it.
+static func plan_world(recipe: AreaRecipe, world_seed: int, keep: Dictionary = {}) -> AreaPlan:
+	return plan(recipe, area_seed_for(recipe, world_seed), keep, world_seed)
+
+
+## The area a rule shared by a stratum's areas (AreaGrow.one_of) grows in, in
+## world `world_seed`.
+static func one_of_pick(g: AreaGrow, world_seed: int) -> String:
+	return g.one_of[(hash([world_seed, "one_of", g.slot_prefix]) & 0x7fffffff) % g.one_of.size()]
+
+
 ## `keep`: slot -> scene path a save recorded for a room with scene choices
 ## (Q5): that choice stands even if the weights changed since.
-static func plan(recipe: AreaRecipe, area_seed: int, keep: Dictionary = {}) -> AreaPlan:
+static func plan(recipe: AreaRecipe, area_seed: int, keep: Dictionary = {}, world_seed: int = -1) -> AreaPlan:
 	var t0: int = Time.get_ticks_usec()
 	var p := AreaPlan.new()
+	p.world_seed = world_seed
 	p.area_id = recipe.id
 	p.display_name = recipe.display_name
 	p.area_seed = area_seed
@@ -172,6 +184,10 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 	for g: AreaGrow in recipe.grow:
 		if g == null or g.grammar == null:
 			continue
+		if not g.one_of.is_empty() and p.world_seed >= 0 and one_of_pick(g, p.world_seed) != recipe.id:
+			(p.stats["grow"] as Array).append({"prefix": g.slot_prefix, "rolled": 0, "want": 0, "added": 0, "doors": 0, "taken": 0, "tried": 0,
+				"boxed_in": 0, "too_short": 0, "sightline": 0, "ruled_out": 0, "near_entrance": 0, "other_area": one_of_pick(g, p.world_seed)})
+			continue     # this world puts it in another area of the stratum
 		var n: int = 0     # per grow entry: its rooms are <slot_prefix>_1, _2 …
 		var rng := RandomNumberGenerator.new()
 		rng.seed = hash([p.area_seed, "grow_count", g.slot_prefix])

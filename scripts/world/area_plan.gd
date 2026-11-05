@@ -93,6 +93,8 @@ class Room:
 var area_id: String = ""
 var display_name: String = ""
 var area_seed: int = 1
+## The world seed it was planned in (-1: planned from an area seed alone).
+var world_seed: int = -1
 var recipe_version: int = 1
 var room_count: Vector2i = Vector2i(6, 10)
 var max_sight_depth: int = 2

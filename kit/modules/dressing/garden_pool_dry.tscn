@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_aurky"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/garden_pool_dry.glb" id="2_qp6du"]
+
+[node name="garden_pool_dry" type="Node3D" unique_id=573666215]
+script = ExtResource("1_aurky")
+family = "dressing"
+size_cells = Vector3i(2, 0, 2)
+tags = PackedStringArray("stone", "garden", "landmark", "wild")
+source_glb = "res://assets/kit/dressing/garden_pool_dry.glb"
+
+[node name="Mesh" parent="." unique_id=1630557001 instance=ExtResource("2_qp6du")]

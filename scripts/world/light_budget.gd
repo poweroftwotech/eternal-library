@@ -50,6 +50,9 @@ func add_room(room: Node, slot: String = "") -> void:
 		light.distance_fade_shadow = light_fade_m * 0.75
 		if light.has_meta("light_far"):     # the light-well's oculus light and fills: seen from far below
 			light.distance_fade_begin = light_fade_m * 3.0
+			# Its shadow too (the Garden Court's sun is 50 m and more over the
+			# court: faded at 22.5 m, the trees and the figs threw no shade).
+			light.distance_fade_shadow = light_fade_m * 3.0
 		if light.shadow_enabled or light.has_meta("budget_shadow"):
 			light.set_meta("budget_shadow", true)
 			light.shadow_enabled = false

@@ -184,7 +184,7 @@ func _plan_interiors(world: Node3D) -> void:
 			continue
 		var recipe: AreaRecipe = load(recipe_path(id))
 		_keep.append(recipe)
-		_plans[id] = AreaPlanner.plan(recipe, _area_seed(recipe), Area.kept_variants(id))
+		_plans[id] = AreaPlanner.plan(recipe, _area_seed(recipe), Area.kept_variants(id), Area.plan_world_seed())
 		_keep_variants(recipe, _plans[id])
 		var plan: AreaPlan = _plans[id]
 		plan.checked = true     # here, behind the start-up screen, not as it's built
@@ -327,7 +327,8 @@ func _build(id: String) -> void:
 
 func _plan_on_worker(recipe: AreaRecipe, seed_value: int, kept: Dictionary) -> AreaPlan:
 	var out: Array = [null]
-	await _on_worker(func() -> void: out[0] = AreaPlanner.plan(recipe, seed_value, kept))
+	var world_seed: int = Area.plan_world_seed()      # read here: the worker mustn't touch the tree
+	await _on_worker(func() -> void: out[0] = AreaPlanner.plan(recipe, seed_value, kept, world_seed))
 	return out[0]
 
 

@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_6kypq"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/garden_corridor_4m.glb" id="2_3d63a"]
+
+[node name="garden_corridor_4m" type="Node3D" unique_id=387977399]
+script = ExtResource("1_6kypq")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 2, 1)
+tags = PackedStringArray("brick", "garden", "walled")
+source_glb = "res://assets/kit/walls/garden_corridor_4m.glb"
+
+[node name="Mesh" parent="." unique_id=444531336 instance=ExtResource("2_3d63a")]

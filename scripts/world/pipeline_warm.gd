@@ -32,6 +32,22 @@ const SCENES: PackedStringArray = [
 	"res://kit/modules/dressing/stair_case_plant.tscn", "res://kit/modules/dressing/stair_case_deco.tscn",
 	"res://kit/modules/dressing/cubby_vase.tscn", "res://kit/modules/dressing/cubby_fern.tscn",
 	"res://kit/modules/dressing/cubby_glow.tscn", "res://kit/modules/walls/cone_c75_closed.tscn",
+	# Phase 13 step 2, the Garden Court (its frame gate: entering it compiled
+	# 34 pipelines in one 224 ms frame): its shell, beds, trees and dressing.
+	"res://kit/modules/walls/garden_shaft_5x5.tscn", "res://kit/modules/walls/garden_iwan.tscn",
+	"res://kit/modules/walls/garden_talar_bay.tscn", "res://kit/modules/walls/garden_talar_corner.tscn",
+	"res://kit/modules/walls/garden_talar_door.tscn", "res://kit/modules/walls/garden_corridor_4m.tscn",
+	"res://kit/modules/walls/garden_rill_4m.tscn", "res://kit/modules/walls/garden_rill_dry_4m.tscn",
+	"res://kit/modules/walls/garden_bed_4m.tscn", "res://kit/modules/walls/garden_bed_wild_4m.tscn",
+	"res://kit/modules/walls/garden_bed_clip_4m.tscn", "res://kit/modules/walls/garden_bed_clip_wild_4m.tscn",
+	"res://kit/modules/dressing/garden_pool.tscn", "res://kit/modules/dressing/garden_pool_dry.tscn",
+	"res://kit/modules/dressing/garden_tree_old.tscn", "res://kit/modules/dressing/garden_tree_old_wild.tscn",
+	"res://kit/modules/dressing/garden_column.tscn", "res://kit/modules/dressing/garden_column_ivy_0.tscn",
+	"res://kit/modules/dressing/garden_column_ivy_1.tscn", "res://kit/modules/dressing/garden_talar_vines.tscn",
+	"res://kit/modules/dressing/garden_planter.tscn", "res://kit/modules/dressing/garden_planter_wild.tscn",
+	"res://kit/modules/dressing/garden_shrub.tscn", "res://kit/modules/dressing/garden_bench.tscn",
+	"res://kit/modules/dressing/garden_niche_shelves.tscn", "res://kit/modules/dressing/garden_traces.tscn",
+	"res://kit/modules/dressing/garden_traces_old.tscn",
 ]
 
 var _left: int = FRAMES
@@ -56,6 +72,9 @@ static func add(parent: Node) -> PipelineWarm:
 			w.add_child(copy)
 		src.free()
 	for p: GPUParticles3D in ConeDrips.warm():     # the light-well's water
+		p.scale = Vector3.ONE * 0.001
+		w.add_child(p)
+	for p: GPUParticles3D in GardenCourtLife.warm():     # the Garden Court's petals, leaves and moths
 		p.scale = Vector3.ONE * 0.001
 		w.add_child(p)
 	parent.add_child(w)

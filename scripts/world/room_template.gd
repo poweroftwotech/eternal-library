@@ -48,6 +48,8 @@ extends Node3D
 @export var lore_books: Array[LoreBookPin] = []
 ## Set by the area assembler before the room enters the tree; -1 = use preview_seed.
 var area_seed: int = -1
+## Daylight-only rooms (RoomGrammar.lamps_dark): their flame lamps stay dark.
+var lamps_dark: bool = false
 ## {style group: entry index} that win over this room's own roll (pins still win
 ## over both). A generated room joined to a host takes the host's build here
 ## (GeneratedRoom.inherit_style_groups, ENVIRONMENT_PLAN.md 5.5.5).
@@ -137,6 +139,8 @@ func resolve_next(deadline_usec: int) -> bool:
 	if _resolve_at < _resolve_queue.size():
 		return false
 	apply_claims()
+	if lamps_dark:
+		_darken_lamps()
 	_resolve_queue = []
 	return true
 
@@ -631,3 +635,19 @@ func is_ageless(s: Node) -> bool:
 			return true
 		n = n.get_parent()
 	return false
+
+
+## lamps_dark: every flame lamp under this room goes dark (LampState), all but
+## the lights marked "far" (a daylight rig: sun, shaft, sky fills). After the
+## sockets resolve, so lamps the dressing brought in are caught too.
+func _darken_lamps() -> void:
+	var done: Dictionary = {}
+	for n: Node in find_children("*", "Light3D", true, false):
+		var light := n as Light3D
+		if light.get_meta("light_far", false) or light.has_meta("generated"):
+			continue
+		var holder: Node = light.get_parent()
+		if holder == null or done.has(holder):
+			continue
+		done[holder] = true
+		LampState.apply(holder, "dark")

@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_y6stl"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/garden_planter.glb" id="2_dum8r"]
+
+[node name="garden_planter" type="Node3D" unique_id=256119765]
+script = ExtResource("1_y6stl")
+family = "dressing"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("plant", "garden", "pot")
+source_glb = "res://assets/kit/dressing/garden_planter.glb"
+
+[node name="Mesh" parent="." unique_id=445142642 instance=ExtResource("2_dum8r")]

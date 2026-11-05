@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_skjqr"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/garden_traces.glb" id="2_netja"]
+
+[node name="garden_traces" type="Node3D" unique_id=1380815209]
+script = ExtResource("1_skjqr")
+family = "dressing"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("garden", "clutter")
+source_glb = "res://assets/kit/dressing/garden_traces.glb"
+
+[node name="Mesh" parent="." unique_id=1050944551 instance=ExtResource("2_netja")]

@@ -1,0 +1,108 @@
+[gd_resource type="Resource" script_class="AreaRecipe" format=3]
+
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_8rafp"]
+[ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="2_jh1t8"]
+[ext_resource type="Resource" path="res://gen/grammars/r07_garden_wild.tres" id="3_irldv"]
+[ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="4_bo6e3"]
+[ext_resource type="Resource" path="res://gen/grammars/r09_lightwell.tres" id="5_hw4vr"]
+[ext_resource type="Resource" path="res://gen/grammars/r21_bridge_hall.tres" id="6_ndjmi"]
+[ext_resource type="Resource" path="res://gen/grammars/r11_cistern.tres" id="7_ivd3c"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="8_onp87"]
+[ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="9_xfy0d"]
+[ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="10_p60e2"]
+[ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_5x5.tscn" id="11_nqklt"]
+[ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_7x5.tscn" id="12_kak2k"]
+[ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_3x3.tscn" id="13_6e48q"]
+[ext_resource type="Resource" path="res://gen/grammars/r03_hypostyle.tres" id="14_xi6c4"]
+
+[sub_resource type="Resource" id="Resource_33s8d"]
+script = ExtResource("2_jh1t8")
+grammar = ExtResource("3_irldv")
+display_name = "The Garden Court"
+count = Vector2i(1, 1)
+slot_prefix = "garden"
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_3gt23"]
+script = ExtResource("2_jh1t8")
+grammar = ExtResource("4_bo6e3")
+display_name = "The Lower Galleries"
+count = Vector2i(3, 5)
+from = PackedStringArray()
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_ihhgu"]
+script = ExtResource("2_jh1t8")
+grammar = ExtResource("5_hw4vr")
+display_name = "The Light-Well Stair"
+count = Vector2i(1, 1)
+slot_prefix = "lightwell"
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_ehcy0"]
+script = ExtResource("2_jh1t8")
+grammar = ExtResource("6_ndjmi")
+display_name = "The Bridge Hall"
+count = Vector2i(1, 1)
+slot_prefix = "bridge"
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_7eus5"]
+script = ExtResource("2_jh1t8")
+grammar = ExtResource("7_ivd3c")
+display_name = "The Cistern Archive"
+count = Vector2i(1, 1)
+slot_prefix = "cistern"
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_iu27d"]
+script = ExtResource("2_jh1t8")
+grammar = ExtResource("4_bo6e3")
+display_name = "The Upper Stacks"
+count = Vector2i(1, 3)
+slot_prefix = "upper"
+from = PackedStringArray("lightwell_1")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_rxaak"]
+script = ExtResource("8_onp87")
+envelope = AABB(-122, -8, -60, 256, 48, 256)
+
+[sub_resource type="Resource" id="Resource_cxqbm"]
+script = ExtResource("10_p60e2")
+slot_id = "caravanserai"
+display_name = "The Caravanserai"
+scene = ExtResource("11_nqklt")
+scene_choices = Array[PackedScene]([ExtResource("11_nqklt"), ExtResource("12_kak2k"), ExtResource("13_6e48q")])
+scene_weights = PackedFloat32Array()
+pinned = true
+thresholds = {
+&"SNAP_exit_-2_0_1_W": "gorge",
+&"SNAP_exit_-3_0_3_W": "gorge",
+&"SNAP_exit_-4_0_3_W": "gorge"
+}
+
+[sub_resource type="Resource" id="Resource_1cihk"]
+script = ExtResource("10_p60e2")
+slot_id = "hall"
+display_name = "The Hypostyle Stacks"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("14_xi6c4")
+parent = "caravanserai"
+connector = &"SNAP_exit_0_0_0_S"
+pinned = true
+
+[resource]
+script = ExtResource("9_xfy0d")
+id = "forgotten_wing"
+display_name = "The Forgotten Wing"
+version = 3
+slots = Array[ExtResource("10_p60e2")]([SubResource("Resource_cxqbm"), SubResource("Resource_1cihk")])
+grow = Array[ExtResource("2_jh1t8")]([SubResource("Resource_33s8d"), SubResource("Resource_3gt23"), SubResource("Resource_ihhgu"), SubResource("Resource_ehcy0"), SubResource("Resource_7eus5"), SubResource("Resource_iu27d")])
+room_count = Vector2i(6, 11)
+placement = SubResource("Resource_rxaak")
+atmosphere = ExtResource("1_8rafp")
