@@ -2,7 +2,7 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · [Approval brief](../phase-13-approval.md)
 
-## Step 5: the Fungus Terraces in the live areas, tested (2026-11-05; you approved the look, not committed yet)
+## Step 5: the Fungus Terraces in the live areas, tested, committed 44ca6a2 (2026-11-05): PHASE 13 COMPLETE
 
 **Where it grows** (Q2: the Lower Stacks and the Forgotten Wing, at most one
 per area). The terraces are big. Grown early, they took the only free hall or
