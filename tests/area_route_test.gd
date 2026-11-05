@@ -159,7 +159,8 @@ func audit(id: String, s: int) -> void:
 				if not (edge["mark"] == CellGrid.Mark.SOLID or (edge["mark"] == CellGrid.Mark.DOOR and not joined)):
 					continue
 				var out: Vector3 = g.global_basis * (Vector3(CellGrid.neighbour(cell, side) - cell) * Vector3(1, 0, -1))
-				if not await blocked(body, c + Vector3(0, 0.95, 0), out * reach):
+				# From the cell's own floor (a terrace stands up to 2.7 m over its storey).
+				if not await blocked(body, c + Vector3(0, floor_y + 0.95, 0), out * reach):
 					leaks.append("%s %s" % [cell, CellGrid.SIDE_NAMES[side]])
 		check(floors == floored.size(), "%s: %s has floor under all %d cells that should have one (%d)" % [tag, r.slot_id, floored.size(), floors])
 		check(leaks.is_empty(), "%s: %s: every solid side and unjoined exit blocks (%s)" % [tag, r.slot_id, leaks])

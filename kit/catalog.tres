@@ -484,6 +484,78 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "ft_bed_tools",
+"scene": "res://kit/modules/dressing/ft_bed_tools.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "r15"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "ft_patch_blight",
+"scene": "res://kit/modules/dressing/ft_patch_blight.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("fungus", "r15"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "ft_patch_tended",
+"scene": "res://kit/modules/dressing/ft_patch_tended.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("fungus", "r15"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "ft_patch_wild",
+"scene": "res://kit/modules/dressing/ft_patch_wild.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("fungus", "r15"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "ft_shelter",
+"scene": "res://kit/modules/dressing/ft_shelter.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("wood", "cloth", "r15"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "ft_worker_carry",
+"scene": "res://kit/modules/dressing/ft_worker_carry.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("figure", "r15"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "ft_worker_kneel",
+"scene": "res://kit/modules/dressing/ft_worker_kneel.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("figure", "r15"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "ft_worker_stoop",
+"scene": "res://kit/modules/dressing/ft_worker_stoop.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("figure", "r15"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "gallery_column",
 "scene": "res://kit/modules/dressing/gallery_column.tscn",
 "shape": "free",
@@ -3225,6 +3297,51 @@ modules = Array[Dictionary]([{
 "shape": "cell",
 "size_cells": Vector3i(1, 0, 1),
 "tags": PackedStringArray("stone", "cloth", "floor", "hall"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "ft_foot",
+"scene": "res://kit/modules/walls/ft_foot.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 3, 1),
+"tags": PackedStringArray("rock", "cavern", "fungus", "r15", "walled", "door"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "ft_row_0",
+"scene": "res://kit/modules/walls/ft_row_0.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 3, 1),
+"tags": PackedStringArray("rock", "cavern", "fungus", "r15", "walled"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "ft_row_1",
+"scene": "res://kit/modules/walls/ft_row_1.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 3, 1),
+"tags": PackedStringArray("rock", "cavern", "fungus", "r15", "walled"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "ft_row_2",
+"scene": "res://kit/modules/walls/ft_row_2.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 3, 1),
+"tags": PackedStringArray("rock", "cavern", "fungus", "r15", "walled"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "ft_top",
+"scene": "res://kit/modules/walls/ft_top.tscn",
+"shape": "cell",
+"size_cells": Vector3i(5, 3, 1),
+"tags": PackedStringArray("rock", "cavern", "fungus", "r15", "walled", "door"),
 "weight": 1.0
 }, {
 "edge": "gallery_end",

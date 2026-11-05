@@ -16,9 +16,16 @@ uniform float surface_tint = .25;
 // A faint glow of the tint where no lamp reaches (the atlas's cool cistern
 // ambient; the garden has daylight and needs none).
 uniform float glow = 0.0;
+// Which plane the ripples run in (R15 Fungus Terraces, walk 6: "doesn't look
+// like it's flowing"): 0 the world's xz (the cistern, the garden); 1 the
+// mesh's own xz, so `flow` follows the piece however the room turns it (a
+// channel running downhill); 2 the mesh's own xy, `flow` (0, -v) streaming
+// down a falling sheet.
+uniform int plane = 0;
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 varying vec3 world_pos;
+varying vec3 local_pos;
 
 float hash(vec2 p){ return fract(sin(dot(p, vec2(127.1, 311.7))) * 43758.5453); }
 float vnoise(vec2 p){
@@ -31,10 +38,14 @@ float waves(vec2 p, float t){
 		+ vnoise(p * 11.0 - flow * t * 9.0 + 3.7) * .3
 		+ vnoise(p * 23.0 + vec2(t * .4, -t * .3)) * .1;
 }
-void vertex(){ world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz; }
+void vertex(){
+	world_pos = (MODEL_MATRIX * vec4(VERTEX, 1.0)).xyz;
+	local_pos = VERTEX;
+}
 void fragment(){
 	float e = 1.0 / texel;
-	vec2 p = floor(world_pos.xz * texel) * e;          // one value per texel
+	vec2 src = plane == 1 ? local_pos.xz : (plane == 2 ? local_pos.xy : world_pos.xz);
+	vec2 p = floor(src * texel) * e;          // one value per texel
 	float t = simulation_time;
 	float h = waves(p, t);
 	float dx = waves(p + vec2(e, 0), t) - h;

@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_yv78w"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/ft_worker_stoop.glb" id="2_b616a"]
+
+[node name="ft_worker_stoop" type="Node3D" unique_id=1727039043]
+script = ExtResource("1_yv78w")
+family = "dressing"
+tags = PackedStringArray("figure", "r15")
+source_glb = "res://assets/kit/dressing/ft_worker_stoop.glb"
+
+[node name="Mesh" parent="." unique_id=45330660 instance=ExtResource("2_b616a")]

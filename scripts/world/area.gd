@@ -42,6 +42,13 @@ var _env: WorldEnvironment
 ## The kit's water (the cistern's): the Reading Garden's shader, its ripples
 ## run by the area's clock as atmosphere.gd runs the garden's (phase 5 step 3).
 const KIT_WATER: ShaderMaterial = preload("res://kit/materials/cistern_water.tres")
+## The Fungus Terraces' waters (R15, walk 6: they stood still, nothing ran
+## their clock): the cascade's channel, its falls and the foot well.
+const KIT_WATERS: Array[ShaderMaterial] = [
+	preload("res://kit/materials/channel_water.tres"),
+	preload("res://kit/materials/fall_water.tres"),
+	preload("res://kit/materials/well_water.tres"),
+]
 var _water_time: float = 0.0
 
 ## Built in the background (phase 9, one continuous world) while you are in
@@ -76,6 +83,8 @@ var _reveal_token: int = 0
 func _process(delta: float) -> void:
 	_water_time += delta
 	KIT_WATER.set_shader_parameter("simulation_time", _water_time)
+	for m: ShaderMaterial in KIT_WATERS:
+		m.set_shader_parameter("simulation_time", _water_time)
 	_ease_room_glow(delta)
 
 

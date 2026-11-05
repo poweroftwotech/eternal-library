@@ -2,6 +2,138 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · [Approval brief](../phase-13-approval.md)
 
+## Step 5: the Fungus Terraces in the live areas, tested (2026-11-05; you approved the look, not committed yet)
+
+**Where it grows** (Q2: the Lower Stacks and the Forgotten Wing, at most one
+per area). The terraces are big. Grown early, they took the only free hall or
+gallery door that the light-well and the Bridge Hall needed: the Bridge Hall
+fell from 13 to 1 world in 40. So they now grow **last, off any room's free
+door** (`tools/make_r15_live.gd -- --after=last --from-any`):
+
+- in each area, the terraces grow in 17 of 40 worlds;
+- 29 of the 40 worlds have them in at least one of the two areas;
+- every other room grows exactly as before.
+
+The recipes are placeholders (your note), so I didn't tune this further.
+Recipes: Lower Stacks v11, Forgotten Wing v4.
+
+| Test | Result |
+|---|---|
+| Route audit (`tests/area_route_test.gd`, seeds 1-10, both areas) | 491 checks in each area, 0 failures. The first run found that you could **walk out through the terraces' long side walls**, because the rock there had no collision. Each row, the foot and the top now have a collision slab behind their side rock (kit revs: rows 9, foot 11, top 10). The shelter's two cells are marked blocked, because the probes started inside it. The side probe now starts at the cell's own floor (`floor_y`), since a terrace stands up to 2.7 m above its storey line. |
+| Save and resume (`tests/r15_resume_test.gd`, two processes, both areas, seed 3) | Saved on a middle terrace's path. A new process resumes there, standing on the floor, with the spores and the falls built. The map draws the terraces with you on them (`previews/phase13_step5/map_*.png`). 12 checks in each area, 0 failures. |
+| Frame gate (`tests/area_walk_capture.gd`, Medium 1080p, seed 3), inside the terraces | About 17,400 frames in each area. CPU mean 1.57 ms, GPU worst 1.8 ms, 18 lights in reach, up to 1,256 draw calls. One isolated slow frame in each area (9.4 ms in the Lower Stacks, 10.0 ms in the Forgotten Wing), at the same point of the walk with nothing streaming. This is borderline, like the Lower Stacks gate you accepted. |
+| Frame gate, the whole area (seed 3) | Fails, in rooms the terraces don't change (they grow last). There are 58 lights in reach in the caravanserai with the hall's lamps (the limit is 50). One frame takes 15.3 ms (Lower Stacks) or 11.9 ms (Forgotten Wing) as gallery 2 streams in. The 462 ms frame in your walk-6 screenshot didn't show up here. |
+| Kit gate (`tests/kit_test.gd`) | 8850 checks, 0 failures. |
+
+Captures of the live room are in `previews/phase13_step5/ls/` (Lower Stacks,
+seed 3) and `previews/phase13_step5/fw/` (Forgotten Wing, seed 3).
+`tests/r15_capture.gd --live` walks the live recipe instead of the test copy.
+
+## Step 4: the Fungus Terraces' life (built 2026-11-05 over six walks; you approved the look)
+
+| Part | What it is |
+|---|---|
+| The gradient (Q8) | Each bed's outer end is a patch of its own: tended on the first and top terraces (by the doors), wilder further up the slope (crowded, bigger caps spilling over the curb onto the path, glowing brackets down the wall), and a blighted one or two (slumped grey-brown caps, pale mould, a last few glowing). The crop by the stair is always tended. |
+| Workers (Q9) | 3 to 8 hooded, robed figures, static, on the paths behind the crop by the stair: bent over the bed with a basket, kneeling at the curb cutting caps into a tray, or standing with a full basket on the hip. No faces, the hood's shade. |
+| Their things | Hoes, rakes, stacked trays and baskets against the next wall at some beds' outer ends. The shelter at the foot, east of the door: a lean-to of poles and cloth, sacks of the harvest, a drying rack hung with caps, a bench, baskets, and two jars of glowing caps on cords (the workers' lamp, no flame) with one dim violet light. |
+| To pick | Mushrooms: now and then in the tended crop, two in each wild patch (the Bridge Hall's pickables, grown back when the room is next built). |
+| Motion | Violet spores drifting up off the beds over the whole slope; drops falling off each terrace's step into the channel below. |
+
+Not yet: placing it in the live areas, and the tests (after your look). The
+hum of irrigation needs room sound, which the game doesn't have yet.
+Captures in previews/phase13_step4/first/.
+
+### Walk 1 (3 reports), fixed
+
+| You said | What it was | Fix |
+|---|---|---|
+| "What is that empty looking space… missing a texture or water?" | The foot well, seen from above: its water used the Bridge Hall pit's dark murk and read as a hole. | The well has its own lighter water (`kit/materials/well_water.tres`), and the first fall splashes where it hits. |
+| "What are these things?" | A bug: the blighted patch's slumped caps were mostly left at the patch's corner as a fan of long shards (a helper that moves new geometry missed vertices that reused freed slots). The workers used the same helper. | Fixed the helper (`_moved` in `tools/kit_add_r15.py`); rebuilt the blight patch and the workers. |
+| "Too dark to see the sides of the room" | The one light per terrace sits over the stair, 10 m from each side wall. | Glowing bracket fungus (teal and violet) in clusters climbing both side walls on every terrace, and a dim violet wash on one side wall on two of the three terrace variants. |
+
+### Walk 2 (4 reports), fixed
+
+| You said | Fix |
+|---|---|
+| "Just teal space… doesn't look like any dark water" | It was the void behind the room, showing through the drain arches (found and closed in walk 3). Meanwhile I gave the water a dark shader of my own, which walk 4 replaced. |
+| The wall fungus: "color too different… how these connect to the wall… maybe some stems?" | Shades of violet (no teal). Each shelf is sunk into the rock with a dark knot where it grows out, thick at the root, in tiers of one to three side by side, smaller toward the top. |
+| The shelter: "why an awning underground?… maybe some water drips?" | The roof drips onto it: drops fall from the rock onto the cloth, run off its low front edge in a line, and splash on the floor in front. |
+| The crop: "variety… shapes and/or shades of violet… solid color… flat 2d shape" | Four cap shapes (flat, pointed, bell, small buttons), each tilted a little; three violets (deep violet, lilac, plum), a clump mostly one shade, terrace variants leaning lilac or plum (instead of the teal and amber clusters). The caps glow in their own shader (`shaders/fungus_cap.gdshader`): saturated, brightest on top and darker down the sides, speckled in pixels, over a dark gill underside, so they read as round from the side and below. (Lighting them as well washed them out to white.) |
+
+### Walk 3 (3 reports), fixed
+
+| You said | What it was | Fix |
+|---|---|---|
+| "Looks like a gap… not affected by room's light" | A real gap: each retaining wall's drain arches were cut from just under the floor, which took away the stone beneath them, so you looked down through the arch into the void behind the room (the same pale blue-teal as the "teal space" before). | The arches now leave a stone sill. |
+| The waterfall "too bright… water trails sticking out on the top" | The water glowed on its own (unlit) and the falling drops started at the lip. | The water is lit only by the room's own lights (no glow, no reflected ambient), and the drops start under the lip. |
+| "Way too much water drip" | About 18 drops a second over the shelter. | A drop from the roof every second and a half, one off the awning's edge every two and a half. |
+
+### Walk 4 (2 reports), fixed
+
+| You said | Fix |
+|---|---|
+| "Doesn't look like water… black liquid with some purple chemical" and "the noise pattern is very repetitive" | My own dark water shader is gone. The channel, the falls and the well use the cistern's water (the look you approved in the cistern and the Garden Court pool): clear over the stone bed, the well a little darker for its depth. |
+
+### Walk 5 (1 report), fixed
+
+| You said | Fix |
+|---|---|
+| "Water looks better but it doesn't look like it's flowing at all" | Two causes. The terraces' waters were copies of the cistern's, but the area only ran the cistern's clock, so theirs stood still; it now runs all of them. And the cistern's water barely moves (it is a still tank). The shared water shader has a new opt-in setting (`plane`), off for the cistern and the garden: the channel now runs downhill at about half a metre a second, whichever way the room is turned, and each fall streams down its face at 1.6 m/s. The well drifts slowly. |
+
+Also: the workers now block you (a collision box each). The replay tool
+(`tests/report_capture.gd`) has `--bright` (a work light on the camera) and
+`--what` (lists the meshes in view), which found the shards.
+
+## Step 3: the Fungus Terraces' structure and light (first layout built 2026-11-05, walked twice, fixes built, waiting for your look)
+
+What you can see: a test copy of the Lower Stacks where the Fungus Terraces
+grow first (`gen/recipes/drafts/lower_stacks/terraces_test.tres`; on the
+Strata Board, copy `terraces_test`). Captures in
+`previews/phase13_step3/layout/` (seed 1: 9 terraces up 3 storeys). Nothing
+is in the live areas yet; that's step 4.
+
+| Part | What it is |
+|---|---|
+| The room | A cavern slope 20 m wide. A foot landing with the entry door, then terraces each 4 m deep and 1.33 m above the one below (three a storey), up 2 or 3 storeys (6 or 9 terraces; 4 storeys never found room in 20 seeds). The top terrace has the far door. Fits in 20 of 20 seeds of the test copy. |
+| A terrace | A stone retaining wall with drain arches, a growing bed either side behind a stone curb, a path along the back at the foot of the next wall. Down the middle the cascade: a stone channel that falls a step at each wall, with the stair beside it (8 steps a terrace). Three variants, never the same twice running; some have a few teal or amber clusters among the violet. |
+| Light | The crop only: violet glowing caps on every bed, thickest at the front edge over the drop, and one dim violet light over each flight of the stair (10 lights in the room at 9 terraces). No flames. The cavern roof stays dark. |
+| The cavern | Rough rock walls each side and a low rock roof, 7 m over the floor at the walls and 9.5 m in the middle, stepping up with the terraces. Rock end walls with carved stone door frames. |
+| The far end | At the top, the spring: an arch in the end wall where the cascade starts. |
+
+Fixed before showing you: the side and end walls were built facing outward,
+so from inside you saw out to the next rooms. They face in now and reach
+past the roof. The caps were near white; they're a deeper violet.
+
+Not yet (step 4, as approved): workers, baskets and tools, mushrooms to
+pick, spores, the shelter at the foot, the tended-to-wild gradient, and
+growing it in the areas with the tests.
+
+Gates: headless 240 frames, no errors; kit gate 8565 checks, 0 failures.
+
+### Walk 1 (4 reports), fixed
+
+| You said | What changed |
+|---|---|
+| Longer cave corridor between the terraces and the rooms either side | An 8 m rough rock passage (the Bridge Hall's cave piece, dark) before the foot and after the top terrace. Rock fills the door frames' corners in to the passage. Still fits 20 of 20 seeds. |
+| The water source sits right in front of the far doorway | The stair now fills the middle bay, in line with both doors; the cascade runs beside it in the west bed's edge, and the spring is set into the far wall beside the door. The basin at the foot moved with it. |
+| Gaps (three reports) | You could see under the beds from the stair and the channel, into the void down to the row below. Each bed now has a stone side down to the row below, and the terrace is filled with stone under its beds and path. The path and the foot's floor were a flat, untextured colour that read as a hole; they're stone floor now. |
+
+Gates: kit gate 8601 checks, 0 failures. Captures in previews/phase13_step3/walk1/.
+
+### Walk 2 (1 report), fixed
+
+| You said | What changed |
+|---|---|
+| The water at the foot needs a way out; make the small pool look deep | The basin is now a well: its stone lining goes 3.5 m down into the dark, the water sits half a metre under the floor in the Bridge Hall pit's water (it darkens with depth and moves), and the first fall carries on down into it. The cascade sinks away into the rock under the room. |
+
+Gates: kit gate 8605 checks, 0 failures. Capture in previews/phase13_step3/walk2/.
+
+### What I'd like from you
+
+Walk it (or look at the captures) and say what to change in the layout:
+the terrace depth and rise, the stair and cascade in the middle, how high
+and close the roof feels, the amount of violet. The life comes in step 4.
+
 ## Step 2: the Garden Court's life and story (built 2026-11-05; you called the look final, tests pass, committed)
 
 ### The tests (2026-11-05, after "looking good")

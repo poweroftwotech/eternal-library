@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_csaef"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/ft_patch_tended.glb" id="2_x6oer"]
+
+[node name="ft_patch_tended" type="Node3D" unique_id=526650930]
+script = ExtResource("1_csaef")
+family = "dressing"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("fungus", "r15")
+source_glb = "res://assets/kit/dressing/ft_patch_tended.glb"
+
+[node name="Mesh" parent="." unique_id=712553398 instance=ExtResource("2_x6oer")]

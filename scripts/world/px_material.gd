@@ -16,7 +16,7 @@ const EMIT_COLORS: Dictionary = {
 	"emit_glass_cool": Color(0.62, 0.86, 1.0),
 	"emit_fungus": Color(0.31, 0.82, 0.75),
 	"emit_lumen": Color(1.0, 0.95, 0.82),
-	"emit_violet": Color(0.76, 0.46, 1.0),     # the Fungus Terraces' crop (R15, phase 13)
+	"emit_violet": Color(0.58, 0.28, 0.95),     # the Fungus Terraces' crop (R15, phase 13)
 }
 
 static var _manifest: Dictionary = {}

@@ -1,0 +1,13 @@
+[gd_resource type="Resource" script_class="FungusTerracesGrammar" format=3]
+
+[ext_resource type="Resource" path="res://gen/rules/r15_fungus_terraces.tres" id="1_t3ajf"]
+[ext_resource type="Script" path="res://scripts/gen/fungus_terraces_grammar.gd" id="2_ro3pb"]
+
+[resource]
+script = ExtResource("2_ro3pb")
+styles = PackedStringArray("rock", "fungus_terraces")
+rules = ExtResource("1_t3ajf")
+glow_bloom = 0.12
+glow_intensity = 1.0
+glow_threshold = 0.85
+mood_tint = Color(0.82, 0.66, 1, 0.35)

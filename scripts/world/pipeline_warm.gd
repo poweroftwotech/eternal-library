@@ -48,6 +48,11 @@ const SCENES: PackedStringArray = [
 	"res://kit/modules/dressing/garden_shrub.tscn", "res://kit/modules/dressing/garden_bench.tscn",
 	"res://kit/modules/dressing/garden_niche_shelves.tscn", "res://kit/modules/dressing/garden_traces.tscn",
 	"res://kit/modules/dressing/garden_traces_old.tscn",
+	# Phase 13 step 4, the Fungus Terraces: their shell, patches, workers and things.
+	"res://kit/modules/walls/ft_row_0.tscn", "res://kit/modules/walls/ft_foot.tscn",
+	"res://kit/modules/dressing/ft_patch_wild.tscn", "res://kit/modules/dressing/ft_patch_blight.tscn",
+	"res://kit/modules/dressing/ft_worker_stoop.tscn", "res://kit/modules/dressing/ft_bed_tools.tscn",
+	"res://kit/modules/dressing/ft_shelter.tscn",
 ]
 
 var _left: int = FRAMES
@@ -75,6 +80,9 @@ static func add(parent: Node) -> PipelineWarm:
 		p.scale = Vector3.ONE * 0.001
 		w.add_child(p)
 	for p: GPUParticles3D in GardenCourtLife.warm():     # the Garden Court's petals, leaves and moths
+		p.scale = Vector3.ONE * 0.001
+		w.add_child(p)
+	for p: GPUParticles3D in FungusTerracesLife.warm():     # the Fungus Terraces' spores
 		p.scale = Vector3.ONE * 0.001
 		w.add_child(p)
 	parent.add_child(w)

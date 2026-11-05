@@ -1,0 +1,13 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/fungus_cap.gdshader" id="1_cap"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/persian_fungus_cap_rough.png" id="2_mottle"]
+
+[resource]
+resource_name = "ft_gills"
+shader = ExtResource("1_cap")
+shader_parameter/color = Color(0.3, 0.1, 0.48, 1)
+shader_parameter/top = 0.55
+shader_parameter/side = 0.35
+shader_parameter/mottle = 0.3
+shader_parameter/mottle_tex = ExtResource("2_mottle")

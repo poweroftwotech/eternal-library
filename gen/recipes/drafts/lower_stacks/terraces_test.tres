@@ -1,0 +1,118 @@
+[gd_resource type="Resource" script_class="AreaRecipe" format=3]
+
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_tuneq"]
+[ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="2_nj7y0"]
+[ext_resource type="Resource" path="res://gen/grammars/r15_fungus_terraces.tres" id="3_5hpss"]
+[ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="4_nhmq2"]
+[ext_resource type="Resource" path="res://gen/grammars/r07_garden.tres" id="5_8yhn2"]
+[ext_resource type="Resource" path="res://gen/grammars/r09_lightwell.tres" id="6_q8ia3"]
+[ext_resource type="Resource" path="res://gen/grammars/r21_bridge_hall.tres" id="7_ns2mq"]
+[ext_resource type="Resource" path="res://gen/grammars/r11_cistern.tres" id="8_2g0u6"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="9_15uua"]
+[ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="10_givc1"]
+[ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="11_5poxa"]
+[ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_5x5.tscn" id="12_3cdrj"]
+[ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_7x5.tscn" id="13_lifiq"]
+[ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_3x3.tscn" id="14_ydklg"]
+[ext_resource type="Resource" path="res://gen/grammars/r03_hypostyle.tres" id="15_xb3vm"]
+
+[sub_resource type="Resource" id="Resource_0danl"]
+script = ExtResource("2_nj7y0")
+grammar = ExtResource("3_5hpss")
+display_name = "The Fungus Terraces"
+count = Vector2i(1, 1)
+slot_prefix = "terraces"
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_k5jtl"]
+script = ExtResource("2_nj7y0")
+grammar = ExtResource("4_nhmq2")
+display_name = "The Lower Galleries"
+count = Vector2i(3, 5)
+from = PackedStringArray()
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_3xn7e"]
+script = ExtResource("2_nj7y0")
+grammar = ExtResource("5_8yhn2")
+display_name = "The Garden Court"
+count = Vector2i(1, 1)
+slot_prefix = "garden"
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+one_of = PackedStringArray("lower_stacks", "forgotten_wing")
+
+[sub_resource type="Resource" id="Resource_a4txv"]
+script = ExtResource("2_nj7y0")
+grammar = ExtResource("6_q8ia3")
+display_name = "The Light-Well Stair"
+count = Vector2i(1, 1)
+slot_prefix = "lightwell"
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_lgb66"]
+script = ExtResource("2_nj7y0")
+grammar = ExtResource("7_ns2mq")
+display_name = "The Bridge Hall"
+count = Vector2i(1, 1)
+slot_prefix = "bridge"
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_wur6w"]
+script = ExtResource("2_nj7y0")
+grammar = ExtResource("8_2g0u6")
+display_name = "The Cistern Archive"
+count = Vector2i(1, 1)
+slot_prefix = "cistern"
+from = PackedStringArray("hall", "gallery_1", "gallery_2", "gallery_3", "gallery_4", "gallery_5")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_1yr7l"]
+script = ExtResource("2_nj7y0")
+grammar = ExtResource("4_nhmq2")
+display_name = "The Upper Stacks"
+count = Vector2i(1, 3)
+slot_prefix = "upper"
+from = PackedStringArray("lightwell_1")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_5s881"]
+script = ExtResource("9_15uua")
+envelope = AABB(-122, -8, -60, 256, 48, 256)
+
+[sub_resource type="Resource" id="Resource_y1o7j"]
+script = ExtResource("11_5poxa")
+slot_id = "caravanserai"
+display_name = "The Caravanserai"
+scene = ExtResource("12_3cdrj")
+scene_choices = Array[PackedScene]([ExtResource("12_3cdrj"), ExtResource("13_lifiq"), ExtResource("14_ydklg")])
+scene_weights = PackedFloat32Array()
+pinned = true
+thresholds = {
+&"SNAP_exit_-2_0_1_W": "gorge",
+&"SNAP_exit_-3_0_3_W": "gorge",
+&"SNAP_exit_-4_0_3_W": "gorge"
+}
+
+[sub_resource type="Resource" id="Resource_t43bw"]
+script = ExtResource("11_5poxa")
+slot_id = "hall"
+display_name = "The Hypostyle Stacks"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("15_xb3vm")
+parent = "caravanserai"
+connector = &"SNAP_exit_0_0_0_S"
+pinned = true
+
+[resource]
+script = ExtResource("10_givc1")
+id = "lower_stacks"
+display_name = "The Lower Stacks"
+version = 10
+slots = Array[ExtResource("11_5poxa")]([SubResource("Resource_y1o7j"), SubResource("Resource_t43bw")])
+grow = Array[ExtResource("2_nj7y0")]([SubResource("Resource_0danl"), SubResource("Resource_k5jtl"), SubResource("Resource_3xn7e"), SubResource("Resource_a4txv"), SubResource("Resource_lgb66"), SubResource("Resource_wur6w"), SubResource("Resource_1yr7l")])
+room_count = Vector2i(6, 11)
+placement = SubResource("Resource_5s881")
+atmosphere = ExtResource("1_tuneq")

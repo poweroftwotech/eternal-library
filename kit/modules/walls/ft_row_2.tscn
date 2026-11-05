@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_brl0x"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/ft_row_2.glb" id="2_sv5lo"]
+
+[node name="ft_row_2" type="Node3D" unique_id=1832072515]
+script = ExtResource("1_brl0x")
+shape = 1
+family = "walls"
+size_cells = Vector3i(5, 3, 1)
+tags = PackedStringArray("rock", "cavern", "fungus", "r15", "walled")
+source_glb = "res://assets/kit/walls/ft_row_2.glb"
+
+[node name="Mesh" parent="." unique_id=431801903 instance=ExtResource("2_sv5lo")]

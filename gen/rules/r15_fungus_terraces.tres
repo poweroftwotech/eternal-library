@@ -1,0 +1,207 @@
+[gd_resource type="Resource" script_class="ModuleRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/gen/module_rule.gd" id="1_vq64i"]
+[ext_resource type="Script" path="res://scripts/gen/module_choice.gd" id="2_pdh27"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_arch_3m.tscn" id="3_e8b40"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/post_pier.tscn" id="4_yodip"]
+[ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="5_t7o1s"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/ft_foot.tscn" id="6_ppoos"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/ft_top.tscn" id="7_axalo"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/ft_row_0.tscn" id="8_djth8"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/ft_row_1.tscn" id="9_lnweq"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/ft_row_2.tscn" id="10_y118r"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bh_cave_straight.tscn" id="11_chfac"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/ft_patch_tended.tscn" id="12_c2p1h"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/ft_patch_wild.tscn" id="13_exg0s"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/ft_patch_blight.tscn" id="14_nwqmx"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/ft_worker_stoop.tscn" id="15_vuvp3"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/ft_worker_kneel.tscn" id="16_dkfwu"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/ft_worker_carry.tscn" id="17_gn164"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/ft_bed_tools.tscn" id="18_ardai"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/ft_shelter.tscn" id="19_ob30u"]
+[ext_resource type="PackedScene" path="res://gen/modules/terraces_life.tscn" id="20_8e6iy"]
+[ext_resource type="Script" path="res://scripts/gen/module_rules.gd" id="21_6px22"]
+
+[sub_resource type="Resource" id="Resource_78uol"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("3_e8b40")
+
+[sub_resource type="Resource" id="Resource_txf7x"]
+script = ExtResource("1_vq64i")
+slot = "edge:door"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_78uol")])
+
+[sub_resource type="Resource" id="Resource_0ixcb"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("4_yodip")
+
+[sub_resource type="Resource" id="Resource_xopm7"]
+script = ExtResource("1_vq64i")
+slot = "post"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_0ixcb")])
+
+[sub_resource type="Resource" id="Resource_28u5e"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("5_t7o1s")
+
+[sub_resource type="Resource" id="Resource_llc7i"]
+script = ExtResource("1_vq64i")
+slot = "stub:exit"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_28u5e")])
+
+[sub_resource type="Resource" id="Resource_4y8pq"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("6_ppoos")
+
+[sub_resource type="Resource" id="Resource_eiw64"]
+script = ExtResource("1_vq64i")
+slot = "ft:foot"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_4y8pq")])
+
+[sub_resource type="Resource" id="Resource_o5qev"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("7_axalo")
+
+[sub_resource type="Resource" id="Resource_sowl3"]
+script = ExtResource("1_vq64i")
+slot = "ft:top"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_o5qev")])
+
+[sub_resource type="Resource" id="Resource_wqdyc"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("8_djth8")
+
+[sub_resource type="Resource" id="Resource_621nb"]
+script = ExtResource("1_vq64i")
+slot = "ft:row_0"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_wqdyc")])
+
+[sub_resource type="Resource" id="Resource_2td0k"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("9_lnweq")
+
+[sub_resource type="Resource" id="Resource_8maru"]
+script = ExtResource("1_vq64i")
+slot = "ft:row_1"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_2td0k")])
+
+[sub_resource type="Resource" id="Resource_xlyiq"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("10_y118r")
+
+[sub_resource type="Resource" id="Resource_wcr77"]
+script = ExtResource("1_vq64i")
+slot = "ft:row_2"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_xlyiq")])
+
+[sub_resource type="Resource" id="Resource_50t8j"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("11_chfac")
+
+[sub_resource type="Resource" id="Resource_2ls3h"]
+script = ExtResource("1_vq64i")
+slot = "ft:cave"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_50t8j")])
+
+[sub_resource type="Resource" id="Resource_p8kmc"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("12_c2p1h")
+
+[sub_resource type="Resource" id="Resource_tyxs5"]
+script = ExtResource("1_vq64i")
+slot = "ft:patch_tended"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_p8kmc")])
+
+[sub_resource type="Resource" id="Resource_agasm"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("13_exg0s")
+
+[sub_resource type="Resource" id="Resource_6xfm3"]
+script = ExtResource("1_vq64i")
+slot = "ft:patch_wild"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_agasm")])
+
+[sub_resource type="Resource" id="Resource_jdkmy"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("14_nwqmx")
+
+[sub_resource type="Resource" id="Resource_agr21"]
+script = ExtResource("1_vq64i")
+slot = "ft:patch_blight"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_jdkmy")])
+
+[sub_resource type="Resource" id="Resource_osrgn"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("15_vuvp3")
+
+[sub_resource type="Resource" id="Resource_6hkb6"]
+script = ExtResource("1_vq64i")
+slot = "ft:worker_stoop"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_osrgn")])
+
+[sub_resource type="Resource" id="Resource_675t0"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("16_dkfwu")
+
+[sub_resource type="Resource" id="Resource_wfefd"]
+script = ExtResource("1_vq64i")
+slot = "ft:worker_kneel"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_675t0")])
+
+[sub_resource type="Resource" id="Resource_yko8h"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("17_gn164")
+
+[sub_resource type="Resource" id="Resource_gy1u6"]
+script = ExtResource("1_vq64i")
+slot = "ft:worker_carry"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_yko8h")])
+
+[sub_resource type="Resource" id="Resource_dfvk4"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("18_ardai")
+
+[sub_resource type="Resource" id="Resource_xgb4n"]
+script = ExtResource("1_vq64i")
+slot = "ft:bed_tools"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_dfvk4")])
+
+[sub_resource type="Resource" id="Resource_aporm"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("19_ob30u")
+
+[sub_resource type="Resource" id="Resource_ntdp5"]
+script = ExtResource("1_vq64i")
+slot = "ft:shelter"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_aporm")])
+
+[sub_resource type="Resource" id="Resource_8balr"]
+script = ExtResource("2_pdh27")
+scene = ExtResource("20_8e6iy")
+
+[sub_resource type="Resource" id="Resource_hyyy1"]
+script = ExtResource("1_vq64i")
+slot = "ft:life"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_pdh27")]([SubResource("Resource_8balr")])
+
+[resource]
+script = ExtResource("21_6px22")
+rules = Array[ExtResource("1_vq64i")]([SubResource("Resource_txf7x"), SubResource("Resource_xopm7"), SubResource("Resource_llc7i"), SubResource("Resource_eiw64"), SubResource("Resource_sowl3"), SubResource("Resource_621nb"), SubResource("Resource_8maru"), SubResource("Resource_wcr77"), SubResource("Resource_2ls3h"), SubResource("Resource_tyxs5"), SubResource("Resource_6xfm3"), SubResource("Resource_agr21"), SubResource("Resource_6hkb6"), SubResource("Resource_wfefd"), SubResource("Resource_gy1u6"), SubResource("Resource_xgb4n"), SubResource("Resource_ntdp5"), SubResource("Resource_hyyy1")])
