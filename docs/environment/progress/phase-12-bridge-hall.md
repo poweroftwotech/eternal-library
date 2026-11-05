@@ -143,3 +143,127 @@ seed 3 (level), seed 4 (climbs), seed 2 (drops). The `old`, `olddoor` and
   pit. `tests/r21_flight_probe.gd` rays down at each walk point and checks
   you stand on the deck or the flight's steps: passes on a dropping (area
   seed 177102574), a climbing (4) and a level (3) bridge.
+
+## Step 3: plants, the landing and the weathered older bridge (built 2026-11-04, waiting for your walk)
+
+Captures in `previews/phase12_step3/`: seed 3 (level), 4 (climbs), 2 (drops).
+New views: `landing`, `herb` (the pot by the entry lamp), `mushroom` (in
+the entry passage); `olddoor` now looks from the older bridge's deck (fly
+mode, V) at its sealed door.
+
+### What was built (`BridgeHallLife`, `scripts/gen/bridge_hall_life.gd`)
+
+- **Hanging gardens** at every lit window: ivy trailing from the sill, clay
+  pots on it, an awning over about half. Lit by the window lights.
+- **Things to pick** (as the alcoves' patches; they grow back when the room
+  is next built): herbs in a pot by each bridge-end lamp and on the landing;
+  shelf mushrooms at the foot of the rock in each cave passage's cell by the
+  hall.
+- **The halfway landing:** on the middle bay (a climbing or dropping
+  bridge's: the bay before the flight), against the balustrade toward the
+  older bridge: a floor seat, a kilim rug, a cushion with a book left open,
+  the keeper's pack, a lamp on a stool. Its warm light stands in for the
+  newel lamp nearest it, so the light count doesn't grow.
+- **The older bridge weathered:** about 3 in 10 parapet bays fell and are
+  railed with timber, 1 in 10 is simply gone; moss and tufts on its deck,
+  ivy over its edges.
+- **The sealed doors softened:** ivy over the arch, moss, ferns and rubble at
+  the foot. From its own deck the doorway now reads as a door in the cliff.
+- **In the dark:** 70 ferns, moss, crack tufts and fungus clusters on the
+  rock under the deck and on the pit floor (rays from the drop, after the
+  room's collision is in; fungus and ferns on ledges, tufts on steep rock).
+- **Rising mist:** 5 wisps of fog rise slowly from the mist past the deck,
+  swelling then fading. Can't be judged in a still; walk it.
+
+### Not done
+
+- Figs and grapes to pick: the satchel only knows herbs, roots and
+  mushrooms, so the gardens' fruit would need a new item (and the cooking
+  panel would need to use it). I'd offer it separately.
+- The tint already eases in by the room's own setting (step 1b); nothing new.
+- Lights in reach not yet counted (step 4). The hall gains the landing lamp
+  and loses a newel lamp.
+
+### Checks
+
+- Headless 240-frame gate: pass. Flight probe: pass on seeds 2, 4, 3.
+
+### Fixed after your walk of step 3 (2026-11-04, 4 reports)
+
+Captures in `previews/phase12_step3b/` (your seed 177102574, and 3). New
+view `window` (a window's garden).
+
+- **Pots at the bridge ends looked wrong:** gone. Wild herbs to pick now grow
+  at each cave mouth, on the rock's foot where the end lamp reaches, with
+  ferns round them (found by a ray, as the mushrooms are).
+- **Pots floating on the walls:** the gardens now find each lit window's
+  opening by rays into its face. Pots stand on the real sill and ivy trails
+  from the sill's front edge. Awnings are gone: they floated over windows of
+  other heights. Before, only 3 of 13 windows were found and the ivy was
+  inside the wall.
+- **The keeper's things in the middle of the bridge:** the landing is now a
+  side deck, 2 m out from one bay, with its own balustrade, newels at its
+  corners and stone corbels under it. The seat, rug, book, pack and lamp are
+  on it, out of the walkway; no pot. It looks across at the older bridge,
+  on a bay clear of its waterfall. On your seed the water covers every
+  middle bay on that side, so the side deck stands out toward the house
+  fronts instead.
+- The mushrooms sit on the cave floor (they hovered a little).
+
+Checks: headless gate pass; flight probe pass on 177102574, 4, 3.
+
+### Fixed after your second walk of step 3 (2026-11-04, 4 reports)
+
+Captures were in `previews/phase12_step3c/` (since replaced by `phase12_step3d/`). New
+views: `ivy` (close on a window's ivy), `pool` (the fall's foot), `pitwall`.
+
+- **Vines hanging the wrong way (windows, by the side deck):** the ivy piece
+  is made for a rail. Its few flat leaves lie on the rail top and the strands
+  hang on the far side. Unturned, those flat leaves stuck out into the air
+  like a shelf. Now it is turned so they lie back on the sill and the
+  strands hang just clear of the wall. The ivy over the sealed doors is
+  turned the same way.
+- **Where does the water go?** The bottom of the drop is now a dark, still
+  pool, about 0.35 m deep over the pit floor. Its boulders and its rising
+  edges stand out of it, and the old bridge's fall lands in it. Its water
+  (`kit/materials/bridge_pit_water.tres`) is darker than the cistern's and
+  doesn't glow.
+- **Odd plants on the rock walls:** tufts and moss stretched across steep
+  rock are gone. The dark growth keeps to ledges and to the floor above the
+  pool, and the ferns there are smaller.
+
+No route or frame tests yet (look still settling).
+
+### Fixed after your third walk of step 3 (2026-11-04, 4 reports)
+
+Captures in `previews/phase12_step3d/` (your seed 177102574, and 3).
+
+- **Vines floating away from the railing, and too far off the walls:** the
+  ivy's strands hung 0.15 to 0.3 m out from the wall. They now hang against
+  the face, with the root just inside the sill's edge, centred and 0.25 m in
+  from the opening's sides so the flat leaves don't run past the sill's end.
+  Where the strands would hang down past a rail or a ledge (as by the side
+  deck), there's no ivy.
+- **The water needs to move:** nothing was driving the pit water's clock, so
+  it stood still. The bridge now drives it, and the surface drifts slowly.
+- **Ripples and mist at the foot of the fall:** rings spread on the pool
+  from a churned patch where the fall lands (`shaders/fall_ripples.gdshader`),
+  with a low bank of spray over it. No extra light, so the light count is
+  unchanged.
+
+No route or frame tests yet (look still settling). The animation only shows
+in the game, not in a still capture.
+
+### Fixed after your fourth walk of step 3 (2026-11-04, 2 reports)
+
+Captures in `previews/phase12_step3e/` (your seed 177102574, and 3).
+
+- **Glowing mushrooms at the bottom, on the rocks or the shore but not in the
+  water:** 12 clumps of glowing caps now grow where the pit floor rises out
+  of the pool and on the boulders' tops (`BridgeHallLife.shore_glow`). Half
+  of them have a tall teal cap (`persian_fungus_small`), and the rest are
+  small glowcaps.
+- **Light budget:** each of these pieces carries its own lamp. Twelve clumps
+  would have added up to about 36 lights, far past the room's limit of 50.
+  Their lamps are taken out, and 2 dim teal lights stand by tall clumps
+  instead (at least 8 m apart). The caps glow on their own.

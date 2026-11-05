@@ -79,7 +79,8 @@ func run() -> void:
 		"start": [Vector3(bx, 0, z0 - 0.5) + eye, Vector3(bx, far_y + 1.4, z1)],
 		# Leaning over the balustrade on the older bridge's side (eye 2.4 m).
 		"old": [Vector3(bx + side * 1.6, 2.4, z0 - 6.0), Vector3(ox, oy, mid - 4.0)],
-		"olddoor": [Vector3(bx + side * 1.6, 2.4, z0 - 14.0), Vector3(ox, oy + 2.0, z0 - 1.0)],
+		# On the older bridge's deck (out of reach: fly mode), looking back at its sealed door.
+		"olddoor": [Vector3(ox - side * 0.5, oy + 1.7, z0 - 6.0), Vector3(ox, oy + 2.0, z0)],
 		"oldfar": [Vector3(bx + side * 1.6, BridgeHallBridge.deck_at(BridgeHallBridge.plan(n, rise, BridgeHallBridge.PIT, false)["walk"], z1 + 12.0 - z0) + 2.4, z1 + 12.0), Vector3(ox, oy + 2.0, z1 + 1.0)],
 		"across": [Vector3(bx, 0, mid) + eye, Vector3(wall_x, 3.0, mid)],
 		"down": [Vector3(bx + 3.2, 0, mid) + eye, Vector3(bx + 3.6, -8.0, mid - 4.0)],
@@ -87,6 +88,43 @@ func run() -> void:
 		"back": [Vector3(bx, far_y, z1 + 0.5) + eye, Vector3(bx, 1.4, z0)],
 		"wide": [Vector3(hall.end.x - 3.8 if wall_x < bx else hall.position.x + 3.8, 9.0, z0 - 1.0), Vector3(bx, -2.0, z1 + 4.0)],
 	}
+	# Step 3: the entry passage's mushrooms, from the passage's middle.
+	await physics_frame
+	await physics_frame
+	await process_frame
+	var mush: Node3D = room.find_child("PassageMushroom_0", true, false) as Node3D
+	if mush != null:
+		var at: Vector3 = room.to_local(mush.global_position)
+		var from: Vector3 = Vector3(c_last.x, at.y, c_last.z)
+		from += (from - at).normalized() * 0.6
+		views["mushroom"] = [from + Vector3(0, 1.4, 0), at]
+	# Step 3: the landing on its side deck, the herbs at the entry mouth, a
+	# window's garden (each found by its node).
+	var land: Node3D = room.find_child("LandingSeat", true, false) as Node3D
+	if land != null:
+		var at: Vector3 = room.to_local(land.global_position)
+		views["landing"] = [Vector3(bx - (at.x - bx) * 0.15, 0, at.z + 4.5) + eye, at + Vector3(0, 0.4, -0.5)]
+	var herb: Node3D = room.find_child("PassageHerb_1", true, false) as Node3D
+	if herb != null:
+		var at: Vector3 = room.to_local(herb.global_position)
+		views["herb"] = [Vector3(bx, 0, z0 - 2.5) + eye, at]
+	var pot: Node3D = room.find_child("SillPot_*", true, false) as Node3D
+	if pot == null:
+		pot = room.find_child("Ivy_*", true, false) as Node3D
+	if pot != null:
+		var at: Vector3 = room.to_local(pot.global_position)
+		views["window"] = [Vector3(bx, 0, at.z) + eye, at]
+	# Walked step 3: a close look at a window's ivy; the pit's walls and pool.
+	var ivy: Node3D = room.find_child("Ivy_*", true, false) as Node3D
+	if ivy != null:
+		var at: Vector3 = room.to_local(ivy.global_position)
+		views["ivy"] = [Vector3(lerpf(at.x, bx, 0.45), at.y + 0.5, at.z + 1.2), at + Vector3(0, -0.4, 0)]
+	views["pitwall"] = [Vector3(bx + side * 1.6, 2.4, mid + 3.0), Vector3(wall_x, BridgeHallBridge.PIT + 2.0, mid - 3.0)]
+	var fall: Node3D = room.find_child("waterfall_*", true, false) as Node3D
+	if fall != null:
+		var at: Vector3 = room.to_local(fall.global_position)
+		var mx: float = (at.x + bx) * 0.5
+		views["pool"] = [Vector3(mx, BridgeHallBridge.PIT + 4.0, at.z + 7.0), Vector3(at.x, BridgeHallBridge.PIT + 0.5, at.z)]
 	var vp_rid: RID = root.get_viewport().get_viewport_rid()
 	RenderingServer.viewport_set_measure_render_time(vp_rid, true)
 	print("r21_capture: seed %d, bridge hall %d bays, rise %d, bridge column %d, %d modules" % [area_seed, n, rise, int(m["bridge_column"]), room.modules.size()])

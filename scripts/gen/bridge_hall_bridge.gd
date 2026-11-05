@@ -44,11 +44,22 @@ func _ready() -> void:
 		return
 	var b: Dictionary = _meta["bridge"]
 	var n: int = b["bays"]
-	_build(self, plan(n, int(b.get("rise", 0))))
+	var rise: int = int(b.get("rise", 0))
+	var seed_value: int = int(b.get("seed", 0))
+	# The landing's side deck looks across at the older bridge, clear of its
+	# waterfall; if every bay is under the water, it stands out the other way
+	# (toward the house fronts).
+	var side: float = signf((_meta["old_bridge"]["start"] as Transform3D).origin.x - position.x) if _meta.has("old_bridge") else 1.0
+	var k: int = landing_bay(n, rise, old_fall_bay(n, seed_value) if _meta.has("old_bridge") else -1)
+	if k < 0:
+		k = landing_bay(n, rise)
+		side = -side
+	_build(self, plan(n, rise, PIT, true, -1, 1.0, k, side))
 	if _meta.has("old_bridge"):
-		_add_old_bridge(n, int(b.get("seed", 0)))
+		_add_old_bridge(n, seed_value)
 	_add_mist()
 	_add_window_lights()
+	_add_life(n, rise, k, side, seed_value)
 
 
 func _find_room() -> Node3D:
@@ -77,7 +88,8 @@ static func _build(into: Node3D, span: Dictionary) -> void:
 ## then a landing, so the arcade carries the group's lower deck. `pit` is
 ## the drop's floor in the run's frame; `fall` the arcade bay that pours a
 ## waterfall (-1 none), from its +X face (fall_side 1) or -X (-1).
-static func plan(n: int, rise: int = 0, pit: float = PIT, lamps: bool = true, fall: int = -1, fall_side: float = 1.0) -> Dictionary:
+static func plan(n: int, rise: int = 0, pit: float = PIT, lamps: bool = true, fall: int = -1, fall_side: float = 1.0,
+		landing: int = -1, landing_side: float = 0.0) -> Dictionary:
 	var out: Dictionary = {"ok": true, "kind": "bridge", "drop": maxi(0, -rise), "bays": n, "pieces": [], "piers": [],
 		"joints": [], "lamps": [], "falls": [], "connectors": {}, "walk": [], "boxes": [], "no_newels": []}
 	var lead_far: int = (n % GROUP + 1) / 2
@@ -102,11 +114,16 @@ static func plan(n: int, rise: int = 0, pit: float = PIT, lamps: bool = true, fa
 		var at := Vector3(-2, deck[k], -k * BAY)
 		var corbel: bool = k < lead or k >= n - lead_far
 		_piece(out, "walls/cliff_ledge_4m" if corbel else "walls/chasm_deck_4m", at)
+		var bay_out: bool = k == landing and landing_side != 0.0
 		for side: int in [1, 3]:
 			var xf: Transform3D = Transform3D(Basis(), at) * ChasmGrammar._cell_edge(side)
-			(out["pieces"] as Array).append({"scene": ChasmGrammar.MOD + "walls/chasm_parapet_4m.tscn", "xf": xf})
+			# The landing's side deck opens off the bay (its newels stay).
+			if not (bay_out and side == (1 if landing_side > 0 else 3)):
+				(out["pieces"] as Array).append({"scene": ChasmGrammar.MOD + "walls/chasm_parapet_4m.tscn", "xf": xf})
 			(out["joints"] as Array).append(xf * Vector3(0, 0, -.18))
 			(out["joints"] as Array).append(xf * Vector3(4, 0, -.18))
+		if bay_out:
+			_add_bay_out(out, k, deck[k], landing_side)
 		(out["walk"] as Array).append(at + Vector3(2, 0, -2))
 		if corbel:
 			var top: float = deck[k] - ChasmGrammar.CORBEL_UNDER
@@ -143,13 +160,84 @@ static func plan(n: int, rise: int = 0, pit: float = PIT, lamps: bool = true, fa
 	# A lamp at each end, on the newel by the mouth (opposite sides), and on
 	# every third newel between, alternating sides (walked step 1: too dark);
 	# none partway up a flight.
+	# The landing's own lamp stands in for a newel lamp near it (light budget).
 	for k: int in range(2, n - 1, GROUP):
 		var y: float = _end_height(deck, k)
+		if landing >= 0 and absf((k + 1) - (landing + 0.5)) < LANDING_CLEAR:
+			continue
 		if not is_nan(y):
 			(out["lamps"] as Array).append(Vector3((1.82 if (k / GROUP) % 2 == 0 else -1.82), y, -(k + 1) * BAY))
 	(out["lamps"] as Array).append(Vector3(1.82, 0, -.18))
 	(out["lamps"] as Array).append(Vector3(-1.82, high if fa >= 0 else 0.0, -n * BAY + .18))
 	return out
+
+
+## Newel lamps within this many bays of the landing's middle give way to its lamp.
+const LANDING_CLEAR: float = 1.6
+
+
+## The halfway landing's side deck (walked step 3: the keeper's things in the
+## middle of the bridge looked wrong): BAY_OUT deep off bay k's side `s`
+## (+-1 in x), on deck height y. A deck bay narrowed to its depth, a
+## balustrade round its three open sides (the short ones narrowed), newels at
+## its corners, stone corbels under it from the arcade's face.
+const BAY_OUT: float = 2.0
+const CORBEL: String = "res://kit/modules/persian/persian_corbel.tscn"
+
+
+static func _add_bay_out(out: Dictionary, k: int, y: float, s: float) -> void:
+	var o := Vector3(2.0 if s > 0 else -2.0 - BAY_OUT, y, -k * BAY)      # its cell's corner (x 0..BAY_OUT, z -4..0)
+	var narrow := Basis().scaled(Vector3(BAY_OUT / BAY, 1, 1))
+	(out["pieces"] as Array).append({"scene": ChasmGrammar.MOD + "walls/chasm_deck_4m.tscn", "xf": Transform3D(narrow, o)})
+	var rail: String = ChasmGrammar.MOD + "walls/chasm_parapet_4m.tscn"
+	var cell := Transform3D(narrow, o)
+	var outer: Transform3D = Transform3D(Basis(Vector3.UP, PI * .5), o + Vector3(BAY_OUT, 0, 0)) if s > 0 \
+		else Transform3D(Basis(Vector3.UP, -PI * .5), o + Vector3(0, 0, -BAY))
+	var ends: Array[Transform3D] = [outer, cell * ChasmGrammar._cell_edge(0), cell * ChasmGrammar._cell_edge(2)]
+	for i: int in ends.size():
+		(out["pieces"] as Array).append({"scene": rail, "xf": ends[i]})
+		(out["joints"] as Array).append(ends[i] * Vector3(0, 0, -.18))
+		(out["joints"] as Array).append(ends[i] * Vector3(4, 0, -.18))
+	for z: float in [0.55, 2.0, 3.45]:
+		(out["pieces"] as Array).append({"scene": CORBEL, "xf": Transform3D(Basis(Vector3.UP, s * PI * .5) * Basis.from_scale(Vector3(1.4, 1.4, 2.2)),
+			Vector3(s * ChasmGrammar.ARCADE_HALF, y - 1.0, -(k * BAY + z)))})
+	(out["walk"] as Array).append(Vector3(s * (2.0 + BAY_OUT * .5), y, -(k + .5) * BAY))
+
+
+## The halfway landing's bay (step 3): nearest the middle, on the level deck
+## before a flight, not an end bay, and clear of the older bridge's
+## waterfall (its arcade group `fall_a`, -1 none) so the side deck isn't
+## under the water. -1 if none.
+static func landing_bay(n: int, rise: int, fall_a: int = -1) -> int:
+	var hi: int = n - 2
+	if rise != 0:
+		var lead_far: int = (n % GROUP + 1) / 2
+		var lead: int = n % GROUP - lead_far
+		for a: int in range(lead, n - lead_far, GROUP):
+			hi = a - 1
+	var best: int = -1
+	for k: int in range(1, hi + 1):
+		if fall_a >= 0 and k >= fall_a and k < fall_a + GROUP:
+			continue
+		if best < 0 or absf(k - (n - 1) * .5) < absf(best - (n - 1) * .5):
+			best = k
+	return best
+
+
+## The older bridge's waterfall: its arcade group's first bay (as
+## _add_old_bridge draws it: the first number from its generator), -1 none.
+static func old_fall_bay(n: int, seed_value: int) -> int:
+	var groups: Array[int] = []
+	var lead_far: int = (n % GROUP + 1) / 2
+	var lead: int = n % GROUP - lead_far
+	for a: int in range(lead, n - lead_far, GROUP):
+		groups.append(a)
+	if groups.is_empty():
+		return -1
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([seed_value, "bridge_hall_old"])
+	var g: int = rng.randi_range(0, maxi((n - n % GROUP) / GROUP - 1, 0))
+	return groups[g] if g < groups.size() else -1
 
 
 ## The deck's height at the far end of bay k (NAN partway up a flight).
@@ -189,14 +277,32 @@ func _add_old_bridge(n: int, seed_value: int) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([seed_value, "bridge_hall_old"])
 	var toward: float = -signf(holder.position.x)
-	_build(holder, plan(n, 0, PIT - start.origin.y, false, rng.randi_range(0, maxi(groups - 1, 0)), toward))
+	var span: Dictionary = plan(n, 0, PIT - start.origin.y, false, rng.randi_range(0, maxi(groups - 1, 0)), toward)
+	# Weathered (step 3): fallen parapet bays railed with timber, some gone.
+	var patches: Array[Transform3D] = BridgeHallLife.weather(span, seed_value)
+	_build(holder, span)
+	for i: int in patches.size():
+		BridgeHallLife.timber_patch(patches[i], hash([seed_value, i]), holder, "TimberPatch_%d" % i)
+	# Moss on its deck; ivy over its edges.
+	for k: int in n:
+		for _j: int in rng.randi_range(1, 3):
+			var at := Vector3(rng.randf_range(-1.5, 1.5), 0.0, -(k + rng.randf()) * BAY)
+			BridgeHallLife.scene(BridgeHallLife.D + ("plant_moss_cushion.tscn" if rng.randf() < 0.7 else "plant_crack_tuft.tscn"),
+				Transform3D(Basis(Vector3.UP, rng.randf() * TAU).scaled(Vector3.ONE * rng.randf_range(2.0, 3.5)), at), holder, "OldMoss_%d_%d" % [k, _j])
+		for s: float in [-1.0, 1.0]:
+			if rng.randf() < 0.55:
+				var z: float = -(k + rng.randf_range(0.2, 0.8)) * BAY
+				BridgeHallLife.scene(BridgeHallLife.D + "plant_ivy_hang.tscn",
+					Transform3D(Basis(Vector3.UP, -s * PI * 0.5).scaled(Vector3(1.8, rng.randf_range(1.5, 2.8), 1.8)), Vector3(s * 2.1, -0.2, z)), holder, "OldIvy_%d_%d" % [k, int(s)])
 	for i: int in (ob["doors"] as Array).size():
 		var face: Transform3D = ob["doors"][i]
 		var door := OrnateDoor.make(DOOR_ARCH[0], DOOR_ARCH[1], DOOR_ARCH[2])
 		door.name = "SealedDoor_%d" % i
 		# The carved panel's opening is centred on the piece (x 0..4).
-		door.transform = Transform3D(Basis(), -position) * face * Transform3D(Basis(), Vector3(2.0, 0.0, -DOOR_DEEP))
+		var f: Transform3D = Transform3D(Basis(), -position) * face
+		door.transform = f * Transform3D(Basis(), Vector3(2.0, 0.0, -DOOR_DEEP))
 		add_child(door)
+		BridgeHallLife.soften_door(f, hash([seed_value, "door", i]), self, "SealedDoor_%d" % i)
 
 
 func _physics_process(_delta: float) -> void:
@@ -280,6 +386,93 @@ func _add_mist() -> void:
 		add_child(l3)
 		k += 1
 		z -= GROUP * BAY
+
+
+## Step 3's life (BridgeHallLife): the landing on bay k's side deck with its
+## lamp, mist wisps; once the room's collision is in, the gardens on the lit
+## windows' sills, the passages' herbs and mushrooms, the dark growth.
+var _wisps: Array[FogVolume] = []
+var _time: float = 0.0
+## The pit pool's and the falls' ripples' materials (their simulation_time).
+var _water: Array[ShaderMaterial] = []
+const WISPS: int = 5
+const DARK_GROWTH: int = 70
+const SHORE_GLOW: int = 12
+const LANDING_LIGHT_ENERGY: float = 0.8
+
+
+func _add_life(n: int, rise: int, k: int, side: float, seed_value: int) -> void:
+	var life := Node3D.new()
+	life.name = "Life"
+	add_child(life)
+	var high: float = rise * BAY
+	var lamp_at: Vector3 = BridgeHallLife.landing(k, side, life)
+	var l := OmniLight3D.new()
+	l.name = "LandingLight"
+	l.light_color = Color(1.0, 0.74, 0.45)
+	l.light_energy = LANDING_LIGHT_ENERGY
+	l.omni_range = 6.0
+	l.omni_attenuation = 1.4
+	l.shadow_enabled = false
+	l.light_specular = 0.15
+	l.position = lamp_at
+	life.add_child(l)
+	_water.append((BridgeHallLife.pool(_meta["hall"], position, life).material_override as ShaderMaterial))
+	for f: Node in find_children("waterfall_*", "GreatFall", true, false):
+		_water.append(BridgeHallLife.fall_foot(f as GreatFall, life, "FallFoot_%d" % _water.size()))
+	var top: float = minf(0.0, high) - 2.0
+	_wisps = BridgeHallLife.wisps(_meta["hall"], position, top - 1.0, WISPS, seed_value, life)
+	set_process(true)
+	_grow_dark.call_deferred(minf(0.0, high) - 1.0, seed_value, life)
+
+
+## Once the room's collision is in (it's found by rays): the gardens, the
+## passages' things to pick, the dark growth under the deck.
+func _grow_dark(top: float, seed_value: int, life: Node3D) -> void:
+	for _i: int in 2:
+		await get_tree().physics_frame
+	if not is_inside_tree():
+		return
+	var space: PhysicsDirectSpaceState3D = get_world_3d().direct_space_state
+	BridgeHallLife.gardens(_room, position, _meta.get("lit_windows", []), seed_value, life)
+	var i: int = 0
+	for f: Dictionary in _meta.get("forage", []):
+		var c: Vector3i = f["cell"]
+		var mid: Vector3 = CellGrid.cell_centre(c) + (f["shift"] as Vector3)
+		mid.y = c.y * BAY + 0.3
+		var dir: Vector3 = (f["dir"] as Vector3).normalized()
+		var hit: Dictionary = _ray(space, mid, dir * 3.0)
+		var spot: Vector3 = (_room.to_local(hit["position"]) - dir * FORAGE_OFF) if not hit.is_empty() else mid + dir * 0.9
+		# Onto the cave floor (it curves up into the wall).
+		var floor_hit: Dictionary = _ray(space, Vector3(spot.x, c.y * BAY + 1.0, spot.z), Vector3.DOWN * 2.0)
+		spot = _room.to_local(floor_hit["position"]) if not floor_hit.is_empty() else Vector3(spot.x, c.y * BAY, spot.z)
+		var xf := Transform3D(Basis(Vector3.UP, i * 2.1), spot - position)
+		if str(f["kind"]) == "herb":
+			BridgeHallLife.herb_patch(xf, hash([seed_value, i]), life, "PassageHerb_%d" % i)
+		else:
+			BridgeHallLife.pickable("mushroom", BridgeHallLife.MUSHROOM, xf, life, "PassageMushroom_%d" % i)
+		i += 1
+	BridgeHallLife.dark_growth(self, _meta["hall"], top + position.y, seed_value, DARK_GROWTH)
+	BridgeHallLife.shore_glow(self, _meta["hall"], seed_value, SHORE_GLOW)
+
+
+## How far off the rock a passage's herbs and mushrooms grow.
+const FORAGE_OFF: float = 0.35
+
+
+## A ray in the room's frame, from `from` along `along` (front faces only).
+func _ray(space: PhysicsDirectSpaceState3D, from: Vector3, along: Vector3) -> Dictionary:
+	var a: Vector3 = _room.to_global(from)
+	var q := PhysicsRayQueryParameters3D.create(a, a + _room.global_basis * along)
+	q.hit_back_faces = false
+	return space.intersect_ray(q)
+
+
+func _process(delta: float) -> void:
+	_time += delta
+	BridgeHallLife.drift(_wisps, _time)
+	for m: ShaderMaterial in _water:
+		m.set_shader_parameter("simulation_time", _time)
 
 
 ## Warm light at a few lit windows (BridgeHallGrammar picks them, spaced).

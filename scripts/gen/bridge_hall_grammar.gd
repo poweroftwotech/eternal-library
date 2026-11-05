@@ -192,6 +192,7 @@ func _lay(grid: CellGrid, p: Dictionary, seed_value: int) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([seed_value, "bridge_hall_fronts"])
 	var window_spots: Array[Vector3] = []
+	var lit_windows: Array[Transform3D] = []      # their faces: the hanging gardens (step 3)
 	for side: String in ["w", "e"]:
 		var z: int = 2
 		while z < 2 + n:
@@ -209,6 +210,7 @@ func _lay(grid: CellGrid, p: Dictionary, seed_value: int) -> void:
 					_piece(grid, "%s_%d_%d" % [side, y, zz], slot, xf)
 					if lit:
 						window_spots.append(xf * Vector3(2.0, 2.2, 1.0))
+						lit_windows.append(xf)
 			z += run
 	var window_lights: Array[Vector3] = []
 	for si: int in window_spots.size():
@@ -227,6 +229,19 @@ func _lay(grid: CellGrid, p: Dictionary, seed_value: int) -> void:
 		var turn: float = rng.randf_range(0.0, TAU)
 		_piece(grid, "moss_%s" % CellGrid.cell_name(c), "bh:moss",
 			Transform3D(Basis(Vector3.UP, turn), Vector3(q.x, c.y * BAY, q.z) + Vector3(sin(turn), 0.0, cos(turn)) * 1.3))
+	# Things to pick in each passage's cell by the hall (step 3), found on the
+	# rock by a ray (BridgeHallBridge): mushrooms in its dark closed corner;
+	# wild herbs by the hall opening, on the closed side, where the bridge-end
+	# lamp reaches (walked step 3: herbs in pots by the lamps looked wrong).
+	# The entry's (bx, 0, 1) opens toward its bend (-d) and the hall (N, -z);
+	# the far's (bx, rise, zf) toward the hall (S, +z) and its bend (+e).
+	var d: int = p["d"]
+	var e: int = p["e"]
+	var forage: Array = [
+		{"kind": "mushroom", "cell": Vector3i(bx, 0, 1), "shift": Vector3.ZERO, "dir": Vector3(d, 0, 1)},
+		{"kind": "herb", "cell": Vector3i(bx, 0, 1), "shift": Vector3(0, 0, -FORAGE_SHIFT), "dir": Vector3(d, 0, 0)},
+		{"kind": "mushroom", "cell": Vector3i(bx, rise, zf), "shift": Vector3.ZERO, "dir": Vector3(-e, 0, -1)},
+		{"kind": "herb", "cell": Vector3i(bx, rise, zf), "shift": Vector3(0, 0, FORAGE_SHIFT), "dir": Vector3(-e, 0, 0)}]
 	var corner := Transform3D(Basis(), Vector3(x0 * BAY, 0.0, -2 * BAY))
 	_piece(grid, "roof", "bh:roof_%d" % n, corner)
 	_piece(grid, "pit", "bh:pit_%d" % n, corner)
@@ -243,6 +258,7 @@ func _lay(grid: CellGrid, p: Dictionary, seed_value: int) -> void:
 	grid.meta = {"bridge_hall": true, "bays": n, "x0": x0, "bridge_x": bx, "bridge_column": bc,
 		"bridge": {"bays": n, "start": start, "seed": seed_value, "rise": rise},
 		"old_bridge": {"start": Transform3D(Basis(), Vector3(ox * BAY + BAY * 0.5, old * BAY, -2 * BAY)), "storey": old, "doors": old_doors}, "window_lights": window_lights,
+		"lit_windows": lit_windows, "forage": forage,
 		"entry_cells": p["entry"], "far_cells": p["far"], "route": route,
 		"hall": AABB(Vector3(x0 * BAY, -BELOW * BAY, -(2 + n) * BAY), Vector3(WIDTH * BAY, (BELOW + ABOVE) * BAY, n * BAY))}
 	grid.wear.clear()
@@ -254,6 +270,8 @@ const LIT_CHANCE: float = 0.4
 ## At most this many warm lights at lit windows, this far apart (light budget).
 const WINDOW_LIGHTS_MAX: int = 6
 const WINDOW_LIGHT_SPACING: float = 8.0
+## How far toward the hall from a passage cell's middle its herbs grow.
+const FORAGE_SHIFT: float = 1.3
 
 
 static func _pick_material(rng: RandomNumberGenerator) -> String:
