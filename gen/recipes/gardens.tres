@@ -1,0 +1,85 @@
+[gd_resource type="Resource" script_class="AreaRecipe" format=3]
+
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_htu7t"]
+[ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="2_ju8i1"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="3_lvono"]
+[ext_resource type="Resource" path="res://gen/grammars/r15_fungus_terraces.tres" id="4_hxojq"]
+[ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="4_k76br"]
+[ext_resource type="Resource" path="res://gen/grammars/r21_bridge_hall.tres" id="5_3nnel"]
+[ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="5_hxojq"]
+[ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="6_3nnel"]
+[ext_resource type="Resource" path="res://gen/grammars/r11_cistern.tres" id="6_xj5ow"]
+[ext_resource type="Resource" path="res://gen/grammars/r09_lightwell.tres" id="10_usmhx"]
+
+[sub_resource type="Resource" id="Resource_sc50j"]
+script = ExtResource("2_ju8i1")
+grammar = ExtResource("6_3nnel")
+tweaks = {
+"length": "medium"
+}
+display_name = "Passage"
+count = Vector2i(2, 2)
+slot_prefix = "passages"
+from = PackedStringArray("well")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_6qns3"]
+script = ExtResource("2_ju8i1")
+grammar = ExtResource("4_hxojq")
+display_name = "Fungus Terrace"
+count = Vector2i(2, 2)
+slot_prefix = "fungus"
+from = PackedStringArray("passages_1", "passages_2")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_7i4gr"]
+script = ExtResource("2_ju8i1")
+grammar = ExtResource("5_3nnel")
+display_name = "Bridge "
+count = Vector2i(1, 1)
+slot_prefix = "bridge"
+from = PackedStringArray("fungus_1", "fungus_2")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_m45jf"]
+script = ExtResource("2_ju8i1")
+grammar = ExtResource("6_xj5ow")
+display_name = "Cistern"
+count = Vector2i(2, 2)
+slot_prefix = "cistern"
+from = PackedStringArray("fungus_1", "fungus_2", "bridge_1")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_kcitu"]
+script = ExtResource("3_lvono")
+envelope = AABB(-122, -8, -144, 256, 48, 256)
+
+[sub_resource type="Resource" id="Resource_mncuk"]
+script = ExtResource("5_hxojq")
+slot_id = "entrance"
+display_name = "Entrance"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("6_3nnel")
+pinned = true
+
+[sub_resource type="Resource" id="Resource_nfmqo"]
+script = ExtResource("5_hxojq")
+slot_id = "well"
+display_name = "The Well"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("10_usmhx")
+parent = "entrance"
+connector = &"SNAP_exit_3_0_6_S"
+
+[resource]
+script = ExtResource("4_k76br")
+id = "gardens"
+display_name = "The Gardens"
+version = 2
+slots = Array[ExtResource("5_hxojq")]([SubResource("Resource_mncuk"), SubResource("Resource_nfmqo")])
+grow = Array[ExtResource("2_ju8i1")]([SubResource("Resource_sc50j"), SubResource("Resource_6qns3"), SubResource("Resource_7i4gr"), SubResource("Resource_m45jf")])
+room_count = Vector2i(1, 20)
+max_dead_ends = 0
+max_sight_depth = 4
+placement = SubResource("Resource_kcitu")
+atmosphere = ExtResource("1_htu7t")

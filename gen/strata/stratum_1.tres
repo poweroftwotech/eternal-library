@@ -13,6 +13,9 @@ places = Array[Dictionary]([{
 }, {
 "id": "grand_study",
 "path": "res://gen/recipes/grand_study.tres"
+}, {
+"id": "gardens",
+"path": "res://gen/recipes/gardens.tres"
 }])
 links = Array[Dictionary]([{
 "a": "camp",
@@ -22,5 +25,10 @@ links = Array[Dictionary]([{
 "a": "gorge",
 "at": "b1_l15_W_s1_3",
 "b": "grand_study",
+"kind": "door"
+}, {
+"a": "gorge",
+"at": "b2_l15_E_s2_0",
+"b": "gardens",
 "kind": "door"
 }])

@@ -4,60 +4,140 @@
 [ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="2_0lf56"]
 [ext_resource type="Resource" path="res://gen/grammars/r03_hypostyle.tres" id="2_xveb2"]
 [ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="3_xveb2"]
+[ext_resource type="Resource" path="res://gen/grammars/r01_reading_masonry.tres" id="4_3ibkb"]
 [ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="4_r8h2h"]
 [ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="5_3t0iv"]
+[ext_resource type="Resource" path="res://gen/grammars/r01_reading_wood.tres" id="5_3vdvf"]
 [ext_resource type="Resource" path="res://gen/grammars/r07_garden.tres" id="5_itl27"]
 [ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="6_atmos"]
-[ext_resource type="PackedScene" path="res://rooms/baked/stack_gallery_west_7.tscn" id="7_xveb2"]
-
-[sub_resource type="Resource" id="Resource_3t0iv"]
-script = ExtResource("1_dpqfw")
-grammar = ExtResource("2_xveb2")
-display_name = "The Grand Hall"
-count = Vector2i(1, 1)
-slot_prefix = "hall"
-from = PackedStringArray("entrance")
-pinned = true
-one_of = PackedStringArray()
-
-[sub_resource type="Resource" id="Resource_itl27"]
-script = ExtResource("1_dpqfw")
-grammar = ExtResource("5_3t0iv")
-display_name = "The Library Stacks"
-count = Vector2i(4, 4)
-slot_prefix = "stacks"
-from = PackedStringArray("hall_1")
-one_of = PackedStringArray()
+[ext_resource type="Resource" path="res://gen/grammars/r05_court_3x3.tres" id="7_3u1oo"]
 
 [sub_resource type="Resource" id="Resource_3ibkb"]
 script = ExtResource("1_dpqfw")
-grammar = ExtResource("5_itl27")
-display_name = "GardenCourt"
-count = Vector2i(1, 1)
-slot_prefix = "garden"
-from = PackedStringArray("stacks_1", "stacks_2", "stacks_3", "stacks_4")
+grammar = ExtResource("5_3t0iv")
+tweaks = {
+"length": "short"
+}
+display_name = "Study Hall Stacks"
+count = Vector2i(2, 2)
+slot_prefix = "smallStacks"
+from = PackedStringArray("GrandHall")
 one_of = PackedStringArray()
 
 [sub_resource type="Resource" id="Resource_3vdvf"]
+script = ExtResource("1_dpqfw")
+grammar = ExtResource("5_3t0iv")
+display_name = "Study Hall Grand Stacks"
+count = Vector2i(2, 2)
+slot_prefix = "LongStacks"
+from = PackedStringArray("GrandHall")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_3u1oo"]
+script = ExtResource("1_dpqfw")
+grammar = ExtResource("4_3ibkb")
+display_name = "Gholestan Room"
+count = Vector2i(1, 1)
+slot_prefix = "ReadingRoomA"
+from = PackedStringArray("smallStacks_1", "smallStacks_2")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_8k5j5"]
+script = ExtResource("1_dpqfw")
+grammar = ExtResource("5_3vdvf")
+display_name = "Study Room"
+count = Vector2i(1, 1)
+slot_prefix = "ReadingRoomB"
+from = PackedStringArray("smallStacks_1", "smallStacks_2")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_wvmve"]
+script = ExtResource("1_dpqfw")
+grammar = ExtResource("5_itl27")
+display_name = "The Gardens"
+count = Vector2i(1, 1)
+slot_prefix = "Gardens"
+from = PackedStringArray("LongStacks_1", "LongStacks_2")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_nwbcy"]
+script = ExtResource("1_dpqfw")
+grammar = ExtResource("7_3u1oo")
+display_name = "Caravanserai"
+count = Vector2i(1, 2)
+slot_prefix = "Caravan"
+from = PackedStringArray("Gardens_1")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_is6dy"]
+script = ExtResource("1_dpqfw")
+grammar = ExtResource("5_3t0iv")
+tweaks = {
+"length": "short"
+}
+display_name = "Gholestan Room Stacks"
+count = Vector2i(2, 4)
+slot_prefix = "RoomAStacks"
+from = PackedStringArray("ReadingRoomA_1")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_cnp0l"]
+script = ExtResource("1_dpqfw")
+grammar = ExtResource("5_3t0iv")
+tweaks = {
+"length": "short"
+}
+display_name = "Study Room Stacks"
+count = Vector2i(2, 4)
+slot_prefix = "RoomAStacks_2"
+from = PackedStringArray("ReadingRoomB_1")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_ydagl"]
+script = ExtResource("1_dpqfw")
+grammar = ExtResource("5_3t0iv")
+tweaks = {
+"abandon_over_bays": 2.0
+}
+display_name = "The Old Stacks"
+count = Vector2i(1, 1)
+slot_prefix = "oldStacks"
+from = PackedStringArray("Caravan_1", "Caravan_2")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_tandp"]
 script = ExtResource("2_0lf56")
 envelope = AABB(-122, -8, -144, 256, 48, 256)
 
-[sub_resource type="Resource" id="Resource_3u1oo"]
+[sub_resource type="Resource" id="Resource_dh8qp"]
 script = ExtResource("4_r8h2h")
 slot_id = "entrance"
 display_name = "Grand Hall Entrance"
-scene = ExtResource("7_xveb2")
 scene_weights = PackedFloat32Array()
+grammar = ExtResource("5_3t0iv")
+tweaks = {
+"length": "medium"
+}
+
+[sub_resource type="Resource" id="Resource_ylosu"]
+script = ExtResource("4_r8h2h")
+slot_id = "GrandHall"
+display_name = "Grand Study Hall"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("2_xveb2")
+parent = "entrance"
+connector = &"SNAP_exit_0_0_6_S"
 pinned = true
 
 [resource]
 script = ExtResource("3_xveb2")
 id = "grand_study"
 display_name = "The Grand Study"
-version = 6
-slots = Array[ExtResource("4_r8h2h")]([SubResource("Resource_3u1oo")])
-grow = Array[ExtResource("1_dpqfw")]([SubResource("Resource_3t0iv"), SubResource("Resource_itl27"), SubResource("Resource_3ibkb")])
-room_count = Vector2i(1, 10)
+version = 11
+slots = Array[ExtResource("4_r8h2h")]([SubResource("Resource_dh8qp"), SubResource("Resource_ylosu")])
+grow = Array[ExtResource("1_dpqfw")]([SubResource("Resource_3ibkb"), SubResource("Resource_3vdvf"), SubResource("Resource_3u1oo"), SubResource("Resource_8k5j5"), SubResource("Resource_wvmve"), SubResource("Resource_nwbcy"), SubResource("Resource_is6dy"), SubResource("Resource_cnp0l"), SubResource("Resource_ydagl")])
+room_count = Vector2i(1, 20)
 max_dead_ends = 0
-placement = SubResource("Resource_3vdvf")
+max_sight_depth = 4
+placement = SubResource("Resource_tandp")
 atmosphere = ExtResource("6_atmos")
