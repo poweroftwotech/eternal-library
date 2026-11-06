@@ -1,0 +1,78 @@
+[gd_resource type="Resource" script_class="AreaRecipe" format=3]
+
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_f6k8s"]
+[ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="2_xb1oy"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="3_22nm3"]
+[ext_resource type="Resource" path="res://gen/grammars/r01_reading_masonry_left.tres" id="3_cmeof"]
+[ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="4_cmeof"]
+[ext_resource type="Resource" path="res://gen/grammars/r01_reading_wood_left.tres" id="5_lseib"]
+[ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="5_w5i8p"]
+[ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="6_lseib"]
+[ext_resource type="Resource" path="res://gen/grammars/r07_garden_wild.tres" id="6_wmflr"]
+
+[sub_resource type="Resource" id="Resource_h1vwa"]
+script = ExtResource("2_xb1oy")
+grammar = ExtResource("3_cmeof")
+display_name = "Forgotten Study"
+count = Vector2i(1, 1)
+slot_prefix = "readinga"
+from = PackedStringArray()
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_eabf2"]
+script = ExtResource("2_xb1oy")
+grammar = ExtResource("6_lseib")
+tweaks = {
+"abandon_start": 1.0,
+"length": "medium"
+}
+display_name = "Forgotten Stacks"
+count = Vector2i(2, 2)
+slot_prefix = "stacks"
+from = PackedStringArray("entrance", "readinga_1")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_xuc5k"]
+script = ExtResource("2_xb1oy")
+grammar = ExtResource("5_lseib")
+display_name = "Forgotten Room"
+count = Vector2i(1, 2)
+slot_prefix = "readingb"
+from = PackedStringArray("stacks_1", "stacks_2")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_q1s8e"]
+script = ExtResource("2_xb1oy")
+grammar = ExtResource("6_wmflr")
+display_name = "New rooms"
+count = Vector2i(1, 1)
+slot_prefix = "rule"
+from = PackedStringArray()
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_ncmjv"]
+script = ExtResource("3_22nm3")
+envelope = AABB(-122, -8, -144, 256, 48, 256)
+
+[sub_resource type="Resource" id="Resource_bax0l"]
+script = ExtResource("5_w5i8p")
+slot_id = "entrance"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("6_lseib")
+tweaks = {
+"abandon_start": 1.0
+}
+pinned = true
+
+[resource]
+script = ExtResource("4_cmeof")
+id = "forgotten_city"
+display_name = "The Forgotten City"
+version = 2
+slots = Array[ExtResource("5_w5i8p")]([SubResource("Resource_bax0l")])
+grow = Array[ExtResource("2_xb1oy")]([SubResource("Resource_h1vwa"), SubResource("Resource_eabf2"), SubResource("Resource_xuc5k"), SubResource("Resource_q1s8e")])
+room_count = Vector2i(1, 12)
+max_dead_ends = 0
+max_sight_depth = 4
+placement = SubResource("Resource_ncmjv")
+atmosphere = ExtResource("1_f6k8s")

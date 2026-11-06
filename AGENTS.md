@@ -43,8 +43,10 @@
   checkpoints.
 - **Before committing**, audit staged files and leave out local configuration,
   caches (`.godot/`), Blender backups (`*.blend1`) and personal data.
-- **Commit only when the user asks.** The repository has no remote yet; if one is
-  added, confirm the remote branch matches local HEAD before reporting a push as done.
+- **Commit and push only when the user asks.** The remote is `origin` on GitHub
+  (`poweroftwotech/eternal-library`). After a push, confirm the remote branch matches
+  local HEAD before reporting it as done. GitHub rejects a single push over 2 GB, so
+  split a very large one into batches.
 
 ## 5. GDScript style
 
