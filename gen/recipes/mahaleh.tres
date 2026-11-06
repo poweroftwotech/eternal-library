@@ -1,0 +1,67 @@
+[gd_resource type="Resource" script_class="AreaRecipe" format=3]
+
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_1n21i"]
+[ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="2_50nn5"]
+[ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="3_2dtm3"]
+[ext_resource type="Resource" path="res://gen/grammars/r05_court_7x5.tres" id="3_50nn5"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="3_kn3d0"]
+[ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="4_2dtm3"]
+[ext_resource type="Resource" path="res://gen/grammars/r07_garden_wild.tres" id="4_h5f7t"]
+[ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="5_h5f7t"]
+[ext_resource type="Resource" path="res://gen/grammars/r21_bridge_hall.tres" id="6_7dejn"]
+
+[sub_resource type="Resource" id="Resource_7dejn"]
+script = ExtResource("2_50nn5")
+grammar = ExtResource("3_2dtm3")
+tweaks = {
+"length": "short"
+}
+display_name = "Alley"
+count = Vector2i(2, 2)
+slot_prefix = "alley"
+from = PackedStringArray("square")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_tjkgc"]
+script = ExtResource("2_50nn5")
+grammar = ExtResource("4_h5f7t")
+display_name = "Gardens"
+count = Vector2i(1, 1)
+slot_prefix = "garden"
+from = PackedStringArray("alley_1", "alley_2")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_vxyge"]
+script = ExtResource("3_kn3d0")
+envelope = AABB(-122, -8, -144, 256, 48, 256)
+
+[sub_resource type="Resource" id="Resource_q48sa"]
+script = ExtResource("5_h5f7t")
+slot_id = "entrance"
+display_name = "Entrance"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("6_7dejn")
+pinned = true
+
+[sub_resource type="Resource" id="Resource_7ca0h"]
+script = ExtResource("5_h5f7t")
+slot_id = "square"
+display_name = "The Square"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("3_50nn5")
+parent = "entrance"
+connector = &"SNAP_exit_0_0_11_S"
+pinned = true
+
+[resource]
+script = ExtResource("4_2dtm3")
+id = "mahaleh"
+display_name = "The Mahaleh"
+version = 5
+slots = Array[ExtResource("5_h5f7t")]([SubResource("Resource_q48sa"), SubResource("Resource_7ca0h")])
+grow = Array[ExtResource("2_50nn5")]([SubResource("Resource_7dejn"), SubResource("Resource_tjkgc")])
+room_count = Vector2i(1, 10)
+max_dead_ends = 0
+max_sight_depth = 4
+placement = SubResource("Resource_vxyge")
+atmosphere = ExtResource("1_1n21i")
