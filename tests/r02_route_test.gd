@@ -27,9 +27,9 @@ const SPEED: float = 8.0
 ## R01's doors: connector, and a spot in R01's hall to walk from (clear of the
 ## reading tables and the stair).
 const DOORS: Dictionary = {
-	"west": {"connector": &"SNAP_door_west", "start": Vector3(1.5, 0.95, -6)},
-	"east": {"connector": &"SNAP_door_east", "start": Vector3(10.5, 0.95, -6)},
-	"entrance": {"connector": &"SNAP_entrance", "start": Vector3(6, 0.95, -1.5)},
+	"west": {"connector": &"SNAP_exit_0_0_1_W", "start": Vector3(1.5, 0.95, -6)},
+	"east": {"connector": &"SNAP_exit_3_0_1_W", "start": Vector3(10.5, 0.95, -6)},
+	"entrance": {"connector": &"SNAP_entry", "start": Vector3(6, 0.95, -1.5)},
 }
 ## Gallery node -> door in THREE; seeds there are s + offset.
 const THREE_ROOMS: Dictionary = {"StackGallery": ["west", 0], "StackGalleryEast": ["east", 100], "StackGalleryEntrance": ["entrance", 200]}

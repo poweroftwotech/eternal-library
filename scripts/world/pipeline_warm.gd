@@ -63,6 +63,8 @@ static func add(parent: Node) -> PipelineWarm:
 	var w := PipelineWarm.new()
 	w.name = "PipelineWarm"
 	for path: String in SCENES:
+		if not ResourceLoader.exists(path):
+			continue     # a room type taken out of the game: nothing to warm
 		var src: Node = (load(path) as PackedScene).instantiate()
 		for n: Node in src.find_children("*", "MeshInstance3D", true, false):
 			var m := n as MeshInstance3D

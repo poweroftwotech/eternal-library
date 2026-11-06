@@ -11,7 +11,7 @@ script = ExtResource("2_gen")
 room_id = "stack_gallery_west"
 display_name = "The Stack Gallery"
 grammar = ExtResource("3_r02")
-join_connector = &"SNAP_door_west"
+join_connector = &"SNAP_exit_0_0_1_W"
 
 [node name="StackGalleryEast" type="Node3D" parent="."]
 script = ExtResource("2_gen")
@@ -19,7 +19,7 @@ room_id = "stack_gallery_east"
 display_name = "The East Stacks"
 grammar = ExtResource("3_r02")
 gen_seed = 101
-join_connector = &"SNAP_door_east"
+join_connector = &"SNAP_exit_3_0_1_W"
 
 [node name="StackGalleryEntrance" type="Node3D" parent="."]
 script = ExtResource("2_gen")
@@ -27,4 +27,4 @@ room_id = "stack_gallery_entrance"
 display_name = "The Front Stacks"
 grammar = ExtResource("3_r02")
 gen_seed = 201
-join_connector = &"SNAP_entrance"
+join_connector = &"SNAP_entry"

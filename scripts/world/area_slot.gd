@@ -24,7 +24,7 @@ enum SeedMode { FIXED, AREA }
 @export var rules: ModuleRules
 ## The slot this room joins ("" for the root, which sits at the area origin).
 @export var parent: String = ""
-## The parent's connector it joins (e.g. SNAP_door_west).
+## The parent's connector it joins (e.g. SNAP_exit_0_0_1_W).
 @export var connector: StringName = &""
 ## FIXED: an authored room keeps its preview_seed, a baked room the seed it was
 ## baked from, a generated room `fixed_seed`. AREA: derived from the area seed.

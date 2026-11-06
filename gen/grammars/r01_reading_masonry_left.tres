@@ -1,0 +1,32 @@
+[gd_resource type="Resource" script_class="ReadingRoomGrammar" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/lore_book_pin.gd" id="1_yqvna"]
+[ext_resource type="Resource" path="res://items/lore/lore_hollow_index.tres" id="2_r0ser"]
+[ext_resource type="Resource" path="res://items/lore/lore_lamps_remember.tres" id="3_3sqnc"]
+[ext_resource type="Resource" path="res://gen/rules/r01_reading.tres" id="4_2d60i"]
+[ext_resource type="Script" path="res://scripts/gen/reading_room_grammar.gd" id="5_lwiv8"]
+
+[sub_resource type="Resource" id="Resource_y1erx"]
+script = ExtResource("1_yqvna")
+socket = "Shell/edge_-1_0_0_W/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill"
+level = 3
+x = 0.35
+item = ExtResource("2_r0ser")
+
+[sub_resource type="Resource" id="Resource_2e6uw"]
+script = ExtResource("1_yqvna")
+socket = "Shell/prop_upper_w_0/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill"
+x = -0.4
+item = ExtResource("3_3sqnc")
+
+[resource]
+script = ExtResource("5_lwiv8")
+abandoned = true
+variant_name = "masonry, abandoned"
+fixed_styles = Dictionary[String, int]({
+"gallery_build": 0
+})
+lore_books = Array[ExtResource("1_yqvna")]([SubResource("Resource_y1erx"), SubResource("Resource_2e6uw")])
+styles = PackedStringArray("brick")
+rules = ExtResource("4_2d60i")
+wetness = 0.35

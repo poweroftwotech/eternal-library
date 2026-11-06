@@ -13,6 +13,7 @@ const CAMP_NAME: String = "The Reading Garden camp"
 ## By path: an autoload's name isn't known while a --script compiles.
 const WORLD_STATE: GDScript = preload("res://scripts/world/world_state.gd")
 const GRAMMARS: String = "res://gen/grammars"
+const ATMOSPHERES: String = "res://kit/atmosphere"
 const SCENE_DIRS: Array = ["res://rooms/authored", "res://rooms/baked"]
 ## A save checks these world seeds for rooms the edit would move.
 const MOVED_WORLDS: int = 20
@@ -21,6 +22,12 @@ const MOVED_WORLDS: int = 20
 const DRAFTS: String = "res://gen/recipes/drafts"
 ## Where a new area's recipe is written.
 const RECIPES_DIR: String = "res://gen/recipes"
+## add_area's `from` for a new area of just this room (a scene or grammar path).
+const ROOM_PREFIX: String = "room:"
+## The atmosphere a new area of just a room starts with.
+const NEW_AREA_ATMOSPHERE: String = "res://kit/atmosphere/reading_room.tres"
+## ... and the height of its build space (m), as the Lower Stacks'.
+const NEW_AREA_HEIGHT: float = 48.0
 ## Tests: copies kept here instead, and live recipes read and written at these
 ## paths (area id -> path) instead of the stratum plan's; the stratum plan read
 ## and written at stratum_path, new areas' recipes written in recipes_dir.
@@ -95,7 +102,11 @@ static func catalog() -> Dictionary:
 		var path: String = GRAMMARS.path_join(f.trim_suffix(".remap"))
 		var type: String = RoomTypes.of_path(path)
 		if type != "" and f.ends_with(".tres") and not (load(path) is ChasmGrammar):
-			grammars.append({"path": path, "type": type, "type_name": RoomTypes.NAMES.get(type, "")})
+			grammars.append({"path": path, "type": type, "type_name": RoomTypes.NAMES.get(type, ""), "variant": (load(path) as RoomGrammar).variant_name})
+	# Several of a type with no name of their own: told apart by file name.
+	for g: Dictionary in grammars:
+		if str(g["variant"]) == "" and grammars.filter(func(o: Dictionary) -> bool: return o["type"] == g["type"]).size() > 1:
+			g["variant"] = str(g["path"]).get_file().get_basename()
 	var scenes: Array = []
 	for dir: String in SCENE_DIRS:
 		for f: String in DirAccess.get_files_at(dir):
@@ -103,7 +114,11 @@ static func catalog() -> Dictionary:
 			var type: String = RoomTypes.of_path(path)
 			if type != "" and f.ends_with(".tscn") and not f.contains("_in_host"):
 				scenes.append({"path": path, "type": type, "type_name": RoomTypes.NAMES.get(type, ""), "entrance_only": not _has_entry(path)})
-	return {"grammars": grammars, "scenes": scenes, "types": RoomTypes.NAMES.duplicate()}
+	var atmospheres: Array = []
+	for f: String in DirAccess.get_files_at(ATMOSPHERES):
+		if f.trim_suffix(".remap").ends_with(".tres"):
+			atmospheres.append(ATMOSPHERES.path_join(f.trim_suffix(".remap")))
+	return {"grammars": grammars, "scenes": scenes, "atmospheres": atmospheres, "types": RoomTypes.NAMES.duplicate()}
 
 
 ## An AreaRecipe from a description as describe() gives it, edited on the
@@ -125,6 +140,8 @@ static func build(desc: Dictionary) -> AreaRecipe:
 		s.display_name = str(d.get("display_name", ""))
 		s.parent = str(d.get("parent", ""))
 		s.connector = StringName(str(d.get("connector", "")))
+		s.seed_mode = AreaSlot.SeedMode.FIXED if str(d.get("seed_mode", "area")) == "fixed" else AreaSlot.SeedMode.AREA
+		s.fixed_seed = int(d.get("fixed_seed", s.fixed_seed))
 		s.pinned = bool(d.get("pinned", false))
 		var scenes: Array = d.get("scenes", [])
 		if str(d.get("kind", "")) == "scene" and not scenes.is_empty():
@@ -172,6 +189,7 @@ static func build(desc: Dictionary) -> AreaRecipe:
 		g.count = Vector2i(int(c[0]), int(c[1]))
 		g.from = PackedStringArray(d.get("from", []))
 		g.min_depth = int(d.get("min_depth", 0))
+		g.one_of = PackedStringArray(d.get("one_of", Array(g.one_of)))
 		g.pinned = bool(d.get("pinned", false))
 		grow.append(g)
 	r.grow = grow
@@ -179,6 +197,15 @@ static func build(desc: Dictionary) -> AreaRecipe:
 	r.room_count = Vector2i(int(rc[0]), int(rc[1]))
 	r.max_dead_ends = int(desc.get("max_dead_ends", base.max_dead_ends))
 	r.max_sight_depth = int(desc.get("max_sight_depth", base.max_sight_depth))
+	r.fall_limit = float(desc.get("fall_limit", base.fall_limit))
+	r.open_sight = bool(desc.get("open_sight", base.open_sight))
+	if desc.has("atmosphere"):
+		var atmos: String = str(desc["atmosphere"])
+		r.atmosphere = load(atmos) as AtmosphereProfile if ResourceLoader.exists(atmos) else null
+	if desc.has("envelope"):
+		var e: Array = desc["envelope"]
+		r.placement = base.placement.duplicate() as AreaPlacement if base.placement != null else AreaPlacement.new()
+		r.placement.envelope = AABB(Vector3(e[0], e[1], e[2]), Vector3(e[3], e[4], e[5]))
 	return r
 
 
@@ -414,7 +441,7 @@ static func stratum() -> Dictionary:
 	# The camp's back door (door travel, 2026-11-01): a door place of its own.
 	door_places.append({"id": StratumPlan.CAMP_BACK_DOOR, "camp": true, "bank": 0, "cliff": "", "storey": 0, "width": 0, "area": sp.camp_back_area()})
 	return {"places": places, "links": sp.triples(), "door_places": door_places, "default_area": WORLD_STATE.DEFAULT_AREA,
-		"mtime": _mtime(stratum_path), "path": stratum_path}
+		"spare": spare_recipes(sp), "mtime": _mtime(stratum_path), "path": stratum_path}
 
 
 ## The stratum plan read fresh from its file (a hand edit since), and the one
@@ -428,9 +455,11 @@ static func _stratum_plan() -> StratumPlan:
 	return sp
 
 
-## Adds an area called `area_name`, its recipe a copy of area `from`'s (a new
-## file, version 1), behind the free Gorge door place `at` ("" = the first
-## free one).
+## Adds an area called `area_name` behind the free Gorge door place `at` ("" =
+## the first free one). `from` is what it starts as: an area id or a recipe
+## file (a copy of that recipe, version 1), or ROOM_PREFIX + a room's scene or
+## grammar (a new recipe with just that room, its entrance): the last needs no
+## other area, so a stratum with none can start again.
 static func add_area(area_name: String, from: String, at: String) -> Dictionary:
 	var sp: StratumPlan = _stratum_plan()
 	var id: String = _slug(area_name.strip_edges().trim_prefix("The ").trim_prefix("the "))
@@ -438,10 +467,15 @@ static func add_area(area_name: String, from: String, at: String) -> Dictionary:
 		return {"error": "an area needs a name with a letter or digit in it"}
 	if sp.path_of(id) != "" or id in ["camp", "gorge"]:
 		return {"error": "there is already an area called \"%s\"" % id}
-	var src: String = str(sp.recipes().get(from, ""))
-	var from_recipe: AreaRecipe = _load_recipe(src, false)
-	if from_recipe == null or from_recipe.network != null:
-		return {"error": "a new area starts as a copy of an interior's recipe (not %s)" % from}
+	var room: String = from.trim_prefix(ROOM_PREFIX) if from.begins_with(ROOM_PREFIX) else ""
+	var src: String = from if from.begins_with("res://") else str(sp.recipes().get(from, ""))
+	if room != "":
+		if not ResourceLoader.exists(room):
+			return {"error": "no room at %s" % room}
+	else:
+		var from_recipe: AreaRecipe = _load_recipe(src, false)
+		if from_recipe == null or from_recipe.network != null:
+			return {"error": "a new area starts as a copy of an interior's recipe, or from a room (not \"%s\")" % from}
 	if at == "":
 		at = _free_door(sp)
 		if at == "":
@@ -451,21 +485,69 @@ static func add_area(area_name: String, from: String, at: String) -> Dictionary:
 		return {"error": problem}
 	var path: String = "%s/%s.tres" % [recipes_dir, id]
 	if FileAccess.file_exists(path):
-		return {"error": "%s already exists" % path}
-	var text: String = _set_resource_field(FileAccess.get_file_as_string(src), "id", "\"%s\"" % id)
-	text = _set_resource_field(text, "display_name", JSON.stringify(area_name.strip_edges()))
-	text = _set_resource_field(text, "version", "1")
+		return {"error": "%s already exists (a removed area's recipe?): choose another name, or delete the file" % path}
 	DirAccess.make_dir_recursive_absolute(recipes_dir)
-	var f := FileAccess.open(path, FileAccess.WRITE)
-	if f == null:
-		return {"error": "cannot write %s (%s)" % [path, error_string(FileAccess.get_open_error())]}
-	f.store_string(text)
-	f.close()
+	if room != "":
+		var err: Error = ResourceSaver.save(_room_recipe(id, area_name.strip_edges(), room), path)
+		if err != OK:
+			return {"error": "cannot write %s (%s)" % [path, error_string(err)]}
+	else:
+		var text: String = _set_resource_field(FileAccess.get_file_as_string(src), "id", "\"%s\"" % id)
+		text = _set_resource_field(text, "display_name", JSON.stringify(area_name.strip_edges()))
+		text = _set_resource_field(text, "version", "1")
+		# A rule shared between areas (AreaGrow.one_of) never names this new one,
+		# so its room would never grow here: in the copy the rule is its own.
+		text = RegEx.create_from_string("(?m)^one_of = .*$").sub(text, "one_of = PackedStringArray()", true)
+		var f := FileAccess.open(path, FileAccess.WRITE)
+		if f == null:
+			return {"error": "cannot write %s (%s)" % [path, error_string(FileAccess.get_open_error())]}
+		f.store_string(text)
+		f.close()
 	sp.places.append({"id": id, "path": path})
 	sp.links.append(_door_link(id, at))
 	var out: Dictionary = _write_stratum(sp, at != StratumPlan.CAMP_BACK_DOOR)
 	out["added"] = id
 	out["recipe_path"] = path
+	return out
+
+
+## A recipe with one room, its entrance (a scene or a grammar at `room`). The
+## planner gives it its door back (AreaPlanner._default_door_back).
+static func _room_recipe(id: String, area_name: String, room: String) -> AreaRecipe:
+	var slot := AreaSlot.new()
+	slot.slot_id = "entrance"
+	slot.pinned = true
+	var res: Resource = load(room)
+	if res is PackedScene:
+		slot.scene = res as PackedScene
+	else:
+		slot.grammar = res as RoomGrammar
+	var r := AreaRecipe.new()
+	r.id = id
+	r.display_name = area_name
+	r.slots = [slot] as Array[AreaSlot]
+	r.room_count = Vector2i(1, 10)     # valid as it stands: rooms come as you reshape it
+	r.placement = AreaPlacement.new()
+	r.placement.envelope.size.y = NEW_AREA_HEIGHT     # room for the tall rooms (a light-well, the Bridge Hall)
+	# Without one the area has no environment: no fog, so no light shafts.
+	r.atmosphere = load(NEW_AREA_ATMOSPHERE) if ResourceLoader.exists(NEW_AREA_ATMOSPHERE) else null
+	return r
+
+
+## Recipe files no place of the stratum uses (removed areas'): [{path, name}],
+## to start a new area from.
+static func spare_recipes(sp: StratumPlan) -> Array:
+	var used: Array = sp.places.map(func(p: Dictionary) -> String: return str(p["path"]))
+	var out: Array = []
+	if not DirAccess.dir_exists_absolute(recipes_dir):
+		return out
+	for f: String in DirAccess.get_files_at(recipes_dir):
+		var path: String = recipes_dir.path_join(f.trim_suffix(".remap"))
+		if not path.ends_with(".tres") or used.has(path):
+			continue
+		var recipe: AreaRecipe = _load_recipe(path, false)
+		if recipe != null and recipe.network == null:
+			out.append({"path": path, "name": recipe.display_name})
 	return out
 
 
@@ -676,7 +758,8 @@ static func describe(recipe: AreaRecipe) -> Dictionary:
 	var out: Dictionary = {"id": recipe.id, "display_name": recipe.display_name, "path": recipe.resource_path,
 		"mtime": _mtime(recipe.resource_path), "version": recipe.version, "room_count": [recipe.room_count.x, recipe.room_count.y], "max_dead_ends": recipe.max_dead_ends,
 		"max_sight_depth": recipe.max_sight_depth, "envelope": [env.position.x, env.position.y, env.position.z, env.size.x, env.size.y, env.size.z],
-		"open_sight": recipe.open_sight, "network": recipe.network != null, "slots": [], "grow": []}
+		"open_sight": recipe.open_sight, "network": recipe.network != null, "slots": [], "grow": [],
+		"atmosphere": recipe.atmosphere.resource_path if recipe.atmosphere != null else "", "fall_limit": recipe.fall_limit}
 	for s: AreaSlot in recipe.slots:
 		if s == null:
 			continue
@@ -702,7 +785,7 @@ static func describe(recipe: AreaRecipe) -> Dictionary:
 		var type: String = RoomTypes.of_path(g.grammar.resource_path if g.grammar != null else "")
 		(out["grow"] as Array).append({"prefix": g.slot_prefix, "display_name": g.display_name, "type": type, "type_name": RoomTypes.NAMES.get(type, ""),
 			"grammar": g.grammar.resource_path if g.grammar != null else "", "count": [g.count.x, g.count.y],
-			"orig": g.slot_prefix, "min_depth": g.min_depth, "from": Array(g.from), "pinned": g.pinned, "order": i})
+			"orig": g.slot_prefix, "min_depth": g.min_depth, "from": Array(g.from), "pinned": g.pinned, "order": i, "one_of": Array(g.one_of)})
 	return out
 
 

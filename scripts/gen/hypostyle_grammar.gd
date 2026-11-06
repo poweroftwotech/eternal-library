@@ -35,6 +35,13 @@ extends RoomGrammar
 	set(value):
 		exit_max = value
 		emit_changed()
+## Shelf bays that may open into a doorway: each stays a bookshelf unless an
+## area grows a room there (AreaPlanner, connector cap "shelf"), so a hall can
+## offer many ways on and show only the ones used.
+@export_range(0, 8) var optional_exits: int = 0:
+	set(value):
+		optional_exits = value
+		emit_changed()
 ## The landmark's clear square (bays, odd): 1, or 3 once the hall is at
 ## least landmark_wide_from bays both ways.
 @export_range(5, 21) var landmark_wide_from: int = 7:
@@ -136,8 +143,10 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 	var centre := Vector3i(rect.position.x + rect.size.x / 2, 0, rect.position.y + rect.size.y / 2)
 	var wide: bool = rect.size.x >= landmark_wide_from and rect.size.y >= landmark_wide_from
 	var doors: Array = [[Vector3i.ZERO, CellGrid.Side.S]] + pick_exits(grid, rect, seed_value)
+	var optional: Array = pick_optional(grid, rect, seed_value, doors)
+	grid.meta["optional_doors"] = optional
 	var aisle: Dictionary = {}       # cell -> true: kept clear
-	for d: Array in doors:
+	for d: Array in doors + optional:     # a way to the bays that may open, too
 		for c: Vector3i in aisle_to(d[0], d[1], centre, seed_value):
 			aisle[c] = true
 	if cross_aisles >= 1:
@@ -353,6 +362,36 @@ func pick_exits(grid: CellGrid, rect: Rect2i, seed_value: int) -> Array:
 	return out
 
 
+## Up to optional_exits wall bays that may open later: a free cell beyond each,
+## and not within two bays of a door or of one another.
+func pick_optional(grid: CellGrid, rect: Rect2i, seed_value: int, doors: Array) -> Array:
+	if optional_exits <= 0 or (grid.end_kind if grid.end_kind != "" else "exit") != "exit":
+		return []
+	var options: Array = []
+	for x: int in range(rect.position.x, rect.end.x):
+		if absi(x) >= 2:     # not in line with the entry
+			options.append([Vector3i(x, 0, rect.end.y - 1), CellGrid.Side.N])
+	for z: int in range(1, rect.end.y - 1):
+		options.append([Vector3i(rect.position.x, 0, z), CellGrid.Side.W])
+		options.append([Vector3i(rect.end.x - 1, 0, z), CellGrid.Side.E])
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([seed_value, "hall_optional"])
+	for i: int in range(options.size() - 1, 0, -1):
+		var j: int = rng.randi_range(0, i)
+		var t: Variant = options[i]
+		options[i] = options[j]
+		options[j] = t
+	var out: Array = []
+	for o: Array in options:
+		if out.size() >= optional_exits:
+			break
+		if not grid.is_free(CellGrid.neighbour(o[0], o[1])):
+			continue
+		if (doors + out).all(func(d: Array) -> bool: return ((d[0] as Vector3i) - (o[0] as Vector3i)).length_squared() > 4):
+			out.append(o)
+	return out
+
+
 ## Cells from a door's cell straight in, then (one dog-leg) along to the centre.
 func aisle_to(from: Vector3i, side: int, centre: Vector3i, _seed_value: int) -> Array[Vector3i]:
 	var into: Vector3i = -_offset(side)
@@ -383,6 +422,9 @@ func mark_edges(grid: CellGrid, rect: Rect2i, doors: Array, seed_value: int = 0)
 	var door_ends: Dictionary = {}   # door edge key -> its two ends
 	for i: int in doors.size():
 		door_of[CellGrid.key(doors[i][0], doors[i][1])] = i
+	var optional_at: Dictionary = {}
+	for d: Array in grid.meta.get("optional_doors", []):
+		optional_at[CellGrid.key(d[0], d[1])] = true
 	for c: Vector3i in grid.cells:
 		for side: int in CellGrid.ALL_SIDES:
 			var n: Vector3i = CellGrid.neighbour(c, side)
@@ -404,7 +446,7 @@ func mark_edges(grid: CellGrid, rect: Rect2i, doors: Array, seed_value: int = 0)
 				# the next wall's recess.
 				var along: Vector3i = Vector3i(1, 0, 0) if (n - c).x == 0 else Vector3i(0, 0, 1)
 				var inner: bool = grid.cells.has(n + along) or grid.cells.has(n - along)
-				if not inner and roll.randf() < wall_case_chance:
+				if not inner and (roll.randf() < wall_case_chance or optional_at.has(k)):     # a reserved bay stays a bookcase until it opens
 					grid.set_edge(c, side, CellGrid.Mark.SOLID, false, "edge:plain")
 					grid.props["wallcase_" + k] = {"slot": "dressing:wall_case", "xf": CellGrid.edge_transform(c, side)}
 					grid.pins["edge_" + k] = "nothing"      # no seam debris at its foot: it would land inside the case

@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("2_56nqu")
+variant_name = "gone wild"
 wild = true
 styles = PackedStringArray("brick", "court")
 rules = ExtResource("1_i0yor")

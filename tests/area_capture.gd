@@ -83,7 +83,7 @@ func poses(area: Area) -> Dictionary:
 	var out: Dictionary = {"plan": []}
 	var spawn: Transform3D = area.spawn_transform()
 	out["r01"] = [spawn.origin + Vector3(0, 1.6, 0), spawn.origin + Vector3(0, 1.8, -20)]
-	var east: Transform3D = p.room("reading_room").connectors[&"SNAP_door_east"]["xf"]
+	var east: Transform3D = p.room("reading_room").connectors[&"SNAP_exit_3_0_1_W"]["xf"]
 	out["east_door"] = [Vector3(5.0, 1.7, east.origin.z), east.origin - east.basis.z * 12.0 + Vector3(0, 0.6, 0)]
 	for r: AreaPlan.Room in p.rooms:
 		if r.slot_id.begins_with("gallery_") and r.kind == "generated":

@@ -51,12 +51,16 @@ static func use(plan: StratumPlan) -> void:
 	_current = plan
 
 
-## Area id -> its recipe path (every place that isn't a scene).
+## Area id -> its recipe path (every place that isn't a scene, whose file is
+## still there: a recipe deleted by hand can't take the menu or a door down).
 func recipes() -> Dictionary:
 	var out: Dictionary = {}
 	for p: Dictionary in places:
 		if str(p["path"]).get_extension() == "tres":
-			out[str(p["id"])] = str(p["path"])
+			if ResourceLoader.exists(str(p["path"])):
+				out[str(p["id"])] = str(p["path"])
+			else:
+				push_warning("Stratum plan: %s's recipe %s is gone; the game leaves it out" % [p["id"], p["path"]])
 	return out
 
 

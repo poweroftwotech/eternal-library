@@ -16,7 +16,7 @@ pinned = true
 scene = ExtResource("5_r01")
 seed_mode = 0
 thresholds = {
-&"SNAP_entrance": "gorge"
+&"SNAP_entry": "gorge"
 }
 
 [sub_resource type="Resource" id="Resource_west"]
@@ -24,7 +24,7 @@ script = ExtResource("2_slot")
 slot_id = "stack_gallery_west"
 scene = ExtResource("6_baked")
 parent = "reading_room"
-connector = &"SNAP_door_west"
+connector = &"SNAP_exit_0_0_1_W"
 seed_mode = 0
 
 [sub_resource type="Resource" id="Resource_east"]
@@ -33,7 +33,7 @@ slot_id = "stack_gallery_east"
 display_name = "The East Stacks"
 grammar = ExtResource("7_r02")
 parent = "reading_room"
-connector = &"SNAP_door_east"
+connector = &"SNAP_exit_3_0_1_W"
 
 [sub_resource type="Resource" id="Resource_grow"]
 script = ExtResource("3_grow")

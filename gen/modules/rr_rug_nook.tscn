@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_mod"]
+[ext_resource type="Script" path="res://scripts/world/variant_socket.gd" id="2_sock"]
+[ext_resource type="Resource" path="res://kit/sockets/rug_nook.tres" id="3_set"]
+
+[node name="rr_rug_nook" type="Node3D"]
+script = ExtResource("1_mod")
+family = "gen"
+tags = PackedStringArray("rug")
+
+[node name="SOCKET_rug" type="Node3D" parent="."]
+script = ExtResource("2_sock")
+socket_set = ExtResource("3_set")

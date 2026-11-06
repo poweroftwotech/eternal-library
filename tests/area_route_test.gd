@@ -21,6 +21,8 @@ const SPEED: float = 8.0
 
 var failures: PackedStringArray = []
 var checks: int = 0
+## recipe=<path>: walk this recipe or draft instead of the areas above.
+var recipe_path: String = ""
 
 
 func _initialize() -> void:
@@ -38,6 +40,9 @@ func run() -> void:
 	var areas: Array = RECIPES.keys()
 	var only: Array = []
 	for a: String in OS.get_cmdline_user_args():
+		if a.begins_with("recipe="):
+			recipe_path = a.trim_prefix("recipe=")
+			areas = [(load(recipe_path) as AreaRecipe).id]
 		if a.begins_with("seeds="):
 			seeds = a.trim_prefix("seeds=").to_int()
 		elif a.begins_with("area="):
@@ -82,7 +87,7 @@ func audit(id: String, s: int) -> void:
 	var tag: String = "%s seed %d" % [id, s]
 	Area.seed_override = s
 	var area := Area.new()
-	area.recipe = load(RECIPES[id])
+	area.recipe = load(recipe_path if recipe_path != "" else RECIPES[id])
 	area.streaming = false     # step 1: every room at once
 	root.add_child(area)
 	await physics_frame
@@ -174,6 +179,9 @@ func audit(id: String, s: int) -> void:
 			var xf: Transform3D = r.connectors[name]["xf"]
 			var inside: Vector3 = xf.origin + xf.basis.z * 2.0 + Vector3(0, 0.95, 0)
 			check(await blocked(body, inside, -xf.basis.z * 3.0), "%s: %s's unjoined %s blocks" % [tag, r.slot_id, name])
+	for r: AreaPlan.Room in p.rooms:
+		if r.kind == "generated" and (area.rooms[r.slot_id] as GeneratedRoom).grammar is ReadingRoomGrammar:
+			await walk_reading_gallery(tag, r, area.rooms[r.slot_id], body)
 	# Walk from the root room to every leaf's far end and back (AreaTour).
 	var walked: Dictionary = {}
 	for r: AreaPlan.Room in p.rooms:
@@ -215,6 +223,25 @@ func audit(id: String, s: int) -> void:
 	area.queue_free()
 	await process_frame
 	await process_frame
+
+
+## A Reading Room: up the west stair, round the gallery, down the east stair.
+func walk_reading_gallery(tag: String, r: AreaPlan.Room, g: GeneratedRoom, body: CharacterBody3D) -> void:
+	var ends: Dictionary = {}
+	for n: Node in g.find_children("SNAP_stair_*", "", true, false):
+		var side: String = "w" if String(n.get_path()).contains("prop_stair_w") else "e"
+		ends[side + ("_head" if String(n.name).contains("head") else "_foot")] = (n as Node3D).global_position
+	check(ends.size() == 4, "%s: %s has both stairs (%s)" % [tag, r.slot_id, ends.keys()])
+	if ends.size() != 4:
+		return
+	var west: Vector3 = g.to_local(ends["w_head"])
+	var east: Vector3 = g.to_local(ends["e_head"])
+	var route: Array[Vector3] = [ends["w_head"], g.to_global(Vector3(west.x, 4, -0.9)), g.to_global(Vector3(east.x, 4, -0.9)), ends["e_head"], ends["e_foot"], g.to_global(Vector3(2, 0, -18))]
+	body.global_position = ends["w_foot"] + Vector3(0, 0.95, 0)
+	await physics_frame
+	var reached: int = await follow(body, route)
+	var feet: float = g.to_local(body.global_position).y - 0.9
+	check(reached == route.size() and absf(feet) < 0.1, "%s: %s: up one stair, round the gallery, down the other (%d of %d stops, feet %.2f)" % [tag, r.slot_id, reached, route.size(), feet])
 
 
 ## A light-well (phase 5 step 4, the cone) is round in its square of cells, so

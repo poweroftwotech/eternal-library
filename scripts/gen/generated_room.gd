@@ -51,7 +51,7 @@ static var seed_override: int = -1
 	set(value):
 		gen_seed = value
 		_request()
-## A connector under the host room's `Connectors` (e.g. SNAP_door_west).
+## A connector under the host room's `Connectors` (e.g. SNAP_exit_0_0_1_W).
 ## Empty: the room stays where it is (preview a grammar on its own).
 @export var join_connector: StringName = &"":
 	set(value):
@@ -196,6 +196,7 @@ func _finish_build(s: int, styles: Dictionary, resolve: bool) -> void:
 	_wet_shell()
 	style_overrides = styles.duplicate()
 	lamps_dark = grammar.lamps_dark
+	lore_books = grammar.lore_books
 	if resolve:
 		resolve_sockets(s)
 	_draw_overlay()
@@ -290,6 +291,9 @@ func _join(host: RoomTemplate) -> void:
 		push_warning("%s: %s has no connector %s" % [name, host.name, join_connector])
 		return
 	global_transform = conn.global_transform * Transform3D(Basis(Vector3.UP, PI)) * ENTRY.affine_inverse()
+	var stub: Node = host.get_node_or_null(NodePath("Dressing/prop_exit_" + String(join_connector).trim_prefix("SNAP_exit_")))
+	if stub != null:
+		stub.queue_free()
 
 
 ## Room-space bounds of the host's cells and walls. Free dressing is left out,

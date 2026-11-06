@@ -9,9 +9,9 @@ extends RefCounted
 
 ## R01's door spots, by the connector a room joins it at.
 const STARTS: Dictionary = {
-	&"SNAP_door_west": Vector3(1.5, 0.0, -6),
-	&"SNAP_door_east": Vector3(10.5, 0.0, -6),
-	&"SNAP_entrance": Vector3(6, 0.0, -1.5),
+	&"SNAP_exit_0_0_1_W": Vector3(1.5, 0.0, -6),
+	&"SNAP_exit_3_0_1_W": Vector3(10.5, 0.0, -6),
+	&"SNAP_entry": Vector3(6, 0.0, -1.5),
 }
 
 
@@ -44,7 +44,7 @@ static func start(p: AreaPlan) -> Vector3:
 	var root_room: AreaPlan.Room = p.rooms[0]
 	if root_room.kind != "generated":
 		if not baked_walk(root_room):
-			return STARTS[&"SNAP_door_west"]
+			return STARTS[&"SNAP_exit_0_0_1_W"]
 		var spawn: Transform3D = AreaPlanner._scene_info(root_room.scene, root_room.seed_value)["spawn"]
 		return _centre(AreaPlan.cell_of(root_room.xf * spawn.origin))
 	return _centre(AreaPlan.cell_of(root_room.xf * CellGrid.cell_centre(Vector3i.ZERO)))
@@ -71,7 +71,7 @@ static func leg(p: AreaPlan, r: AreaPlan.Room) -> Array[Vector3]:
 		var first_xf: Transform3D = chain[0].connectors[chain[0].entry]["xf"]
 		var door: Vector3i = AreaPlan.cell_of(first_xf.origin - first_xf.basis.z * 2.0)
 		for c: Vector3i in cell_path(at, AreaPlan.cell_of(start(p)), door):
-			out.append(_centre(c))
+			out.append(_stop(at, c))
 	else:
 		out.append(STARTS[chain[0].parent_connector])
 	for i: int in chain.size():
@@ -98,7 +98,7 @@ static func leg(p: AreaPlan, r: AreaPlan.Room) -> Array[Vector3]:
 			var out_xf: Transform3D = room.connectors[chain[i + 1].parent_connector]["xf"]
 			goal = AreaPlan.cell_of(out_xf.origin + out_xf.basis.z * 2.0)
 		for c: Vector3i in cell_path(room, from, goal):
-			out.append(_centre(c))
+			out.append(_stop(room, c))
 	return out
 
 
@@ -152,3 +152,16 @@ static func ring_door(r: AreaPlan.Room, conn: StringName) -> Array:
 static func _centre(c: Vector3i) -> Vector3:
 	var at: Vector3 = AreaPlan.cell_box(c).get_center()
 	return Vector3(at.x, c.y * AreaPlan.BAY, at.z)
+
+
+## Where a walk crosses cell `c`: its centre, or the grammar's way round what
+## stands there (grid.meta walk_stops: local centre -> local stop).
+static func _stop(r: AreaPlan.Room, c: Vector3i) -> Vector3:
+	var at: Vector3 = _centre(c)
+	if r.grid != null and r.grid.meta.has("walk_stops"):
+		var local: Vector3 = r.xf.affine_inverse() * at
+		var stops: Dictionary = r.grid.meta["walk_stops"]
+		var key := Vector3i(roundi(local.x), roundi(local.y), roundi(local.z))
+		if stops.has(key):
+			return r.xf * (stops[key] as Vector3)
+	return at

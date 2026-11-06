@@ -158,9 +158,9 @@ static func fill_light(spec: Array) -> OmniLight3D:
 ## Room-level door markers for the area assembler; -Z points out of the room.
 func build_connectors() -> void:
 	var doors: Array = [
-		["SNAP_entrance", Vector3(6, 0, 0), 180.0],
-		["SNAP_door_west", Vector3(0, 0, -6), 90.0],
-		["SNAP_door_east", Vector3(WIDTH, 0, -6), -90.0],
+		["SNAP_entry", Vector3(6, 0, 0), 180.0],
+		["SNAP_exit_0_0_1_W", Vector3(0, 0, -6), 90.0],
+		["SNAP_exit_3_0_1_W", Vector3(WIDTH, 0, -6), -90.0],
 	]
 	for d: Array in doors:
 		var m := Marker3D.new()

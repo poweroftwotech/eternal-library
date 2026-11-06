@@ -16,3 +16,4 @@ mood_tint = Color(1, 0.66, 0.58, 0.12)
 fill_dark_bays = true
 grand_landmark = true
 scholar_chance = 0.25
+optional_exits = 6

@@ -45,6 +45,9 @@ func capture() -> void:
 	for a: String in OS.get_cmdline_user_args():
 		if a.begins_with("--area="):
 			area_id = a.trim_prefix("--area=")
+		elif a.begins_with("--draft="):     # a draft copy of the area
+			root.get_node("/root/WorldState").set("walk_area", area_id)
+			root.get_node("/root/WorldState").set("walk_recipe", "res://gen/recipes/drafts/%s/%s.tres" % [area_id, a.trim_prefix("--draft=")])
 	main_script.room_override = "area:" + area_id
 	Area.seed_override = area_seed
 	var t0: int = Time.get_ticks_usec()

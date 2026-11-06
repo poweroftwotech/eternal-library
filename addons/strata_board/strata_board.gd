@@ -26,7 +26,11 @@ signal files_saved(paths: PackedStringArray)
 
 const Client: GDScript = preload("res://addons/strata_board/planner_client.gd")
 const SWEEP: int = 20
+## Opened first when it exists; else the first interior.
 const AREA_FIRST: String = "lower_stacks"
+## A new area's "Start from" for just a room (strata_service ROOM_PREFIX; the
+## board doesn't load the service: that would compile the game in the editor).
+const ROOM_FROM: String = "room:"
 ## The Gorge doors in use that its walkways were checked to reach in every one
 ## of world seeds 1-20 (phase 10 step 3, tools/door_places.gd); with more,
 ## about 1 world in 20 misses one.
@@ -165,7 +169,8 @@ func _on_stratum(answer: Dictionary) -> void:
 		if str(p["kind"]) != "baked":
 			client.request({"cmd": "recipe", "path": _copy_or_live(str(p["id"])), "fresh": true}, _on_recipe.bind(str(p["id"])), true)
 	if area_id == "":
-		area_id = AREA_FIRST if _place(AREA_FIRST) != {} else str((stratum["places"] as Array)[0]["id"])
+		var interiors: Array = (stratum["places"] as Array).filter(func(p: Dictionary) -> bool: return str(p["kind"]) == "recipe")
+		area_id = AREA_FIRST if _place(AREA_FIRST) != {} else str((interiors if not interiors.is_empty() else stratum["places"] as Array)[0]["id"])
 	_refresh()
 
 
@@ -256,6 +261,12 @@ func _clear_sweep() -> void:
 
 
 func select(s: Dictionary) -> void:
+	# A click on a canvas doesn't take focus, and the form won't rebuild under a
+	# field in use: let go of it first, so what was typed goes to the room it was
+	# typed for and the form shows the new one.
+	var focus: Control = get_viewport().gui_get_focus_owner() if is_inside_tree() else null
+	if focus != null and _form.is_ancestor_of(focus):
+		focus.release_focus()
 	sel = s
 	if str(s.get("panel", "")) == "stratum":
 		open_area(str(s["id"]))
@@ -808,7 +819,8 @@ func _inspector_text() -> String:
 			var text: String = _chip("grow rule", TURQ) + "\n" + h % [big, g["display_name"]]
 			text += _kv([["Runs", "%s of %d" % [ORD[int(g["order"])], (recipes[area_id]["grow"] as Array).size()]],
 				["Type", _type(str(g["type"]), str(g["type_name"]))], ["Count", "%d–%d" % [int(g["count"][0]), int(g["count"][1])]],
-				["Grows from", from], ["Rooms", "%s_1, %s_2 …" % [g["prefix"], g["prefix"]]], ["Pinned", "yes" if bool(g["pinned"]) else "no"]])
+				["Grows from", from], ["Rooms", "%s_1, %s_2 …" % [g["prefix"], g["prefix"]]], ["Pinned", "yes" if bool(g["pinned"]) else "no"],
+				["Shared", "one area per world: " + ", ".join(PackedStringArray(g.get("one_of", []))) if not (g.get("one_of", []) as Array).is_empty() else "no: grows in this area"]])
 			if not st.is_empty():
 				text += "\n\n[b]World seed %d[/b]\n" % world_seed + _kv([["Rolled", str(int(st["rolled"]))], ["Wanted", str(int(st["want"]))],
 					["Placed", "%d: %s" % [int(st["added"]), ", ".join(rooms) if not rooms.is_empty() else "none"]],
@@ -837,7 +849,7 @@ func _inspector_text() -> String:
 			text += _kv([["Slot", s["slot_id"]], ["Type", _type(str(s["type"]), str(s["type_name"]))],
 				["Made as", "authored or baked scene" if str(s["kind"]) == "scene" else str(s["kind"])],
 				["Joins", "%s · %s" % [s["parent"], s["connector"]] if str(s["parent"]) != "" else "nothing: the entrance, at the area's origin"],
-				["Doors out", "\n".join(thresholds) if not thresholds.is_empty() else "—"],
+				["Doors out", "\n".join(thresholds) if not thresholds.is_empty() else ("a free door, picked by the planner" if str(s["parent"]) == "" else "—")],
 				["Seed", "fixed (%d)" % int(s["fixed_seed"]) if str(s["seed_mode"]) == "fixed" else "from the area seed"]])
 			if not variants.is_empty():
 				text += "\n\n[b]Variants[/b]\n" + "\n".join(variants)
@@ -1200,7 +1212,7 @@ func _on_stratum_changed(answer: Dictionary, what: String) -> void:
 		return
 	var paths: PackedStringArray = [str(answer["saved"])]
 	var gv: Array = answer.get("gorge_version", [])
-	var gorge_note: String = " The Gorge's walkways change with its doors, so its version goes %d → %d." % [int(gv[0]), int(gv[1])] if gv.size() == 2 else ""
+	var gorge_note: String = " The Gorge's walkways change with its doors, so its version goes %d → %d; run tools/map_trace.gd so the map shows the doors as they are now." % [int(gv[0]), int(gv[1])] if gv.size() == 2 else ""
 	if not gv.is_empty():
 		paths.append(str(answer["gorge_path"]))
 	var was_open: String = area_id
@@ -1312,10 +1324,16 @@ func _fill_add_dialog() -> void:
 	_add_from.clear()
 	for p: Dictionary in stratum.get("places", []):
 		if str(p["kind"]) == "recipe":
-			_add_from.add_item(str(p["name"]))
+			_add_from.add_item("Copy of %s" % str(p["name"]))
 			_add_from.set_item_metadata(_add_from.item_count - 1, str(p["id"]))
 			if str(p["id"]) == area_id:
 				_add_from.select(_add_from.item_count - 1)
+	for s: Dictionary in stratum.get("spare", []):
+		_add_from.add_item("Copy of %s (removed)" % str(s["name"]))
+		_add_from.set_item_metadata(_add_from.item_count - 1, str(s["path"]))
+	for r: Dictionary in catalog.get("grammars", []) + catalog.get("scenes", []):
+		_add_from.add_item("Just a room: %s (%s)" % [str(r["type_name"]), str(r["path"]).get_file().get_basename()])
+		_add_from.set_item_metadata(_add_from.item_count - 1, ROOM_FROM + str(r["path"]))
 	_add_door.clear()
 	for d: Dictionary in stratum.get("door_places", []):
 		if str(d["area"]) == "":
@@ -1340,7 +1358,7 @@ func _build_stratum_dialogs() -> void:
 	form.add_child(_add_name)
 	form.add_child(_label("Start from", 12, MUTED))
 	_add_from = OptionButton.new()
-	_add_from.tooltip_text = "The new area's recipe starts as a copy of this one's, to reshape."
+	_add_from.tooltip_text = "The new area's recipe starts as a copy of another's, or from nothing but this room as its entrance. Either way, reshape it after."
 	form.add_child(_add_from)
 	form.add_child(_label("Door", 12, MUTED))
 	_add_door = OptionButton.new()
@@ -1654,16 +1672,40 @@ func _refresh_form() -> void:
 	elif panel == "plan":
 		var r: Dictionary = _room(id)
 		_form.add_child(_note("A planned room: edit %s in the recipe." % ("the required room " + id if bool(r.get("required", false)) else "its grow rule " + str(r.get("grow", "")))))
-	else:
-		_area_form()
+	_area_form()
 
 
+## The area's own settings, always there under what's selected.
 func _area_form() -> void:
 	var rc: Dictionary = recipes[area_id]
+	_form.add_child(_label("AREA", 11, MUTED))
 	_form.add_child(_row("Rooms", _range(rc["room_count"], 1, 60, func(v: Array) -> void: set_area_field("room_count", v))))
 	_form.add_child(_row("Dead ends", _spin(int(rc["max_dead_ends"]), 0, 20, func(v: int) -> void: set_area_field("max_dead_ends", v))))
 	_form.add_child(_row("Sightline", _spin(int(rc["max_sight_depth"]), 1, 20, func(v: int) -> void: set_area_field("max_sight_depth", v))))
-	_form.add_child(_note("Rooms: the area's minimum and maximum. A rule never grows past its own maximum (Q4), so a seed whose rules fall short of the minimum is invalid. Dead ends: plain-walled ends allowed. Sightline: how many rooms deep you may see through doorways."))
+	var atmos := OptionButton.new()
+	atmos.tooltip_text = "The area's air and light. With none there's no fog, so no light shafts, and the rooms look flat."
+	atmos.add_item("None")
+	atmos.set_item_metadata(0, "")
+	for path: String in catalog.get("atmospheres", []):
+		atmos.add_item(path.get_file().get_basename())
+		atmos.set_item_metadata(atmos.item_count - 1, path)
+		if path == str(rc.get("atmosphere", "")):
+			atmos.select(atmos.item_count - 1)
+	atmos.item_selected.connect(func(i: int) -> void: set_area_field("atmosphere", str(atmos.get_item_metadata(i))))
+	_form.add_child(_row("Atmosphere", atmos))
+	for axis: Array in [["Space X", 0], ["Space height", 1], ["Space Z", 2]]:
+		var i: int = axis[1]
+		var env: Array = rc.get("envelope", [0, 0, 0, 0, 0, 0])
+		var row := _row(axis[0], _range([env[i], float(env[i]) + float(env[i + 3])], -2000, 2000, func(v: Array) -> void:
+			var e: Array = (recipes[area_id]["envelope"] as Array).duplicate()
+			e[i] = v[0]
+			e[i + 3] = v[1] - v[0]
+			set_area_field("envelope", e)))
+		row.tooltip_text = "The space rooms may be built in, in metres from the entrance: too small and rooms won't fit."
+		_form.add_child(row)
+	_form.add_child(_row("Fall limit", _spin(int(rc.get("fall_limit", -8.0)), -500, 0, func(v: int) -> void: set_area_field("fall_limit", float(v)))))
+	_form.add_child(_row("", _toggle("Open cavern (every room sees every other)", bool(rc.get("open_sight", false)), func(on: bool) -> void: set_area_field("open_sight", on))))
+	_form.add_child(_note("Rooms: the area's minimum and maximum. A rule never grows past its own maximum (Q4), so a seed whose rules fall short of the minimum is invalid. Dead ends: plain-walled ends allowed. Sightline: how many rooms deep you may see through doorways. Space: where rooms may be built, in metres from the entrance. Fall limit: below this height a falling player is put back."))
 
 
 func _slot_form(s: Dictionary) -> void:
@@ -1677,7 +1719,7 @@ func _slot_form(s: Dictionary) -> void:
 	var made := OptionButton.new()
 	var current: int = -1
 	for g: Dictionary in catalog["grammars"]:
-		made.add_item("Generated · %s %s" % [g["type"], g["type_name"]])
+		made.add_item("Generated · " + _grammar_label(g))
 		made.set_item_metadata(made.item_count - 1, {"kind": "generated", "grammar": g["path"], "type": g["type"], "type_name": g["type_name"]})
 		if str(s["kind"]) != "scene" and str(s["grammar"]) == str(g["path"]):
 			current = made.item_count - 1
@@ -1733,6 +1775,9 @@ func _slot_form(s: Dictionary) -> void:
 			door.item_selected.connect(func(i: int) -> void: set_slot_field(id, "connector", door.get_item_text(i)))
 			_form.add_child(_row("At door", door))
 	_form.add_child(_row("", _toggle("Always live (pinned)", bool(s["pinned"]), func(on: bool) -> void: set_slot_field(id, "pinned", on))))
+	var same := _toggle("The same in every world (fixed seed)", str(s["seed_mode"]) == "fixed", func(on: bool) -> void: set_slot_field(id, "seed_mode", "fixed" if on else "area"))
+	same.tooltip_text = "On: an authored or baked room keeps its own dressing. Off: its dressing is rolled from the world's seed."
+	_form.add_child(_row("", same))
 	var buttons := HFlowContainer.new()
 	var ent := _button("Make this the entrance", make_entrance.bind(id))
 	ent.disabled = entrance_blocked(id) != ""
@@ -1746,6 +1791,27 @@ func _slot_form(s: Dictionary) -> void:
 
 
 ## Scenes the room is rolled from, their weights and the pin; and more of its type.
+## A rule grown in just one of several areas, picked per world (AreaGrow.one_of).
+## Each area needs the rule under the same name, with the same areas ticked.
+func _shared_form(g: Dictionary) -> void:
+	var prefix: String = str(g["prefix"])
+	var others: Array = (stratum["places"] as Array).filter(func(p: Dictionary) -> bool: return str(p["kind"]) == "recipe" and str(p["id"]) not in [area_id, "gorge"])
+	if others.is_empty():
+		return
+	_form.add_child(_label("ONE AREA PER WORLD, WITH", 11, MUTED))
+	for p: Dictionary in others:
+		var id: String = str(p["id"])
+		_form.add_child(_row("", _toggle(id, id in (g.get("one_of", []) as Array), func(on: bool) -> void:
+			var list: Array = (_grow_rule(prefix).get("one_of", []) as Array).duplicate()
+			list.erase(id)
+			if on:
+				list.append(id)
+			list.erase(area_id)
+			if not list.is_empty():
+				list.push_front(area_id)
+			set_grow_field(prefix, "one_of", list))))
+
+
 func _variants_form(s: Dictionary, root: bool) -> void:
 	var id: String = str(s["slot_id"])
 	var scenes: Array = s["scenes"]
@@ -1804,7 +1870,7 @@ func _grow_form(g: Dictionary) -> void:
 	_form.add_child(pl)
 	var type := OptionButton.new()
 	for c: Dictionary in catalog["grammars"]:
-		type.add_item("%s %s" % [c["type"], c["type_name"]])
+		type.add_item(_grammar_label(c))
 		type.set_item_metadata(type.item_count - 1, c)
 		if str(c["path"]) == str(g["grammar"]):
 			type.selected = type.item_count - 1
@@ -1837,6 +1903,7 @@ func _grow_form(g: Dictionary) -> void:
 			flow.add_child(_toggle(op + "_*", from.any(func(f: String) -> bool: return _of_rule(f, op)), func(on: bool) -> void: set_grows_from(prefix, "grow:" + op, on)))
 	_form.add_child(flow)
 	_form.add_child(_row("", _toggle("Always live (pinned)", bool(g["pinned"]), func(on: bool) -> void: set_grow_field(prefix, "pinned", on))))
+	_shared_form(g)
 	var buttons := HFlowContainer.new()
 	var n: int = (recipes[area_id]["grow"] as Array).size()
 	var up := _button("▲ Runs earlier", move_grow.bind(prefix, -1))
@@ -1861,6 +1928,12 @@ func _descendants(slot: String) -> Dictionary:
 				out[sid] = true
 				grew = true
 	return out
+
+
+## A grammar as the pickers name it: its room type, and which of that type.
+func _grammar_label(g: Dictionary) -> String:
+	var v: String = str(g.get("variant", ""))
+	return "%s %s" % [g["type"], g["type_name"]] + (" · " + v if v != "" else "")
 
 
 func _entrance_only(scenes: Array) -> bool:

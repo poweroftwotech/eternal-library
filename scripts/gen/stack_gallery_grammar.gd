@@ -361,7 +361,7 @@ func mark(grid: CellGrid, path: Array, seed_value: int) -> void:
 		for side: int in CellGrid.ALL_SIDES:
 			var n: Vector3i = CellGrid.neighbour(c, side)
 			if i == 0 and side == CellGrid.Side.S:
-				grid.set_edge(c, side, CellGrid.Mark.DOOR, true)
+				grid.set_edge(c, side, CellGrid.Mark.DOOR, not grid.root)
 			elif (i > 0 and n == path[i - 1][0]) or (i + 1 < path.size() and n == path[i + 1][0]):
 				grid.set_edge(c, side, CellGrid.Mark.OPEN)
 			elif i + 1 == path.size() and side == exit_side:

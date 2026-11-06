@@ -11,4 +11,4 @@ script = ExtResource("2_gen")
 room_id = "stack_gallery_west"
 display_name = "The Stack Gallery"
 grammar = ExtResource("3_r02")
-join_connector = &"SNAP_door_west"
+join_connector = &"SNAP_exit_0_0_1_W"

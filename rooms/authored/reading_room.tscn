@@ -33,6 +33,7 @@
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/pouf.tscn" id="42_rpouf"]
 [ext_resource type="PackedScene" path="res://kit/modules/dressing/tray_table.tscn" id="43_rtray"]
 [ext_resource type="Script" path="res://scripts/world/variant_socket.gd" id="45_vsock"]
+[ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="50_rexit"]
 [ext_resource type="Resource" path="res://kit/sockets/rug_hall.tres" id="46_rughall"]
 [ext_resource type="Resource" path="res://kit/sockets/rug_nook.tres" id="47_rugnook"]
 [ext_resource type="Resource" path="res://kit/sockets/recess_niche.tres" id="48_rniche"]
@@ -451,6 +452,12 @@ transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -2)
 [node name="TrayTableE" parent="Dressing" instance=ExtResource("43_rtray")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.5, 0, -2)
 
+[node name="prop_exit_0_0_1_W" parent="Dressing" instance=ExtResource("50_rexit")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -6)
+
+[node name="prop_exit_3_0_1_W" parent="Dressing" instance=ExtResource("50_rexit")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 12, 0, -6)
+
 [node name="Lights" type="Node3D" parent="." unique_id=840056351]
 
 [node name="lantern_cluster" parent="Lights" unique_id=499785762 instance=ExtResource("19_xadva")]
@@ -491,15 +498,15 @@ ring_nodes = Array[NodePath]([NodePath("../Dressing/TableW1"), NodePath("../Dres
 
 [node name="Connectors" type="Node3D" parent="." unique_id=1974359293]
 
-[node name="SNAP_entrance" type="Marker3D" parent="Connectors" unique_id=1814919197 groups=["room_connector"]]
+[node name="SNAP_entry" type="Marker3D" parent="Connectors" unique_id=1814919197 groups=["room_connector"]]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, 0)
 metadata/snap_kind = "door"
 
-[node name="SNAP_door_west" type="Marker3D" parent="Connectors" unique_id=96595313 groups=["room_connector"]]
+[node name="SNAP_exit_0_0_1_W" type="Marker3D" parent="Connectors" unique_id=96595313 groups=["room_connector"]]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 0, 0, -6)
 metadata/snap_kind = "door"
 
-[node name="SNAP_door_east" type="Marker3D" parent="Connectors" unique_id=1913077202 groups=["room_connector"]]
+[node name="SNAP_exit_3_0_1_W" type="Marker3D" parent="Connectors" unique_id=1913077202 groups=["room_connector"]]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 12, 0, -6)
 metadata/snap_kind = "door"
 

@@ -48,7 +48,8 @@ class Room:
 	## Its connector joined to the parent ("" for the root).
 	var entry: StringName = &""
 	## name -> {xf: Transform3D (area frame), storey: int, joined: "slot/connector" or "",
-	## cap: "" (none needed or joined), "glow" (the glowing exit stub) or "open" (leads nowhere)
+	## cap: "" (none needed or joined), "glow" (the glowing exit stub), "shelf" (a
+	## wall bay until a room joins it: HypostyleGrammar.optional_exits) or "open" (leads nowhere)
 	## or "threshold" (a door to another area: `to`, its id)}.
 	var connectors: Dictionary = {}
 	## Area cells it occupies, every storey: Vector3i -> true.
@@ -148,6 +149,7 @@ func join(r: Room, parent_room: Room, conn: StringName) -> void:
 	r.parent_connector = conn
 	r.depth = parent_room.depth + 1
 	parent_room.connectors[conn]["joined"] = "%s/%s" % [r.slot_id, r.entry]
+	parent_room.connectors[conn]["was_cap"] = parent_room.connectors[conn]["cap"]
 	parent_room.connectors[conn]["cap"] = ""
 	r.connectors[r.entry]["joined"] = "%s/%s" % [parent_room.slot_id, conn]
 	edges.append({"a": parent_room.slot_id, "a_conn": conn, "b": r.slot_id, "b_conn": r.entry})
@@ -161,7 +163,7 @@ func remove_last() -> void:
 		var e: Dictionary = edges.pop_back()
 		var p: Room = room(e["a"])
 		p.connectors[e["a_conn"]]["joined"] = ""
-		p.connectors[e["a_conn"]]["cap"] = "glow" if String(e["a_conn"]).begins_with("SNAP_exit") else "open"
+		p.connectors[e["a_conn"]]["cap"] = p.connectors[e["a_conn"]].get("was_cap", "glow" if String(e["a_conn"]).begins_with("SNAP_exit") else "open")
 
 
 # --- cells -------------------------------------------------------------------------
@@ -261,7 +263,7 @@ func check(check_count: bool = true) -> PackedStringArray:
 	for r: Room in rooms:
 		for name: StringName in r.connectors:
 			var k: Dictionary = r.connectors[name]
-			if str(k["joined"]) == "" and not str(k["cap"]) in ["glow", "threshold"]:
+			if str(k["joined"]) == "" and not str(k["cap"]) in ["glow", "threshold", "shelf"]:
 				out.append("%s %s leads nowhere" % [r.slot_id, name])
 	var sight: Dictionary = compute_sight()
 	for v: String in sight["violations"]:

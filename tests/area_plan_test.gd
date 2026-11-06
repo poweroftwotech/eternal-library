@@ -55,7 +55,7 @@ func run() -> void:
 		var again: AreaPlan = AreaPlanner.plan(recipe, s)
 		check(again.signature() == p.signature(), "%s: planning twice gives the same plan" % tag)
 		var west: AreaPlan.Room = p.room("stack_gallery_west")
-		check(west != null and west.kind == "scene" and west.parent == "reading_room" and west.parent_connector == &"SNAP_door_west" \
+		check(west != null and west.kind == "scene" and west.parent == "reading_room" and west.parent_connector == &"SNAP_exit_0_0_1_W" \
 			and west.seed_value == 7, "%s: the baked gallery (seed 7) sits on R01's west door" % tag)
 		var r01: AreaPlan.Room = p.room("reading_room")
 		check(r01 != null and "%s@%d" % [r01.slot_id, r01.seed_value] == "reading_room@1" and r01.xf == Transform3D(),

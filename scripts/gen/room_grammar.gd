@@ -5,6 +5,15 @@ extends Resource
 ## subclass per type, one .tres per variant in gen/grammars/. A grammar only
 ## marks a CellGrid; RoomBuilder picks the modules from `rules`.
 
+## What tells this grammar from others of its room type on the Strata Board
+## ("large court, 7x5"). Empty: its file name, when the type has several.
+@export var variant_name: String = ""
+## Style groups this version always uses (group -> entry: gallery_build 0 masonry,
+## 1 wood), whatever the room it opens off is built in. The planner applies them.
+@export var fixed_styles: Dictionary[String, int] = {}
+## Lore books on this room's shelves (RoomTemplate.lore_books).
+@export var lore_books: Array[LoreBookPin] = []
+
 ## Room styles: select ModuleRules rules (and later, socket conditions).
 @export var styles: PackedStringArray = ["brick"]:
 	set(value):

@@ -495,6 +495,8 @@ static func sketch_of(r: AreaPlan.Room) -> Dictionary:
 		if joined != "":
 			door["kind"] = "joined"
 			door["other"] = joined.get_slice("/", 0)
+		elif str(k["cap"]) == "shelf":
+			continue     # a bookshelf until a room joins it: no door to draw
 		elif str(k["cap"]) == "threshold":
 			door["kind"] = "threshold"
 			door["to"] = str(k.get("to", ""))

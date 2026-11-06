@@ -89,7 +89,7 @@ static func plan(shell: Node3D, grid: CellGrid, rules: ModuleRules, styles: Pack
 	for k: String in grid.props:
 		var prop: Dictionary = grid.props[k]
 		var holder: Node3D = shell if prop.get("shell", false) or dressing == null else dressing     # shell: architecture placed as dressing (a hall's upper wall band)
-		_place(out, holder, rules, styles, seed_value, prop["slot"], k, "prop_" + k, prop["xf"])
+		_place(out, holder, rules, styles, seed_value, prop["slot"], k, "prop_" + k, prop["xf"], prop.get("meta", {}))
 	return out
 
 
@@ -106,14 +106,14 @@ static func _corner_point(ck: String) -> Vector3:
 
 ## Picks a module for `slot` (seeded by slot and key) and records it for place().
 static func _place(out: Array, shell: Node3D, rules: ModuleRules, styles: PackedStringArray,
-		seed_value: int, slot: String, key: String, node_name: String, xf: Transform3D) -> void:
+		seed_value: int, slot: String, key: String, node_name: String, xf: Transform3D, meta: Dictionary = {}) -> void:
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([seed_value, slot, key])
 	var scene: PackedScene = rules.pick(slot, styles, rng)
 	if scene == null:
 		push_warning("RoomBuilder: no module for %s (styles %s)" % [slot, styles])
 		return
-	out.append([shell, scene, node_name, xf])
+	out.append([shell, scene, node_name, xf, meta])
 
 
 ## Instantiates one planned module under its holder; returns it.
@@ -121,5 +121,8 @@ static func place(entry: Array) -> Node3D:
 	var node := (entry[1] as PackedScene).instantiate() as Node3D
 	node.name = entry[2]
 	node.transform = entry[3]
+	if entry.size() > 4:
+		for k: String in entry[4]:
+			node.set_meta(k, entry[4][k])
 	(entry[0] as Node3D).add_child(node)
 	return node

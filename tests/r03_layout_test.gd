@@ -114,7 +114,8 @@ func audit(tag: String, g: CellGrid, planned: bool) -> Array:
 		var e: Dictionary = g.edges[k]
 		if e["mark"] == CellGrid.Mark.DOOR:
 			doors.append([e["cell"], e["side"]])
-			walls[e["side"]] = int(walls.get(e["side"], 0)) + 1
+			if not (g.meta.get("optional_doors", []) as Array).any(func(d: Array) -> bool: return d[0] == e["cell"] and d[1] == e["side"]):     # opened shelf bays are extra
+				walls[e["side"]] = int(walls.get(e["side"], 0)) + 1
 	check(walls.values().all(func(n: int) -> bool: return n == 1), "%s: one door per wall (%s)" % [tag, walls])
 	for dr: Array in doors:
 		if dr[1] == CellGrid.Side.N:

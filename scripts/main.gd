@@ -68,6 +68,8 @@ func _ready() -> void:
 		if str(ws().data.get("area", "")) != "":
 			saved = AREA_PREFIX + str(ws().data["area"])     # an area wins over the scene (8.1.6)
 		room_path = saved if saved != "camp" and _exists(saved) else ""
+		if room_path == "" and saved not in ["", "camp"]:
+			ws().data.erase("player")     # saved in a place that's gone: its pose means nothing in the camp
 	scene_path = room_path if room_path != "" else "camp"
 	var arrive: Dictionary = ws().data.get("arrive", {})
 	ws().data.erase("arrive")     # used once: the next start resumes where you are
@@ -172,7 +174,7 @@ func _ready() -> void:
 ## "" = the camp. The menu's choice wins over the command line.
 func requested_room() -> String:
 	if room_override != "":
-		return "" if room_override == "camp" else room_override
+		return room_override if room_override != "camp" and _exists(room_override) else ""
 	if ws().walk_area != "" and _exists(AREA_PREFIX + ws().walk_area):
 		return AREA_PREFIX + ws().walk_area     # the Strata Board's Walk this seed
 	for arg: String in OS.get_cmdline_user_args():
@@ -187,7 +189,13 @@ func requested_room() -> String:
 
 ## A room scene that exists, or "area:<id>" of a known area.
 func _exists(path: String) -> bool:
-	return SeamlessPlaces.recipes().has(path.trim_prefix(AREA_PREFIX)) if path.begins_with(AREA_PREFIX) else ResourceLoader.exists(path)
+	return _area_recipe(path.trim_prefix(AREA_PREFIX)) != null if path.begins_with(AREA_PREFIX) else ResourceLoader.exists(path)
+
+## Area `id`'s recipe, or null: not in the stratum, or it won't load (a room it
+## uses was deleted).
+func _area_recipe(id: String) -> AreaRecipe:
+	var path: String = str(SeamlessPlaces.recipes().get(id, ""))
+	return load(path) as AreaRecipe if path != "" else null
 
 func in_room() -> bool:
 	return world is RoomTemplate or world is Area
@@ -226,7 +234,7 @@ func travel(path: String) -> void:
 ## you arrive at its door back to where you were (an area's id, or "camp").
 func cross(to: String) -> void:
 	var from: String = (world as Area).recipe.id if world is Area else ("camp" if world is CampRoom else "")
-	if from == "" or not (SeamlessPlaces.recipes().has(to) or to == "camp"):
+	if from == "" or not (to == "camp" or _exists(AREA_PREFIX + to)):
 		return
 	ws().data["arrive"] = {"from": from}
 	Area.seed_override = -1     # each area plans from its own seed
@@ -409,16 +417,18 @@ func show_book(item_id: StringName) -> void:
 	open_panel(book.display_name, book.text, [{"text":"Back to the notes","action":"notes"},{"text":"Close","action":"close"}], "book")
 
 func show_menu() -> void:
-	var trips: Array = [{"text":"Return to the camp","action":"go_camp"}] if in_room() else [{"text":"Visit the reading room","action":"go_reading_room"}]
+	var trips: Array = [{"text":"Return to the camp","action":"go_camp"}] if in_room() else ([{"text":"Visit the reading room","action":"go_reading_room"}] if ResourceLoader.exists(READING_ROOM) else [])
 	if world is Area:
 		trips.append({"text":"Reseed %s (seed %d, %d rooms)" % ["the " + (world as Area).recipe.display_name.trim_prefix("The "),
 			(world as Area).plan.area_seed, (world as Area).plan.rooms.size()],"action":"reseed_area"})
 	for id: String in SeamlessPlaces.recipes():
-		if not (world is Area and (world as Area).recipe.id == id):
-			trips.append({"text":"Walk the %s" % (load(SeamlessPlaces.recipes()[id]) as AreaRecipe).display_name.trim_prefix("The "),"action":"go_area:" + id})
+		var walk: AreaRecipe = _area_recipe(id)
+		if walk != null and not (world is Area and (world as Area).recipe.id == id):
+			trips.append({"text":"Walk the %s" % walk.display_name.trim_prefix("The "),"action":"go_area:" + id})
 	if not world is Area:
 		if not in_room() or generated_rooms().is_empty():
-			trips.append({"text":"Visit the stack gallery","action":"go_stack_gallery"})
+			if ResourceLoader.exists(STACK_GALLERY):
+				trips.append({"text":"Visit the stack gallery","action":"go_stack_gallery"})
 		else:
 			trips.append({"text":"Reseed the stack gallery (seed %d)" % generated_rooms()[0].effective_seed(),"action":"reseed"})
 	var options: Array = [{"text":"Resume exploring","action":"close"}]

@@ -11,17 +11,8 @@ places = Array[Dictionary]([{
 "id": "gorge",
 "path": "res://gen/recipes/gorge.tres"
 }, {
-"id": "library",
-"path": "res://gen/recipes/library_wing.tres"
-}, {
-"id": "lower_stacks",
-"path": "res://gen/recipes/lower_stacks.tres"
-}, {
-"id": "forgotten_wing",
-"path": "res://gen/recipes/forgotten_wing.tres"
-}, {
-"id": "sanctum",
-"path": "res://gen/recipes/sanctum.tres"
+"id": "grand_study",
+"path": "res://gen/recipes/grand_study.tres"
 }])
 links = Array[Dictionary]([{
 "a": "camp",
@@ -29,22 +20,7 @@ links = Array[Dictionary]([{
 "kind": "corridor"
 }, {
 "a": "gorge",
-"at": "b3_l18_W_s1_0",
-"b": "library",
-"kind": "door"
-}, {
-"a": "gorge",
-"at": "b2_l17_E_s1_2",
-"b": "lower_stacks",
-"kind": "door"
-}, {
-"a": "gorge",
-"at": "b4_l14_E_s2_6",
-"b": "forgotten_wing",
-"kind": "door"
-}, {
-"a": "camp",
-"at": "SNAP_exit_front",
-"b": "sanctum",
+"at": "b1_l15_W_s1_3",
+"b": "grand_study",
 "kind": "door"
 }])

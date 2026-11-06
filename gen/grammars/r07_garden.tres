@@ -5,6 +5,7 @@
 
 [resource]
 script = ExtResource("2_it1g2")
+variant_name = "tended"
 styles = PackedStringArray("brick", "court")
 rules = ExtResource("1_i7782")
 lamps_dark = true

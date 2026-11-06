@@ -587,7 +587,7 @@ static func _lore_pins(root: Node, errors: PackedStringArray) -> void:
 		if socket == null or socket.socket_set == null:
 			errors.append("%s: no recess socket at %s" % [what, pin.socket])
 			continue
-		var idx: int = room.socket_pins.get(pin.socket, -1)
+		var idx: int = room.socket_pins.get(pin.socket, room.generated_pins.get(pin.socket, -1))
 		var label: String = socket.socket_set.entries[idx].label if idx >= 0 and idx < socket.socket_set.entries.size() else ""
 		if not label.ends_with("shelves"):
 			errors.append("%s: pin %s to full or sparse shelves in the room's socket pins (now '%s')" % [what, pin.socket, label if label != "" else "not pinned"])

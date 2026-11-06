@@ -226,7 +226,7 @@ summary:focus-visible{outline:2px solid var(--amber);outline-offset:2px}
 
 <section>
   <h2>The twenty-one room types</h2>
-  <p class="section-intro">Eleven of the twenty-one are fully generated, seven are hybrid and three are built by hand. Ten are in the game today (R01, R02, R03, R05, R07, R09, R10, R11, R15, R21), marked <span class="built">In the game</span> here and on their plates. The camp, where the game starts, is not one of these types. The generated layouts reduce to corridors, grids, lanes, rings, terraces or spans, which a grammar can produce without looking random. The authored and hybrid rooms are the ones players will navigate by. Most of the second batch reuses a first-batch generator: the cistern is R03's grid with water, the ossuary is R02's corridor at half scale, and the yard shares R05's courtyard.</p>
+  <p class="section-intro">Twelve of the twenty-one are fully generated, six are hybrid and three are built by hand. Ten are in the game today (R01, R02, R03, R05, R07, R09, R10, R11, R15, R21), marked <span class="built">In the game</span> here and on their plates. The camp, where the game starts, is not one of these types. The generated layouts reduce to corridors, grids, lanes, rings, terraces or spans, which a grammar can produce without looking random. The authored and hybrid rooms are the ones players will navigate by. Most of the second batch reuses a first-batch generator: the cistern is R03's grid with water, the ossuary is R02's corridor at half scale, and the yard shares R05's courtyard.</p>
   <div class="table-wrap">
   <table>
     <thead><tr><th>ID</th><th>Room</th><th>Mode</th><th>Role</th><th>Layout</th><th>Status</th></tr></thead>
@@ -922,7 +922,7 @@ function sBridgeHall(seed){const r=RNG(seed),s=new Scene({F:160,vy:H*.5,haze:'#1
 /* ---------- room data ---------- */
 const STYLE='Painterly concept art for a first-person adventure game, eye-level camera at 1.7 m. Persian architecture (Safavid and Qajar) inside a vast underground cavern library: sandstone, baked brick, plaster, turquoise-and-lapis tilework, pointed four-centred arches. Warm oil-lamp and candle light against cool teal shadows, soft volumetric haze, readable detail. No modern elements: no electric lights or bulbs, no wires, no plastic, no glass display cases, no printed signage or clocks, no modern clothing, no vehicles, no open sky.';
 const ROOMS=[
- {id:'R01',name:'Reading Room',fa:'Qara’at-khaneh',mode:'hybrid',role:'Rest, lore, quiet study',layout:'Fixed hall, 3 × 5 bays',draw:sReading,
+ {id:'R01',name:'Reading Room',fa:'Qara’at-khaneh',mode:'generated',role:'Rest, lore, quiet study',layout:'Fixed hall, 3 × 5 bays',draw:sReading,
   facts:['3 × 5 bays','12 × 20 m','2 storeys + vault'],
   desc:'A two-storey hall lined with shelf recesses, with a gallery on the upper level and a tiled iwan closing the far end. This is the prototype\'s interior idea turned into a reusable template. The shell is built once by hand; what sits in each recess, in the iwan and on the tables changes per instance.',
   kit:'Shelf-recess wall bay, gallery slab with balustrade, pointed barrel vault and transverse ribs, iwan end wall, reading table, hanging lantern cluster.',
@@ -1129,7 +1129,7 @@ const host=document.getElementById('rooms'),ov=document.getElementById('overview
 const seeds={};
 /* which room types are in the game today (keep in step with ENVIRONMENT_PLAN.md) */
 const BUILT={
-  R01:{when:'Phase 1, 2026-10-19',where:'The library wing, as its entrance',how:'Built by hand in Godot from kit pieces (<code>rooms/authored/reading_room.tscn</code>), then weathered: fallen books, plants, stains, floor wear. Reworked 2026-11-03: Persian floor seating, lamps on the furniture, seed-picked carpets, working shelf niches.'},
+  R01:{when:'Phase 1, 2026-10-19',where:'Any area, as a slot or a grow rule',how:'Built by hand in Godot from kit pieces (<code>rooms/authored/reading_room.tscn</code>), then weathered: fallen books, plants, stains, floor wear. Reworked 2026-11-03: Persian floor seating, lamps on the furniture, seed-picked carpets, working shelf niches. Generated since 2026-11-05 (<code>ReadingRoomGrammar</code>): masonry or wood steps and deck, each kept or abandoned; an entrance and up to four exits; can be grown.'},
   R02:{when:'Phase 2, 2026-10-20',where:'The library wing and the Lower Stacks',how:'Generated off any door by the stack gallery grammar; some seeds baked to scenes. Reworked 2026-11-04: tended to abandoned, pier lights, blue fungus, rock, water and fog, keepers and landmarks.'},
   R03:{when:'Phase 5, 2026-10-23',where:'The Lower Stacks',how:'Generated halls of columns up to 10 × 10 bays, with collapsed bays (left dark by your choice). Reworked 2026-11-04: tall wall shelves, red carpet and lanterns, sunbeams, a hauz and takht, scholars\x27 bays, lamp-lit ornament.'},
   R05:{when:'Phase 5, 2026-10-24',where:'The Lower Stacks, as its entrance',how:'Built by the courtyard grammar and baked in three sizes: 3 × 3, 5 × 5 and 7 × 5. Reworked 2026-11-03: cells can be sitting rooms, kitchens, garden beds or reading corners.'},

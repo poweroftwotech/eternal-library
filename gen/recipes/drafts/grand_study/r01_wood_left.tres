@@ -1,0 +1,42 @@
+[gd_resource type="Resource" script_class="AreaRecipe" format=3]
+
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_4lio5"]
+[ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="2_xclbv"]
+[ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="3_ig0g2"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="4_uw5xb"]
+[ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="5_y1qw0"]
+[ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="6_jf8t2"]
+[ext_resource type="Resource" path="res://gen/grammars/r01_reading_wood_left.tres" id="7_pv7uy"]
+
+[sub_resource type="Resource" id="Resource_b8vhk"]
+script = ExtResource("2_xclbv")
+grammar = ExtResource("3_ig0g2")
+display_name = "The Library Stacks"
+count = Vector2i(4, 4)
+slot_prefix = "stacks"
+from = PackedStringArray("entrance")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_3vdvf"]
+script = ExtResource("4_uw5xb")
+envelope = AABB(-122, -8, -144, 256, 48, 256)
+
+[sub_resource type="Resource" id="Resource_4di32"]
+script = ExtResource("6_jf8t2")
+slot_id = "entrance"
+display_name = "The Reading Room"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("7_pv7uy")
+pinned = true
+
+[resource]
+script = ExtResource("5_y1qw0")
+id = "grand_study"
+display_name = "The Grand Study"
+version = 6
+slots = Array[ExtResource("6_jf8t2")]([SubResource("Resource_4di32")])
+grow = Array[ExtResource("2_xclbv")]([SubResource("Resource_b8vhk")])
+room_count = Vector2i(1, 10)
+max_dead_ends = 0
+placement = SubResource("Resource_3vdvf")
+atmosphere = ExtResource("1_4lio5")

@@ -38,9 +38,13 @@ static func plan_world(recipe: AreaRecipe, world_seed: int, keep: Dictionary = {
 
 
 ## The area a rule shared by a stratum's areas (AreaGrow.one_of) grows in, in
-## world `world_seed`.
+## world `world_seed`, among those still in the stratum: an area taken out
+## doesn't cost the others the room. "" = none of them is: the rule is just
+## the recipe's own.
 static func one_of_pick(g: AreaGrow, world_seed: int) -> String:
-	return g.one_of[(hash([world_seed, "one_of", g.slot_prefix]) & 0x7fffffff) % g.one_of.size()]
+	var live: Dictionary = StratumPlan.current().recipes()
+	var pool: Array = Array(g.one_of).filter(func(id: String) -> bool: return live.has(id))
+	return pool[(hash([world_seed, "one_of", g.slot_prefix]) & 0x7fffffff) % pool.size()] if not pool.is_empty() else ""
 
 
 ## `keep`: slot -> scene path a save recorded for a room with scene choices
@@ -129,6 +133,8 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot, keep: Dict
 			if String(name).begins_with("SNAP_exit"):
 				_drop_stub(r, name)
 			break
+	if s.parent == "":
+		_default_door_back(p, recipe, r)
 	p.add_room(r)
 	if parent_room != null:
 		p.join(r, parent_room, s.connector)
@@ -136,6 +142,36 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot, keep: Dict
 		if String(s.connector).begins_with("SNAP_exit"):
 			_drop_stub(parent_room, s.connector)
 	return r
+
+
+## An area the stratum gives a door whose entrance names no door back that it
+## has (a new area, or a new entrance room: AreaSlot.thresholds are connector
+## names, which differ room to room) gets one: its entrance door if it has one
+## (a generated room's is the exit where a host would join it, leaving the
+## exits past it to grow from), else the first door no required room joins. "gorge", like the recipes:
+## StratumPlan.door_target finds where it really leads.
+static func _default_door_back(p: AreaPlan, recipe: AreaRecipe, r: AreaPlan.Room) -> void:
+	if recipe.network != null or StratumPlan.current().door_link(recipe.id).is_empty():
+		return
+	var free: Array[StringName] = []
+	for name: StringName in r.connectors:
+		if str(r.connectors[name]["cap"]) == "threshold":
+			return
+		if str(r.connectors[name]["cap"]) != "shelf" and not recipe.slots.any(func(s: AreaSlot) -> bool: return s != null and s.parent == r.slot_id and s.connector == name):
+			free.append(name)
+	if free.is_empty():
+		p.errors.append("%s: no free door for the way back out of the area" % r.slot_id)
+		return
+	free.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))
+	var pick: StringName = free[0]
+	for name: StringName in [&"SNAP_entry", &"SNAP_exit_0_0_0_S"]:
+		if free.has(name):
+			pick = name
+			break
+	r.connectors[pick]["cap"] = "threshold"
+	r.connectors[pick]["to"] = "gorge"
+	if String(pick).begins_with("SNAP_exit"):
+		_drop_stub(r, pick)
 
 
 ## Which of a slot's scene choices it gets: the one the save kept, the pinned
@@ -184,7 +220,7 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 	for g: AreaGrow in recipe.grow:
 		if g == null or g.grammar == null:
 			continue
-		if not g.one_of.is_empty() and p.world_seed >= 0 and one_of_pick(g, p.world_seed) != recipe.id:
+		if not g.one_of.is_empty() and p.world_seed >= 0 and one_of_pick(g, p.world_seed) not in ["", recipe.id]:
 			(p.stats["grow"] as Array).append({"prefix": g.slot_prefix, "rolled": 0, "want": 0, "added": 0, "doors": 0, "taken": 0, "tried": 0,
 				"boxed_in": 0, "too_short": 0, "sightline": 0, "ruled_out": 0, "near_entrance": 0, "other_area": one_of_pick(g, p.world_seed)})
 			continue     # this world puts it in another area of the stratum
@@ -282,13 +318,20 @@ static func _free_exits(p: AreaPlan, among: Array, g: AreaGrow, order_seed: int,
 			var w: float = ConnectionTable.PREFER_WEIGHT if table.rule((c[0] as AreaPlan.Room).room_type, to_type) == ConnectionTable.PREFERRED else 1.0
 			keyed.append([pow(rng.randf(), 1.0 / w), c])
 		keyed.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) > float(b[0]))
-		return keyed.map(func(k: Array) -> Array: return k[1])
+		return _shelves_last(keyed.map(func(k: Array) -> Array: return k[1]))
 	for i: int in range(out.size() - 1, 0, -1):     # Fisher-Yates, seeded
 		var j: int = rng.randi_range(0, i)
 		var t: Variant = out[i]
 		out[i] = out[j]
 		out[j] = t
-	return out
+	return _shelves_last(out)
+
+
+## Real exits first: a shelf bay opens only when they're used, so no exit is
+## left glowing beside a door that opened instead.
+static func _shelves_last(doors: Array) -> Array:
+	var is_shelf: Callable = func(c: Array) -> bool: return str((c[0] as AreaPlan.Room).connectors[c[1]]["cap"]) == "shelf"
+	return doors.filter(func(c: Array) -> bool: return not is_shelf.call(c)) + doors.filter(is_shelf)
 
 
 ## Style groups a generated room takes from the room it joins.
@@ -296,6 +339,8 @@ static func _inherit(r: AreaPlan.Room, parent_room: AreaPlan.Room) -> void:
 	if r.kind != "generated":
 		return
 	for g: String in INHERIT_GROUPS:
+		if r.grammar != null and r.grammar.fixed_styles.has(g):
+			continue
 		var idx: int = -1
 		if parent_room.kind == "generated":
 			idx = int(parent_room.style_overrides.get(g, -1))
@@ -311,6 +356,15 @@ static func _drop_stub(parent_room: AreaPlan.Room, conn: StringName) -> void:
 	var k: String = String(conn).trim_prefix("SNAP_exit_")
 	if parent_room.grid != null:
 		parent_room.grid.props.erase("exit_" + k)
+		parent_room.grid.props.erase("wallcase_" + k)
+		parent_room.grid.props.erase("rubble_" + k)
+		var e: Dictionary = parent_room.grid.edges.get(k, {})
+		if not e.is_empty() and e["mark"] == CellGrid.Mark.SOLID:     # a shelf bay that opens (cap "shelf")
+			parent_room.grid.set_edge(e["cell"], e["side"], CellGrid.Mark.DOOR)
+		var over: String = parent_room.grid.meta.get("over_door", {}).get(k, "")     # a bay above that must not show the next room
+		if over != "":
+			parent_room.grid.props[over]["slot"] = "edge:plain"
+			parent_room.grid.pins.erase("prop_" + over)
 	else:
 		parent_room.drop_nodes.append("Dressing/prop_exit_" + k)
 
@@ -438,6 +492,7 @@ static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, di
 	if grammar == null:
 		r.grid = grid
 		return r
+	r.style_overrides.merge(grammar.fixed_styles)
 	grid.meta["abandon_start"] = _abandon_after(parent_room)
 	grammar.layout(grid, seed_value)
 	grammar.wear_lanes(grid, seed_value)
@@ -449,6 +504,9 @@ static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, di
 		if e["mark"] == CellGrid.Mark.DOOR and not e["host"]:
 			var xf: Transform3D = r.xf * CellGrid.door_transform(e["cell"], e["side"])
 			r.connectors[StringName("SNAP_exit_" + k)] = {"xf": xf, "storey": AreaPlan.cell_of(xf.origin).y, "joined": "", "cap": "glow"}
+	for d: Array in grid.meta.get("optional_doors", []):
+		var shelf_xf: Transform3D = r.xf * CellGrid.door_transform(d[0], d[1])
+		r.connectors[StringName("SNAP_exit_" + CellGrid.key(d[0], d[1]))] = {"xf": shelf_xf, "storey": AreaPlan.cell_of(shelf_xf.origin).y, "joined": "", "cap": "shelf"}
 	var tall: int = floori((CellGrid.CELL_HEIGHT - 0.01) / CellGrid.BAY)
 	var to_area: Dictionary = {}     # grid cell -> area cell
 	for c: Vector3i in grid.cells:
@@ -537,7 +595,7 @@ static func _blockers(p: AreaPlan, recipe: AreaRecipe, parent_room: AreaPlan.Roo
 	for r: AreaPlan.Room in p.rooms:
 		out.append_array(r.blockers)
 		for name: StringName in r.connectors:
-			if (r == parent_room and name == conn) or str(r.connectors[name]["joined"]) != "":
+			if (r == parent_room and name == conn) or str(r.connectors[name]["joined"]) != "" or str(r.connectors[name]["cap"]) == "shelf":
 				continue
 			var bays: int = PENDING_DOOR_BAYS if pending.has("%s/%s" % [r.slot_id, name]) else 1
 			for i: int in bays:
