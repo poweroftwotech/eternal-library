@@ -1,0 +1,24 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+  forgotten_wing seed 1: 8 rooms; plan 66 ms, wear map (108.0, 128.0) m in 230 ms, all in 625 ms; slowest room 182 ms
+    caravanserai scene 167+15 ms, hall generated 0+20 ms, gallery_1 generated 0+10 ms, gallery_2 generated 0+6 ms, gallery_3 generated 0+7 ms, gallery_4 generated 0+8 ms, garden_1 generated 0+12 ms, bridge_1 generated 0+66 ms
+  forgotten_wing seed 2: 8 rooms; plan 64 ms, wear map (132.0, 112.0) m in 360 ms, all in 775 ms; slowest room 216 ms
+    caravanserai scene 196+20 ms, hall generated 0+52 ms, gallery_1 generated 0+8 ms, gallery_2 generated 0+10 ms, gallery_3 generated 0+8 ms, gallery_4 generated 0+6 ms, gallery_5 generated 0+12 ms, garden_1 generated 0+11 ms
+  forgotten_wing seed 3: 9 rooms; plan 92 ms, wear map (112.0, 92.0) m in 470 ms, all in 929 ms; slowest room 213 ms
+    caravanserai scene 203+11 ms, hall generated 0+50 ms, gallery_1 generated 0+11 ms, gallery_2 generated 0+10 ms, gallery_3 generated 0+11 ms, gallery_4 generated 0+10 ms, garden_1 generated 0+10 ms, cistern_1 generated 0+6 ms, terraces_1 generated 0+9 ms
+  forgotten_wing seed 4: 7 rooms; plan 48 ms, wear map (132.0, 64.0) m in 390 ms, all in 755 ms; slowest room 215 ms
+    caravanserai scene 201+14 ms, hall generated 0+35 ms, gallery_1 generated 0+11 ms, gallery_2 generated 0+6 ms, gallery_3 generated 0+10 ms, gallery_4 generated 0+10 ms, garden_1 generated 0+11 ms
+  forgotten_wing seed 5: 7 rooms; plan 115 ms, wear map (116.0, 68.0) m in 296 ms, all in 780 ms; slowest room 238 ms
+    caravanserai scene 218+20 ms, hall generated 0+49 ms, gallery_1 generated 0+18 ms, gallery_2 generated 0+7 ms, gallery_3 generated 0+17 ms, garden_1 generated 0+15 ms, cistern_1 generated 0+7 ms
+  forgotten_wing seed 6: 10 rooms; plan 128 ms, wear map (108.0, 156.0) m in 389 ms, all in 1023 ms; slowest room 237 ms
+    caravanserai scene 216+21 ms, hall generated 0+54 ms, gallery_1 generated 0+9 ms, gallery_2 generated 0+13 ms, gallery_3 generated 0+16 ms, gallery_4 generated 0+16 ms, garden_1 generated 0+16 ms, bridge_1 generated 0+84 ms, cistern_1 generated 0+11 ms, terraces_1 generated 0+9 ms
+  forgotten_wing seed 7: 11 rooms; plan 112 ms, wear map (168.0, 92.0) m in 437 ms, all in 1039 ms; slowest room 217 ms
+    caravanserai scene 197+20 ms, hall generated 0+49 ms, gallery_1 generated 0+9 ms, gallery_2 generated 0+7 ms, gallery_3 generated 0+10 ms, gallery_4 generated 0+6 ms, gallery_5 generated 0+10 ms, garden_1 generated 0+11 ms, lightwell_1 generated 0+25 ms, bridge_1 generated 0+84 ms, upper_1 generated 0+11 ms
+  forgotten_wing seed 8: 10 rooms; plan 117 ms, wear map (172.0, 108.0) m in 236 ms, all in 699 ms; slowest room 167 ms
+    caravanserai scene 157+10 ms, hall generated 0+30 ms, gallery_1 generated 0+9 ms, gallery_2 generated 0+8 ms, gallery_3 generated 0+16 ms, gallery_4 generated 0+9 ms, garden_1 generated 0+11 ms, lightwell_1 generated 0+30 ms, upper_1 generated 0+11 ms, terraces_1 generated 0+8 ms
+  forgotten_wing seed 9: 8 rooms; plan 77 ms, wear map (136.0, 84.0) m in 466 ms, all in 829 ms; slowest room 174 ms
+    caravanserai scene 164+10 ms, hall generated 0+26 ms, gallery_1 generated 0+8 ms, gallery_2 generated 0+8 ms, gallery_3 generated 0+9 ms, gallery_4 generated 0+10 ms, gallery_5 generated 0+9 ms, garden_1 generated 0+15 ms
+  forgotten_wing seed 10: 9 rooms; plan 107 ms, wear map (104.0, 136.0) m in 453 ms, all in 953 ms; slowest room 255 ms
+    caravanserai scene 234+21 ms, hall generated 0+31 ms, gallery_1 generated 0+18 ms, gallery_2 generated 0+10 ms, gallery_3 generated 0+11 ms, gallery_4 generated 0+9 ms, gallery_5 generated 0+9 ms, garden_1 generated 0+10 ms, cistern_1 generated 0+6 ms
+area_route_test: 491 checks, 0 failures
+exit 0

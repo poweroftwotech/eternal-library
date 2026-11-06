@@ -1,0 +1,41 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+Vulkan 1.4.351 - Forward+ - Using Device #0: NVIDIA - NVIDIA GeForce RTX 5090
+
+area_walk_capture: forgotten_wing seed 3, 9 rooms, medium, 1920x1080, boot 1646 ms; 128485 frames over 614 m; frame 1.45 ms mean, 2.06 p99, 11.86 worst; gpu 0.92 ms mean, 1.80 worst; 11 over 8.3 ms, 0 over 16.7 ms; peaks { "draws": 1256.0, "tris": 862686.0, "shadowed": 2.0, "lights": 58.0, "vram_mb": 683.851211547852 }; built 7, unloaded 4; slowest streaming frame 4.4 ms; wear regions up to 51 ms (thread), upload up to 0.3 ms (map (3584, 2944)); light count (not charged) up to 6.9 ms; wrote previews/phase13_step5/frame_gate_forgotten_wing.csv
+  worst frames (frame,ms,gpu_ms,stream_ms,proc_ms,pipelines,live,loads,unloads,draw_calls,triangles,shadowed,lights,vram_mb,room,event):
+    57859,11.859,0.790,3.443,3.387,0,9,5,1,128,39806,0,15,682,gallery_2,load
+    58590,11.475,0.792,0.001,11.690,0,9,5,1,120,28648,0,15,682,gallery_2,
+    53353,10.181,1.002,0.001,8.653,0,7,3,1,186,367978,0,38,682,hall,
+    64949,10.018,0.884,0.001,4.157,0,7,5,3,349,114070,2,15,682,gallery_4,
+    82543,9.987,0.969,0.001,3.779,0,6,5,4,293,191918,2,13,682,terraces_1,
+    73213,9.810,0.996,0.001,3.910,0,6,5,4,770,323184,2,7,682,garden_1,
+    57862,9.459,0.776,0.000,3.387,0,9,5,1,128,39642,0,15,682,gallery_2,
+    57867,9.097,0.799,0.001,3.387,0,9,5,1,128,39546,0,15,682,gallery_2,
+  lights in reach at their peak (58, frame 52635, in caravanserai at (2.0, 1.7, 0.0)):
+     12  hall: lantern_oil (lamp_dim)
+      6  hall: dome_sun_4m (bounce)
+      6  hall: dome_sun_4m (shaft)
+      5  hall: lantern_moroccan (redfire)
+      3  caravanserai: court_cell_lantern (lantern)
+      3  gallery_2: ? (OmniLight3D)
+      2  caravanserai: court_cell_cooking (OmniLight3D)
+      2  caravanserai: court_corner_stair (lantern)
+      2  caravanserai: court_corner_stair_r (lantern)
+      2  caravanserai: court_pishtaq_gate (lantern)
+      1  caravanserai: caravanserai_3x3 (OmniLight3D)
+      1  caravanserai: court_fire_pit (brazier)
+      1  caravanserai: court_hearth_platform (cluster)
+      1  caravanserai: court_lantern_string_12m (lantern)
+      1  caravanserai: court_loggia_lantern (lantern)
+      1  caravanserai: low_reading_table (desk)
+      1  gallery_1: ? (OmniLight3D)
+      1  gallery_2: glow_roots_dome (fungus)
+      1  gallery_2: low_reading_table (desk)
+      1  gallery_2: recess_hearth (OmniLight3D)
+      1  gallery_2: stack_taghcheh (candle_one)
+      1  hall: dome_sun_4m_centre (bounce)
+      1  hall: dome_sun_4m_centre (shaft)
+      1  hall: landmark_takht (lamp_dim)
+      1  hall: recess_hearth (OmniLight3D)
+area_walk_capture gate: FAIL cpu worst 11.86 > 8.00; lights in reach 58.00 > 50.00
+exit 1

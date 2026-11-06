@@ -1,0 +1,24 @@
+Godot Engine v4.7.2.stable.mono.official.ed1daf0bf - https://godotengine.org
+
+  lower_stacks seed 1: 8 rooms; plan 70 ms, wear map (108.0, 128.0) m in 232 ms, all in 641 ms; slowest room 185 ms
+    caravanserai scene 170+15 ms, hall generated 0+22 ms, gallery_1 generated 0+11 ms, gallery_2 generated 0+7 ms, gallery_3 generated 0+9 ms, gallery_4 generated 0+9 ms, garden_1 generated 0+12 ms, bridge_1 generated 0+64 ms
+  lower_stacks seed 2: 8 rooms; plan 63 ms, wear map (132.0, 112.0) m in 361 ms, all in 779 ms; slowest room 219 ms
+    caravanserai scene 200+19 ms, hall generated 0+51 ms, gallery_1 generated 0+8 ms, gallery_2 generated 0+10 ms, gallery_3 generated 0+9 ms, gallery_4 generated 0+6 ms, gallery_5 generated 0+12 ms, garden_1 generated 0+12 ms
+  lower_stacks seed 3: 9 rooms; plan 91 ms, wear map (112.0, 92.0) m in 471 ms, all in 932 ms; slowest room 217 ms
+    caravanserai scene 203+13 ms, hall generated 0+49 ms, gallery_1 generated 0+12 ms, gallery_2 generated 0+9 ms, gallery_3 generated 0+10 ms, gallery_4 generated 0+10 ms, garden_1 generated 0+10 ms, cistern_1 generated 0+7 ms, terraces_1 generated 0+9 ms
+  lower_stacks seed 4: 7 rooms; plan 66 ms, wear map (132.0, 64.0) m in 389 ms, all in 771 ms; slowest room 225 ms
+    caravanserai scene 212+14 ms, hall generated 0+27 ms, gallery_1 generated 0+10 ms, gallery_2 generated 0+6 ms, gallery_3 generated 0+9 ms, gallery_4 generated 0+10 ms, garden_1 generated 0+12 ms
+  lower_stacks seed 5: 7 rooms; plan 110 ms, wear map (116.0, 68.0) m in 341 ms, all in 808 ms; slowest room 225 ms
+    caravanserai scene 205+20 ms, hall generated 0+49 ms, gallery_1 generated 0+17 ms, gallery_2 generated 0+7 ms, gallery_3 generated 0+17 ms, garden_1 generated 0+16 ms, cistern_1 generated 0+7 ms
+  lower_stacks seed 6: 10 rooms; plan 184 ms, wear map (108.0, 156.0) m in 399 ms, all in 1075 ms; slowest room 237 ms
+    caravanserai scene 215+22 ms, hall generated 0+54 ms, gallery_1 generated 0+10 ms, gallery_2 generated 0+14 ms, gallery_3 generated 0+16 ms, gallery_4 generated 0+17 ms, garden_1 generated 0+17 ms, bridge_1 generated 0+72 ms, cistern_1 generated 0+8 ms, terraces_1 generated 0+6 ms
+  lower_stacks seed 7: 11 rooms; plan 150 ms, wear map (168.0, 92.0) m in 468 ms, all in 1099 ms; slowest room 211 ms
+    caravanserai scene 195+16 ms, hall generated 0+53 ms, gallery_1 generated 0+13 ms, gallery_2 generated 0+12 ms, gallery_3 generated 0+15 ms, gallery_4 generated 0+9 ms, gallery_5 generated 0+14 ms, garden_1 generated 0+11 ms, lightwell_1 generated 0+18 ms, bridge_1 generated 0+71 ms, upper_1 generated 0+10 ms
+  lower_stacks seed 8: 10 rooms; plan 131 ms, wear map (172.0, 108.0) m in 250 ms, all in 710 ms; slowest room 177 ms
+    caravanserai scene 167+10 ms, hall generated 0+29 ms, gallery_1 generated 0+6 ms, gallery_2 generated 0+6 ms, gallery_3 generated 0+11 ms, gallery_4 generated 0+7 ms, garden_1 generated 0+11 ms, lightwell_1 generated 0+32 ms, upper_1 generated 0+11 ms, terraces_1 generated 0+8 ms
+  lower_stacks seed 9: 8 rooms; plan 52 ms, wear map (136.0, 84.0) m in 464 ms, all in 822 ms; slowest room 179 ms
+    caravanserai scene 165+14 ms, hall generated 0+37 ms, gallery_1 generated 0+12 ms, gallery_2 generated 0+9 ms, gallery_3 generated 0+9 ms, gallery_4 generated 0+13 ms, gallery_5 generated 0+13 ms, garden_1 generated 0+17 ms
+  lower_stacks seed 10: 9 rooms; plan 131 ms, wear map (104.0, 136.0) m in 492 ms, all in 967 ms; slowest room 217 ms
+    caravanserai scene 203+14 ms, hall generated 0+21 ms, gallery_1 generated 0+12 ms, gallery_2 generated 0+7 ms, gallery_3 generated 0+7 ms, gallery_4 generated 0+10 ms, gallery_5 generated 0+13 ms, garden_1 generated 0+15 ms, cistern_1 generated 0+6 ms
+area_route_test: 491 checks, 0 failures
+exit 0
