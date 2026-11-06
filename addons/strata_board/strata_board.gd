@@ -1743,12 +1743,17 @@ func _slot_form(s: Dictionary) -> void:
 		sl["grammar"] = m.get("grammar", "")
 		sl["scenes"] = m.get("scenes", [])
 		sl["weights"] = []
+		sl["tweaks"] = {}
 		sl["pinned_choice"] = -1
 		sl["entrance_only"] = m["kind"] == "scene" and _entrance_only(sl["scenes"])
 		_edited(true))
 	_form.add_child(_row("Made from", made))
 	if str(s["kind"]) == "scene":
 		_variants_form(s, root)
+		if catalog["grammars"].any(func(c: Dictionary) -> bool: return str(c["type"]) == str(s["type"]) and not (c.get("tweaks", []) as Array).is_empty()):
+			_form.add_child(_note("This one is a baked room, built once, so it has no settings of its own. Pick Generated in Made from to get them."))
+	else:
+		_tweaks_form(s, func() -> Dictionary: return _slot(id))
 	if not root:
 		var parent := OptionButton.new()
 		var below: Dictionary = _descendants(id)
@@ -1771,7 +1776,7 @@ func _slot_form(s: Dictionary) -> void:
 				door.add_item(d)
 				if d == str(s["connector"]):
 					door.selected = door.item_count - 1
-			door.tooltip_text = "Doors of %s that are free in world seed %d." % [s["parent"], world_seed]
+			door.tooltip_text = "Doors of %s that are free in world seed %d. A generated room's doors move from seed to seed: where this one isn't there, the room takes a free door." % [s["parent"], world_seed]
 			door.item_selected.connect(func(i: int) -> void: set_slot_field(id, "connector", door.get_item_text(i)))
 			_form.add_child(_row("At door", door))
 	_form.add_child(_row("", _toggle("Always live (pinned)", bool(s["pinned"]), func(on: bool) -> void: set_slot_field(id, "pinned", on))))
@@ -1879,8 +1884,10 @@ func _grow_form(g: Dictionary) -> void:
 		var gr: Dictionary = _grow_rule(prefix)
 		gr["type"] = c["type"]
 		gr["type_name"] = c["type_name"]
+		gr["tweaks"] = {}
 		set_grow_field(prefix, "grammar", c["path"]))
 	_form.add_child(_row("Type", type))
+	_tweaks_form(g, func() -> Dictionary: return _grow_rule(prefix))
 	_form.add_child(_row("Count", _range(g["count"], 0, 20, func(v: Array) -> void: set_grow_field(prefix, "count", v))))
 	var depth := _row("Min depth", _spin(int(g.get("min_depth", 0)), 0, 30, func(v: int) -> void: set_grow_field(prefix, "min_depth", v)))
 	depth.tooltip_text = "Only on doors at least this many doorways in from the entrance (0: anywhere)."
@@ -1915,6 +1922,54 @@ func _grow_form(g: Dictionary) -> void:
 	buttons.add_child(down)
 	buttons.add_child(_button("Remove", remove_grow.bind(prefix)))
 	_form.add_child(buttons)
+
+
+## The room's own settings on top of its grammar's (RoomGrammar.tweak_fields);
+## a blank field is the grammar's own. `holder` finds the room or rule again.
+func _tweaks_form(owner: Dictionary, holder: Callable) -> void:
+	var fields: Array = []
+	for c: Dictionary in catalog["grammars"]:
+		if str(c["path"]) == str(owner.get("grammar", "")):
+			fields = c.get("tweaks", [])
+	if fields.is_empty():
+		return
+	var values: Dictionary = owner.get("tweaks", {})
+	_form.add_child(_label("This room's settings (blank: the default)" if owner.has("slot_id") else "These rooms' settings (blank: the default)", 11, MUTED))
+	for f: Dictionary in fields:
+		var key: String = str(f["key"])
+		var control: Control
+		if f.has("options"):
+			var pick := OptionButton.new()
+			for o: Dictionary in f["options"]:
+				pick.add_item(str(o["label"]))
+				pick.set_item_metadata(pick.item_count - 1, o["value"])
+				if str(o["value"]) == str(values.get(key, "")):
+					pick.selected = pick.item_count - 1
+			pick.item_selected.connect(func(i: int) -> void: set_tweak(holder.call(), key, pick.get_item_metadata(i)))
+			control = pick
+		else:
+			var line := _line(str(values[key]) if values.has(key) else "", func(t: String) -> void:
+				var n: String = t.strip_edges()
+				set_tweak(holder.call(), key, clampf(n.to_float(), float(f["min"]), float(f["max"])) if n.is_valid_float() else ""))
+			line.placeholder_text = str(f["default"])
+			control = line
+		var row := _row(str(f["label"]), control)
+		row.tooltip_text = str(f["tip"])
+		control.tooltip_text = str(f["tip"])
+		_form.add_child(row)
+
+
+## One of a room's or rule's own settings; "" goes back to the grammar's.
+func set_tweak(owner: Dictionary, key: String, value: Variant) -> void:
+	if owner.is_empty():
+		return
+	var t: Dictionary = (owner.get("tweaks", {}) as Dictionary).duplicate()
+	if str(value) == "":
+		t.erase(key)
+	else:
+		t[key] = value
+	owner["tweaks"] = t
+	_edited(true)
 
 
 func _descendants(slot: String) -> Dictionary:

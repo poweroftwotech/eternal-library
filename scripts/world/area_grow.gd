@@ -5,6 +5,9 @@ extends Resource
 
 @export var grammar: RoomGrammar
 @export var rules: ModuleRules
+## This room's own settings on top of its grammar's (RoomGrammar.tweak_fields);
+## only what was changed is here. The Strata Board edits them.
+@export var tweaks: Dictionary = {}
 @export var display_name: String = ""
 ## How many of these rooms to add (the seed picks within the range; the
 ## recipe's room_count still caps the area).

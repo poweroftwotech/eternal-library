@@ -22,6 +22,9 @@ enum SeedMode { FIXED, AREA }
 ## A generated room: its grammar and (optionally) rules overriding the grammar's.
 @export var grammar: RoomGrammar
 @export var rules: ModuleRules
+## This room's own settings on top of its grammar's (RoomGrammar.tweak_fields);
+## only what was changed is here. The Strata Board edits them.
+@export var tweaks: Dictionary = {}
 ## The slot this room joins ("" for the root, which sits at the area origin).
 @export var parent: String = ""
 ## The parent's connector it joins (e.g. SNAP_exit_0_0_1_W).

@@ -64,7 +64,7 @@ static func build(room: GeneratedRoom) -> RoomTemplate:
 		if room.grid.cells[c].get("blocked", false):
 			blocked.append(c)
 	out.set_meta("baked_from", {
-		"grammar": room.grammar.resource_path if room.grammar != null else "",
+		"grammar": room.grammar.source_path() if room.grammar != null else "",
 		"rules": room.rules.resource_path if room.rules != null else "",
 		"seed": room.effective_seed(),
 		"modules": room.modules.size(),

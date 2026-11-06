@@ -102,7 +102,8 @@ static func catalog() -> Dictionary:
 		var path: String = GRAMMARS.path_join(f.trim_suffix(".remap"))
 		var type: String = RoomTypes.of_path(path)
 		if type != "" and f.ends_with(".tres") and not (load(path) is ChasmGrammar):
-			grammars.append({"path": path, "type": type, "type_name": RoomTypes.NAMES.get(type, ""), "variant": (load(path) as RoomGrammar).variant_name})
+			grammars.append({"path": path, "type": type, "type_name": RoomTypes.NAMES.get(type, ""), "variant": (load(path) as RoomGrammar).variant_name,
+				"tweaks": (load(path) as RoomGrammar).tweak_fields()})
 	# Several of a type with no name of their own: told apart by file name.
 	for g: Dictionary in grammars:
 		if str(g["variant"]) == "" and grammars.filter(func(o: Dictionary) -> bool: return o["type"] == g["type"]).size() > 1:
@@ -161,6 +162,7 @@ static func build(desc: Dictionary) -> AreaRecipe:
 			if was == null or was.grammar != g:
 				s.rules = null     # module rules belong to a grammar
 			s.grammar = g
+			s.tweaks = (d.get("tweaks", {}) as Dictionary).duplicate()
 			s.scene = null
 			s.scene_choices = []
 			s.scene_weights = PackedFloat32Array()
@@ -185,6 +187,7 @@ static func build(desc: Dictionary) -> AreaRecipe:
 		if was == null or was.grammar != gram:
 			g.rules = null
 		g.grammar = gram
+		g.tweaks = (d.get("tweaks", {}) as Dictionary).duplicate()
 		var c: Array = d.get("count", [1, 1])
 		g.count = Vector2i(int(c[0]), int(c[1]))
 		g.from = PackedStringArray(d.get("from", []))
@@ -775,7 +778,7 @@ static func describe(recipe: AreaRecipe) -> Dictionary:
 			"type_name": RoomTypes.NAMES.get(type, ""), "scenes": scenes, "grammar": s.grammar.resource_path if s.grammar != null else "",
 			"parent": s.parent, "connector": String(s.connector), "seed_mode": "fixed" if s.seed_mode == AreaSlot.SeedMode.FIXED else "area",
 			"orig": s.slot_id, "weights": Array(s.scene_weights), "pinned_choice": s.pinned_choice,
-			"fixed_seed": s.fixed_seed, "pinned": s.pinned, "thresholds": thresholds,
+			"fixed_seed": s.fixed_seed, "pinned": s.pinned, "thresholds": thresholds, "tweaks": s.tweaks,
 			# Q6: a scene with no SNAP_entry can only be the area's entrance (its root).
 			"entrance_only": kind == "scene" and scenes.all(func(p: String) -> bool: return not _has_entry(p))})
 	for i: int in recipe.grow.size():
@@ -785,7 +788,7 @@ static func describe(recipe: AreaRecipe) -> Dictionary:
 		var type: String = RoomTypes.of_path(g.grammar.resource_path if g.grammar != null else "")
 		(out["grow"] as Array).append({"prefix": g.slot_prefix, "display_name": g.display_name, "type": type, "type_name": RoomTypes.NAMES.get(type, ""),
 			"grammar": g.grammar.resource_path if g.grammar != null else "", "count": [g.count.x, g.count.y],
-			"orig": g.slot_prefix, "min_depth": g.min_depth, "from": Array(g.from), "pinned": g.pinned, "order": i, "one_of": Array(g.one_of)})
+			"orig": g.slot_prefix, "min_depth": g.min_depth, "from": Array(g.from), "pinned": g.pinned, "order": i, "one_of": Array(g.one_of), "tweaks": g.tweaks})
 	return out
 
 
@@ -821,8 +824,8 @@ static func plan(recipe: AreaRecipe, world_seed: int, map_px: int = 10) -> Dicti
 		rooms.append({"slot_id": r.slot_id, "display_name": r.display_name, "kind": r.kind, "parent": r.parent,
 			"parent_connector": String(r.parent_connector), "entry": String(r.entry), "storey": r.storey, "depth": r.depth,
 			"seed": r.seed_value, "room_key": "%s@%d" % [r.slot_id, r.seed_value], "end_kind": r.end_kind,
-			"scene": r.scene.resource_path if r.scene != null else "", "grammar": r.grammar.resource_path if r.grammar != null else "",
-			"type": RoomTypes.of_path(r.scene.resource_path if r.scene != null else (r.grammar.resource_path if r.grammar != null else "")),
+			"scene": r.scene.resource_path if r.scene != null else "", "grammar": r.grammar.source_path() if r.grammar != null else "",
+			"type": RoomTypes.of_path(r.scene.resource_path if r.scene != null else (r.grammar.source_path() if r.grammar != null else "")),
 			"grow": prefix, "required": recipe.slot(r.slot_id) != null, "cells": r.floor_cells.size(),
 			"bays": maxi(hi.x - lo.x, hi.y - lo.y) + 1 if not r.floor_cells.is_empty() else 1, "connectors": connectors,
 			"floor": r.floor_cells.keys().map(func(c: Vector3i) -> Array: return [c.x, c.y, c.z])})

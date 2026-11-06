@@ -269,6 +269,24 @@ static func _xz(v: Vector3) -> Vector2:
 		emit_changed()
 
 
+## Settings a single room can change on the Strata Board (AreaSlot.tweaks):
+## each {key, label, tip, default} with min and max, or options as
+## [{label, value}] whose first entry is the grammar's own. Empty: none.
+func tweak_fields() -> Array[Dictionary]:
+	return []
+
+
+## This grammar with a room's tweaks applied: itself when there are none,
+## else a copy for that room alone (source_path says which file it came from).
+func tweaked(_tweaks: Dictionary) -> RoomGrammar:
+	return self
+
+
+## The file this grammar came from, a tweaked copy's too.
+func source_path() -> String:
+	return str(get_meta("source_path", resource_path))
+
+
 ## The tint at a room-space point (the camera's): mood_tint everywhere unless
 ## a grammar varies it across the room (the stacks turn blue where abandoned).
 func tint_at(_grid: CellGrid, _local: Vector3) -> Color:

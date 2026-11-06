@@ -243,8 +243,57 @@ const PIER_OUT: float = 0.48
 		fill_height = value
 		emit_changed()
 
+## Gallery lengths a room can ask for, in bays (min, max). Long is the grammar's own.
+const LENGTHS: Dictionary = {"short": Vector2i(3, 4), "medium": Vector2i(5, 7)}
+
 ## Walks tried before settling for the longest: a walk can box itself in.
 const ATTEMPTS: int = 8
+
+
+func tweak_fields() -> Array[Dictionary]:
+	return [
+		{"key": "length", "label": "Length", "tip": "How long the gallery runs (a bay is 4 m).", "options": [
+			{"label": "Long (%d-%d bays)" % [min_bays, max_bays], "value": ""},
+			{"label": "Medium (%d-%d bays)" % [LENGTHS["medium"].x, LENGTHS["medium"].y], "value": "medium"},
+			{"label": "Short (%d-%d bays)" % [LENGTHS["short"].x, LENGTHS["short"].y], "value": "short"}]},
+		{"key": "abandon_start", "label": "Starts at", "tip": "How abandoned the first bay is, 0 kept to 1 abandoned. Blank: carries on from the room before.",
+			"default": "carry on", "min": 0.0, "max": 1.0},
+		{"key": "abandon_over_bays", "label": "Bays to abandoned", "tip": "Bays from kept to fully abandoned: fewer decays faster.",
+			"default": abandon_over_bays, "min": 1, "max": 64},
+		{"key": "tint", "label": "Blue strength", "tip": "How blue the far stacks turn, 0 none to 1 fully.", "default": mood_tint.a, "min": 0.0, "max": 1.0},
+		{"key": "tint_from", "label": "Blue from", "tip": "The abandon value where the blue begins.", "default": tint_from, "min": 0.0, "max": 1.0},
+		{"key": "ground_fog_from", "label": "Fog from", "tip": "The abandon value where ground fog begins. Above 1: no fog.", "default": ground_fog_from, "min": 0.0, "max": 1.01},
+		{"key": "decay", "label": "Decay", "tip": "Scales rock breaks, puddles, cobwebs and roots: 0 none, 1 as usual, 3 the most.", "default": 1.0, "min": 0.0, "max": 3.0},
+	]
+
+
+func tweaked(tweaks: Dictionary) -> RoomGrammar:
+	if tweaks.is_empty():
+		return self
+	var g: StackGalleryGrammar = duplicate(false)
+	g.set_meta("source_path", source_path())
+	if LENGTHS.has(str(tweaks.get("length", ""))):
+		var bays: Vector2i = LENGTHS[str(tweaks["length"])]
+		g.min_bays = bays.x
+		g.max_bays = bays.y
+	if tweaks.has("abandon_over_bays"):
+		g.abandon_over_bays = int(tweaks["abandon_over_bays"])
+	if tweaks.has("tint"):
+		var strength: float = float(tweaks["tint"])
+		# The fills turn blue with the air, so no blue means none from them either.
+		g.fill_colour_far = fill_colour.lerp(fill_colour_far, clampf(strength / maxf(mood_tint.a, 0.01), 0.0, 1.0))
+		g.mood_tint = Color(mood_tint, strength)
+	if tweaks.has("tint_from"):
+		g.tint_from = float(tweaks["tint_from"])
+	if tweaks.has("ground_fog_from"):
+		g.ground_fog_from = float(tweaks["ground_fog_from"])
+	if tweaks.has("decay"):
+		var k: float = float(tweaks["decay"])
+		g.rock_breach_chance = clampf(rock_breach_chance * k, 0.0, 1.0)
+		g.puddle_chance = clampf(puddle_chance * k, 0.0, 1.0)
+		g.cobweb_chance = clampf(cobweb_chance * k, 0.0, 1.0)
+		g.roots_chance = clampf(roots_chance * k, 0.0, 1.0)
+	return g
 
 
 func layout(grid: CellGrid, seed_value: int) -> void:

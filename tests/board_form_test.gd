@@ -100,7 +100,7 @@ func run() -> void:
 	var labels: Dictionary = {}
 	for g: Dictionary in (b.get("catalog") as Dictionary)["grammars"]:
 		labels[b.call("_grammar_label", g)] = true
-	check(labels.size() == ((b.get("catalog") as Dictionary)["grammars"] as Array).size(), "each grammar has its own name in the pickers: %s" % labels.keys())
+	check(labels.size() == ((b.get("catalog") as Dictionary)["grammars"] as Array).size(), "each grammar has its own name in the pickers: %s" % [labels.keys()])
 
 	# What generation needs reaches the saved recipe, and a new area starts with it.
 	var desc: Dictionary = (b.get("recipes") as Dictionary)["form_test"]
@@ -120,6 +120,22 @@ func run() -> void:
 	check(built.placement.envelope.size.y == 60.0 and recipe.placement.envelope.size.y == 48.0, "the build space changes the copy, not the saved recipe")
 	check(Array(built.grow[0].one_of) == ["form_test", "elsewhere"], "a shared rule is built")
 	check(built.slots[0].seed_mode == AreaSlot.SeedMode.FIXED, "a fixed seed is built")
+
+	# A room's own settings: on the form for stack galleries, built when changed, gone when blanked.
+	b.call("select", {"panel": "recipe", "id": "entrance"})
+	await process_frame
+	await process_frame
+	check(has_label(b, "Bays to abandoned"), "a stack gallery shows its own settings")
+	b.call("set_tweak", b.call("_slot", "entrance"), "length", "short")
+	b.call("set_tweak", b.call("_slot", "entrance"), "decay", 2.0)
+	var tweaked: AreaRecipe = Service.build((b.get("recipes") as Dictionary)["form_test"])
+	check(str(tweaked.slots[0].tweaks.get("length", "")) == "short" and float(tweaked.slots[0].tweaks.get("decay", 0.0)) == 2.0, "a room's settings are built")
+	b.call("set_tweak", b.call("_slot", "entrance"), "decay", "")
+	check(not (b.call("_slot", "entrance")["tweaks"] as Dictionary).has("decay"), "a blanked setting goes back to the default")
+	b.call("select", {"panel": "recipe", "id": "grow:hall"})
+	await process_frame
+	await process_frame
+	check(not has_label(b, "Bays to abandoned"), "a hall has no stacks settings")
 
 	b.queue_free()
 	await process_frame

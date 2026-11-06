@@ -90,13 +90,18 @@ static func _seed_for(p: AreaPlan, slot_id: String) -> int:
 ## if it can't be.
 static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot, keep: Dictionary = {}) -> AreaPlan.Room:
 	var parent_room: AreaPlan.Room = null
+	var conn: StringName = s.connector
+	var doors: Array[StringName] = [conn]
 	if s.parent != "":
 		parent_room = p.room(s.parent)
-		if parent_room == null or not parent_room.connectors.has(s.connector):
+		if parent_room != null:
+			doors = _doors_for(recipe, s, parent_room)
+		if parent_room == null or doors.is_empty() or not parent_room.connectors.has(doors[0]):
 			p.errors.append("%s: parent %s has no connector %s (place the parent first)" % [s.slot_id, s.parent, s.connector])
 			return null
-		if str(parent_room.connectors[s.connector]["joined"]) != "":
-			p.errors.append("%s: %s %s is already joined" % [s.slot_id, s.parent, s.connector])
+		conn = doors[0]
+		if str(parent_room.connectors[conn]["joined"]) != "":
+			p.errors.append("%s: %s %s is already joined" % [s.slot_id, s.parent, conn])
 			return null
 	elif not p.rooms.is_empty():
 		p.errors.append("%s: only the first slot may be the root" % s.slot_id)
@@ -111,7 +116,7 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot, keep: Dict
 		var seed_value: int = int(info["seed"]) if s.seed_mode == AreaSlot.SeedMode.FIXED else _seed_for(p, s.slot_id)
 		if s.seed_mode == AreaSlot.SeedMode.AREA:
 			info = _scene_info(scene, seed_value)
-		r = _scene_room(p, s.slot_id, s.display_name, scene, info, seed_value, parent_room, s.connector)
+		r = _scene_room(p, s.slot_id, s.display_name, scene, info, seed_value, parent_room, conn)
 		if r == null:
 			return null
 	elif s.grammar is ChasmGrammar:
@@ -121,10 +126,15 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot, keep: Dict
 			return null
 	else:
 		var seed_value: int = s.fixed_seed if s.seed_mode == AreaSlot.SeedMode.FIXED else _seed_for(p, s.slot_id)
-		r = _generated_room(p, recipe, s.slot_id, s.display_name, s.grammar, s.rules, seed_value, parent_room, s.connector, "exit")
-		var why: String = _fault(r, s.grammar)
+		var why: String = ""
+		for door: StringName in doors:
+			conn = door
+			r = _generated_room(p, recipe, s.slot_id, s.display_name, s.grammar, s.rules, seed_value, parent_room, conn, "exit", s.tweaks)
+			why = _fault(r, r.grammar)
+			if why == "":
+				break
 		if why != "":
-			p.errors.append("%s (seed %d) on %s %s: %s" % [s.slot_id, seed_value, s.parent, s.connector, why])
+			p.errors.append("%s (seed %d) on %s %s: %s" % [s.slot_id, seed_value, s.parent, conn, why])
 	r.pinned = s.pinned
 	for name: StringName in s.thresholds:
 		if r.connectors.has(name) and str(r.connectors[name]["joined"]) == "":
@@ -137,11 +147,37 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot, keep: Dict
 		_default_door_back(p, recipe, r)
 	p.add_room(r)
 	if parent_room != null:
-		p.join(r, parent_room, s.connector)
+		p.join(r, parent_room, conn)
 		_inherit(r, parent_room)
-		if String(s.connector).begins_with("SNAP_exit"):
-			_drop_stub(parent_room, s.connector)
+		if String(conn).begins_with("SNAP_exit"):
+			_drop_stub(parent_room, conn)
 	return r
+
+
+## The doors slot `s` may join on its parent, to try in turn: the one it names,
+## or, when its parent is generated and this seed has no such door (a gallery's
+## doors move with its shape), the free ones: real doors first, then optional
+## shelf doorways, never one that leads out of the area or another slot's.
+static func _doors_for(recipe: AreaRecipe, s: AreaSlot, parent_room: AreaPlan.Room) -> Array[StringName]:
+	if parent_room.connectors.has(s.connector) or parent_room.kind != "generated" or s.grammar is ChasmGrammar:
+		return [s.connector]
+	var doors: Array[StringName] = []
+	var shelves: Array[StringName] = []
+	for name: StringName in parent_room.connectors:
+		var k: Dictionary = parent_room.connectors[name]
+		if str(k["joined"]) != "" or str(k["cap"]) == "threshold" \
+				or recipe.slots.any(func(o: AreaSlot) -> bool: return o != null and o.parent == parent_room.slot_id and o.connector == name):
+			continue
+		if str(k["cap"]) == "shelf":
+			shelves.append(name)
+		else:
+			doors.append(name)
+	doors.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))
+	shelves.sort_custom(func(a: StringName, b: StringName) -> bool: return String(a) < String(b))
+	if doors.has(&"SNAP_exit_0_0_0_S"):     # where a door out of the area goes (_default_door_back): the last choice
+		doors.erase(&"SNAP_exit_0_0_0_S")
+		shelves.append(&"SNAP_exit_0_0_0_S")
+	return doors + shelves
 
 
 ## An area the stratum gives a door whose entrance names no door back that it
@@ -261,8 +297,8 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 					end_kind = "dead_end"
 			p.stats["tried"] += 1
 			gs["tried"] += 1
-			var r: AreaPlan.Room = _generated_room(p, recipe, slot_id, g.display_name, g.grammar, g.rules, seed_value, parent_room, conn, end_kind)
-			var why: String = _fault(r, g.grammar)
+			var r: AreaPlan.Room = _generated_room(p, recipe, slot_id, g.display_name, g.grammar, g.rules, seed_value, parent_room, conn, end_kind, g.tweaks)
+			var why: String = _fault(r, r.grammar)
 			if why != "":
 				p.stats["too_short" if why.begins_with("only") else "boxed_in"] += 1
 				gs["too_short" if why.begins_with("only") else "boxed_in"] += 1
@@ -270,7 +306,7 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 			r.pinned = g.pinned
 			p.add_room(r)
 			p.join(r, parent_room, conn)
-			if not p.compute_sight(r.slot_id)["violations"].is_empty():
+			if not p.compute_sight()["violations"].is_empty():     # every door: a new room can extend a line its own door's fan misses
 				p.remove_last()
 				p.stats["sightline"] += 1
 				gs["sightline"] += 1
@@ -468,13 +504,15 @@ static func _abandon_after(parent: AreaPlan.Room) -> float:
 
 
 static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, display_name: String, grammar: RoomGrammar,
-		rules: ModuleRules, seed_value: int, parent_room: AreaPlan.Room, conn: StringName, end_kind: String) -> AreaPlan.Room:
+		rules: ModuleRules, seed_value: int, parent_room: AreaPlan.Room, conn: StringName, end_kind: String, tweaks: Dictionary = {}) -> AreaPlan.Room:
 	var r := AreaPlan.Room.new()
 	r.slot_id = slot_id
 	r.display_name = display_name
 	r.kind = "generated"
-	r.grammar = grammar
 	r.room_type = RoomTypes.of_resource(grammar)
+	if grammar != null:
+		grammar = grammar.tweaked(tweaks)
+	r.grammar = grammar
 	r.rules = rules
 	r.seed_value = seed_value
 	r.end_kind = end_kind
@@ -493,7 +531,7 @@ static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, di
 		r.grid = grid
 		return r
 	r.style_overrides.merge(grammar.fixed_styles)
-	grid.meta["abandon_start"] = _abandon_after(parent_room)
+	grid.meta["abandon_start"] = float(tweaks.get("abandon_start", _abandon_after(parent_room)))
 	grammar.layout(grid, seed_value)
 	grammar.wear_lanes(grid, seed_value)
 	r.grid = grid
