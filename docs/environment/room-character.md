@@ -72,6 +72,7 @@ Light is the strongest tool, and every rework walk came back to it.
   | R02 Stack Galleries | Blue, growing with distance | Glowing fungus |
   | R03 Hypostyle Stacks | Red | Red carpet, red-fire lanterns |
   | R05 Caravanserai | Warm firelight | Lanterns, hearths |
+  | R06 Domicile Quarter | Rose clay at dusk, muted | Rose plaster walls, cool air in the lanes, warmth only at the windows |
   | R09 Light-Well Stair | Green-gold, pulled to white | Daylight through vines |
   | R11 Cistern Archive | Teal | Glowing plants and roots |
   | R10 Chasm Spans | Daylight and mist | The gorge's sky |

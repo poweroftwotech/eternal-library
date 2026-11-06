@@ -56,6 +56,9 @@ const LIGHT_PROFILES: Dictionary = {
 	# The Fungus Terraces (phase 13, R15): the violet crop's glow, one a terrace
 	# low over the stair; no shadows (spores: no flames, and the budget).
 	"violet": {"color": Color(0.74, 0.48, 1.0), "energy": 1.5, "range": 9.0, "attenuation": 1.2, "shadow": false},
+	# The Domicile Quarter (phase 14, R06): a pool of lamplight on the lane from a
+	# lit window or an open door.
+	"home": {"color": Color(1.0, 0.85, 0.74), "energy": 1.1, "range": 7.0, "attenuation": 1.5, "shadow": false},
 }
 const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_", "FOG_"]
 ## Physics layer 8: walls only the player collides with (project layer names).

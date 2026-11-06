@@ -4138,6 +4138,690 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "qt_badgir",
+"scene": "res://kit/modules/walls/qt_badgir.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_bath",
+"scene": "res://kit/modules/walls/qt_bath.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_bath_portal",
+"scene": "res://kit/modules/walls/qt_bath_portal.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_cap_c_2",
+"scene": "res://kit/modules/walls/qt_cap_c_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_cap_c_4",
+"scene": "res://kit/modules/walls/qt_cap_c_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_cap_r_2",
+"scene": "res://kit/modules/walls/qt_cap_r_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_cap_r_4",
+"scene": "res://kit/modules/walls/qt_cap_r_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_cavern",
+"scene": "res://kit/modules/walls/qt_cavern.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_cavern_neck_2",
+"scene": "res://kit/modules/walls/qt_cavern_neck_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_cavern_neck_3",
+"scene": "res://kit/modules/walls/qt_cavern_neck_3.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_chimney",
+"scene": "res://kit/modules/walls/qt_chimney.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_cloth",
+"scene": "res://kit/modules/walls/qt_cloth.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_door_lamp",
+"scene": "res://kit/modules/walls/qt_door_lamp.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_fig_jar",
+"scene": "res://kit/modules/walls/qt_fig_jar.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_fig_mend",
+"scene": "res://kit/modules/walls/qt_fig_mend.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_fig_read",
+"scene": "res://kit/modules/walls/qt_fig_read.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_fig_sit",
+"scene": "res://kit/modules/walls/qt_fig_sit.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_fig_stand",
+"scene": "res://kit/modules/walls/qt_fig_stand.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_fig_stir",
+"scene": "res://kit/modules/walls/qt_fig_stir.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_blank_c_2",
+"scene": "res://kit/modules/walls/qt_g_blank_c_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_blank_c_4",
+"scene": "res://kit/modules/walls/qt_g_blank_c_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_blank_r_2",
+"scene": "res://kit/modules/walls/qt_g_blank_r_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_blank_r_4",
+"scene": "res://kit/modules/walls/qt_g_blank_r_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_dark_c_2",
+"scene": "res://kit/modules/walls/qt_g_dark_c_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_dark_c_4",
+"scene": "res://kit/modules/walls/qt_g_dark_c_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_dark_r_2",
+"scene": "res://kit/modules/walls/qt_g_dark_r_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_dark_r_4",
+"scene": "res://kit/modules/walls/qt_g_dark_r_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_door_c_2",
+"scene": "res://kit/modules/walls/qt_g_door_c_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_door_c_4",
+"scene": "res://kit/modules/walls/qt_g_door_c_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_door_r_2",
+"scene": "res://kit/modules/walls/qt_g_door_r_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_door_r_4",
+"scene": "res://kit/modules/walls/qt_g_door_r_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_home_c",
+"scene": "res://kit/modules/walls/qt_g_home_c.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_home_r",
+"scene": "res://kit/modules/walls/qt_g_home_r.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_lit_c_2",
+"scene": "res://kit/modules/walls/qt_g_lit_c_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_lit_c_4",
+"scene": "res://kit/modules/walls/qt_g_lit_c_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_lit_r_2",
+"scene": "res://kit/modules/walls/qt_g_lit_r_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_g_lit_r_4",
+"scene": "res://kit/modules/walls/qt_g_lit_r_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_gate",
+"scene": "res://kit/modules/walls/qt_gate.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_glow",
+"scene": "res://kit/modules/walls/qt_glow.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_hauz",
+"scene": "res://kit/modules/walls/qt_hauz.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_home_1",
+"scene": "res://kit/modules/walls/qt_home_1.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_home_2",
+"scene": "res://kit/modules/walls/qt_home_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_home_hides",
+"scene": "res://kit/modules/walls/qt_home_hides.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_home_leaf",
+"scene": "res://kit/modules/walls/qt_home_leaf.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_home_note",
+"scene": "res://kit/modules/walls/qt_home_note.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_lane",
+"scene": "res://kit/modules/walls/qt_lane.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_lane_high",
+"scene": "res://kit/modules/walls/qt_lane_high.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_lane_plain",
+"scene": "res://kit/modules/walls/qt_lane_plain.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_pier",
+"scene": "res://kit/modules/walls/qt_pier.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_pier_cap",
+"scene": "res://kit/modules/walls/qt_pier_cap.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_pigeon",
+"scene": "res://kit/modules/walls/qt_pigeon.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_rags",
+"scene": "res://kit/modules/walls/qt_rags.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_rock_low",
+"scene": "res://kit/modules/walls/qt_rock_low.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_rock_low_b",
+"scene": "res://kit/modules/walls/qt_rock_low_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_rock_low_top",
+"scene": "res://kit/modules/walls/qt_rock_low_top.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_rock_wall",
+"scene": "res://kit/modules/walls/qt_rock_wall.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_rock_wall_b",
+"scene": "res://kit/modules/walls/qt_rock_wall_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_rock_wall_lit",
+"scene": "res://kit/modules/walls/qt_rock_wall_lit.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_rock_wall_top",
+"scene": "res://kit/modules/walls/qt_rock_wall_top.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_roof",
+"scene": "res://kit/modules/walls/qt_roof.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_sabat",
+"scene": "res://kit/modules/walls/qt_sabat.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_stair",
+"scene": "res://kit/modules/walls/qt_stair.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_blank_c_2",
+"scene": "res://kit/modules/walls/qt_u_blank_c_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_blank_c_4",
+"scene": "res://kit/modules/walls/qt_u_blank_c_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_blank_r_2",
+"scene": "res://kit/modules/walls/qt_u_blank_r_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_blank_r_4",
+"scene": "res://kit/modules/walls/qt_u_blank_r_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_dark_c_2",
+"scene": "res://kit/modules/walls/qt_u_dark_c_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_dark_c_4",
+"scene": "res://kit/modules/walls/qt_u_dark_c_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_dark_r_2",
+"scene": "res://kit/modules/walls/qt_u_dark_r_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_dark_r_4",
+"scene": "res://kit/modules/walls/qt_u_dark_r_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_lit_c_2",
+"scene": "res://kit/modules/walls/qt_u_lit_c_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_lit_c_4",
+"scene": "res://kit/modules/walls/qt_u_lit_c_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_lit_r_2",
+"scene": "res://kit/modules/walls/qt_u_lit_r_2.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_u_lit_r_4",
+"scene": "res://kit/modules/walls/qt_u_lit_r_4.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_washing_a",
+"scene": "res://kit/modules/walls/qt_washing_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "qt_washing_b",
+"scene": "res://kit/modules/walls/qt_washing_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("quarter", "r06"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "rug_runner",
 "scene": "res://kit/modules/walls/rug_runner.tscn",
 "shape": "free",

@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="QuarterGrammar" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/lore_book_pin.gd" id="1_kexin"]
+[ext_resource type="Resource" path="res://gen/rules/r06_quarter.tres" id="2_g0vpy"]
+[ext_resource type="Script" path="res://scripts/gen/quarter_grammar.gd" id="3_doqjm"]
+
+[resource]
+script = ExtResource("3_doqjm")
+styles = PackedStringArray("rock", "quarter")
+rules = ExtResource("2_g0vpy")
+mood_tint = Color(0.7, 0.66, 0.78, 0.4)

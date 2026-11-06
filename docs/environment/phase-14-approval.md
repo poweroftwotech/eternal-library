@@ -1,6 +1,6 @@
 # Approval brief: the Domicile Quarter (R06), phase 14
 
-[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **agreed in outline 2026-11-05, on hold until you have given each area its theme (homes and gardens, food and farming, scholars and study, and so on). Q7 (where it grows) and the neighbours are settled after that** ·
+[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **approved 2026-11-05 as recommended, except Q6 and Q7 (below); step 1 and the layouts looked at; steps 2 and 3 looked at; steps 4 and 5 built 2026-11-06, live in the Mahaleh; committed 2026-11-06 at your word** ·
 Room type: [R06](../../design/room-atlas.html#R06) in the room atlas ·
 How a room gets its feel: [room character](room-character.md)
 
@@ -43,8 +43,18 @@ bright red hall, the quarter should feel small, quiet and close.
   sight of the far end. Houses of one to three storeys with uneven heights and
   fronts that step in and out. One to two sabats overhead, one over the hauz.
   Steps at a lane's end up to a higher door.
-- **The size:** the seed picks about 28 × 20 m or 40 × 28 m (7 × 5 or 10 × 7
-  bays).
+- **The size:** 36 × 32 m (9 × 8 bays), one size so far: the Mahaleh has the space, so
+  the smaller size waits until a place needs it.
+- **Four layouts, each with its own landmark** (after your walk: side-by-side
+  quarters were confusing). Hauz Square (arms out of a square, a pool), Wind Tower
+  (one bending lane, a tall badgir closing the view as you come in), Bath Ring (a
+  lane circling a domed bath-house with glowing glass eyes and a tiled door),
+  Pigeon Tower (a long street, a round tower closing the lane off it). Each can be
+  mirrored. Quarters of one area take different layouts until all four are used;
+  the Layout setting on the board can fix one.
+- **An entry alley** (board setting Entry alley: none, short 8 m, long 12 m): a
+  narrow neck of houses under a low roof, a sabat at its end, so a quarter doesn't
+  run straight into the room it joins.
 - **New pieces at house scale** (Q3): narrower fronts, lower storeys and small
   doors, so the lanes feel close. The Gorge's houses are built on 4 m storeys
   and bays, which is too regular and too big for this.
@@ -67,7 +77,7 @@ bright red hall, the quarter should feel small, quiet and close.
 3. **The homes.** Doors that open, the small interiors, and the four kinds of
    household (Q4). You can walk into each kind.
 4. **Life and story.** Figures, working hearths, notes, the lived-in to
-   abandoned gradient, and the Forgotten Wing's state (Q6).
+   abandoned gradient, and the deserted version (Q6).
 5. **Live and tested.** The quarter grows in the areas (Q7), with route audit,
    frame gate, save and resume, and the map. Committed after your walk; the atlas
    marks it as in the game.
@@ -81,8 +91,8 @@ bright red hall, the quarter should feel small, quiet and close.
 | **Q3** | Which house pieces? | **A new set at house scale,** using the Gorge's plaster and timber but with lower storeys and narrower fronts. The lanes are the room, so they need to feel right up close | Reuse the Gorge's pieces: quicker, but regular and oversized at 3.4 m |
 | **Q4** | Who lives there? | **The atlas's four: scholar, family, hunter, abandoned.** Their things tell you who they are | Add more, such as a weaver or a potter, in a later pass |
 | **Q5** | How far do side stories go? | **Traces only, plus a short note to read in some homes** (placeholder text, using the lore books). Figures don't talk yet | Leave out notes; or wait for a dialogue system |
-| **Q6** | Does the quarter differ by area? | **Lived-in in the Lower Stacks, mostly deserted in the Forgotten Wing,** with one or two homes still lit. It reuses the same gradient, as the garden's wild state did | The same everywhere |
-| **Q7** | Where does it grow? | **Grown last off any free door,** as the terraces were, costing other rooms nothing. A fit sweep reports how many worlds get one. If that is too few, I'll show you the count before changing anything | Grown earlier for more worlds, which moves other rooms; or an area of its own behind a spare Gorge door, so it is always there |
+| **Q6** | Does the quarter differ by area? | **Yes: a deserted version** (changed by you 2026-11-06). The Forgotten Wing will be remade, and you are making a Forgotten City area to test abandoned versions of rooms in. Built in step 4 as a setting on the room, beside the lived-in to abandoned gradient | |
+| **Q7** | Where does it grow? | **Settled by you: the Mahaleh, off an alley or the garden,** on a test copy for now (`gen/recipes/drafts/mahaleh/quarter_test.tres`). It fits in 20 of 20 seeds | |
 | **Q8** | Can you climb above the lanes? | **Not in this version.** Sabats and roofs are seen from below; the only climb is the steps to the higher door | A stair to a roof terrace, or a sabat you can enter (more routes to test) |
 
 ## Risks

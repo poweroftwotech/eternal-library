@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/home_door.gd" id="1_hd"]
+
+[node name="quarter_door_ajar" type="StaticBody3D"]
+script = ExtResource("1_hd")
+ajar = true

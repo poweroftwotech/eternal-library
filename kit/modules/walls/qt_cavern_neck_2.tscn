@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ia87s"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/qt_cavern_neck_2.glb" id="2_lo0k3"]
+
+[node name="qt_cavern_neck_2" type="Node3D" unique_id=771044920]
+script = ExtResource("1_ia87s")
+family = "walls"
+tags = PackedStringArray("quarter", "r06")
+source_glb = "res://assets/kit/walls/qt_cavern_neck_2.glb"
+
+[node name="Mesh" parent="." unique_id=275549329 instance=ExtResource("2_lo0k3")]

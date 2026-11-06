@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/quiet_wall.gd" id="1_qw"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/wall_nets.tscn" id="2_wn"]
+
+[node name="quarter_nets" type="Node3D"]
+script = ExtResource("1_qw")
+scene = ExtResource("2_wn")

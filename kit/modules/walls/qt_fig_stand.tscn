@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_mnou1"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/qt_fig_stand.glb" id="2_f6dge"]
+
+[node name="qt_fig_stand" type="Node3D" unique_id=261462288]
+script = ExtResource("1_mnou1")
+family = "walls"
+tags = PackedStringArray("quarter", "r06")
+source_glb = "res://assets/kit/walls/qt_fig_stand.glb"
+
+[node name="Mesh" parent="." unique_id=1025842230 instance=ExtResource("2_f6dge")]

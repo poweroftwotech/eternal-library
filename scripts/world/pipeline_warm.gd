@@ -53,6 +53,10 @@ const SCENES: PackedStringArray = [
 	"res://kit/modules/dressing/ft_patch_wild.tscn", "res://kit/modules/dressing/ft_patch_blight.tscn",
 	"res://kit/modules/dressing/ft_worker_stoop.tscn", "res://kit/modules/dressing/ft_bed_tools.tscn",
 	"res://kit/modules/dressing/ft_shelter.tscn",
+	# Phase 14, the Domicile Quarter: its homes and people.
+	"res://kit/modules/walls/qt_home_2.tscn", "res://kit/modules/walls/qt_home_leaf.tscn",
+	"res://kit/modules/walls/qt_fig_stand.tscn", "res://kit/modules/walls/qt_fig_jar.tscn",
+	"res://kit/modules/walls/qt_rags.tscn",
 ]
 
 var _left: int = FRAMES
@@ -85,6 +89,9 @@ static func add(parent: Node) -> PipelineWarm:
 		p.scale = Vector3.ONE * 0.001
 		w.add_child(p)
 	for p: GPUParticles3D in FungusTerracesLife.warm():     # the Fungus Terraces' spores
+		p.scale = Vector3.ONE * 0.001
+		w.add_child(p)
+	for p: GPUParticles3D in QuarterLife.warm():     # the Domicile Quarter's smoke
 		p.scale = Vector3.ONE * 0.001
 		w.add_child(p)
 	parent.add_child(w)

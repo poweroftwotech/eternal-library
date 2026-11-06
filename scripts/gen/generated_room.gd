@@ -194,6 +194,8 @@ func _finish_build(s: int, styles: Dictionary, resolve: bool) -> void:
 	_add_safety_floor()
 	_add_floor_wear()
 	_wet_shell()
+	_dark_glass()
+	_near_only()
 	style_overrides = styles.duplicate()
 	lamps_dark = grammar.lamps_dark
 	lore_books = grammar.lore_books
@@ -590,6 +592,38 @@ func _draw_overlay() -> void:
 ## Damp copies of the kit's world material, one per (material, wetness).
 static var _wet_copies: Dictionary = {}
 const PX_WORLD_SHADER: String = "res://shaders/kit_px_world.gdshader"
+
+
+## What a room says is only worth drawing up close (grid.meta "near_only": a prefix
+## of module names, and how far): a quarter's home furniture, which nothing culls
+## behind the walls. Lights stay on.
+func _near_only() -> void:
+	if not grid.meta.has("near_only"):
+		return
+	var prefix: String = grid.meta["near_only"][0]
+	var reach: float = grid.meta["near_only"][1]
+	for m: Node3D in modules:
+		if not String(m.name).begins_with(prefix):
+			continue
+		for n: Node in m.find_children("*", "GeometryInstance3D", true, false):
+			(n as GeometryInstance3D).visibility_range_end = reach
+			(n as GeometryInstance3D).visibility_range_end_margin = 2.0
+
+
+## A deserted room (grid.meta "deserted"): the lit glass built into its pieces goes
+## dark. Its flame lamps go out by grammar.lamps_dark.
+func _dark_glass() -> void:
+	if not grid.meta.get("deserted", false):
+		return
+	var dark: Material = load("res://kit/materials/culvert_dark.tres")
+	for mi: Node in find_children("*", "MeshInstance3D", true, false):
+		var m: MeshInstance3D = mi as MeshInstance3D
+		if m.mesh == null:
+			continue
+		for s: int in m.mesh.get_surface_count():
+			var mat: Material = m.get_active_material(s)
+			if mat != null and mat.resource_path.get_file().begins_with("emit_"):
+				m.set_surface_override_material(s, dark)
 
 
 ## Room rework step 6: a damp room's shell (grammar.wetness > 0) uses wet

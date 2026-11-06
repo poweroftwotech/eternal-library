@@ -532,6 +532,9 @@ static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, di
 		return r
 	r.style_overrides.merge(grammar.fixed_styles)
 	grid.meta["abandon_start"] = float(tweaks.get("abandon_start", _abandon_after(parent_room)))
+	# Which room this is in the area: a grammar with layouts can keep siblings apart.
+	grid.meta["slot_id"] = slot_id
+	grid.meta["area_seed"] = p.area_seed
 	grammar.layout(grid, seed_value)
 	grammar.wear_lanes(grid, seed_value)
 	r.grid = grid

@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_r8ljw"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/qt_pier.glb" id="2_onh4c"]
+
+[node name="qt_pier" type="Node3D" unique_id=2036908858]
+script = ExtResource("1_r8ljw")
+family = "walls"
+tags = PackedStringArray("quarter", "r06")
+source_glb = "res://assets/kit/walls/qt_pier.glb"
+
+[node name="Mesh" parent="." unique_id=2091168541 instance=ExtResource("2_onh4c")]

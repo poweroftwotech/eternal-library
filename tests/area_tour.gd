@@ -67,7 +67,11 @@ static func leg(p: AreaPlan, r: AreaPlan.Room) -> Array[Vector3]:
 	if chain.is_empty():
 		return [start(p)]
 	var out: Array[Vector3] = []
-	if at.kind == "generated" or baked_walk(at):
+	if at.grid != null and at.grid.meta.has("route"):
+		# A root that gives its own walk (the Mahaleh's Bridge Hall entrance).
+		for q: Vector3 in at.grid.meta["route"]:
+			out.append(at.xf * q)
+	elif at.kind == "generated" or baked_walk(at):
 		var first_xf: Transform3D = chain[0].connectors[chain[0].entry]["xf"]
 		var door: Vector3i = AreaPlan.cell_of(first_xf.origin - first_xf.basis.z * 2.0)
 		for c: Vector3i in cell_path(at, AreaPlan.cell_of(start(p)), door):
@@ -88,7 +92,14 @@ static func leg(p: AreaPlan, r: AreaPlan.Room) -> Array[Vector3]:
 			# mostly air over the drop, along its passages and its bridge's deck
 			# to the far door, the only way on; the Fungus Terraces (phase 13),
 			# up the stair beside the cascade.
-			for q: Vector3 in room.grid.meta["route"]:
+			var way: Array = room.grid.meta["route"]
+			# A quarter has other ways out: take the one the next room hangs off.
+			if i + 1 < chain.size() and room.grid.meta.has("arms"):
+				var door: Vector3 = room.xf.affine_inverse() * (room.connectors[chain[i + 1].parent_connector]["xf"] as Transform3D).origin
+				for arm: Array in room.grid.meta["arms"]:
+					if (arm.back() as Vector3).distance_to(door) < (way.back() as Vector3).distance_to(door):
+						way = arm
+			for q: Vector3 in way:
 				out.append(room.xf * q)
 			continue
 		var in_xf: Transform3D = room.connectors[room.entry]["xf"]

@@ -119,6 +119,19 @@ func run() -> void:
 	check(built.atmosphere == null and built.fall_limit == -30.0 and built.open_sight, "atmosphere, fall limit and open cavern are built")
 	check(built.placement.envelope.size.y == 60.0 and recipe.placement.envelope.size.y == 48.0, "the build space changes the copy, not the saved recipe")
 	check(Array(built.grow[0].one_of) == ["form_test", "elsewhere"], "a shared rule is built")
+
+	# A rule can grow from its own rooms as well as from others.
+	b.call("set_grows_from", "hall", "entrance", true)
+	b.call("set_grows_from", "hall", "grow:hall", true)
+	var from: Array = (b.call("_grow_rule", "hall") as Dictionary)["from"]
+	check(from.has("entrance") and from.has("hall_1"), "Itself adds the rule's own rooms beside the others (%s)" % [from])
+	b.call("set_grow_field", "hall", "count", [1, 6])
+	from = (b.call("_grow_rule", "hall") as Dictionary)["from"]
+	check(from.has("hall_6"), "Itself reaches every room when the count grows (%s)" % [from])
+	b.call("set_grows_from", "hall", "grow:hall", false)
+	from = (b.call("_grow_rule", "hall") as Dictionary)["from"]
+	check(from == ["entrance"], "Itself turns off again (%s)" % [from])
+	b.call("set_grows_from", "hall", "*", true)
 	check(built.slots[0].seed_mode == AreaSlot.SeedMode.FIXED, "a fixed seed is built")
 
 	# A room's own settings: on the form for stack galleries, built when changed, gone when blanked.

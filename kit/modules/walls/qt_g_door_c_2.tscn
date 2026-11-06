@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_2sldo"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/qt_g_door_c_2.glb" id="2_rekap"]
+
+[node name="qt_g_door_c_2" type="Node3D" unique_id=710819506]
+script = ExtResource("1_2sldo")
+family = "walls"
+tags = PackedStringArray("quarter", "r06")
+source_glb = "res://assets/kit/walls/qt_g_door_c_2.glb"
+
+[node name="Mesh" parent="." unique_id=197817786 instance=ExtResource("2_rekap")]

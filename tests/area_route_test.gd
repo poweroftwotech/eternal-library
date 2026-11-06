@@ -1,7 +1,11 @@
 extends SceneTree
 ## Gate for a whole area built from its plan, everything loaded at once
 ## (phase-4-design.md 8.1.7, step 1).
-##   godot --headless --path . --script res://tests/area_route_test.gd [-- seeds=N] [area=<id>] [only=<seed>,<seed>...]
+##   godot --headless --path . --script res://tests/area_route_test.gd [-- seeds=N] [area=<id>] [only=<seed>,<seed>...] [from=<slot prefix>]
+## from=<prefix>: the walks start at the door of the first room of that kind, and
+## leaves that don't pass through one are left out (the Mahaleh's quarters, past
+## its Bridge Hall entrance). Rooms with side lanes and homes (the Domicile
+## Quarter's meta arms and homes) have those walked too, doors open.
 ## For area seeds 1-5 of the library wing and the Lower Stacks (phase 5),
 ## streaming off: every planned room is built as a
 ## direct child of the Area; Validate Room is clean on every generated room
@@ -23,6 +27,8 @@ var failures: PackedStringArray = []
 var checks: int = 0
 ## recipe=<path>: walk this recipe or draft instead of the areas above.
 var recipe_path: String = ""
+## from=<prefix>: see above.
+var walk_from: String = ""
 
 
 func _initialize() -> void:
@@ -43,6 +49,8 @@ func run() -> void:
 		if a.begins_with("recipe="):
 			recipe_path = a.trim_prefix("recipe=")
 			areas = [(load(recipe_path) as AreaRecipe).id]
+		if a.begins_with("from="):
+			walk_from = a.trim_prefix("from=")
 		if a.begins_with("seeds="):
 			seeds = a.trim_prefix("seeds=").to_int()
 		elif a.begins_with("area="):
@@ -193,6 +201,13 @@ func audit(id: String, s: int) -> void:
 			chain.push_front(at)
 			at = p.room(at.parent)
 		var route: Array[Vector3] = AreaTour.leg(p, r)
+		if walk_from != "":
+			var first: int = chain.find_custom(func(c: AreaPlan.Room) -> bool: return c.slot_id.begins_with(walk_from))
+			if first < 0:
+				for c: AreaPlan.Room in chain:
+					walked[c.slot_id] = true
+				continue
+			route = route.slice(AreaTour.leg(p, chain[first - 1]).size() - 1 if first > 0 else 0)
 		var start: Vector3 = route.pop_front() + Vector3(0, 0.95, 0)
 		body.global_position = start
 		await physics_frame
@@ -216,8 +231,33 @@ func audit(id: String, s: int) -> void:
 		# The far end may be in a cistern's shallows (its floor 0.9 m down).
 		# Its storey: a room off a light-well's upper exit stands 4 m up or more.
 		var end_floor: float = route[-1].y + (float(r.grid.cells.get(AreaPlan.cell_of(r.xf.affine_inverse() * (route[-1] + Vector3(0, 0.1, 0))) * Vector3i(1, 0, 1), {}).get("floor_y", 0.0)) if r.grid != null else 0.0)
-		check(reached == route.size() and returned == back.size() and absf(feet_out - end_floor) < 0.1 and absf(feet) < 0.1,
+		check(reached == route.size() and returned == back.size() and absf(feet_out - end_floor) < 0.1 and absf(feet - (start.y - 0.95)) < 0.1,
 			"%s: walk from the root through %s to the far end and back (%d of %d stops out, %d of %d back, feet %.2f / %.2f, the end's floor %.2f)" % [tag, " > ".join(names), reached, route.size(), returned, back.size(), feet_out, feet, end_floor])
+	# Side lanes and homes.
+	for r: AreaPlan.Room in p.rooms:
+		if r.grid == null or not r.grid.meta.has("homes"):
+			continue
+		var g: Node3D = area.rooms[r.slot_id]
+		for d: Node in g.find_children("*", "", true, false):
+			if d is HomeDoor:
+				(d as HomeDoor).set_open(true, true)
+		await physics_frame
+		await physics_frame
+		var ways: Array = (r.grid.meta["arms"] as Array).duplicate()
+		for h: Dictionary in r.grid.meta["homes"]:
+			ways.append(h["walk"])
+		for w: int in ways.size():
+			var points: Array[Vector3] = []
+			for q: Vector3 in ways[w]:
+				points.append(r.xf * q)
+			body.global_position = points[0] + Vector3(0, 0.95, 0)
+			await physics_frame
+			var there: Array[Vector3] = points.slice(1)
+			var out_n: int = await follow(body, there)
+			var home: Array[Vector3] = points.duplicate()
+			home.reverse()
+			var back_n: int = await follow(body, home)
+			check(out_n == there.size() and back_n == home.size(), "%s: %s way %d of %d: out and back (%d of %d, %d of %d)" % [tag, r.slot_id, w, ways.size(), out_n, there.size(), back_n, home.size()])
 	check(walked.size() == p.rooms.size() - 1, "%s: the walks pass through every room but the root (%d of %d)" % [tag, walked.size(), p.rooms.size() - 1])
 	body.queue_free()
 	area.queue_free()

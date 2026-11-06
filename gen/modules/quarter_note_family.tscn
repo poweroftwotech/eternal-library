@@ -1,0 +1,7 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/home_note.gd" id="1_hn"]
+
+[node name="quarter_note_family" type="StaticBody3D"]
+script = ExtResource("1_hn")
+household = "family"

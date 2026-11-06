@@ -1977,7 +1977,15 @@ func _grow_form(g: Dictionary) -> void:
 		var op: String = str(o["prefix"])
 		if op != prefix:
 			flow.add_child(_toggle(op + "_*", from.any(func(f: String) -> bool: return _of_rule(f, op)), func(on: bool) -> void: set_grows_from(prefix, "grow:" + op, on)))
+	# Its own rooms: any generated room already includes them.
+	var own: bool = from.any(func(f: String) -> bool: return _of_rule(f, prefix))
+	var itself := _toggle("Itself", own or from.is_empty(), func(on: bool) -> void: set_grows_from(prefix, "grow:" + prefix, on))
+	itself.disabled = from.is_empty()
+	itself.tooltip_text = "These rooms can also grow from each other's doors." if not from.is_empty() else "Any generated room includes these rooms. Pick the rooms it grows from to choose this."
+	flow.add_child(itself)
 	_form.add_child(flow)
+	if own and from.all(func(f: String) -> bool: return _of_rule(f, prefix)):
+		_form.add_child(_label("Needs another room too: the first of these has nothing to grow from.", 11, MUTED))
 	_form.add_child(_row("", _toggle("Always live (pinned)", bool(g["pinned"]), func(on: bool) -> void: set_grow_field(prefix, "pinned", on))))
 	_shared_form(g)
 	var buttons := HFlowContainer.new()

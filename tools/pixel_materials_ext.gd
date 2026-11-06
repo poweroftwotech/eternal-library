@@ -20,6 +20,11 @@ const BAYER: Array = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 
 var manifest: Dictionary = {}
 
 func _init() -> void:
+	if OS.get_cmdline_user_args().has("quarter"):  # -- quarter: only the Domicile Quarter's maps
+		quarter()
+		print("wrote the quarter's maps")
+		quit()
+		return
 	if OS.get_cmdline_user_args().has("decals"):   # -- decals: only the decal maps
 		decals()
 		quit()
@@ -45,6 +50,7 @@ func _init() -> void:
 	foliage()
 	kit_room()
 	persian()
+	quarter()
 	rugs()
 	var file: FileAccess = FileAccess.open(OUT + "manifest_ext.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify({"texel_density": 32, "materials": manifest}, " "))
@@ -637,6 +643,41 @@ func mottled_kit(material_name: String, palette: PackedColorArray, size: int, ce
 	save(material_name, w, h, rgb, height, rough)
 
 # ---------------------------------------------------------------- persian
+## The Domicile Quarter (phase 14): rose clay in two tints, muted and dusty, and
+## the lanes' rammed earth. Same grain as the Gorge's plaster.
+func quarter() -> void:
+	mottled_kit("quarter_plaster_rose", pal(["#785a62", "#886870", "#98767e", "#a6848b", "#b39197", "#be9ea2"]), 64, 12, 301, .3)
+	mottled_kit("quarter_plaster_clay", pal(["#726068", "#826e74", "#917c80", "#9f8a8c", "#ac9797", "#b7a3a1"]), 64, 12, 302, .3)
+	ashlar_kit("quarter_brick", pal(["#2e2428", "#54434a", "#655258", "#756066", "#846e72", "#927c7e", "#9f8a8a"]), 64, 4, 7, 10, 304, 0, .03)
+	flat_card("quarter_cloth", 64, 32, cloth_px, 305)
+	mottled_kit("quarter_hide", pal(["#4a3324", "#5c4230", "#6e523c", "#806248", "#927254"]), 32, 6, 306, .85, .9)
+	mottled_kit("quarter_lane", pal(["#3e332b", "#4a3d33", "#56483c", "#625345", "#6d5e4f"]), 64, 6, 303, .8, .95)
+
+
+## Four hung cloths side by side, one per 16 columns: pale washing, indigo with
+## an ochre band, rose with diamonds, ochre and green stripes. The image's top
+## row is the cloth's hem (the wind moves the top of a map most), a little ragged.
+func cloth_px(x: int, y: int, _w: int, _h: int, rng: RandomNumberGenerator) -> Color:
+	var col: int = x / 16
+	var u: int = x % 16
+	if y == 0 and rng.randf() < .3:
+		return Color(0, 0, 0, 0)
+	if u == 0 or u == 15:
+		return Color(0, 0, 0, 0)
+	var shade: float = .92 + .16 * rng.randf()
+	var c: Color
+	match col:
+		0:
+			c = Color("b5aa9a") if y % 12 != 5 else Color("8e8fa6")
+		1:
+			c = Color("c09a52") if y >= 8 and y < 12 else (Color("c8b89a") if (y == 7 or y == 12) else Color("2f3a5e"))
+		2:
+			c = Color("c9a56a") if absi(u - 8) + absi(y % 12 - 6) == 4 else Color("8a4a50")
+		_:
+			c = Color("a8894a") if (y / 4) % 2 == 0 else Color("4e5c44")
+	return Color(c.r * shade, c.g * shade, c.b * shade)
+
+
 ## The reusable Persian kit (phase-8-design.md 8.2): fired brick, banai brick,
 ## kahgel plaster in two tints, stone, dressed rock, faience, dome tile, wood,
 ## soil, fungus, mirror mosaic, and alpha cards for the lattice screen,
