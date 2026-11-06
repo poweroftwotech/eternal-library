@@ -1,8 +1,0 @@
-{"id":"camp_spawn","scene":"res://rooms/camp/camp.tscn","seed":-1,"feet":[-1.05,0.08,9.2],"yaw_deg":0.4,"pitch_deg":4.0,"fov":68.0,"note":""}
-{"id":"camp_hearth","scene":"res://rooms/camp/camp.tscn","seed":-1,"feet":[1.4,0.08,7.8],"yaw_deg":50.0,"pitch_deg":-12.0,"fov":68.0,"note":""}
-{"id":"camp_hearth_back","scene":"res://rooms/camp/camp.tscn","seed":-1,"feet":[-3.0,0.08,1.6],"yaw_deg":-171.6,"pitch_deg":-10.0,"fov":68.0,"note":""}
-{"id":"camp_planter","scene":"res://rooms/camp/camp.tscn","seed":-1,"feet":[-2.6,0.08,1.2],"yaw_deg":134.0,"pitch_deg":-4.0,"fov":68.0,"note":""}
-{"id":"camp_left_wall","scene":"res://rooms/camp/camp.tscn","seed":-1,"feet":[-2.0,0.08,6.0],"yaw_deg":90.0,"pitch_deg":8.0,"fov":68.0,"note":""}
-{"id":"camp_garden","scene":"res://rooms/camp/camp.tscn","seed":-1,"feet":[2.5,0.08,-2.8],"yaw_deg":60.0,"pitch_deg":4.0,"fov":68.0,"note":""}
-{"id":"camp_archive","scene":"res://rooms/camp/camp.tscn","seed":-1,"feet":[6.8,0.08,-1.0],"yaw_deg":-20.0,"pitch_deg":-4.0,"fov":68.0,"note":""}
-{"id":"camp_gallery","scene":"res://rooms/camp/camp.tscn","seed":-1,"feet":[-1.0,2.25,-11.1],"yaw_deg":180.0,"pitch_deg":-10.0,"fov":68.0,"note":""}
