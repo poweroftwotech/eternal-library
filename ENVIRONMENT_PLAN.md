@@ -24,6 +24,7 @@ stand, what is waiting for you, and what changed lately. The detail is in
 
 | Date | Change |
 |---|---|
+| 2026-11-05 | **The board flags an out-of-date map.** When a Gorge or camp door changes, or either place is rebuilt, the stratum panel says "Map out of date" and why, with a Re-trace map button that does the rest. |
 | 2026-11-05 | **Stack galleries have their own settings on the board.** Each gallery, or each grow rule of galleries, can set its length (short 3-4 bays, medium 5-7, long 6-12 as before), where its abandonment starts, how fast it decays, its blue, its fog and how much decay it shows. Blank fields keep the defaults. |
 | 2026-11-05 | **The Reading Room is generated.** Four versions on the board (masonry or wood steps and deck, each kept or abandoned), an entrance and up to four exits (two side doors, two far shelf bays that open only if a room grows there), and it can be picked in grow rules. Route walks clean on all four over four seeds, also with doors shut and grown off a hall; saves across processes. Frames about 1.6 ms; lights in reach 53 of 50 with stack galleries on all four exits (reported, not changed). The hand-built scene stays until you say. Not committed. |
 | 2026-11-05 | **Phase 14 proposed: the Domicile Quarter (R06).** Approval brief drafted: character, five steps, eight decisions ([brief](docs/environment/phase-14-approval.md)). Agreed in outline; on hold until you have given each area its theme. |

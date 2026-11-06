@@ -10,7 +10,8 @@ extends SceneTree
 ## Writes gen/map/<place>_trace.tres, gen/map/<place>_ink.png and _pencil.png
 ## (what the map draws), and previews/p11_step2/<place>_trace.png: floors
 ## kept by height, floors left out in red. Run --import afterwards.
-## Re-run after re-baking the place.
+## Re-run after re-baking the place or changing its doors: the Strata Board flags
+## that and runs this headless (the output is the same).
 
 const STEP: float = 0.5
 const HEADROOM: float = 1.7
@@ -51,6 +52,7 @@ func run() -> void:
 	var trace: MapTrace = reach(cols, seeds, world)
 	trace.place = place
 	trace.doors = doors_of(world)
+	trace.source_stamp = MapTrace.stamp_of(place, StratumPlan.current().links)
 	if place == "gorge":     # the way back to the camp is the corridor out of the Overlook's loggia, no door
 		var mid: float = (SeamlessPlaces.CORRIDOR_X.x + SeamlessPlaces.CORRIDOR_X.y) * 0.5
 		trace.doors.append({"at": Vector2(mid, SeamlessPlaces.GORGE_END_Z), "out": Vector2(0, 1), "kind": "threshold", "raw": "camp", "to": "camp"})

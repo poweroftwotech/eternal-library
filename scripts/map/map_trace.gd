@@ -11,6 +11,9 @@ extends Resource
 
 ## Metres a side of a tile: what the map reveals at a time.
 const TILE: float = 8.0
+## The built files each traced place comes from (a folder: every file in it).
+const SOURCES: Dictionary = {"gorge": ["res://rooms/gorge/overlook.tscn", "res://rooms/baked/gorge.tscn", "res://rooms/baked/gorge"],
+	"camp": ["res://rooms/camp/camp.tscn"]}
 
 ## The place ("gorge", "camp").
 @export var place: String = ""
@@ -29,6 +32,9 @@ var height: PackedFloat32Array = PackedFloat32Array()
 ## place), kind: "threshold" | "sealed", raw: its connector's `to`, to: the
 ## place it led to when traced}.
 @export var doors: Array[Dictionary] = []
+## What it was traced from (stamp_of): when that no longer matches, the map is
+## out of date and the Strata Board offers to trace it again.
+@export var source_stamp: String = ""
 
 
 func sample_of(m: Vector2) -> Vector2i:
@@ -89,6 +95,27 @@ func tile_pixels(i: int) -> Rect2:
 ## What the save checks the tiles against: a re-traced place may tile differently.
 func stamp() -> String:
 	return "%dx%d@%.1f,%.1f/%.2f" % [size.x, size.y, origin.x, origin.y, step]
+
+
+## A fingerprint of what a trace of `place` depends on: its built files and the
+## links in `links` (StratumPlan.links) that reach it, doors' positions included.
+static func stamp_of(place: String, links: Array[Dictionary]) -> String:
+	var parts: PackedStringArray = []
+	for l: Dictionary in links:
+		if str(l["a"]) == place or str(l["b"]) == place:
+			parts.append("%s|%s|%s|%s" % [l["a"], l["b"], l["kind"], l.get("at", "")])
+	parts.sort()
+	for source: String in SOURCES.get(place, []):
+		var files: PackedStringArray = [source]
+		if DirAccess.dir_exists_absolute(source):
+			files = DirAccess.get_files_at(source)
+			files.sort()
+			for i: int in files.size():
+				files[i] = source.path_join(files[i])
+		for f: String in files:
+			if f.get_extension() not in ["import", "uid"]:
+				parts.append("%s=%s" % [f, FileAccess.get_md5(f)])
+	return "\n".join(parts).md5_text()
 
 
 static func path_of(id: String) -> String:

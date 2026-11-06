@@ -32,15 +32,21 @@ func _exit_tree() -> void:
 	stop()
 
 
+## This Godot. On Windows the _console build is the one whose output always
+## reaches a pipe.
+static func godot_exe() -> String:
+	var exe: String = OS.get_executable_path()
+	var console: String = exe.get_basename() + "_console." + exe.get_extension()
+	if not exe.get_basename().ends_with("_console") and FileAccess.file_exists(console):
+		return console
+	return exe
+
+
 ## Starts the service process if it isn't running.
 func start() -> void:
 	if local or running():
 		return
-	var exe: String = OS.get_executable_path()
-	# On Windows the _console build is the one whose output always reaches a pipe.
-	var console: String = exe.get_basename() + "_console." + exe.get_extension()
-	if not exe.get_basename().ends_with("_console") and FileAccess.file_exists(console):
-		exe = console
+	var exe: String = godot_exe()
 	_pipe = OS.execute_with_pipe(exe, ["--headless", "--path", ProjectSettings.globalize_path("res://"), "--script", SERVICE], false)
 	_out = ""
 	_busy = 0

@@ -25,6 +25,8 @@ signal walk_requested(area_id: String, world_seed: int, recipe: String)
 signal files_saved(paths: PackedStringArray)
 
 const Client: GDScript = preload("res://addons/strata_board/planner_client.gd")
+## How long one step of a re-trace may run (the Gorge takes about 20 s).
+const RETRACE_SECONDS: int = 240
 const SWEEP: int = 20
 ## Opened first when it exists; else the first interior.
 const AREA_FIRST: String = "lower_stacks"
@@ -116,6 +118,9 @@ var _door_label: Label
 var _door_pick: OptionButton
 var _remove_area_button: Button
 var _stratum_note: Label
+var _map_note: Label
+var _retrace_button: Button
+var _retracing: String = ""     # what the re-trace is doing now ("" = not running)
 var _top_button: Button
 var _top_status: Label
 var _top_view: TopView
@@ -377,6 +382,16 @@ func _build() -> void:
 	_stratum_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
 	sbar.add_child(_stratum_note)
 	stratum_box.add_child(sbar)
+	var mbar := HBoxContainer.new()
+	mbar.add_theme_constant_override("separation", int(8 * ui_scale))
+	_map_note = _label("", 12, BAD)
+	_map_note.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	_map_note.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	mbar.add_child(_map_note)
+	_retrace_button = _button("Re-trace map", retrace)
+	_retrace_button.tooltip_text = "Traces where you can walk and where the doors are, in a separate process, then imports the new map."
+	mbar.add_child(_retrace_button)
+	stratum_box.add_child(mbar)
 	_stratum_view = StratumView.new()
 	_stratum_view.board = self
 	stratum_box.add_child(_wide(_stratum_view))
@@ -1212,7 +1227,7 @@ func _on_stratum_changed(answer: Dictionary, what: String) -> void:
 		return
 	var paths: PackedStringArray = [str(answer["saved"])]
 	var gv: Array = answer.get("gorge_version", [])
-	var gorge_note: String = " The Gorge's walkways change with its doors, so its version goes %d → %d; run tools/map_trace.gd so the map shows the doors as they are now." % [int(gv[0]), int(gv[1])] if gv.size() == 2 else ""
+	var gorge_note: String = " The Gorge's walkways change with its doors, so its version goes %d → %d; use Re-trace map so the map shows the doors as they are now." % [int(gv[0]), int(gv[1])] if gv.size() == 2 else ""
 	if not gv.is_empty():
 		paths.append(str(answer["gorge_path"]))
 	var was_open: String = area_id
@@ -1302,6 +1317,12 @@ func _refresh_stratum_bar() -> void:
 	if places_n - free > DOORS_CHECKED:
 		_stratum_note.text += " %d doors in use: the Gorge's walkways were checked to reach up to %d in every world; with more, about 1 world in 20 misses one (tests/gorge_network_test.gd checks the seeds)." % [places_n - free, DOORS_CHECKED]
 	_stratum_note.add_theme_color_override("font_color", BAD if places_n - free > DOORS_CHECKED else MUTED)
+	var stale: Array = stratum.get("map", [])
+	_map_note.text = _retracing if _retracing != "" else "; ".join(stale.map(func(m: Dictionary) -> String:
+		return "Map out of date: %s (%s)" % [str(m["place"]).capitalize(), m["why"]]))
+	_map_note.add_theme_color_override("font_color", MUTED if _retracing != "" else BAD)
+	_map_note.get_parent().visible = _retracing != "" or not stale.is_empty()
+	_retrace_button.disabled = _retracing != ""
 	_top_view.visible = not top.is_empty()
 	if _top_id != 0:
 		_top_status.text = "Planning the Gorge and every interior for world seed %d…" % top_seed
@@ -1317,6 +1338,54 @@ func _refresh_stratum_bar() -> void:
 		_top_status.text = "World seed %d. " % top_seed + ("No two interiors overlap." if said.is_empty() else "; ".join(said) + ".")
 		_top_status.add_theme_color_override("font_color", MUTED if said.is_empty() else BAD)
 	_top_view.refresh()
+
+
+## Traces every map that's out of date, then imports them. The Gorge and the
+## camp are traced from the saved files, in processes of their own.
+func retrace() -> void:
+	var places: Array = (stratum.get("map", []) as Array).map(func(m: Dictionary) -> String: return str(m["place"]))
+	if _retracing != "" or places.is_empty():
+		return
+	var ok: bool = true
+	for place: String in places:
+		_retracing = "Tracing the %s…" % place.capitalize()
+		_refresh()
+		ok = await _run_godot(trace_args(place)) and ok
+	_retracing = "Importing the new map…"
+	_refresh()
+	ok = await _run_godot(["--headless", "--audio-driver", "Dummy", "--path", ProjectSettings.globalize_path("res://"), "--import"]) and ok
+	if Engine.is_editor_hint():
+		Engine.get_singleton("EditorInterface").get_resource_filesystem().scan()
+	client.request({"cmd": "stratum"}, func(a: Dictionary) -> void:
+		_retracing = ""
+		stratum["map"] = a.get("map", [])
+		var left: Array = stratum["map"]
+		if ok and left.is_empty():
+			notice = "Map re-traced: %s." % ", ".join(places.map(func(p: String) -> String: return p.capitalize()))
+		else:
+			notice = "[color=#%s]The re-trace didn't finish: run tools/map_trace.gd by hand to see why.[/color]" % BAD.to_html(false)
+		_refresh(), true)
+
+
+## The command line that traces `place`.
+func trace_args(place: String) -> PackedStringArray:
+	return ["--headless", "--audio-driver", "Dummy", "--path", ProjectSettings.globalize_path("res://"),
+		"--script", "res://tools/map_trace.gd", "--", place, "--no-seamless"]
+
+
+## Runs this Godot with `args` until it ends (false: it wouldn't start, or ran
+## past RETRACE_SECONDS and was stopped).
+func _run_godot(args: PackedStringArray) -> bool:
+	var pid: int = OS.create_process(Client.godot_exe(), args)
+	if pid <= 0:
+		return false
+	var stop_ms: int = Time.get_ticks_msec() + RETRACE_SECONDS * 1000
+	while OS.is_process_running(pid):
+		if Time.get_ticks_msec() > stop_ms:
+			OS.kill(pid)
+			return false
+		await get_tree().create_timer(0.25).timeout
+	return true
 
 
 func _fill_add_dialog() -> void:

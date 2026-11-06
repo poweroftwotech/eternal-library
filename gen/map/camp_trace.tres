@@ -5,9 +5,9 @@
 [resource]
 script = ExtResource("1_310pi")
 place = "camp"
-origin = Vector2(-21.321291, -23.201748)
+origin = Vector2(-21.321373, -23.201725)
 size = Vector2i(82, 90)
-unreachable = 3532
+unreachable = 3479
 tiles = PackedByteArray(0, 0, 0, 0, 0, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 1, 1, 1, 1, 0, 0, 0, 0, 0, 0, 0)
 doors = Array[Dictionary]([{
 "at": Vector2(-1, -13.2),
@@ -15,10 +15,5 @@ doors = Array[Dictionary]([{
 "out": Vector2(0, -1),
 "raw": "gorge",
 "to": "gorge"
-}, {
-"at": Vector2(7, 12.4),
-"kind": "threshold",
-"out": Vector2(8.742278e-08, 1),
-"raw": "sanctum",
-"to": "sanctum"
 }])
+source_stamp = "27f5fe0f45be3d49072d586cc3ada7a5"

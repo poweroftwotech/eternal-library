@@ -444,7 +444,44 @@ static func stratum() -> Dictionary:
 	# The camp's back door (door travel, 2026-11-01): a door place of its own.
 	door_places.append({"id": StratumPlan.CAMP_BACK_DOOR, "camp": true, "bank": 0, "cliff": "", "storey": 0, "width": 0, "area": sp.camp_back_area()})
 	return {"places": places, "links": sp.triples(), "door_places": door_places, "default_area": WORLD_STATE.DEFAULT_AREA,
-		"spare": spare_recipes(sp), "mtime": _mtime(stratum_path), "path": stratum_path}
+		"spare": spare_recipes(sp), "mtime": _mtime(stratum_path), "path": stratum_path, "map": map_state(sp)}
+
+
+## The traced maps (MapTrace) that no longer match their place: [{place, why}].
+static func map_state(sp: StratumPlan) -> Array:
+	var out: Array = []
+	for place: String in MapTrace.SOURCES:
+		var path: String = MapTrace.path_of(place)
+		var t: MapTrace = ResourceLoader.load(path, "", ResourceLoader.CACHE_MODE_IGNORE) as MapTrace if ResourceLoader.exists(path) else null
+		if t == null or t.source_stamp != MapTrace.stamp_of(place, sp.links):
+			out.append({"place": place, "why": _map_why(place, t, sp)})
+	return out
+
+
+## Why place's map is out of date, in words.
+static func _map_why(place: String, t: MapTrace, sp: StratumPlan) -> String:
+	if t == null:
+		return "not traced yet"
+	var want: PackedStringArray = []
+	for l: Dictionary in sp.links:
+		if str(l["a"]) == place:
+			want.append(str(l["b"]))
+		elif str(l["b"]) == place:
+			want.append(str(l["a"]))
+	var have: PackedStringArray = []
+	for d: Dictionary in t.doors:
+		if str(d["kind"]) == "threshold" and str(d["to"]) != "":
+			have.append(str(d["to"]))
+	var said: PackedStringArray = []
+	for id: String in want:
+		if not have.has(id):
+			said.append("no door to %s" % id)
+	for id: String in have:
+		if not want.has(id):
+			said.append("an old door to %s" % id)
+	if not said.is_empty():
+		return ", ".join(said)
+	return "traced before this check existed" if t.source_stamp == "" else "a door moved or the place was rebuilt"
 
 
 ## The stratum plan read fresh from its file (a hand edit since), and the one
