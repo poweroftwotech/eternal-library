@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_skc2u"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bz_trade_copper.glb" id="2_ktk5i"]
+
+[node name="bz_trade_copper" type="Node3D" unique_id=654191663]
+script = ExtResource("1_skc2u")
+family = "walls"
+tags = PackedStringArray("bazaar", "r04", "shop")
+source_glb = "res://assets/kit/walls/bz_trade_copper.glb"
+
+[node name="Mesh" parent="." unique_id=948914835 instance=ExtResource("2_ktk5i")]

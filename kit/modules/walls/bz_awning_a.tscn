@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_fe5o4"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bz_awning_a.glb" id="2_1w72x"]
+
+[node name="bz_awning_a" type="Node3D" unique_id=928333137]
+script = ExtResource("1_fe5o4")
+family = "walls"
+tags = PackedStringArray("bazaar", "r04", "shop")
+source_glb = "res://assets/kit/walls/bz_awning_a.glb"
+
+[node name="Mesh" parent="." unique_id=953328556 instance=ExtResource("2_1w72x")]

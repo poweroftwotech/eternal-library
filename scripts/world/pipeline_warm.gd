@@ -94,6 +94,9 @@ static func add(parent: Node) -> PipelineWarm:
 	for p: GPUParticles3D in QuarterLife.warm():     # the Domicile Quarter's smoke
 		p.scale = Vector3.ONE * 0.001
 		w.add_child(p)
+	for p: GPUParticles3D in BazaarLife.warm():     # the Grand Bazaar's dust
+		p.scale = Vector3.ONE * 0.001
+		w.add_child(p)
 	parent.add_child(w)
 	return w
 

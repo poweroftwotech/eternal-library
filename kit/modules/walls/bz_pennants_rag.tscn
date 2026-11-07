@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ls4p3"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bz_pennants_rag.glb" id="2_r4jk7"]
+
+[node name="bz_pennants_rag" type="Node3D" unique_id=1660800674]
+script = ExtResource("1_ls4p3")
+family = "walls"
+tags = PackedStringArray("bazaar", "r04", "shop")
+source_glb = "res://assets/kit/walls/bz_pennants_rag.glb"
+
+[node name="Mesh" parent="." unique_id=507468747 instance=ExtResource("2_r4jk7")]

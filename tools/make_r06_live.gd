@@ -1,6 +1,6 @@
 extends SceneTree
 ## Phase 14 step 5: the Domicile Quarter in the live Mahaleh (Q7): two to four
-## quarters grown off an alley, the garden or each other, each behind a short
+## quarters grown off an alley, the garden, the bazaar or each other, each behind a short
 ## entry alley. Adds the grow rule, bumps the recipe's version, and reports over
 ## WORLDS seeds how many quarters grow and which layouts.
 ##   godot --audio-driver Dummy --headless --path . --script res://tools/make_r06_live.gd [-- --dry]
@@ -23,7 +23,7 @@ func _initialize() -> void:
 	g.count = Vector2i(2, 4)
 	g.tweaks = {"alley": "short"}
 	g.slot_prefix = "quarter"
-	g.from = PackedStringArray(["alley_1", "alley_2", "garden_1", "quarter_1", "quarter_2", "quarter_3", "quarter_4"])
+	g.from = PackedStringArray(["alley_1", "alley_2", "garden_1", "bazaar_1", "quarter_1", "quarter_2", "quarter_3", "quarter_4"])
 	grows.append(g)
 	live.grow = grows
 	if not had:

@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_raw1g"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bz_upper_broken.glb" id="2_ahc5f"]
+
+[node name="bz_upper_broken" type="Node3D" unique_id=236758921]
+script = ExtResource("1_raw1g")
+family = "walls"
+size_cells = Vector3i(1650422373, 1701539698, 110)
+tags = PackedStringArray("bazaar", "r04")
+source_glb = "res://assets/kit/walls/bz_upper_broken.glb"
+
+[node name="Mesh" parent="." unique_id=1750846248 instance=ExtResource("2_ahc5f")]

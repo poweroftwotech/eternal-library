@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_176gt"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bz_fountain.glb" id="2_vusqc"]
+
+[node name="bz_fountain" type="Node3D" unique_id=288131504]
+script = ExtResource("1_176gt")
+family = "walls"
+tags = PackedStringArray("bazaar", "r04", "shop")
+source_glb = "res://assets/kit/walls/bz_fountain.glb"
+
+[node name="Mesh" parent="." unique_id=26939245 instance=ExtResource("2_vusqc")]

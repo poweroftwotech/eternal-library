@@ -20,6 +20,11 @@ const BAYER: Array = [[0, 8, 2, 10], [12, 4, 14, 6], [3, 11, 1, 9], [15, 7, 13, 
 var manifest: Dictionary = {}
 
 func _init() -> void:
+	if OS.get_cmdline_user_args().has("bazaar"):   # -- bazaar: only the Grand Bazaar's maps
+		bazaar()
+		print("wrote the bazaar's maps")
+		quit()
+		return
 	if OS.get_cmdline_user_args().has("quarter"):  # -- quarter: only the Domicile Quarter's maps
 		quarter()
 		print("wrote the quarter's maps")
@@ -643,6 +648,129 @@ func mottled_kit(material_name: String, palette: PackedColorArray, size: int, ce
 	save(material_name, w, h, rgb, height, rough)
 
 # ---------------------------------------------------------------- persian
+## The Grand Bazaar (phase 15): honey brick with pale lime joints, as in the
+## Tabriz and Kerman photos; the daylight's saffron starts in the wall.
+func bazaar() -> void:
+	ashlar_kit("bazaar_brick", pal(["#e2d0a8", "#9a7444", "#ab8450", "#bc955e", "#cba56c", "#d8b47c", "#e2c28c"]), 64, 4, 7, 10, 311, 0, .03)
+	bazaar_glass()
+	bazaar_dome()
+	bazaar_goods()
+
+
+## The bazaar's coloured glass: the palette tools/kit_add_r04.py's panes pick from
+## by UV. Three shades each of ruby, cobalt, amber and pale straw, then the lead.
+func bazaar_glass() -> void:
+	var shades: PackedStringArray = ["#8e1a16", "#a8231b", "#7a1612", "#1c3f94", "#2650ad", "#17337c",
+		"#c98a22", "#dca033", "#b5781c", "#e6cf94", "#d9bf80", "#f0dcaa", "#120c08", "#7cc4bc", "#f0883a", "#e8907c"]
+	# Each shade its own 4 x 4 block: block compression, if an import ever turns it
+	# on, then can't mix neighbours (it turned the blue maroon on the first walk).
+	var img: Image = Image.create(shades.size() * 4, 4, false, Image.FORMAT_RGB8)
+	for i: int in shades.size():
+		img.fill_rect(Rect2i(i * 4, 0, 4, 4), Color(shades[i]))
+	img.save_png("res://assets/textures/px/bazaar_glass.png")
+
+
+## The bazaar's spices and food: a palette tools/kit_add_r04_shops.py's goods pick
+## from by UV, one 4 x 4 block a colour, two shades of each. Bright: the shops are
+## lit warm and dim.
+func bazaar_goods() -> void:
+	var shades: PackedStringArray = ["#e8a01c", "#f2b63a", "#e8c21e", "#d6ac14", "#c8401c", "#a83214", "#a01e34", "#86182a",
+		"#a8703a", "#8e5c2e", "#7a9a3c", "#688a30", "#d88a9a", "#c47486", "#5a7a48", "#4a6a3c",
+		"#d8b078", "#c49a62", "#b8824a", "#a87240", "#b01e2a", "#8e1820", "#f09030", "#e07c20",
+		"#5a2a6a", "#4a2258", "#6a8a3c", "#d8c86a", "#e8dcae", "#d8cc9c", "#3a3a40", "#2e2e34",
+		"#8a2a24", "#6e201c", "#2a4a80", "#203a66", "#34664e", "#28503c", "#74502c", "#5a3e22"]
+	var img: Image = Image.create(shades.size() * 4, 4, false, Image.FORMAT_RGB8)
+	for i: int in shades.size():
+		img.fill_rect(Rect2i(i * 4, 0, 4, 4), Color(shades[i]))
+	img.save_png("res://assets/textures/px/bazaar_goods.png")
+
+
+## The crossing's dome, painted in its own frame (tools/kit_add_r04.py dome_uv): the
+## eye in the middle, distance along the curve outward, 1 at a corner of the
+## vault; the walls cut it at about 0.57 on the axes. A sunburst round the eye, a
+## ring of sixteen pointed arches, and brick coursed round the dome in the corners,
+## with a star in each.
+func bazaar_dome() -> void:
+	const N: int = 1024
+	const FOLDS: int = 16
+	var rng := RandomNumberGenerator.new()
+	rng.seed = 319
+	var ink := Color("#1a120c")
+	var cobalt := Color("#3a6ee0")
+	var deep := Color("#2a54b8")
+	var turq := Color("#3cc8d4")
+	var gold := Color("#d2a03c")
+	var cream := Color("#e4d4a6")
+	var joint := Color("#e2d0a8")
+	var bricks: Array[Color] = [Color("#ab8450"), Color("#bc955e"), Color("#cba56c"), Color("#9a7444"), Color("#d8b47c")]
+	var img: Image = Image.create(N, N, true, Image.FORMAT_RGB8)
+	var wedge: float = TAU / FOLDS
+	for y: int in N:
+		for x: int in N:
+			var px: float = (x + 0.5) / N * 2.0 - 1.0
+			var py: float = (y + 0.5) / N * 2.0 - 1.0
+			var r: float = sqrt(px * px + py * py)
+			var a: float = atan2(py, px) + PI
+			var k: int = int(a / wedge) % FOLDS
+			var t: float = absf(fposmod(a, wedge) / wedge - 0.5) * 2.0       # 0 down a wedge's middle, 1 at its edge
+			var c: Color
+			if r < 0.135:
+				c = gold if r > 0.12 else ink
+			elif r < 0.31:
+				var s: float = (r - 0.135) / 0.175
+				var ray: float = 1.0 - s
+				var small: float = (1.0 - s) * 0.55
+				if t < ray - 0.09:
+					c = gold if k % 2 == 0 else turq
+				elif t < ray:
+					c = cream
+				elif 1.0 - t < small:
+					c = cream
+				else:
+					c = cobalt if s < 0.75 else deep
+			elif r < 0.345:
+				var edge: bool = r < 0.317 or r > 0.338
+				var bead: float = absf(fposmod(a / TAU * 96.0, 1.0) - 0.5)
+				c = gold if edge else (cream if bead < 0.2 else ink)
+			elif r < 0.56:
+				# A ring of pointed arches, their feet on the beads, tips outward.
+				var s: float = (r - 0.345) / 0.215
+				var arch: float = 0.97 * (1.0 - pow(s, 1.7))
+				var inner: float = 0.6 * (1.0 - pow(s / 0.78, 1.7))
+				if t > arch:
+					c = _dome_brick(r, a, bricks, joint)
+				elif t > arch - 0.12:
+					c = gold
+				elif s < 0.78 and t < inner - 0.1:
+					c = gold if absf(s - 0.3) + t * 0.5 < 0.1 else turq
+				elif s < 0.78 and t < inner:
+					c = cream
+				else:
+					c = cobalt
+			elif r < 0.585:
+				c = gold if r < 0.566 or r > 0.579 else cobalt
+			else:
+				c = _dome_brick(r, a, bricks, joint)
+				# An eight-point star over each corner: a square and a square on its point.
+				var q: Vector2 = Vector2(absf(px), absf(py)) - Vector2(0.566, 0.566)
+				var e: float = minf(maxf(absf(q.x), absf(q.y)), (absf(q.x) + absf(q.y)) * 0.7071)
+				if e < 0.115:
+					c = gold if e > 0.098 else (cream if e < 0.03 else (turq if e < 0.05 else cobalt))
+			var grain: float = rng.randf() * 0.07
+			img.set_pixel(x, y, c.darkened(grain))
+	img.generate_mipmaps()
+	img.save_png("res://assets/textures/px/bazaar_dome.png")
+
+
+## Brick coursed in rings round the dome.
+func _dome_brick(r: float, a: float, bricks: Array[Color], joint: Color) -> Color:
+	var row: int = int(r * 90.0)
+	var along: float = a / TAU * 96.0 + (row % 2) * 0.5
+	if fposmod(r * 90.0, 1.0) < 0.17 or fposmod(along, 1.0) < 0.1:
+		return joint.darkened(0.12)
+	return bricks[(row * 7 + int(along) * 13) % bricks.size()]
+
+
 ## The Domicile Quarter (phase 14): rose clay in two tints, muted and dusty, and
 ## the lanes' rammed earth. Same grain as the Gorge's plaster.
 func quarter() -> void:

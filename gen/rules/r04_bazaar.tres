@@ -1,0 +1,603 @@
+[gd_resource type="Resource" script_class="ModuleRules" format=3]
+
+[ext_resource type="Script" path="res://scripts/gen/module_rule.gd" id="1_vj0p7"]
+[ext_resource type="Script" path="res://scripts/gen/module_choice.gd" id="2_kqiva"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_arch_3m.tscn" id="3_68n05"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/post_pier.tscn" id="4_0aa4t"]
+[ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="5_46xx5"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_floor.tscn" id="6_ut0mv"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_vault.tscn" id="7_l83y6"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_vault_eye.tscn" id="8_m1hf6"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_rib.tscn" id="9_5q488"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_shop_open.tscn" id="10_usjj6"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_shop_shut.tscn" id="11_ygtt8"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_upper.tscn" id="12_dh57r"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_end.tscn" id="13_6d67p"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_cross.tscn" id="14_bdcji"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_side_open.tscn" id="15_3xe4i"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_side_closed.tscn" id="16_gwo1r"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_trade_rugs.tscn" id="17_oq6c5"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_trade_copper.tscn" id="18_y5gb1"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_trade_lamps.tscn" id="19_lvltp"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_trade_books.tscn" id="20_guuco"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_trade_spices.tscn" id="21_65ohv"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_trade_curios.tscn" id="22_y6iui"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_trade_food.tscn" id="23_7ioig"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_awning_a.tscn" id="24_hcopk"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_awning_b.tscn" id="25_kb8sl"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_shut_bar.tscn" id="26_cpscg"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_shut_crates.tscn" id="27_1esvm"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_pennants.tscn" id="28_nxshn"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_upper_broken.tscn" id="29_an6rk"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_pennants_rag.tscn" id="30_ivg2p"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_keeper_a.tscn" id="31_bbdeg"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_keeper_b.tscn" id="32_0ocpg"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_keeper_c.tscn" id="33_fmx6l"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_a.tscn" id="34_sdvrq"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_b.tscn" id="35_5fcpw"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_c.tscn" id="36_oromx"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_d.tscn" id="37_gm3k2"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_e.tscn" id="38_fqpq1"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_f.tscn" id="39_24vcs"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_g.tscn" id="40_3rv8f"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_h.tscn" id="41_ijh6d"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_group_talk.tscn" id="42_14e45"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_group_ring.tscn" id="43_gauag"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_group_haggle.tscn" id="44_4eieb"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fountain.tscn" id="45_ofx24"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fountain_dry.tscn" id="46_b1bax"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_story.tscn" id="47_pmdqf"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_story_bare.tscn" id="48_joj3b"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_shut_hooks.tscn" id="49_tn2fn"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_shut_dust.tscn" id="50_buymc"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_bare.tscn" id="51_bjfkf"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_awning_rag_a.tscn" id="52_ftgt6"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_awning_rag_b.tscn" id="53_qb20n"]
+[ext_resource type="PackedScene" path="res://gen/modules/bazaar_life.tscn" id="54_fookb"]
+[ext_resource type="PackedScene" path="res://gen/modules/bazaar_rumours.tscn" id="55_da1d5"]
+[ext_resource type="PackedScene" path="res://gen/modules/bazaar_rumours_old.tscn" id="56_ds4lh"]
+[ext_resource type="Script" path="res://scripts/gen/module_rules.gd" id="57_buxh8"]
+
+[sub_resource type="Resource" id="Resource_a2rxj"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("3_68n05")
+
+[sub_resource type="Resource" id="Resource_ak663"]
+script = ExtResource("1_vj0p7")
+slot = "edge:door"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_a2rxj")])
+
+[sub_resource type="Resource" id="Resource_aw0pk"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("4_0aa4t")
+
+[sub_resource type="Resource" id="Resource_1dqcl"]
+script = ExtResource("1_vj0p7")
+slot = "post"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_aw0pk")])
+
+[sub_resource type="Resource" id="Resource_y364l"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("5_46xx5")
+
+[sub_resource type="Resource" id="Resource_mcm18"]
+script = ExtResource("1_vj0p7")
+slot = "stub:exit"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_y364l")])
+
+[sub_resource type="Resource" id="Resource_c5rgn"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("6_ut0mv")
+
+[sub_resource type="Resource" id="Resource_sx17w"]
+script = ExtResource("1_vj0p7")
+slot = "bz:floor"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_c5rgn")])
+
+[sub_resource type="Resource" id="Resource_48b4u"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("7_l83y6")
+
+[sub_resource type="Resource" id="Resource_k88xc"]
+script = ExtResource("1_vj0p7")
+slot = "bz:vault"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_48b4u")])
+
+[sub_resource type="Resource" id="Resource_8c1lx"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("8_m1hf6")
+
+[sub_resource type="Resource" id="Resource_qs2n6"]
+script = ExtResource("1_vj0p7")
+slot = "bz:vault_eye"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_8c1lx")])
+
+[sub_resource type="Resource" id="Resource_v7uuo"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("9_5q488")
+
+[sub_resource type="Resource" id="Resource_rwh0l"]
+script = ExtResource("1_vj0p7")
+slot = "bz:rib"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_v7uuo")])
+
+[sub_resource type="Resource" id="Resource_4yomm"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("10_usjj6")
+
+[sub_resource type="Resource" id="Resource_tg8ix"]
+script = ExtResource("1_vj0p7")
+slot = "bz:shop_open"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_4yomm")])
+
+[sub_resource type="Resource" id="Resource_h34gs"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("11_ygtt8")
+
+[sub_resource type="Resource" id="Resource_6buwv"]
+script = ExtResource("1_vj0p7")
+slot = "bz:shop_shut"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_h34gs")])
+
+[sub_resource type="Resource" id="Resource_gd6g5"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("12_dh57r")
+
+[sub_resource type="Resource" id="Resource_wu2tt"]
+script = ExtResource("1_vj0p7")
+slot = "bz:upper"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_gd6g5")])
+
+[sub_resource type="Resource" id="Resource_c1chl"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("13_6d67p")
+
+[sub_resource type="Resource" id="Resource_htv83"]
+script = ExtResource("1_vj0p7")
+slot = "bz:end"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_c1chl")])
+
+[sub_resource type="Resource" id="Resource_lw8pf"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("14_bdcji")
+
+[sub_resource type="Resource" id="Resource_u2eqq"]
+script = ExtResource("1_vj0p7")
+slot = "bz:cross"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_lw8pf")])
+
+[sub_resource type="Resource" id="Resource_husri"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("15_3xe4i")
+
+[sub_resource type="Resource" id="Resource_7nqtc"]
+script = ExtResource("1_vj0p7")
+slot = "bz:side_open"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_husri")])
+
+[sub_resource type="Resource" id="Resource_7r32r"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("16_gwo1r")
+
+[sub_resource type="Resource" id="Resource_lavug"]
+script = ExtResource("1_vj0p7")
+slot = "bz:side_closed"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_7r32r")])
+
+[sub_resource type="Resource" id="Resource_elb1s"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("17_oq6c5")
+
+[sub_resource type="Resource" id="Resource_4w66m"]
+script = ExtResource("1_vj0p7")
+slot = "bz:trade_rugs"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_elb1s")])
+
+[sub_resource type="Resource" id="Resource_2dr4y"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("18_y5gb1")
+
+[sub_resource type="Resource" id="Resource_kwyos"]
+script = ExtResource("1_vj0p7")
+slot = "bz:trade_copper"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_2dr4y")])
+
+[sub_resource type="Resource" id="Resource_y8dco"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("19_lvltp")
+
+[sub_resource type="Resource" id="Resource_gmj63"]
+script = ExtResource("1_vj0p7")
+slot = "bz:trade_lamps"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_y8dco")])
+
+[sub_resource type="Resource" id="Resource_gpe3i"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("20_guuco")
+
+[sub_resource type="Resource" id="Resource_es33c"]
+script = ExtResource("1_vj0p7")
+slot = "bz:trade_books"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_gpe3i")])
+
+[sub_resource type="Resource" id="Resource_hykpf"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("21_65ohv")
+
+[sub_resource type="Resource" id="Resource_ww8o8"]
+script = ExtResource("1_vj0p7")
+slot = "bz:trade_spices"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_hykpf")])
+
+[sub_resource type="Resource" id="Resource_u284t"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("22_y6iui")
+
+[sub_resource type="Resource" id="Resource_v8llw"]
+script = ExtResource("1_vj0p7")
+slot = "bz:trade_curios"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_u284t")])
+
+[sub_resource type="Resource" id="Resource_qgfpe"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("23_7ioig")
+
+[sub_resource type="Resource" id="Resource_eaeqs"]
+script = ExtResource("1_vj0p7")
+slot = "bz:trade_food"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_qgfpe")])
+
+[sub_resource type="Resource" id="Resource_gn3ag"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("24_hcopk")
+
+[sub_resource type="Resource" id="Resource_x6vcm"]
+script = ExtResource("1_vj0p7")
+slot = "bz:awning_a"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_gn3ag")])
+
+[sub_resource type="Resource" id="Resource_f8y4v"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("25_kb8sl")
+
+[sub_resource type="Resource" id="Resource_jb7ic"]
+script = ExtResource("1_vj0p7")
+slot = "bz:awning_b"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_f8y4v")])
+
+[sub_resource type="Resource" id="Resource_aciyo"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("26_cpscg")
+
+[sub_resource type="Resource" id="Resource_5h7ua"]
+script = ExtResource("1_vj0p7")
+slot = "bz:shut_bar"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_aciyo")])
+
+[sub_resource type="Resource" id="Resource_4y3c7"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("27_1esvm")
+
+[sub_resource type="Resource" id="Resource_330qj"]
+script = ExtResource("1_vj0p7")
+slot = "bz:shut_crates"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_4y3c7")])
+
+[sub_resource type="Resource" id="Resource_qlf52"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("28_nxshn")
+
+[sub_resource type="Resource" id="Resource_7q4if"]
+script = ExtResource("1_vj0p7")
+slot = "bz:pennants"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_qlf52")])
+
+[sub_resource type="Resource" id="Resource_xxj4v"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("29_an6rk")
+
+[sub_resource type="Resource" id="Resource_de7a7"]
+script = ExtResource("1_vj0p7")
+slot = "bz:upper_broken"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_xxj4v")])
+
+[sub_resource type="Resource" id="Resource_lwxxy"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("30_ivg2p")
+
+[sub_resource type="Resource" id="Resource_ejh6s"]
+script = ExtResource("1_vj0p7")
+slot = "bz:pennants_rag"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_lwxxy")])
+
+[sub_resource type="Resource" id="Resource_cassl"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("31_bbdeg")
+
+[sub_resource type="Resource" id="Resource_cvsvc"]
+script = ExtResource("1_vj0p7")
+slot = "bz:keeper_a"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_cassl")])
+
+[sub_resource type="Resource" id="Resource_186dy"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("32_0ocpg")
+
+[sub_resource type="Resource" id="Resource_s7mrm"]
+script = ExtResource("1_vj0p7")
+slot = "bz:keeper_b"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_186dy")])
+
+[sub_resource type="Resource" id="Resource_kmjaw"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("33_fmx6l")
+
+[sub_resource type="Resource" id="Resource_kw1aw"]
+script = ExtResource("1_vj0p7")
+slot = "bz:keeper_c"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_kmjaw")])
+
+[sub_resource type="Resource" id="Resource_yfl7t"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("34_sdvrq")
+
+[sub_resource type="Resource" id="Resource_r83yi"]
+script = ExtResource("1_vj0p7")
+slot = "bz:fig_a"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_yfl7t")])
+
+[sub_resource type="Resource" id="Resource_yd0q0"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("35_5fcpw")
+
+[sub_resource type="Resource" id="Resource_l0rlu"]
+script = ExtResource("1_vj0p7")
+slot = "bz:fig_b"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_yd0q0")])
+
+[sub_resource type="Resource" id="Resource_gabvo"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("36_oromx")
+
+[sub_resource type="Resource" id="Resource_k6p2j"]
+script = ExtResource("1_vj0p7")
+slot = "bz:fig_c"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_gabvo")])
+
+[sub_resource type="Resource" id="Resource_ke0nj"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("37_gm3k2")
+
+[sub_resource type="Resource" id="Resource_dt4gs"]
+script = ExtResource("1_vj0p7")
+slot = "bz:fig_d"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_ke0nj")])
+
+[sub_resource type="Resource" id="Resource_xqqkk"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("38_fqpq1")
+
+[sub_resource type="Resource" id="Resource_pgm2f"]
+script = ExtResource("1_vj0p7")
+slot = "bz:fig_e"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_xqqkk")])
+
+[sub_resource type="Resource" id="Resource_pvpye"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("39_24vcs")
+
+[sub_resource type="Resource" id="Resource_ec8qk"]
+script = ExtResource("1_vj0p7")
+slot = "bz:fig_f"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_pvpye")])
+
+[sub_resource type="Resource" id="Resource_qbfvc"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("40_3rv8f")
+
+[sub_resource type="Resource" id="Resource_d187o"]
+script = ExtResource("1_vj0p7")
+slot = "bz:fig_g"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_qbfvc")])
+
+[sub_resource type="Resource" id="Resource_hk71n"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("41_ijh6d")
+
+[sub_resource type="Resource" id="Resource_v5ibi"]
+script = ExtResource("1_vj0p7")
+slot = "bz:fig_h"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_hk71n")])
+
+[sub_resource type="Resource" id="Resource_mlwp6"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("42_14e45")
+
+[sub_resource type="Resource" id="Resource_6ixvo"]
+script = ExtResource("1_vj0p7")
+slot = "bz:group_talk"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_mlwp6")])
+
+[sub_resource type="Resource" id="Resource_vev75"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("43_gauag")
+
+[sub_resource type="Resource" id="Resource_oxxq4"]
+script = ExtResource("1_vj0p7")
+slot = "bz:group_ring"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_vev75")])
+
+[sub_resource type="Resource" id="Resource_q3o33"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("44_4eieb")
+
+[sub_resource type="Resource" id="Resource_dj15y"]
+script = ExtResource("1_vj0p7")
+slot = "bz:group_haggle"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_q3o33")])
+
+[sub_resource type="Resource" id="Resource_b3ysh"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("45_ofx24")
+
+[sub_resource type="Resource" id="Resource_23ecl"]
+script = ExtResource("1_vj0p7")
+slot = "bz:fountain"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_b3ysh")])
+
+[sub_resource type="Resource" id="Resource_5tp1b"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("46_b1bax")
+
+[sub_resource type="Resource" id="Resource_wc3qo"]
+script = ExtResource("1_vj0p7")
+slot = "bz:fountain_dry"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_5tp1b")])
+
+[sub_resource type="Resource" id="Resource_cojed"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("47_pmdqf")
+
+[sub_resource type="Resource" id="Resource_5xb1k"]
+script = ExtResource("1_vj0p7")
+slot = "bz:story"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_cojed")])
+
+[sub_resource type="Resource" id="Resource_syqrw"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("48_joj3b")
+
+[sub_resource type="Resource" id="Resource_00n3n"]
+script = ExtResource("1_vj0p7")
+slot = "bz:story_bare"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_syqrw")])
+
+[sub_resource type="Resource" id="Resource_jsyxx"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("49_tn2fn")
+
+[sub_resource type="Resource" id="Resource_8u3qw"]
+script = ExtResource("1_vj0p7")
+slot = "bz:shut_hooks"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_jsyxx")])
+
+[sub_resource type="Resource" id="Resource_wnes6"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("50_buymc")
+
+[sub_resource type="Resource" id="Resource_pk0i5"]
+script = ExtResource("1_vj0p7")
+slot = "bz:shut_dust"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_wnes6")])
+
+[sub_resource type="Resource" id="Resource_edi68"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("51_bjfkf")
+
+[sub_resource type="Resource" id="Resource_md7b7"]
+script = ExtResource("1_vj0p7")
+slot = "bz:bare"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_edi68")])
+
+[sub_resource type="Resource" id="Resource_ut4qu"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("52_ftgt6")
+
+[sub_resource type="Resource" id="Resource_xw2oq"]
+script = ExtResource("1_vj0p7")
+slot = "bz:awning_rag_a"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_ut4qu")])
+
+[sub_resource type="Resource" id="Resource_fqtg0"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("53_qb20n")
+
+[sub_resource type="Resource" id="Resource_01mq4"]
+script = ExtResource("1_vj0p7")
+slot = "bz:awning_rag_b"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_fqtg0")])
+
+[sub_resource type="Resource" id="Resource_ho2xx"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("54_fookb")
+
+[sub_resource type="Resource" id="Resource_dbatm"]
+script = ExtResource("1_vj0p7")
+slot = "bz:life"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_ho2xx")])
+
+[sub_resource type="Resource" id="Resource_v7d4t"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("55_da1d5")
+
+[sub_resource type="Resource" id="Resource_hptld"]
+script = ExtResource("1_vj0p7")
+slot = "bz:rumours"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_v7d4t")])
+
+[sub_resource type="Resource" id="Resource_ws2fm"]
+script = ExtResource("2_kqiva")
+scene = ExtResource("56_ds4lh")
+
+[sub_resource type="Resource" id="Resource_vgspc"]
+script = ExtResource("1_vj0p7")
+slot = "bz:rumours_old"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_kqiva")]([SubResource("Resource_ws2fm")])
+
+[resource]
+script = ExtResource("57_buxh8")
+rules = Array[ExtResource("1_vj0p7")]([SubResource("Resource_ak663"), SubResource("Resource_1dqcl"), SubResource("Resource_mcm18"), SubResource("Resource_sx17w"), SubResource("Resource_k88xc"), SubResource("Resource_qs2n6"), SubResource("Resource_rwh0l"), SubResource("Resource_tg8ix"), SubResource("Resource_6buwv"), SubResource("Resource_wu2tt"), SubResource("Resource_htv83"), SubResource("Resource_u2eqq"), SubResource("Resource_7nqtc"), SubResource("Resource_lavug"), SubResource("Resource_4w66m"), SubResource("Resource_kwyos"), SubResource("Resource_gmj63"), SubResource("Resource_es33c"), SubResource("Resource_ww8o8"), SubResource("Resource_v8llw"), SubResource("Resource_eaeqs"), SubResource("Resource_x6vcm"), SubResource("Resource_jb7ic"), SubResource("Resource_5h7ua"), SubResource("Resource_330qj"), SubResource("Resource_7q4if"), SubResource("Resource_de7a7"), SubResource("Resource_ejh6s"), SubResource("Resource_cvsvc"), SubResource("Resource_s7mrm"), SubResource("Resource_kw1aw"), SubResource("Resource_r83yi"), SubResource("Resource_l0rlu"), SubResource("Resource_k6p2j"), SubResource("Resource_dt4gs"), SubResource("Resource_pgm2f"), SubResource("Resource_ec8qk"), SubResource("Resource_d187o"), SubResource("Resource_v5ibi"), SubResource("Resource_6ixvo"), SubResource("Resource_oxxq4"), SubResource("Resource_dj15y"), SubResource("Resource_23ecl"), SubResource("Resource_wc3qo"), SubResource("Resource_5xb1k"), SubResource("Resource_00n3n"), SubResource("Resource_8u3qw"), SubResource("Resource_pk0i5"), SubResource("Resource_md7b7"), SubResource("Resource_xw2oq"), SubResource("Resource_01mq4"), SubResource("Resource_dbatm"), SubResource("Resource_hptld"), SubResource("Resource_vgspc")])

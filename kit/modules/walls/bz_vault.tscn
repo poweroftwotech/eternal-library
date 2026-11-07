@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_uo32i"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bz_vault.glb" id="2_wek04"]
+
+[node name="bz_vault" type="Node3D" unique_id=394307522]
+script = ExtResource("1_uo32i")
+family = "walls"
+tags = PackedStringArray("bazaar", "r04")
+source_glb = "res://assets/kit/walls/bz_vault.glb"
+
+[node name="Mesh" parent="." unique_id=1687738724 instance=ExtResource("2_wek04")]

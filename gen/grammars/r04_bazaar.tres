@@ -1,0 +1,11 @@
+[gd_resource type="Resource" script_class="BazaarGrammar" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/lore_book_pin.gd" id="1_ywvxw"]
+[ext_resource type="Resource" path="res://gen/rules/r04_bazaar.tres" id="2_bq4o5"]
+[ext_resource type="Script" path="res://scripts/gen/bazaar_grammar.gd" id="3_35h50"]
+
+[resource]
+script = ExtResource("3_35h50")
+styles = PackedStringArray("rock", "bazaar")
+rules = ExtResource("2_bq4o5")
+mood_tint = Color(1, 0.86, 0.56, 0.25)

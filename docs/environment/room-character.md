@@ -71,6 +71,7 @@ Light is the strongest tool, and every rework walk came back to it.
   | R01 Reading Room | Warm amber | Oil lamps on the furniture |
   | R02 Stack Galleries | Blue, growing with distance | Glowing fungus |
   | R03 Hypostyle Stacks | Red | Red carpet, red-fire lanterns |
+  | R04 Grand Bazaar | Saffron gold | Beams through the vault eyes, coloured glass, a different lamp colour for each trade |
   | R05 Caravanserai | Warm firelight | Lanterns, hearths |
   | R06 Domicile Quarter | Rose clay at dusk, muted | Rose plaster walls, cool air in the lanes, warmth only at the windows |
   | R09 Light-Well Stair | Green-gold, pulled to white | Daylight through vines |

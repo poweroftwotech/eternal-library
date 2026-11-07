@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_xm22i"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bz_end.glb" id="2_5wvyj"]
+
+[node name="bz_end" type="Node3D" unique_id=1715252744]
+script = ExtResource("1_xm22i")
+family = "walls"
+tags = PackedStringArray("bazaar", "r04")
+source_glb = "res://assets/kit/walls/bz_end.glb"
+
+[node name="Mesh" parent="." unique_id=2005641333 instance=ExtResource("2_5wvyj")]

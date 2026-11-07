@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_icubc"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bz_shut_hooks.glb" id="2_i2km1"]
+
+[node name="bz_shut_hooks" type="Node3D" unique_id=655582228]
+script = ExtResource("1_icubc")
+family = "walls"
+tags = PackedStringArray("bazaar", "r04", "shop")
+source_glb = "res://assets/kit/walls/bz_shut_hooks.glb"
+
+[node name="Mesh" parent="." unique_id=986989248 instance=ExtResource("2_i2km1")]

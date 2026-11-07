@@ -5,7 +5,8 @@ extends SceneTree
 ## from=<prefix>: the walks start at the door of the first room of that kind, and
 ## leaves that don't pass through one are left out (the Mahaleh's quarters, past
 ## its Bridge Hall entrance). Rooms with side lanes and homes (the Domicile
-## Quarter's meta arms and homes) have those walked too, doors open.
+## Quarter's meta arms and homes) have those walked too, doors open; so have the
+## Grand Bazaar's other ways and its open shops.
 ## For area seeds 1-5 of the library wing and the Lower Stacks (phase 5),
 ## streaming off: every planned room is built as a
 ## direct child of the Area; Validate Room is clean on every generated room
@@ -171,10 +172,29 @@ func audit(id: String, s: int) -> void:
 				var joined: bool = edge["mark"] == CellGrid.Mark.DOOR and str(r.connectors.get(StringName("SNAP_exit_" + CellGrid.key(cell, side)), {}).get("joined", "")) != ""
 				if not (edge["mark"] == CellGrid.Mark.SOLID or (edge["mark"] == CellGrid.Mark.DOOR and not joined)):
 					continue
+				# The Grand Bazaar's walls don't lie on its cell edges: "bounds" below.
+				if g.grid.meta.has("bounds") and edge["mark"] == CellGrid.Mark.SOLID:
+					continue
 				var out: Vector3 = g.global_basis * (Vector3(CellGrid.neighbour(cell, side) - cell) * Vector3(1, 0, -1))
 				# From the cell's own floor (a terrace stands up to 2.7 m over its storey).
 				if not await blocked(body, c + Vector3(0, floor_y + 0.95, 0), out * reach):
 					leaks.append("%s %s" % [cell, CellGrid.SIDE_NAMES[side]])
+		for b: Array in g.grid.meta.get("bounds", []):
+			if not await blocked(body, g.to_global(b[0]) + Vector3(0, 0.95, 0), g.global_basis * (b[1] as Vector3) * 3.0):
+				# The capsule may have started inside a figure, which spoils the test: go by a
+				# ray, past any figures, to the wall.
+				var from: Vector3 = g.to_global(b[0]) + Vector3(0, 0.95, 0)
+				var ray := PhysicsRayQueryParameters3D.create(from, from + g.global_basis * (b[1] as Vector3) * 3.0)
+				var skip: Array[RID] = [body.get_rid()]
+				var seen: Dictionary = {}
+				for _i: int in 6:
+					ray.exclude = skip
+					seen = g.get_world_3d().direct_space_state.intersect_ray(ray)
+					if seen.is_empty() or not String((seen["collider"] as Node).get_parent().name).begins_with("M_bz_"):
+						break
+					skip.append(seen["rid"])
+				if seen.is_empty():
+					leaks.append("from %s toward %s" % [b[0], b[1]])
 		check(floors == floored.size(), "%s: %s has floor under all %d cells that should have one (%d)" % [tag, r.slot_id, floored.size(), floors])
 		check(leaks.is_empty(), "%s: %s: every solid side and unjoined exit blocks (%s)" % [tag, r.slot_id, leaks])
 	# The baked gallery's own exit: blocked unless a room joined it.
@@ -235,7 +255,7 @@ func audit(id: String, s: int) -> void:
 			"%s: walk from the root through %s to the far end and back (%d of %d stops out, %d of %d back, feet %.2f / %.2f, the end's floor %.2f)" % [tag, " > ".join(names), reached, route.size(), returned, back.size(), feet_out, feet, end_floor])
 	# Side lanes and homes.
 	for r: AreaPlan.Room in p.rooms:
-		if r.grid == null or not r.grid.meta.has("homes"):
+		if r.grid == null or not (r.grid.meta.has("homes") or r.grid.meta.has("shops")):
 			continue
 		var g: Node3D = area.rooms[r.slot_id]
 		for d: Node in g.find_children("*", "", true, false):
@@ -244,8 +264,10 @@ func audit(id: String, s: int) -> void:
 		await physics_frame
 		await physics_frame
 		var ways: Array = (r.grid.meta["arms"] as Array).duplicate()
-		for h: Dictionary in r.grid.meta["homes"]:
+		for h: Dictionary in r.grid.meta.get("homes", []):
 			ways.append(h["walk"])
+		for shop: Array in r.grid.meta.get("shops", []):     # the Grand Bazaar: from the street into each open shop
+			ways.append([shop[1], shop[0]])
 		for w: int in ways.size():
 			var points: Array[Vector3] = []
 			for q: Vector3 in ways[w]:

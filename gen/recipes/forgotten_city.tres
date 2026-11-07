@@ -9,8 +9,10 @@
 [ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="5_w5i8p"]
 [ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="6_lseib"]
 [ext_resource type="Resource" path="res://gen/grammars/r07_garden_wild.tres" id="6_wmflr"]
+[ext_resource type="Resource" path="res://gen/grammars/r06_quarter.tres" id="7_lseib"]
+[ext_resource type="Resource" path="res://gen/grammars/r04_bazaar.tres" id="8_wmflr"]
 
-[sub_resource type="Resource" id="Resource_h1vwa"]
+[sub_resource type="Resource" id="Resource_lseib"]
 script = ExtResource("2_xb1oy")
 grammar = ExtResource("3_cmeof")
 display_name = "Forgotten Study"
@@ -19,7 +21,7 @@ slot_prefix = "readinga"
 from = PackedStringArray()
 one_of = PackedStringArray()
 
-[sub_resource type="Resource" id="Resource_eabf2"]
+[sub_resource type="Resource" id="Resource_wmflr"]
 script = ExtResource("2_xb1oy")
 grammar = ExtResource("6_lseib")
 tweaks = {
@@ -32,7 +34,7 @@ slot_prefix = "stacks"
 from = PackedStringArray("entrance", "readinga_1")
 one_of = PackedStringArray()
 
-[sub_resource type="Resource" id="Resource_xuc5k"]
+[sub_resource type="Resource" id="Resource_h1vwa"]
 script = ExtResource("2_xb1oy")
 grammar = ExtResource("5_lseib")
 display_name = "Forgotten Room"
@@ -41,13 +43,38 @@ slot_prefix = "readingb"
 from = PackedStringArray("stacks_1", "stacks_2")
 one_of = PackedStringArray()
 
-[sub_resource type="Resource" id="Resource_q1s8e"]
+[sub_resource type="Resource" id="Resource_eabf2"]
 script = ExtResource("2_xb1oy")
 grammar = ExtResource("6_wmflr")
-display_name = "New rooms"
+display_name = "OldGarden"
 count = Vector2i(1, 1)
-slot_prefix = "rule"
+slot_prefix = "oldGarden"
 from = PackedStringArray()
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_xuc5k"]
+script = ExtResource("2_xb1oy")
+grammar = ExtResource("7_lseib")
+tweaks = {
+"alley": "short",
+"state": "deserted"
+}
+display_name = "Old City"
+count = Vector2i(1, 1)
+slot_prefix = "Old_City"
+from = PackedStringArray("oldGarden_1")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_q1s8e"]
+script = ExtResource("2_xb1oy")
+grammar = ExtResource("8_wmflr")
+tweaks = {
+"state": "deserted"
+}
+display_name = "Old Market"
+count = Vector2i(1, 1)
+slot_prefix = "old_Market"
+from = PackedStringArray("Old_City_1")
 one_of = PackedStringArray()
 
 [sub_resource type="Resource" id="Resource_ncmjv"]
@@ -68,9 +95,9 @@ pinned = true
 script = ExtResource("4_cmeof")
 id = "forgotten_city"
 display_name = "The Forgotten City"
-version = 2
+version = 4
 slots = Array[ExtResource("5_w5i8p")]([SubResource("Resource_bax0l")])
-grow = Array[ExtResource("2_xb1oy")]([SubResource("Resource_h1vwa"), SubResource("Resource_eabf2"), SubResource("Resource_xuc5k"), SubResource("Resource_q1s8e")])
+grow = Array[ExtResource("2_xb1oy")]([SubResource("Resource_lseib"), SubResource("Resource_wmflr"), SubResource("Resource_h1vwa"), SubResource("Resource_eabf2"), SubResource("Resource_xuc5k"), SubResource("Resource_q1s8e")])
 room_count = Vector2i(1, 12)
 max_dead_ends = 0
 max_sight_depth = 4

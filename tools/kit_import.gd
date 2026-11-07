@@ -27,6 +27,11 @@ const LIGHT_PROFILES: Dictionary = {
 	# Blender properties "range", "spot_angle" and "energy" override these.
 	"shaft": {"color": Color(1.0, 0.95, 0.86), "energy": 8.0, "range": 30.0, "attenuation": 0.35, "shadow": false, "spot": 15.0, "spot_falloff": 2.0, "fog": 4.0, "far": true},
 	"bounce": {"color": Color(0.84, 0.87, 0.92), "energy": 0.55, "range": 12.0, "attenuation": 0.8, "shadow": false, "fog": 0.0, "far": true},
+	# The Grand Bazaar (phase 15): sunlight through an eye in a vault. Its source
+	# stands well over the eye, so the beam fills the eye, where a shaft's cone
+	# would start as a point there. Much narrower and it stops reaching the floor
+	# (under about 3 degrees, the light is lost).
+	"beam": {"color": Color(1.0, 0.93, 0.76), "energy": 10.0, "range": 64.0, "attenuation": 0.05, "shadow": false, "spot": 10.0, "spot_falloff": 0.9, "fog": 1.6, "far": true},
 	# The Garden Court (phase 13): the sun down its broad shaft, the one shadowed
 	# light in the room; the shaft's walls shape its patch on the court.
 	"sun": {"color": Color(1.0, 0.95, 0.84), "energy": 14.0, "range": 70.0, "attenuation": 0.3, "shadow": true, "spot": 14.0, "spot_falloff": 1.2, "fog": 0.45, "far": true, "size": 0.6},     # fog 0.12 -> 0.45 after walk 5: the haze column

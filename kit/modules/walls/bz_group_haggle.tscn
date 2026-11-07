@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_e534x"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/bz_group_haggle.glb" id="2_p61py"]
+
+[node name="bz_group_haggle" type="Node3D" unique_id=294792778]
+script = ExtResource("1_e534x")
+family = "walls"
+tags = PackedStringArray("bazaar", "r04", "shop")
+source_glb = "res://assets/kit/walls/bz_group_haggle.glb"
+
+[node name="Mesh" parent="." unique_id=1832714328 instance=ExtResource("2_p61py")]

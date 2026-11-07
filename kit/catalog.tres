@@ -2716,6 +2716,456 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "bz_awning_a",
+"scene": "res://kit/modules/walls/bz_awning_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_awning_b",
+"scene": "res://kit/modules/walls/bz_awning_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_awning_rag_a",
+"scene": "res://kit/modules/walls/bz_awning_rag_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_awning_rag_b",
+"scene": "res://kit/modules/walls/bz_awning_rag_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_bare",
+"scene": "res://kit/modules/walls/bz_bare.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_cross",
+"scene": "res://kit/modules/walls/bz_cross.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_end",
+"scene": "res://kit/modules/walls/bz_end.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_fig_a",
+"scene": "res://kit/modules/walls/bz_fig_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_fig_b",
+"scene": "res://kit/modules/walls/bz_fig_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_fig_c",
+"scene": "res://kit/modules/walls/bz_fig_c.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_fig_d",
+"scene": "res://kit/modules/walls/bz_fig_d.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_fig_e",
+"scene": "res://kit/modules/walls/bz_fig_e.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_fig_f",
+"scene": "res://kit/modules/walls/bz_fig_f.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_fig_g",
+"scene": "res://kit/modules/walls/bz_fig_g.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_fig_h",
+"scene": "res://kit/modules/walls/bz_fig_h.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_floor",
+"scene": "res://kit/modules/walls/bz_floor.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_fountain",
+"scene": "res://kit/modules/walls/bz_fountain.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_fountain_dry",
+"scene": "res://kit/modules/walls/bz_fountain_dry.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_group_haggle",
+"scene": "res://kit/modules/walls/bz_group_haggle.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_group_ring",
+"scene": "res://kit/modules/walls/bz_group_ring.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_group_talk",
+"scene": "res://kit/modules/walls/bz_group_talk.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_keeper_a",
+"scene": "res://kit/modules/walls/bz_keeper_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_keeper_b",
+"scene": "res://kit/modules/walls/bz_keeper_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_keeper_c",
+"scene": "res://kit/modules/walls/bz_keeper_c.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_pennants",
+"scene": "res://kit/modules/walls/bz_pennants.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_pennants_rag",
+"scene": "res://kit/modules/walls/bz_pennants_rag.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_rib",
+"scene": "res://kit/modules/walls/bz_rib.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_rumour_board",
+"scene": "res://kit/modules/walls/bz_rumour_board.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_rumour_board_old",
+"scene": "res://kit/modules/walls/bz_rumour_board_old.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_shop_open",
+"scene": "res://kit/modules/walls/bz_shop_open.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_shop_shut",
+"scene": "res://kit/modules/walls/bz_shop_shut.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_shut_bar",
+"scene": "res://kit/modules/walls/bz_shut_bar.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_shut_crates",
+"scene": "res://kit/modules/walls/bz_shut_crates.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_shut_dust",
+"scene": "res://kit/modules/walls/bz_shut_dust.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_shut_hooks",
+"scene": "res://kit/modules/walls/bz_shut_hooks.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_side_closed",
+"scene": "res://kit/modules/walls/bz_side_closed.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_side_open",
+"scene": "res://kit/modules/walls/bz_side_open.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_story",
+"scene": "res://kit/modules/walls/bz_story.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_story_bare",
+"scene": "res://kit/modules/walls/bz_story_bare.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_trade_books",
+"scene": "res://kit/modules/walls/bz_trade_books.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_trade_copper",
+"scene": "res://kit/modules/walls/bz_trade_copper.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_trade_curios",
+"scene": "res://kit/modules/walls/bz_trade_curios.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_trade_food",
+"scene": "res://kit/modules/walls/bz_trade_food.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_trade_lamps",
+"scene": "res://kit/modules/walls/bz_trade_lamps.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_trade_rugs",
+"scene": "res://kit/modules/walls/bz_trade_rugs.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_trade_spices",
+"scene": "res://kit/modules/walls/bz_trade_spices.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04", "shop"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_upper",
+"scene": "res://kit/modules/walls/bz_upper.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_upper_broken",
+"scene": "res://kit/modules/walls/bz_upper_broken.tscn",
+"shape": "free",
+"size_cells": Vector3i(1650422373, 1701539698, 110),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_vault",
+"scene": "res://kit/modules/walls/bz_vault.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "bz_vault_eye",
+"scene": "res://kit/modules/walls/bz_vault_eye.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("bazaar", "r04"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "causeway_cell_4m",
 "scene": "res://kit/modules/walls/causeway_cell_4m.tscn",
 "shape": "cell",
