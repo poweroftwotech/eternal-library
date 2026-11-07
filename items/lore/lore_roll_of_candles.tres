@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="ItemDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/item_def.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"lore_roll_of_candles"
+display_name = "A Roll of Candles"
+spine_colour = Color(0.3, 0.26, 0.16, 1)
+text = "[i]Placeholder text: replace or approve.[/i]
+
+An account book. Each line is a name, a niche, and how many candles were paid for. The early pages run to hundreds of candles a season. The hand changes, then changes again, and the lines get shorter.
+
+Toward the end most entries read only [i]one candle, at the shrine[/i], with no name beside them. The last dozen are all in the same careful hand, though the dates cover more years than anyone could have kept them."

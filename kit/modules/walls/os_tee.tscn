@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_k6rfc"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/os_tee.glb" id="2_d2kgf"]
+
+[node name="os_tee" type="Node3D" unique_id=1173080661]
+script = ExtResource("1_k6rfc")
+family = "walls"
+size_cells = Vector3i(1, 1, 1)
+tags = PackedStringArray("ossuary", "r17")
+source_glb = "res://assets/kit/walls/os_tee.glb"
+
+[node name="Mesh" parent="." unique_id=884677933 instance=ExtResource("2_d2kgf")]

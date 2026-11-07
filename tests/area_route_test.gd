@@ -255,7 +255,7 @@ func audit(id: String, s: int) -> void:
 			"%s: walk from the root through %s to the far end and back (%d of %d stops out, %d of %d back, feet %.2f / %.2f, the end's floor %.2f)" % [tag, " > ".join(names), reached, route.size(), returned, back.size(), feet_out, feet, end_floor])
 	# Side lanes and homes.
 	for r: AreaPlan.Room in p.rooms:
-		if r.grid == null or not (r.grid.meta.has("homes") or r.grid.meta.has("shops")):
+		if r.grid == null or not (r.grid.meta.has("homes") or r.grid.meta.has("shops") or r.grid.meta.has("ossuary")):
 			continue
 		var g: Node3D = area.rooms[r.slot_id]
 		for d: Node in g.find_children("*", "", true, false):

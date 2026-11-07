@@ -323,6 +323,13 @@ func restore_world() -> void:
 		var id: String = room_key() + "/" + thing_path(p)
 		_track(p, id)
 		var d: Dictionary = ws.call("delta", id)
+		# A one-of-a-kind book you already hold isn't here too: you took this one,
+		# or its twin in another room.
+		if p.item != null and p.item.unique and ws.call("owns", p.item.id):
+			if not d.is_empty():
+				ws.call("note_applied", id)
+			p.queue_free()
+			continue
 		if d.is_empty():
 			continue
 		ws.call("note_applied", id)

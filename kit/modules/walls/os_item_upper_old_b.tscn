@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_klmjr"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/os_item_upper_old_b.glb" id="2_4j5do"]
+
+[node name="os_item_upper_old_b" type="Node3D" unique_id=1643980906]
+script = ExtResource("1_klmjr")
+family = "walls"
+tags = PackedStringArray("ossuary", "r17", "goods")
+source_glb = "res://assets/kit/walls/os_item_upper_old_b.glb"
+
+[node name="Mesh" parent="." unique_id=651935425 instance=ExtResource("2_4j5do")]

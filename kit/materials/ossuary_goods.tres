@@ -1,0 +1,9 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[ext_resource type="Texture2D" path="res://assets/textures/px/ossuary_goods.png" id="1_goods"]
+
+[resource]
+resource_name = "ossuary_goods"
+albedo_texture = ExtResource("1_goods")
+roughness = 0.9
+texture_filter = 0

@@ -77,6 +77,7 @@ Light is the strongest tool, and every rework walk came back to it.
   | R09 Light-Well Stair | Green-gold, pulled to white | Daylight through vines |
   | R11 Cistern Archive | Teal | Glowing plants and roots |
   | R10 Chasm Spans | Daylight and mist | The gorge's sky |
+  | R17 Ossuary of Books | Cold blue-grey in the dark | Candles, hung lanterns and glowcaps with hard shadows; fog, drips and webs when Forgotten |
 
   R02, R03 and R09 set a `mood_tint`; the others take their colour from
   their lights alone.

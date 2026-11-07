@@ -1,0 +1,14 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/shrine_candle.gd" id="1_ctokm"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/os_vigil.tscn" id="2_m70ft"]
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="3_oft6h"]
+
+[node name="ShrineCandle" type="StaticBody3D" unique_id=269359760]
+script = ExtResource("1_ctokm")
+
+[node name="os_vigil" type="Node3D" parent="." unique_id=145975099 instance=ExtResource("2_m70ft")]
+script = ExtResource("3_oft6h")
+family = "walls"
+tags = PackedStringArray("ossuary", "r17", "goods")
+source_glb = "res://assets/kit/walls/os_vigil.glb"

@@ -25,6 +25,11 @@ func _init() -> void:
 		print("wrote the bazaar's maps")
 		quit()
 		return
+	if OS.get_cmdline_user_args().has("ossuary"):  # -- ossuary: only the Ossuary of Books' maps
+		ossuary()
+		print("wrote the ossuary's maps")
+		quit()
+		return
 	if OS.get_cmdline_user_args().has("quarter"):  # -- quarter: only the Domicile Quarter's maps
 		quarter()
 		print("wrote the quarter's maps")
@@ -56,6 +61,7 @@ func _init() -> void:
 	kit_room()
 	persian()
 	quarter()
+	ossuary()
 	rugs()
 	var file: FileAccess = FileAccess.open(OUT + "manifest_ext.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify({"texel_density": 32, "materials": manifest}, " "))
@@ -781,6 +787,25 @@ func quarter() -> void:
 	mottled_kit("quarter_hide", pal(["#4a3324", "#5c4230", "#6e523c", "#806248", "#927254"]), 32, 6, 306, .85, .9)
 	mottled_kit("quarter_lane", pal(["#3e332b", "#4a3d33", "#56483c", "#625345", "#6d5e4f"]), 64, 6, 303, .8, .95)
 
+
+## The Ossuary of Books (phase 16): pale limestone with a grey-green bloom, so
+## the room's colour is in the stone and the candles have something to light.
+func ossuary() -> void:
+	ossuary_goods()
+	mottled_kit("ossuary_stone", pal(["#6e7068", "#7e8076", "#8e9084", "#9ea192", "#aeb2a0", "#bcc0ae"]), 64, 9, 321, 1.1, .92)
+	mottled_kit("ossuary_floor", pal(["#4e5048", "#5a5d53", "#66695e", "#72756a", "#7e8175"]), 64, 6, 322, .9, .9)
+
+
+## What lies in the ossuary's niches: a palette tools/kit_r17_goods.py picks from
+## by UV, one 4 x 4 block a colour, in the order of its constants. Linen going
+## grey, twine, the book bindings, pages, wraps.
+func ossuary_goods() -> void:
+	var shades: PackedStringArray = ["#e2dcc6", "#c8c2aa", "#a8a28c", "#8e8c7e", "#74746a", "#5a5b52", "#94805a", "#6e6450",
+		"#7a5232", "#5a3c26", "#7a3028", "#4c5c46", "#465468", "#7e7666", "#d4c8a2", "#969078", "#ac9460", "#d8b860", "#9e9e90", "#5e241e"]
+	var img: Image = Image.create(shades.size() * 4, 4, false, Image.FORMAT_RGB8)
+	for i: int in shades.size():
+		img.fill_rect(Rect2i(i * 4, 0, 4, 4), Color(shades[i]))
+	img.save_png("res://assets/textures/px/ossuary_goods.png")
 
 ## Four hung cloths side by side, one per 16 columns: pale washing, indigo with
 ## an ochre band, rose with diamonds, ochre and green stripes. The image's top

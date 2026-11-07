@@ -54,6 +54,10 @@ const LIGHT_PROFILES: Dictionary = {
 	"sconce": {"color": Color(1.0, 0.68, 0.36), "energy": 1.2, "range": 3.6, "attenuation": 1.6, "shadow": false},
 	"torch": {"color": Color(1.0, 0.56, 0.26), "energy": 1.8, "range": 4.5, "attenuation": 1.5, "shadow": false},
 	"candle": {"color": Color(1.0, 0.7, 0.42), "energy": 0.8, "range": 2.2, "attenuation": 1.6, "shadow": false},
+	"ossuary_shrine": {"color": Color(1.0, 0.66, 0.34), "energy": 2.2, "range": 9.0, "attenuation": 1.6, "shadow": true},
+	"ossuary_candle": {"color": Color(1.0, 0.68, 0.38), "energy": 1.2, "range": 4.6, "attenuation": 1.9, "shadow": true},
+	"ossuary_lantern": {"color": Color(1.0, 0.66, 0.36), "energy": 1.05, "range": 6.0, "attenuation": 2.0, "shadow": true},
+	"ossuary_glow": {"color": Color(0.62, 0.76, 1.0), "energy": 0.36, "range": 5.0, "attenuation": 1.7, "shadow": false},
 	# One small oil-lamp candle on a pantry shelf (walk 4: "it is just one
 	# candle"): less glare and a quick drop-off.
 	"candle_one": {"color": Color(1.0, 0.7, 0.42), "energy": 0.55, "range": 1.5, "attenuation": 1.8, "shadow": false},

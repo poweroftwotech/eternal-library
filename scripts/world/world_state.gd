@@ -145,6 +145,8 @@ func mark_dirty() -> void:
 
 
 func _process(delta: float) -> void:
+	if not data.is_empty():
+		data["played_s"] = played() + delta
 	if _dirty:
 		_timer -= delta
 		if _timer <= 0.0:
@@ -455,6 +457,11 @@ static func room_key_of(id: String) -> String:
 # The clock only moves when told to in phase 3 (the Esc menu, --advance-years).
 # Aging stores nothing: each socket draws a fixed number from its id, and the
 # rules turn years into how far along its chain it has gone.
+
+## Seconds of play in this world (a lit candle burns against it; ShrineCandle).
+func played() -> float:
+	return float(data.get("played_s", 0.0))
+
 
 ## Years since the world began.
 func years() -> float:

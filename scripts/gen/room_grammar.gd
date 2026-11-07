@@ -263,6 +263,9 @@ static func _xz(v: Vector3) -> Vector2:
 		emit_changed()
 ## The room's light tint while you're in it (the area's ambient light and haze
 ## ease toward it): the colour, and in alpha how far (0: the area's own).
+## How much of the area ambient light reaches this room (1: all of it). A room
+## whose light must all come from sources you can see keeps this low.
+@export_range(0.0, 1.0, 0.01) var ambient_scale: float = 1.0
 @export var mood_tint: Color = Color(1, 1, 1, 0):
 	set(value):
 		mood_tint = value

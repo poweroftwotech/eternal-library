@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_ltefx"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/os_bier.glb" id="2_sgp2e"]
+
+[node name="os_bier" type="Node3D" unique_id=494440912]
+script = ExtResource("1_ltefx")
+family = "walls"
+size_cells = Vector3i(1, 1, 1)
+tags = PackedStringArray("ossuary", "r17")
+source_glb = "res://assets/kit/walls/os_bier.glb"
+
+[node name="Mesh" parent="." unique_id=1869373403 instance=ExtResource("2_sgp2e")]

@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_o25by"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/os_shrine.glb" id="2_re581"]
+
+[node name="os_shrine" type="Node3D" unique_id=866499065]
+script = ExtResource("1_o25by")
+family = "walls"
+tags = PackedStringArray("ossuary", "r17")
+source_glb = "res://assets/kit/walls/os_shrine.glb"
+
+[node name="Mesh" parent="." unique_id=2130524654 instance=ExtResource("2_re581")]

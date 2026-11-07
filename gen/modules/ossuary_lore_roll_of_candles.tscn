@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/world_prop.gd" id="1_8cbjl"]
+[ext_resource type="Resource" path="res://items/lore/lore_roll_of_candles.tres" id="2_g2377"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/os_lore_book.tscn" id="3_ki40k"]
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="4_g5y7h"]
+
+[node name="LoreBook" type="RigidBody3D" unique_id=25524513]
+mass = 0.5
+script = ExtResource("1_8cbjl")
+item = ExtResource("2_g2377")
+
+[node name="os_lore_book" type="Node3D" parent="." unique_id=709637393 instance=ExtResource("3_ki40k")]
+script = ExtResource("4_g5y7h")
+family = "walls"
+tags = PackedStringArray("ossuary", "r17", "goods")
+source_glb = "res://assets/kit/walls/os_lore_book.glb"

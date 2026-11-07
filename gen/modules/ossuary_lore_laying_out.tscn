@@ -1,0 +1,17 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/world_prop.gd" id="1_ma4vw"]
+[ext_resource type="Resource" path="res://items/lore/lore_laying_out.tres" id="2_2dsu0"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/os_lore_book.tscn" id="3_n7rb0"]
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="4_icqlw"]
+
+[node name="LoreBook" type="RigidBody3D" unique_id=283550628]
+mass = 0.5
+script = ExtResource("1_ma4vw")
+item = ExtResource("2_2dsu0")
+
+[node name="os_lore_book" type="Node3D" parent="." unique_id=709637393 instance=ExtResource("3_n7rb0")]
+script = ExtResource("4_icqlw")
+family = "walls"
+tags = PackedStringArray("ossuary", "r17", "goods")
+source_glb = "res://assets/kit/walls/os_lore_book.glb"

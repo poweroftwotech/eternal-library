@@ -1,0 +1,24 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_t6gjl"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/stack_puddle_b.tscn" id="2_q5eop"]
+[ext_resource type="Script" path="res://scripts/world/stack_drips.gd" id="3_83ucb"]
+
+[node name="stack_puddle_drip_b" type="Node3D" unique_id=30229129]
+script = ExtResource("1_t6gjl")
+family = "dressing"
+tags = PackedStringArray("water", "floor")
+show_outline = false
+
+[node name="Puddle" type="Node3D" parent="." unique_id=209143447 instance=ExtResource("2_q5eop")]
+script = ExtResource("1_t6gjl")
+family = "dressing"
+tags = PackedStringArray("water", "floor")
+source_glb = "res://assets/kit/dressing/stack_puddle_b.glb"
+
+[node name="Drips" type="Node3D" parent="." unique_id=36168723]
+script = ExtResource("3_83ucb")
+drop_height = 2.75
+radius = 0.16
+drops = 2
+splashes = 4

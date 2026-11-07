@@ -1,0 +1,90 @@
+[gd_resource type="Resource" script_class="AreaRecipe" format=3]
+
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_gp1h1"]
+[ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="2_mmueu"]
+[ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="3_1yrc7"]
+[ext_resource type="Resource" path="res://gen/grammars/r04_bazaar.tres" id="4_xw7tg"]
+[ext_resource type="Resource" path="res://gen/grammars/r06_quarter.tres" id="5_lby0y"]
+[ext_resource type="Resource" path="res://gen/grammars/r17_ossuary.tres" id="6_41e3h"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="7_5qxte"]
+[ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="8_at5n8"]
+[ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="9_0cpny"]
+[ext_resource type="Resource" path="res://gen/grammars/r21_bridge_hall.tres" id="10_tpqdm"]
+[ext_resource type="Resource" path="res://gen/grammars/r05_court_7x5.tres" id="11_4wnmj"]
+
+[sub_resource type="Resource" id="Resource_85ixs"]
+script = ExtResource("2_mmueu")
+grammar = ExtResource("3_1yrc7")
+tweaks = {
+"length": "short"
+}
+display_name = "Alley"
+count = Vector2i(1, 1)
+slot_prefix = "alley"
+from = PackedStringArray("square")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_gadxi"]
+script = ExtResource("2_mmueu")
+grammar = ExtResource("4_xw7tg")
+display_name = "The Grand Bazaar"
+count = Vector2i(4, 4)
+slot_prefix = "bazaar"
+from = PackedStringArray("alley_1", "bazaar_1", "bazaar_2", "bazaar_3", "bazaar_4")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_x5p2j"]
+script = ExtResource("2_mmueu")
+grammar = ExtResource("5_lby0y")
+tweaks = {
+"alley": "short"
+}
+display_name = "The Domicile Quarter"
+count = Vector2i(4, 4)
+slot_prefix = "quarter"
+from = PackedStringArray("square", "quarter_1", "quarter_2", "quarter_3", "quarter_4")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_x7ngn"]
+script = ExtResource("2_mmueu")
+grammar = ExtResource("6_41e3h")
+display_name = "The Ossuary of Books"
+count = Vector2i(1, 1)
+slot_prefix = "ossuary"
+from = PackedStringArray("quarter_1", "quarter_2", "quarter_3", "quarter_4")
+one_of = PackedStringArray()
+
+[sub_resource type="Resource" id="Resource_kyrfn"]
+script = ExtResource("7_5qxte")
+envelope = AABB(-200, -8, -144, 400, 48, 256)
+
+[sub_resource type="Resource" id="Resource_5cifn"]
+script = ExtResource("9_0cpny")
+slot_id = "entrance"
+display_name = "Entrance"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("10_tpqdm")
+pinned = true
+
+[sub_resource type="Resource" id="Resource_hflhj"]
+script = ExtResource("9_0cpny")
+slot_id = "square"
+display_name = "The Square"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("11_4wnmj")
+parent = "entrance"
+connector = &"SNAP_exit_0_0_11_S"
+pinned = true
+
+[resource]
+script = ExtResource("8_at5n8")
+id = "mahaleh"
+display_name = "The Mahaleh"
+version = 9
+slots = Array[ExtResource("9_0cpny")]([SubResource("Resource_5cifn"), SubResource("Resource_hflhj")])
+grow = Array[ExtResource("2_mmueu")]([SubResource("Resource_85ixs"), SubResource("Resource_gadxi"), SubResource("Resource_x5p2j"), SubResource("Resource_x7ngn")])
+room_count = Vector2i(1, 15)
+max_dead_ends = 0
+max_sight_depth = 10
+placement = SubResource("Resource_kyrfn")
+atmosphere = ExtResource("1_gp1h1")

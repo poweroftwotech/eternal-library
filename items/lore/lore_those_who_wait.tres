@@ -1,0 +1,16 @@
+[gd_resource type="Resource" script_class="ItemDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/item_def.gd" id="1_item"]
+
+[resource]
+script = ExtResource("1_item")
+id = &"lore_those_who_wait"
+display_name = "On Those Who Wait"
+spine_colour = Color(0.2, 0.24, 0.2, 1)
+text = "[i]Placeholder text: replace or approve.[/i]
+
+A short treatise, much handled. It argues that the dead on the biers are not to be counted among the dead in the niches. Those in the niches are finished, and are kept. Those on the biers are only put by.
+
+It does not say for what. The closing page gives instructions for keeping a body fit: the cloth to be changed each year, the candle at the head never to be let die.
+
+Someone has underlined [i]never[/i], and then, more lightly, crossed the underline out."

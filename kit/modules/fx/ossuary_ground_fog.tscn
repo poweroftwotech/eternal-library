@@ -1,0 +1,21 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_module"]
+
+[sub_resource type="FogMaterial" id="FogMaterial_ground"]
+density = 0.95
+albedo = Color(0.74, 0.79, 0.88, 1)
+height_falloff = 3.4
+emission = Color(0.03, 0.038, 0.052, 1)
+edge_fade = 0.3
+
+[node name="ossuary_ground_fog" type="Node3D"]
+script = ExtResource("1_module")
+family = "fx"
+tags = PackedStringArray("fog", "fx", "ossuary")
+show_outline = false
+
+[node name="Fog" type="FogVolume" parent="."]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.36, 0)
+size = Vector3(4.6, 0.92, 4.6)
+material = SubResource("FogMaterial_ground")

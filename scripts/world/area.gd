@@ -93,6 +93,8 @@ func _process(delta: float) -> void:
 const GLOW_EASE: float = 1.5      # per second
 var _glow_want: Vector3 = Vector3.INF
 var _tint_want: Color = Color(1, 1, 1, 0)
+var _ambient_want: float = -1.0
+var _ambient_eased: bool = false     # a room has moved the ambient off the area's
 func _ease_room_glow(delta: float) -> void:
 	if _env == null or _env.environment == null or recipe == null or recipe.atmosphere == null:
 		return
@@ -102,25 +104,32 @@ func _ease_room_glow(delta: float) -> void:
 	var p: AtmosphereProfile = recipe.atmosphere
 	var want := Vector3(p.glow_bloom, p.glow_intensity, p.glow_threshold)
 	var tint := Color(p.ambient_color, 0.0)
+	var ambient: float = p.ambient_energy
 	var plan_room: AreaPlan.Room = room_at(cam.global_position)
 	if plan_room == null:     # a doorway, or outside: keep easing to the last room's
 		want = _glow_want if _glow_want != Vector3.INF else want
 		tint = _tint_want
+		ambient = _ambient_want if _ambient_want >= 0.0 else ambient
 	var room: GeneratedRoom = (rooms.get(plan_room.slot_id) if plan_room != null else null) as GeneratedRoom
 	if room != null and room.grammar != null:
 		var g: RoomGrammar = room.grammar
 		want = Vector3(g.glow_bloom if g.glow_bloom >= 0.0 else want.x, g.glow_intensity if g.glow_intensity >= 0.0 else want.y,
 				g.glow_threshold if g.glow_threshold >= 0.0 else want.z)
 		tint = g.tint_at(room.grid, room.to_local(cam.global_position)) if room.grid != null else g.mood_tint
+		ambient = p.ambient_energy * g.ambient_scale
 	elif plan_room != null:
 		tint = Color(1, 1, 1, 0)
 	_glow_want = want
 	_tint_want = tint
+	_ambient_want = ambient
 	var env: Environment = _env.environment
 	var k: float = 1.0 - exp(-GLOW_EASE * delta)
 	env.glow_bloom = lerpf(env.glow_bloom, want.x, k)
 	env.glow_intensity = lerpf(env.glow_intensity, want.y, k)
 	env.glow_hdr_threshold = lerpf(env.glow_hdr_threshold, want.z, k)
+	if _ambient_eased or absf(ambient - p.ambient_energy) > 0.001:
+		env.ambient_light_energy = lerpf(env.ambient_light_energy, ambient, k)
+		_ambient_eased = absf(ambient - p.ambient_energy) > 0.001 or absf(env.ambient_light_energy - ambient) > 0.002
 	var rgb := Color(tint.r, tint.g, tint.b)
 	env.ambient_light_color = env.ambient_light_color.lerp(p.ambient_color.lerp(rgb, tint.a), k)
 	env.volumetric_fog_albedo = env.volumetric_fog_albedo.lerp(p.fog_albedo.lerp(rgb, tint.a), k)

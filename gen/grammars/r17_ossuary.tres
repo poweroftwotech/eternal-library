@@ -1,0 +1,12 @@
+[gd_resource type="Resource" script_class="OssuaryGrammar" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/lore_book_pin.gd" id="1_02har"]
+[ext_resource type="Resource" path="res://gen/rules/r17_ossuary.tres" id="2_owiyx"]
+[ext_resource type="Script" path="res://scripts/gen/ossuary_grammar.gd" id="3_gt60y"]
+
+[resource]
+script = ExtResource("3_gt60y")
+styles = PackedStringArray("rock", "ossuary")
+rules = ExtResource("2_owiyx")
+ambient_scale = 0.8
+mood_tint = Color(0.45, 0.58, 0.8, 0.8)

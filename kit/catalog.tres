@@ -4507,6 +4507,465 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "os_bend",
+"scene": "res://kit/modules/walls/os_bend.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_bier",
+"scene": "res://kit/modules/walls/os_bier.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_candle",
+"scene": "res://kit/modules/walls/os_candle.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_chamber",
+"scene": "res://kit/modules/walls/os_chamber.tscn",
+"shape": "free",
+"size_cells": Vector3i(3, 1, 3),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_cross",
+"scene": "res://kit/modules/walls/os_cross.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_end",
+"scene": "res://kit/modules/walls/os_end.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_glow",
+"scene": "res://kit/modules/walls/os_glow.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_glow_small",
+"scene": "res://kit/modules/walls/os_glow_small.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_bier",
+"scene": "res://kit/modules/walls/os_item_bier.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_bier_old",
+"scene": "res://kit/modules/walls/os_item_bier_old.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_bier_rag",
+"scene": "res://kit/modules/walls/os_item_bier_rag.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_body_a",
+"scene": "res://kit/modules/walls/os_item_long_body_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_body_b",
+"scene": "res://kit/modules/walls/os_item_long_body_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_books",
+"scene": "res://kit/modules/walls/os_item_long_books.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_books_old",
+"scene": "res://kit/modules/walls/os_item_long_books_old.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_bundles",
+"scene": "res://kit/modules/walls/os_item_long_bundles.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_bundles_old",
+"scene": "res://kit/modules/walls/os_item_long_bundles_old.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_old_a",
+"scene": "res://kit/modules/walls/os_item_long_old_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_old_b",
+"scene": "res://kit/modules/walls/os_item_long_old_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_rag_a",
+"scene": "res://kit/modules/walls/os_item_long_rag_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_rag_b",
+"scene": "res://kit/modules/walls/os_item_long_rag_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_slump_a",
+"scene": "res://kit/modules/walls/os_item_long_slump_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_long_slump_b",
+"scene": "res://kit/modules/walls/os_item_long_slump_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_nook_bundle",
+"scene": "res://kit/modules/walls/os_item_nook_bundle.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_nook_row",
+"scene": "res://kit/modules/walls/os_item_nook_row.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_nook_stack",
+"scene": "res://kit/modules/walls/os_item_nook_stack.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_offer_bowl",
+"scene": "res://kit/modules/walls/os_item_offer_bowl.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_offer_cloth",
+"scene": "res://kit/modules/walls/os_item_offer_cloth.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_offer_flowers",
+"scene": "res://kit/modules/walls/os_item_offer_flowers.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_offer_tray",
+"scene": "res://kit/modules/walls/os_item_offer_tray.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_rock_high",
+"scene": "res://kit/modules/walls/os_item_rock_high.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_rock_low",
+"scene": "res://kit/modules/walls/os_item_rock_low.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_spill_a",
+"scene": "res://kit/modules/walls/os_item_spill_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_spill_b",
+"scene": "res://kit/modules/walls/os_item_spill_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_upper_a",
+"scene": "res://kit/modules/walls/os_item_upper_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_upper_b",
+"scene": "res://kit/modules/walls/os_item_upper_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_upper_c",
+"scene": "res://kit/modules/walls/os_item_upper_c.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_upper_old_a",
+"scene": "res://kit/modules/walls/os_item_upper_old_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_upper_old_b",
+"scene": "res://kit/modules/walls/os_item_upper_old_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_upper_old_c",
+"scene": "res://kit/modules/walls/os_item_upper_old_c.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_web_a",
+"scene": "res://kit/modules/walls/os_item_web_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_item_web_b",
+"scene": "res://kit/modules/walls/os_item_web_b.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_lantern",
+"scene": "res://kit/modules/walls/os_lantern.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_lore_book",
+"scene": "res://kit/modules/walls/os_lore_book.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_plug",
+"scene": "res://kit/modules/walls/os_plug.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_shrine",
+"scene": "res://kit/modules/walls/os_shrine.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_shrine_old",
+"scene": "res://kit/modules/walls/os_shrine_old.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_straight",
+"scene": "res://kit/modules/walls/os_straight.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_tee",
+"scene": "res://kit/modules/walls/os_tee.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_throat",
+"scene": "res://kit/modules/walls/os_throat.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 1, 1),
+"tags": PackedStringArray("ossuary", "r17"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "os_vigil",
+"scene": "res://kit/modules/walls/os_vigil.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("ossuary", "r17", "goods"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "post_column_twisted",
 "scene": "res://kit/modules/walls/post_column_twisted.tscn",
 "shape": "post",
