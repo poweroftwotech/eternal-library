@@ -4,10 +4,12 @@
 
 ## Step 5: live and tested (built 2026-11-07, committed after your walk: phase 15 is complete)
 
-- **Your walk:** you walked and tested the deserted version by adding it to the Forgotten City, and it looks good enough for now. That recipe now also has a deserted quarter.
+- **Your walks:** you walked the deserted version by adding it to the Forgotten City, and it looks good enough for now. That recipe now also has a deserted quarter. You also walked the lived-in version in the Mahaleh.
+- **You reshaped the Mahaleh (recipe v9, in commit 71ce8d8):** one alley off the square leads to four bazaars joined door to door, and four quarters grow off the square and each other. The garden and second alley are gone. Over 40 worlds: 4 bazaars in 39 and 1 in the other, 4 quarters in all 40, no plan errors.
+- **The checks below were made on the earlier v7 recipe,** with one bazaar. Neither the route audit nor the frame gate has been run on v9. Don't rerun `tools/make_r04_live.gd` or `tools/make_r06_live.gd`: both would overwrite your v9 grow rules.
 
-- **Live:** `tools/make_r04_live.gd` adds one bazaar to the Mahaleh's recipe (now v7), off an alley or the garden. It grows in 40 of 40 worlds, with no plan errors.
-- **Quarters:** the bazaar took their space (0 quarters in 33 of 40 worlds), so quarters can now also grow off the bazaar's doors. Now: 2 quarters in 9 worlds, 3 in 8, 4 in 11, and **none in 12**.
+- **Live (v7, before your reshape):** `tools/make_r04_live.gd` added one bazaar to the Mahaleh's recipe, off an alley or the garden. It grew in 40 of 40 worlds, with no plan errors.
+- **Quarters (v7, before your reshape):** the bazaar took their space (0 quarters in 33 of 40 worlds), so quarters could also grow off its doors: 2 in 9 worlds, 3 in 8, 4 in 11, none in 12. Your v9 recipe replaces this.
 - **Route audit:** `tests/area_route_test.gd` on seeds 1, 2, 7 and 13 of the live recipe, and 13 deserted. The capsule walks through the bazaar, round the middle, down every street and into every open shop and back, nothing stuck. Every room passes its checks except the entrance's old socket warning (also noted in phase 14).
 - **Wall checks:** the bazaar's walls don't lie on its cell edges, so the audit now tests real points ("bounds" in its meta): each shop's back and sides, shut fronts, street ends and the crossing's walls. Where a figure stands at the start, it goes by a ray past the figure.
 - **Fixed by the audit:** groups stood too close to the walk round the middle, and row figures could stand in a shop's way in.
@@ -33,8 +35,7 @@ The gate as a whole reports FAIL. Only seed 13 was measured.
 
 ### Not checked or not done
 
-- The live, lived-in Mahaleh wasn't reported on separately: your walk was of the deserted version.
-- 12 of 40 worlds have no quarter.
+- Route audit and frame gate on your v9 Mahaleh, with four bazaars joined.
 - The audit starts at the bazaar's door, as phase 14's did, because the walk from the Mahaleh's entrance through the Bridge Hall is still unsolved.
 
 ## Step 4: life and story (built 2026-11-06, accepted 2026-11-07)
