@@ -3,13 +3,14 @@ extends SceneTree
 ##   the Grand Study      tended, off the red hall or a reading room, grown last
 ##                        (28 of 40 worlds, no other room lost; grown after the
 ##                        reading rooms it fitted in 40 but took stacks' doors);
-##   the Forgotten Wing   the Forgotten version, grown last off any free door
-##                        (5 of 40 worlds, no other room lost; the area is full:
-##                        after the cistern it fitted in 14 but cost the
-##                        light-well's upper rooms 6 worlds and the terraces 4).
-## At most one a world in each area (the recipes are placeholders: zero cost). Adds the grow rule (or replaces one made
-## before), bumps each recipe's version once, then reports over WORLDS worlds
-## where it fits and how the other grown rooms fare before and after.
+##   the Forgotten City   the Forgotten version, grown last off any free door,
+##                        where the other forgotten rooms are (moved there
+##                        2026-11-08: the Forgotten Wing isn't on the stratum
+##                        plan; REMOVE takes it out of that recipe).
+## At most one a world in each area (the recipes are placeholders: zero cost).
+## Adds the grow rule (or replaces one made before), bumps each recipe's
+## version once, then reports over WORLDS worlds where it fits and how the
+## other grown rooms fare before and after.
 ##   godot --headless --path . --script res://tools/make_r08_live.gd [-- --dry]
 
 const GRAMMAR: String = "res://gen/grammars/r08_scriptorium.tres"
@@ -18,14 +19,29 @@ const WORLDS: int = 40
 const AREAS: Dictionary = {
 	"grand_study": {"from": ["GrandHall", "ReadingRoomA_1", "ReadingRoomB_1"], "after": "oldStacks", "tweaks": {},
 		"others": ["ReadingRoomA_1", "ReadingRoomB_1", "Gardens_1", "Caravan_1", "oldStacks_1", "RoomAStacks_1", "RoomAStacks_2_1"]},
-	"forgotten_wing": {"from": [], "after": "terraces", "tweaks": {"state": "forgotten"},
-		"others": ["garden_1", "lightwell_1", "bridge_1", "cistern_1", "upper_1", "terraces_1"]},
+	"forgotten_city": {"from": [], "after": "ossuary", "tweaks": {"state": "forgotten"},
+		"others": ["readinga_1", "stacks_1", "stacks_2", "readingb_1", "oldGarden_1", "Old_City_1", "old_Market_1", "ossuary_1"]},
 }
+## Areas the scriptorium is taken out of (version bumped once).
+const REMOVE: PackedStringArray = ["forgotten_wing"]
 
 
 func _initialize() -> void:
 	var dry: bool = OS.get_cmdline_user_args().has("--dry")
 	var err: int = OK
+	for id: String in REMOVE:
+		var path: String = "res://gen/recipes/%s.tres" % id
+		var live: AreaRecipe = load(path)
+		var kept: Array[AreaGrow] = []
+		for g: AreaGrow in live.grow:
+			if g != null and g.slot_prefix != PREFIX:
+				kept.append(g)
+		if kept.size() != live.grow.size():
+			live.grow = kept
+			live.version += 1
+			if not dry:
+				err = maxi(err, ResourceSaver.save(live, path))
+			print("make_r08_live: %s version %d, the scriptorium taken out%s" % [id, live.version, " (dry run)" if dry else ""])
 	for id: String in AREAS:
 		var cfg: Dictionary = AREAS[id]
 		var path: String = "res://gen/recipes/%s.tres" % id

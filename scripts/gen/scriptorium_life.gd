@@ -64,12 +64,19 @@ func _process(delta: float) -> void:
 
 func _apply() -> void:
 	var s: float = swell(_t)
+	# Lights and glass can be freed under us (the room streamed out, or the
+	# light budget's): check before the cast.
 	for m: Dictionary in _moss:
-		(m["light"] as Light3D).light_energy = float(m["base"]) * _dim * (1.0 + s * SWELL_LIGHT)
-	for g: GeometryInstance3D in _glass:
-		g.set_instance_shader_parameter("swell", (1.0 + s * SWELL_GLASS) * lerpf(1.0, _dim, 0.7))
+		if is_instance_valid(m["light"]):
+			(m["light"] as Light3D).light_energy = float(m["base"]) * _dim * (1.0 + s * SWELL_LIGHT)
+	for gv: Variant in _glass:
+		if not is_instance_valid(gv):
+			continue
+		(gv as GeometryInstance3D).set_instance_shader_parameter("swell", (1.0 + s * SWELL_GLASS) * lerpf(1.0, _dim, 0.7))
 	var cam: Camera3D = get_viewport().get_camera_3d()
 	for l: Dictionary in _lamps:
+		if not is_instance_valid(l["light"]):
+			continue
 		var light: Light3D = l["light"]
 		if cam != null and cam.global_position.distance_to(light.global_position) > FLICKER_REACH:
 			continue

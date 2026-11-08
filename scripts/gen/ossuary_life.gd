@@ -75,9 +75,9 @@ func _process(delta: float) -> void:
 	_t += delta
 	var eye: Vector3 = cam.global_position
 	for c: Dictionary in _candles:
-		var light := c["light"] as OmniLight3D
-		if not is_instance_valid(light):
+		if not is_instance_valid(c["light"]):     # freed (streamed out, or the light budget's): check before the cast
 			continue
+		var light := c["light"] as OmniLight3D
 		var at: Vector3 = light.global_position
 		var far: float = at.distance_to(eye)
 		if far > FLAME_REACH:

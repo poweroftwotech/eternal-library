@@ -10,15 +10,14 @@ The room is now in the live recipes (`tools/make_r08_live.gd`):
   reading room, in 28 of 40 worlds (13 off the hall, 15 off a reading room). No
   other room is lost. Grown right after the reading rooms it fitted in all 40,
   but took the reading rooms' stack galleries' doors (39 to 34 worlds).
-- **The Forgotten Wing, version 5:** the Forgotten version, grown last off any
-  free door, in 5 of 40 worlds. No other room is lost. The area is full:
-  grown after the cistern it fitted in 14, but cost the light-well's upper
-  rooms 6 worlds and the terraces 4.
-  - **The Forgotten Wing isn't on your stratum plan today** (the board has the
-    camp, the Gorge, the Grand Study, the Gardens, the Mahaleh and the Forgotten
-    City), so this version can't be reached in the game yet. The Forgotten City
-    is where the other forgotten rooms live (the Ossuary, the deserted bazaar
-    and quarters); the scriptorium could go there too.
+- **The Forgotten City, version 6:** the Forgotten version, grown last off any
+  free door, in 40 of 40 worlds (off the reading rooms, the stacks, the
+  deserted bazaar and quarters and the Ossuary). No other room is lost. It sits
+  with the other forgotten rooms there.
+  - It went first into the Forgotten Wing (5 of 40 worlds), as the brief said.
+    That area isn't on your stratum plan, so after your walk you moved it to the
+    Forgotten City (2026-11-08); the Forgotten Wing's recipe (version 6) no
+    longer has it.
 
 Walk it in the Grand Study: in worlds 2, 3, 4, 6, 7 and others the scriptorium
 grows (world 6 and 8 off the red hall). On the board, the Grand Study's live
@@ -44,28 +43,34 @@ recipe, Walk this seed.
 | Test | Result |
 |---|---|
 | Capsule walk (`tests/area_route_test.gd`): the Grand Study, area seeds 2 and 6, from the scriptorium's door to its far end and back | Pass, 153 checks (it first got stuck on copyists in the side bays: fixed as above) |
-| Capsule walk: the Forgotten Wing, area seeds 1-10 (the scriptorium in 3, 4 and 9) | Pass in the scriptorium. One failure elsewhere: a warning in an older gallery (seed 7, `gallery_3`) |
+| Capsule walk: the Forgotten City, area seeds 1-3 | Pass, 250 checks |
+| Capsule walk: the Forgotten Wing, area seeds 1-10, before the move | Pass in the scriptorium. One failure elsewhere: a warning in an older gallery (seed 7, `gallery_3`) |
 | Capsule walk: the test copy, seeds 1, 2 and 5, with the stacks off the side doors | Pass, 65 checks |
 | Save in one process, resume in another (`tests/r08_resume_test.gd`, world 2) | Pass, 19 checks: resumes under the glass on the floor; the same glass, desks and copy, word for word; the moss breathes; the map draws the room |
 | Kit test | Pass, 11,295 checks |
 
 ### Frame gate (Medium, 1080p, walked)
 
-| In the scriptorium | Limit | Grand Study world 2 | Test copy, seed 5 | Forgotten test copy, seed 5 |
-|---|---|---|---|---|
-| GPU mean / worst | 3 / 4 ms | 1.06 / 2.13 | 0.90 / 1.84 | 0.87 / 1.91 |
-| CPU mean / worst | 4 / 8 ms | 1.62 / **9.96** | 1.57 / 4.24 | 1.56 / 4.74 |
-| Draw calls | 1,500 | 1,452 | 442 | 420 |
-| Lights in reach | 50 | 42 | 34 | 30 |
-| Shadowed lights | 4 | 4 | 2 | 2 |
+| In the scriptorium | Limit | Grand Study world 2 | Forgotten City world 2 | Test copy, seed 5 | Forgotten test copy, seed 5 |
+|---|---|---|---|---|---|
+| GPU mean / worst | 3 / 4 ms | 1.06 / 2.13 | 0.88 / 1.68 | 0.90 / 1.84 | 0.87 / 1.91 |
+| CPU mean / worst | 4 / 8 ms | 1.62 / **9.96** | 1.46 / **9.49** | 1.57 / 4.24 | 1.56 / 4.74 |
+| Draw calls | 1,500 | 1,452 | 1,012 | 442 | 420 |
+| Lights in reach | 50 | 42 | 16 | 34 | 30 |
+| Shadowed lights | 4 | 4 | 2 | 2 | 2 |
 
 - The test copies pass the gate as a whole.
 - The Grand Study fails as a whole, but not in the scriptorium: every failing
   frame is in other rooms (528 in `RoomAStacks_1`, a stack gallery off the
   reading room, mostly draw calls; 12 in the hall). In the scriptorium, one
   frame of 9.96 ms (CPU, nothing streaming).
-- The Forgotten Wing couldn't be frame-gated in the game (it isn't on the
-  stratum plan), so the Forgotten version was measured on its test copy.
+- The Forgotten City fails as a whole too, also elsewhere (21 slow frames in
+  the first reading room, 7 in the old garden, streaming loads). In the
+  scriptorium, one frame of 9.49 ms (CPU).
+- **Fixed in passing:** the Forgotten City's walk logged script errors from
+  the Ossuary's candles (`OssuaryLife`): a candle light freed by streaming was
+  cast before it was checked. It now checks first, and `ScriptoriumLife` does
+  the same; the walk again has no errors.
 
 ## Step 4: life and story (built 2026-11-08, walked: looks good; committed 3adcf35)
 
@@ -108,7 +113,7 @@ row's desk close up, under dust). Forgotten, seeds 1 and 5:
   - No copyists, and every desk is under dust.
   - The lamps are cold: still on the desks, with no flame.
   - The moss is at 40%, so the glass glows faintly over a dark hall.
-  - It goes into the Forgotten Wing in step 5.
+  - It went live in step 5, in the Forgotten City.
 
 ### For you to judge
 

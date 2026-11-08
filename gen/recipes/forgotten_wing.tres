@@ -11,7 +11,6 @@
 [ext_resource type="Resource" path="res://gen/grammars/r15_fungus_terraces.tres" id="8_7i1cb"]
 [ext_resource type="Resource" path="res://gen/grammars/r11_cistern.tres" id="8_r11"]
 [ext_resource type="Resource" path="res://gen/grammars/r09_lightwell.tres" id="9_r09"]
-[ext_resource type="Resource" path="res://gen/grammars/r08_scriptorium.tres" id="9_tgecc"]
 [ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_5x5.tscn" id="10_r05"]
 [ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_7x5.tscn" id="11_r05"]
 [ext_resource type="PackedScene" path="res://rooms/baked/caravanserai_3x3.tscn" id="12_r05"]
@@ -79,18 +78,6 @@ slot_prefix = "terraces"
 from = PackedStringArray()
 one_of = PackedStringArray()
 
-[sub_resource type="Resource" id="Resource_txpft"]
-script = ExtResource("3_grow")
-grammar = ExtResource("9_tgecc")
-tweaks = {
-"state": "forgotten"
-}
-display_name = "The Orosi Scriptorium"
-count = Vector2i(1, 1)
-slot_prefix = "scriptorium"
-from = PackedStringArray()
-one_of = PackedStringArray()
-
 [sub_resource type="Resource" id="Resource_place"]
 script = ExtResource("4_place")
 envelope = AABB(-122, -8, -60, 256, 48, 256)
@@ -123,9 +110,9 @@ pinned = true
 script = ExtResource("1_recipe")
 id = "forgotten_wing"
 display_name = "The Forgotten Wing"
-version = 5
+version = 6
 slots = Array[ExtResource("2_slot")]([SubResource("Resource_court"), SubResource("Resource_hall")])
-grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow"), SubResource("Resource_7i1cb"), SubResource("Resource_lightwell"), SubResource("Resource_bridge"), SubResource("Resource_cistern"), SubResource("Resource_upper"), SubResource("Resource_tgecc"), SubResource("Resource_txpft")])
+grow = Array[ExtResource("3_grow")]([SubResource("Resource_grow"), SubResource("Resource_7i1cb"), SubResource("Resource_lightwell"), SubResource("Resource_bridge"), SubResource("Resource_cistern"), SubResource("Resource_upper"), SubResource("Resource_tgecc")])
 room_count = Vector2i(6, 11)
 placement = SubResource("Resource_place")
 atmosphere = ExtResource("7_atmos")

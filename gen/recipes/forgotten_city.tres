@@ -12,6 +12,7 @@
 [ext_resource type="Resource" path="res://gen/grammars/r06_quarter.tres" id="7_lseib"]
 [ext_resource type="Resource" path="res://gen/grammars/r04_bazaar.tres" id="8_wmflr"]
 [ext_resource type="Resource" path="res://gen/grammars/r17_ossuary.tres" id="9_wmflr"]
+[ext_resource type="Resource" path="res://gen/grammars/r08_scriptorium.tres" id="10_h1vwa"]
 
 [sub_resource type="Resource" id="Resource_lseib"]
 script = ExtResource("2_xb1oy")
@@ -90,6 +91,18 @@ slot_prefix = "ossuary"
 from = PackedStringArray()
 one_of = PackedStringArray()
 
+[sub_resource type="Resource" id="Resource_g753e"]
+script = ExtResource("2_xb1oy")
+grammar = ExtResource("10_h1vwa")
+tweaks = {
+"state": "forgotten"
+}
+display_name = "The Orosi Scriptorium"
+count = Vector2i(1, 1)
+slot_prefix = "scriptorium"
+from = PackedStringArray()
+one_of = PackedStringArray()
+
 [sub_resource type="Resource" id="Resource_ncmjv"]
 script = ExtResource("3_22nm3")
 envelope = AABB(-122, -8, -144, 256, 48, 256)
@@ -108,9 +121,9 @@ pinned = true
 script = ExtResource("4_cmeof")
 id = "forgotten_city"
 display_name = "The Forgotten City"
-version = 5
+version = 6
 slots = Array[ExtResource("5_w5i8p")]([SubResource("Resource_bax0l")])
-grow = Array[ExtResource("2_xb1oy")]([SubResource("Resource_lseib"), SubResource("Resource_wmflr"), SubResource("Resource_h1vwa"), SubResource("Resource_eabf2"), SubResource("Resource_xuc5k"), SubResource("Resource_q1s8e"), SubResource("Resource_goyje")])
+grow = Array[ExtResource("2_xb1oy")]([SubResource("Resource_lseib"), SubResource("Resource_wmflr"), SubResource("Resource_h1vwa"), SubResource("Resource_eabf2"), SubResource("Resource_xuc5k"), SubResource("Resource_q1s8e"), SubResource("Resource_goyje"), SubResource("Resource_g753e")])
 room_count = Vector2i(1, 12)
 max_dead_ends = 0
 max_sight_depth = 4
