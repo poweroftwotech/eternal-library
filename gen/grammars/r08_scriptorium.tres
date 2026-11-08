@@ -1,0 +1,10 @@
+[gd_resource type="Resource" script_class="ScriptoriumGrammar" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/lore_book_pin.gd" id="1_iunuf"]
+[ext_resource type="Resource" path="res://gen/rules/r08_scriptorium.tres" id="2_gbbce"]
+[ext_resource type="Script" path="res://scripts/gen/scriptorium_grammar.gd" id="3_i02mb"]
+
+[resource]
+script = ExtResource("3_i02mb")
+styles = PackedStringArray("scriptorium")
+rules = ExtResource("2_gbbce")

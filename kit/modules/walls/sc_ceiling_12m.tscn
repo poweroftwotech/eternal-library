@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_vy2yf"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/sc_ceiling_12m.glb" id="2_7c63a"]
+
+[node name="sc_ceiling_12m" type="Node3D" unique_id=1962139125]
+script = ExtResource("1_vy2yf")
+family = "walls"
+size_cells = Vector3i(3, 1, 1)
+tags = PackedStringArray("scriptorium", "r08")
+source_glb = "res://assets/kit/walls/sc_ceiling_12m.glb"
+
+[node name="Mesh" parent="." unique_id=1067328516 instance=ExtResource("2_7c63a")]

@@ -23,6 +23,19 @@ wall's room face on Y 0 looking -Y (into the hall), the garden behind it on +Y.
                   with glowing warm moss on its floor and back wall, a lumen
                   stone high up (where the three window lights stand), and a
                   dim warm fill so the glass glows from behind
+
+Step 2, the hall (ScriptoriumGrammar). Edge pieces use the kit's edge frame:
+X 0..4 along the wall, the wall astride Y 0 (Y -0.3..0.3), the room on +Y
+(Godot -Z), floor to HEIGHT in one piece.
+
+  sc_niche_wall_4m  cream lime plaster with niches (taqcheh): two small pointed
+                    ones low down, a wide one above them, a dark wood cornice
+                    under the ceiling and a wood skirting
+  sc_door_wall_4m   the same wall round the kit's 3 m doorway (X 0.5..3.5),
+                    a wood frame round the arch, a small niche over it
+  sc_ceiling_12m    the timber ceiling over one 4 m bay of the 12 m hall:
+                    dark planks at HEIGHT, three beams across (1.33 m apart).
+                    Frame: X 0..12, Y 0..4 (one bay), from the hall's left wall
 """
 import math
 import os
@@ -32,7 +45,7 @@ import bmesh
 import bpy
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kit_blender import add_box, arch_ring, marker, mesh_object, module, rebuild  # noqa: E402
+from kit_blender import T, add_box, add_prism, arch_outline, arch_ring, cut, marker, mesh_object, module, rebuild  # noqa: E402
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BLEND = os.path.join(ROOT, "art_src", "kit", "kit_scriptorium.blend")
@@ -55,8 +68,8 @@ GARDEN_DEPTH = 4.4    # the slot behind the wall, from its back face
 GARDEN_TOP = 10.0
 
 
-def props(size=(3, 1, 2), tags="scriptorium,r08"):
-    return {"kit_shape": "free", "kit_family": "walls", "size_cells": list(size), "edge": "", "tags": tags, "weight": 1.0}
+def props(size=(3, 1, 2), tags="scriptorium,r08", shape="free", edge=""):
+    return {"kit_shape": shape, "kit_family": "walls", "size_cells": list(size), "edge": edge, "tags": tags, "weight": 1.0}
 
 
 def pointed(half, spring, rise, n=10):
@@ -205,9 +218,69 @@ def moss_garden(r):
     marker("LIGHT_lumenmoss__fill", r, (WIDTH / 2, y0 + GARDEN_DEPTH * 0.5, 2.0))
 
 
+# --- step 2: the hall ------------------------------------------------------------
+
+NICHE_PLASTER = "persian_plaster"       # the niches' insides: a shade warmer than the wall
+CORNICE = 6.0                           # the wood cornice's foot, up to HEIGHT
+FACE = T                                # the walls' room face (Y), as the kit's
+
+
+def niche_cutter(r, x0, sill, span, spring, depth):
+    """A pointed niche's cutter, span wide from x0, its foot at sill, cut depth
+    into the room face."""
+    return solid("cutter", r, [NICHE_PLASTER],
+                 lambda bm: add_prism(bm, arch_outline(span, spring, 0.6, 10), x0, sill, FACE - depth, FACE + 0.2))
+
+
+def hall_trim(r, name, door=False):
+    """The dark wood cornice under the ceiling and a low skirting, proud of the face."""
+    solid(name + "__cornice", r, [WOOD], lambda bm: (add_box(bm, 0.0, 4.0, FACE, FACE + 0.12, CORNICE, HEIGHT),
+                                                    add_box(bm, 0.0, 4.0, FACE, FACE + 0.2, CORNICE - 0.08, CORNICE + 0.06)))
+
+    def skirting(bm):
+        for (a, b) in ([(0.0, 0.5), (3.5, 4.0)] if door else [(0.0, 4.0)]):
+            add_box(bm, a, b, FACE, FACE + 0.04, 0.0, 0.18)
+    solid(name + "__skirting", r, [WOOD], skirting)
+
+
+def niche_wall(r):
+    name = r.name[2:]
+    body = solid(name + "__body-col", r, [PLASTER], lambda bm: add_box(bm, 0.0, 4.0, -T, T, 0.0, HEIGHT))
+    for x0 in (0.6, 2.4):
+        cut(body, niche_cutter(r, x0, 1.2, 1.0, 1.0, 0.35))
+    cut(body, niche_cutter(r, 0.5, 3.4, 3.0, 0.6, 0.3))
+    hall_trim(r, name)
+
+
+def door_wall(r):
+    name = r.name[2:]
+    body = solid(name + "__body-col", r, [PLASTER], lambda bm: add_box(bm, 0.0, 4.0, -T, T, 0.0, HEIGHT))
+    cut(body, solid("cutter", r, [PLASTER], lambda bm: add_prism(bm, arch_outline(3.0, 1.8, 0.6, 12), 0.5, -0.01, -T - 0.2, T + 0.2)))
+    cut(body, niche_cutter(r, 1.5, 4.3, 1.0, 0.6, 0.3))
+    # A wood frame round the doorway on the room face.
+    inner = [(0.5 + u, v) for (u, v) in arch_outline(3.0, 1.8, 0.6, 12)]
+    outer = [(0.36 + u, v) for (u, v) in arch_outline(3.28, 1.84, 0.6, 12)]
+    solid(name + "__frame", r, [WOOD], lambda bm: arch_ring(bm, inner, outer, FACE - 0.02, FACE + 0.06, smooth=False), recalc=False)
+    hall_trim(r, name, door=True)
+
+
+def ceiling(r):
+    name = r.name[2:]
+    solid(name + "__planks", r, [WOOD], lambda bm: add_box(bm, 0.0, WIDTH, 0.0, 4.0, HEIGHT, HEIGHT + 0.2))
+
+    def beams(bm):
+        for k in range(3):
+            y = (k + 0.5) * 4.0 / 3.0
+            add_box(bm, 0.0, WIDTH, y - 0.13, y + 0.13, HEIGHT - 0.3, HEIGHT)
+    solid(name + "__beams", r, ["wood"], beams)
+
+
 MODULES = [
     ("M_sc_orosi_wall", props((3, 1, 2)), orosi_wall),
     ("M_sc_moss_garden", props((3, 1, 3)), moss_garden),
+    ("M_sc_niche_wall_4m", props((1, 1, 0), shape="edge", edge="solid"), niche_wall),
+    ("M_sc_door_wall_4m", props((1, 1, 0), shape="edge", edge="opening_3m"), door_wall),
+    ("M_sc_ceiling_12m", props((3, 1, 1)), ceiling),
 ]
 REBUILD = [("M_sc_orosi_wall", 2), ("M_sc_moss_garden", 1)]
 

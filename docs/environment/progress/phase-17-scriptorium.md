@@ -2,6 +2,60 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · [Approval brief](../phase-17-approval.md)
 
+## Step 2: the hall (built 2026-11-08, walked 2026-11-08: looks good)
+
+The bare hall, grown by its generator. Walk it from the Strata Board: the Grand
+Study, copy `scriptorium_test`, Walk this seed
+(`gen/recipes/drafts/grand_study/scriptorium_test.tres`: the scriptorium is the
+first room, with the door back to the Gorge in its entry, and two short stack
+galleries off its side doors). Try a few seeds: the length and the glass change.
+
+Pictures: `previews/phase17_step2/`, five views for seeds 1 (four cells, saffron
+and green), 2 and 11 (three cells, ruby and cobalt):
+`r08_hall_<seed>_door|middle|side|up|back.png`.
+
+- **The hall:** 12 m wide, 6.4 m high, three to five 4 m bays long by seed (Q2).
+  The orosi wall closes the far end; the glass palette is picked by seed (Q3).
+- **The walls:** cream lime plaster. Each bay has two small pointed niches at
+  chest height and a wide one above them (the atlas's taqcheh), a dark wood
+  cornice under the ceiling and a low wood skirting.
+- **Doors:** the entry in the middle of the near wall, and a door in the second
+  bay of each long wall when the area can grow there, each in the kit's 3 m
+  arch with a wood frame and a small niche over it. Never through the glass.
+- **The ceiling:** dark timber planks with three beams across each bay.
+- **The floor:** the kit's stone, with grand rugs (one design per room, by
+  seed) down either side of a bare aisle; the window light falls on them.
+- **Behind the glass:** the moss garden, kept out of the area: two cells deep and
+  three storeys high behind the far wall, not walked and not on the map.
+- **Lights:** the step 1 five (the three window lights with shadows, the glow,
+  the moss). Nothing else yet, so the door end is dark (the desk lamps are step 3).
+
+### For you to judge
+
+- The walls: are the niches the right size and number? Too plain?
+- The ceiling and the cornice: dark enough, too dark?
+- The rugs: the grand rugs either side of an aisle, or one carpet wall to wall?
+- The hall's length: three to five bays feel right?
+
+### Pieces
+
+- `tools/kit_add_r08.py`: `sc_niche_wall_4m`, `sc_door_wall_4m`, `sc_ceiling_12m`.
+- `scripts/gen/scriptorium_grammar.gd` (`ScriptoriumGrammar`).
+- `tools/make_r08_rules.gd` writes `gen/modules/sc_orosi.tscn` (the wall, the
+  garden and the glass setup; the palette comes from the generator),
+  `gen/rules/r08_scriptorium.tres`, `gen/grammars/r08_scriptorium.tres` and
+  the test draft.
+- `OrosiWallSetup` takes its palette from the module's `palette` meta.
+- `tests/r08_hall_capture.gd -- <out dir> [seed,seed,...]` takes the pictures.
+
+### Not tested yet
+
+The layout check passes (no unreachable or unmarked cells) and the pictures
+show no errors. No route, frame or save tests yet (step 5), and the scriptorium
+only grows as the test copy's first room, so how often it fits off other rooms
+is still to measure (step 5). The palette doesn't yet avoid ruby next to the
+red hall (Q3); that comes when it grows next to it.
+
 ## Step 1: the orosi wall and its light (built 2026-11-08, walked and committed 2026-11-08)
 
 A small test room. Walk it from the Strata Board: the Grand Study, copy

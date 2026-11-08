@@ -1,0 +1,15 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_qrils"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/sc_door_wall_4m.glb" id="2_tulwi"]
+
+[node name="sc_door_wall_4m" type="Node3D" unique_id=563159316]
+script = ExtResource("1_qrils")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "opening_3m"
+tags = PackedStringArray("scriptorium", "r08")
+source_glb = "res://assets/kit/walls/sc_door_wall_4m.glb"
+
+[node name="Mesh" parent="." unique_id=2112121692 instance=ExtResource("2_tulwi")]
