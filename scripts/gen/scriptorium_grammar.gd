@@ -46,6 +46,16 @@ const RUGS: PackedStringArray = ["herati", "medallion", "kilim", "gabbeh", "gard
 ## A grand rug's length (along the hall) and the gap between two.
 const RUG_LONG: float = 6.0
 const RUG_GAP: float = 0.5
+## Desk rows: the first copyist this far in from the entry, the rows this far
+## apart, a desk this deep in front of its copyist, and the last row's desk at
+## least this far from the glass.
+const DESK_FIRST: float = 3.0
+const DESK_STEP: float = 3.0
+const DESK_DEPTH: float = 0.85
+const GLASS_CLEAR: float = 1.2
+## Chance of a copyist at a desk in the near (lamplit) half and the far half.
+const COPYIST_NEAR: float = 0.75
+const COPYIST_FAR: float = 0.35
 
 
 func layout(grid: CellGrid, seed_value: int) -> void:
@@ -72,6 +82,7 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 	_mark_edges(grid, rows, doors)
 	_place_shell(grid, rows, _palette(rng))
 	_place_rugs(grid, rows, RUGS[rng.randi_range(0, RUGS.size() - 1)])
+	_place_desks(grid, rows, rng)
 	grid.meta["doors"] = doors
 	grid.meta["rows"] = rows
 
@@ -162,6 +173,29 @@ func _place_shell(grid: CellGrid, rows: int, glass: String) -> void:
 	for z: int in rows:
 		_shell(grid, "ceiling_%d" % z, "sc:ceiling", Transform3D(Basis(), Vector3(-BAY, 0, -z * BAY)))
 	_shell(grid, "orosi", "sc:orosi", Transform3D(Basis(), Vector3(-BAY, 0, -rows * BAY)), {"palette": glass})
+
+
+## Rows of copy desks on the rugs, two a side, the copyists kneeling behind them
+## facing the glass. Lamps only in the near half (Light in the brief: the glass
+## lights the far half and no flame stands beside it): the aisle-side desk of
+## each near row. Copyists at most desks by the door, fewer toward the glass
+## (step 4 turns that into the busy-to-abandoned walk).
+func _place_desks(grid: CellGrid, rows: int, rng: RandomNumberGenerator) -> void:
+	var length: float = rows * BAY
+	var face := Basis(Vector3.UP, PI)        # the modules face +Z; the copyists face the glass (-Z)
+	var r: int = 0
+	var z: float = -DESK_FIRST
+	while z - DESK_DEPTH > -length + GLASS_CLEAR:
+		var near: bool = z > -length * 0.5
+		for d: Array in [["w0", -1.85, false], ["w1", -0.15, true], ["e0", 4.15, true], ["e1", 5.85, false]]:
+			var at := Vector3(d[1], 0.0, z)
+			var lit: bool = near and d[2]
+			var k: String = "desk_%d_%s" % [r, d[0]]
+			grid.props[k] = {"slot": "sc:desk_lamp" if lit else "sc:desk", "xf": Transform3D(face, at)}
+			if rng.randf() < (COPYIST_NEAR if near else COPYIST_FAR):
+				grid.props["copyist_%d_%s" % [r, d[0]]] = {"slot": "sc:copyist_read" if rng.randf() < 0.3 else "sc:copyist_write", "xf": Transform3D(face, at)}
+		z -= DESK_STEP
+		r += 1
 
 
 ## Grand rugs down either side of a bare aisle, end to end from the entry to

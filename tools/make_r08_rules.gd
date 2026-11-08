@@ -13,6 +13,7 @@ extends SceneTree
 
 const WALLS: String = "res://kit/modules/walls/%s.tscn"
 const ORO: String = "res://gen/modules/sc_orosi.tscn"
+const DRESSING: String = "res://kit/modules/dressing/%s.tscn"
 
 
 func _initialize() -> void:
@@ -34,7 +35,9 @@ func run() -> void:
 	var err: int = _orosi_module()
 	var list: Array[ModuleRule] = []
 	for p: Array in [["sc:wall", WALLS % "sc_niche_wall_4m"], ["sc:door", WALLS % "sc_door_wall_4m"], ["sc:ceiling", WALLS % "sc_ceiling_12m"],
-			["sc:orosi", ORO], ["cell:floor", WALLS % "floor_4m"], ["stub:exit", "res://gen/modules/exit_glow.tscn"]]:
+			["sc:orosi", ORO], ["cell:floor", WALLS % "floor_4m"], ["stub:exit", "res://gen/modules/exit_glow.tscn"],
+			["sc:desk", DRESSING % "sc_copy_desk"], ["sc:desk_lamp", DRESSING % "sc_copy_desk_lamp"],
+			["sc:copyist_write", DRESSING % "sc_copyist_write"], ["sc:copyist_read", DRESSING % "sc_copyist_read"]]:
 		list.append(rule(p[0], p[1]))
 	for d: String in ScriptoriumGrammar.RUGS:
 		list.append(rule("rug:" + d, "res://kit/modules/dressing/rug_%s_grand.tscn" % d))

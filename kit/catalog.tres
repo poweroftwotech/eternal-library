@@ -1483,6 +1483,42 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "sc_copy_desk",
+"scene": "res://kit/modules/dressing/sc_copy_desk.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("scriptorium", "r08", "desk"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "sc_copy_desk_lamp",
+"scene": "res://kit/modules/dressing/sc_copy_desk_lamp.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("scriptorium", "r08", "desk", "lamp"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "sc_copyist_read",
+"scene": "res://kit/modules/dressing/sc_copyist_read.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("scriptorium", "r08", "figure"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "sc_copyist_write",
+"scene": "res://kit/modules/dressing/sc_copyist_write.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("scriptorium", "r08", "figure"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "side_table",
 "scene": "res://kit/modules/dressing/side_table.tscn",
 "shape": "free",

@@ -69,6 +69,12 @@ func run() -> void:
 			["up", near - into * (rows * 2.0) + across * 2.5, near - into * (rows * 2.0 - 2.0) - across * 6.0 + Vector3(0, 5.2, 0), 75.0],
 			["back", far + into * 1.2, near + Vector3(0, 0.6, 0), 75.0],
 		]
+		# copyist: a kneeling figure close up, from the front-side (the desk side).
+		var figs: Array[Node] = root.find_children("prop_copyist_*", "Node3D", true, false)
+		if not figs.is_empty():
+			var f: Node3D = figs[0] as Node3D
+			var fp: Vector3 = f.global_position
+			views.append(["copyist", fp - into * 1.6 + across * 1.2, fp + Vector3(0, 0.6, 0), 60.0])
 		for v: Array in views:
 			game.player.teleport(v[1] + Vector3(0, 0.05, 0))
 			game.player.camera.fov = v[3]

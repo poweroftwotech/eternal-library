@@ -43,9 +43,11 @@ import sys
 
 import bmesh
 import bpy
+from mathutils import Matrix
 
 sys.path.insert(0, os.path.dirname(os.path.abspath(__file__)))
-from kit_blender import T, add_box, add_prism, arch_outline, arch_ring, cut, marker, mesh_object, module, rebuild  # noqa: E402
+from kit_blender import (T, add_box, add_lathe, add_obox, add_prism, add_tube, arch_outline, arch_ring, cut,  # noqa: E402
+                         marker, mesh_object, module, rebuild)
 
 ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 BLEND = os.path.join(ROOT, "art_src", "kit", "kit_scriptorium.blend")
@@ -275,14 +277,131 @@ def ceiling(r):
     solid(name + "__beams", r, ["wood"], beams)
 
 
+# --- step 3: desks, copyists and lamps ----------------------------------------------
+# A copy place's frame: the copyist kneels at the origin facing -Y (Godot +Z),
+# the low desk in front of them (Y -0.85..-0.35, top DESK_TOP).
+
+DESK_TOP = 0.32
+
+
+def _moved(bm, build, m):
+    """Runs `build(bm)` and moves what it added by matrix `m` (kit_add_r15.py's)."""
+    before = set(bm.verts)
+    build(bm)
+    bmesh.ops.transform(bm, matrix=m, verts=[v for v in bm.verts if v not in before])
+
+
+def copy_desk(lamp):
+    def build(r):
+        name = r.name[2:]
+
+        def desk(bm):
+            add_box(bm, -0.6, 0.6, -0.85, -0.35, DESK_TOP - 0.05, DESK_TOP)          # the top
+            for x in (-0.55, 0.55):                                                    # two plank ends for legs
+                add_box(bm, x - 0.04, x + 0.04, -0.82, -0.38, 0.0, DESK_TOP - 0.05)
+            add_box(bm, -0.55, 0.55, -0.83, -0.79, 0.04, DESK_TOP - 0.05)              # the back apron
+        solid(name + "__desk", r, ["persian_wood"], desk)
+
+        def stand(bm):
+            # The rahl on the desk's back: two leaves crossed, open as a V, holding
+            # the book being copied.
+            add_obox(bm, (0.0, -0.7, DESK_TOP + 0.14), (0.46, 0.02, 0.3), (math.radians(-28), 0.0, 0.0))
+            add_box(bm, -0.24, 0.24, -0.8, -0.62, DESK_TOP, DESK_TOP + 0.02)
+        solid(name + "__rahl", r, ["wood"], stand)
+
+        def exemplar(bm):
+            for side in (-1, 1):
+                add_obox(bm, (side * 0.105, -0.68, DESK_TOP + 0.17), (0.2, 0.012, 0.27), (math.radians(-28), side * math.radians(8), 0.0))
+        solid(name + "__exemplar", r, ["pages"], exemplar)
+        solid(name + "__cover", r, ["book_leather"], lambda bm: add_obox(bm, (0.0, -0.69, DESK_TOP + 0.165), (0.44, 0.01, 0.29), (math.radians(-28), 0.0, 0.0)))
+
+        def sheet(bm):
+            add_box(bm, -0.2, 0.18, -0.58, -0.4, DESK_TOP, DESK_TOP + 0.006)           # the copy, half written
+            add_box(bm, 0.25, 0.5, -0.62, -0.44, DESK_TOP, DESK_TOP + 0.03)            # fresh sheets
+        solid(name + "__sheets", r, ["pages"], sheet)
+
+        def ink(bm):
+            add_lathe(bm, [(0.0, 0.0), (0.04, 0.0), (0.045, 0.035), (0.02, 0.05), (0.0, 0.05)], 0.36, -0.4, segs=8)
+            for z in (0.0,):
+                add_box(bm, -0.42, -0.26, -0.48, -0.42, z, z + 0.012)                  # a pen box
+        _moved_ink = bmesh.new()
+        ink(_moved_ink)
+        bmesh.ops.translate(_moved_ink, verts=_moved_ink.verts, vec=(0.0, 0.0, DESK_TOP))
+        mesh_object(name + "__ink", _moved_ink, ["iron"], r)
+        solid(name + "__pen", r, ["wood"], lambda bm: add_obox(bm, (0.05, -0.46, DESK_TOP + 0.01), (0.012, 0.22, 0.012), (0.0, 0.0, 0.5)))
+        # The cushion the copyist kneels on, and a pile of scrolls to the right.
+        solid(name + "__cushion", r, ["cushion_termeh"], lambda bm: add_box(bm, -0.32, 0.32, -0.22, 0.32, 0.0, 0.1))
+
+        def scrolls(bm):
+            for (x, y, z, rot) in ((0.95, -0.5, 0.05, 0.1), (0.95, -0.66, 0.05, -0.05), (0.95, -0.34, 0.05, 0.0), (0.95, -0.58, 0.14, 0.2)):
+                _moved(bm, lambda b: add_lathe(b, [(0.0, -0.22), (0.045, -0.22), (0.045, 0.22), (0.0, 0.22)], segs=7),
+                       Matrix.Translation((x, y, z)) @ Matrix.Rotation(math.pi / 2, 4, "X") @ Matrix.Rotation(rot, 4, "Y"))
+        solid(name + "__scrolls", r, ["pages"], scrolls)
+        if lamp:
+            # A small brass oil lamp on the desk's left corner (the near half's
+            # only light: Light in the brief, low and on the desks).
+            on_desk = Matrix.Translation((0.0, 0.0, DESK_TOP))
+            solid(name + "__lamp", r, ["brass"], lambda bm: (
+                _moved(bm, lambda b: add_lathe(b, [(0.0, 0.0), (0.05, 0.0), (0.06, 0.03), (0.03, 0.06), (0.0, 0.065)], -0.45, -0.45, segs=8), on_desk),
+                _moved(bm, lambda b: add_obox(b, (-0.38, -0.45, 0.045), (0.08, 0.02, 0.015), (0.0, 0.0, 0.0)), on_desk)))
+            solid(name + "__flame", r, ["emit_lantern"], lambda bm: _moved(
+                bm, lambda b: add_lathe(b, [(0.0, 0.0), (0.012, 0.012), (0.008, 0.04), (0.0, 0.055)], -0.33, -0.45, segs=6),
+                Matrix.Translation((0.0, 0.0, DESK_TOP + 0.05))))
+            marker("LIGHT_desk__copy", r, (-0.33, -0.45, DESK_TOP + 0.2))
+        solid(name + "-colonly", r, ["persian_wood"], lambda bm: add_box(bm, -0.62, 0.62, -0.87, -0.33, 0.0, 0.5))
+    return build
+
+
+def _figure(r, name, hip, lean, hands):
+    """A kneeling copyist (kit_add_r15.py's worker, kneeling): a robe from the
+    ground to `hip`, the body leaning `lean` radians toward the desk (-Y), a
+    hood with a shaded face, sleeves from the shoulders to `hands`."""
+    from mathutils import Vector
+    robe, hood, shade, hb = bmesh.new(), bmesh.new(), bmesh.new(), bmesh.new()
+    add_lathe(robe, [(0.3, 0.0), (0.33, 0.12), (0.22, hip)], 0.0, 0.12, segs=8)
+    body = Matrix.Translation((0.0, 0.0, hip)) @ Matrix.Rotation(lean, 4, "X")
+    _moved(robe, lambda bm: add_lathe(bm, [(0.21, 0.0), (0.22, 0.3), (0.19, 0.5), (0.1, 0.56)], segs=8), body)
+    head = body @ Matrix.Translation((0.0, -0.04, 0.5))
+    _moved(hood, lambda bm: add_lathe(bm, [(0.0, 0.0), (0.2, 0.04), (0.19, 0.2), (0.14, 0.32), (0.0, 0.38)], segs=8), head)
+    _moved(shade, lambda bm: add_lathe(bm, [(0.0, 0.0), (0.1, 0.02), (0.1, 0.18), (0.0, 0.2)], segs=6),
+           head @ Matrix.Translation((0.0, -0.1, 0.17)) @ Matrix.Rotation(math.pi / 2, 4, "X"))
+    for k, hx in enumerate((-0.2, 0.2)):
+        sh = body @ Vector((hx, 0.0, 0.46))
+        hp = Vector(hands[k])
+        el = (sh + hp) / 2 + Vector((hx * 0.3, 0.04, -0.02))
+        add_tube(robe, [tuple(sh), tuple(el), tuple(hp + Vector((0.0, 0.0, 0.05)))], [0.075, 0.065, 0.06], segs=6)
+        _moved(hb, lambda bm: add_lathe(bm, [(0.0, -0.05), (0.045, -0.03), (0.04, 0.04), (0.0, 0.05)], segs=5), Matrix.Translation(hp))
+    mesh_object(name + "__robe", robe, ["gorge_cloth"], r)
+    mesh_object(name + "__hood", hood, ["camp_cloth"], r)
+    mesh_object(name + "__shade", shade, ["culvert_dark"], r)
+    mesh_object(name + "__hands", hb, ["camp_leather"], r)
+    solid(name + "-colonly", r, ["persian_wood"], lambda bm: add_box(bm, -0.3, 0.3, -0.3, 0.35, 0.0, 1.0))
+
+
+def copyist_write(r):
+    """Bent to the desk, the pen hand on the copy, the other steadying it."""
+    _figure(r, "sc_copyist_write", 0.42, 0.55, [(-0.14, -0.46, DESK_TOP + 0.02), (0.06, -0.5, DESK_TOP + 0.02)])
+
+
+def copyist_read(r):
+    """Upright, reading over a sheet held up to the light."""
+    name = "sc_copyist_read"
+    _figure(r, name, 0.42, 0.12, [(-0.16, -0.36, 0.66), (0.16, -0.36, 0.66)])
+    solid(name + "__sheet", r, ["pages"], lambda bm: add_obox(bm, (0.0, -0.39, 0.74), (0.3, 0.008, 0.38), (math.radians(-12), 0.0, 0.0)))
+
+
 MODULES = [
     ("M_sc_orosi_wall", props((3, 1, 2)), orosi_wall),
     ("M_sc_moss_garden", props((3, 1, 3)), moss_garden),
     ("M_sc_niche_wall_4m", props((1, 1, 0), shape="edge", edge="solid"), niche_wall),
     ("M_sc_door_wall_4m", props((1, 1, 0), shape="edge", edge="opening_3m"), door_wall),
     ("M_sc_ceiling_12m", props((3, 1, 1)), ceiling),
+    ("M_sc_copy_desk", dict(props((1, 0, 1), "scriptorium,r08,desk"), kit_family="dressing"), copy_desk(False)),
+    ("M_sc_copy_desk_lamp", dict(props((1, 0, 1), "scriptorium,r08,desk,lamp"), kit_family="dressing"), copy_desk(True)),
+    ("M_sc_copyist_write", dict(props((1, 0, 1), "scriptorium,r08,figure"), kit_family="dressing"), copyist_write),
+    ("M_sc_copyist_read", dict(props((1, 0, 1), "scriptorium,r08,figure"), kit_family="dressing"), copyist_read),
 ]
-REBUILD = [("M_sc_orosi_wall", 2), ("M_sc_moss_garden", 1)]
+REBUILD = [("M_sc_orosi_wall", 2), ("M_sc_moss_garden", 1), ("M_sc_copyist_write", 2), ("M_sc_copyist_read", 2)]   # copyists rev 2: a solid robe (gorge_cloth)
 
 
 def main():

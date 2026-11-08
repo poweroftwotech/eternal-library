@@ -1,130 +1,174 @@
 [gd_resource type="Resource" script_class="ModuleRules" format=3]
 
-[ext_resource type="Script" path="res://scripts/gen/module_rule.gd" id="1_m624w"]
-[ext_resource type="Script" path="res://scripts/gen/module_choice.gd" id="2_s83li"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/sc_niche_wall_4m.tscn" id="3_vqdid"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/sc_door_wall_4m.tscn" id="4_hn8do"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/sc_ceiling_12m.tscn" id="5_m6cjo"]
-[ext_resource type="PackedScene" path="res://gen/modules/sc_orosi.tscn" id="6_su1iv"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/floor_4m.tscn" id="7_rp5rx"]
-[ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="8_dowbj"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_herati_grand.tscn" id="9_iifml"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_medallion_grand.tscn" id="10_2ti3p"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_kilim_grand.tscn" id="11_gmyde"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_gabbeh_grand.tscn" id="12_316dh"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_garden_grand.tscn" id="13_sqqre"]
-[ext_resource type="Script" path="res://scripts/gen/module_rules.gd" id="14_karko"]
-
-[sub_resource type="Resource" id="Resource_wl2hs"]
-script = ExtResource("2_s83li")
-scene = ExtResource("3_vqdid")
-
-[sub_resource type="Resource" id="Resource_jw1jo"]
-script = ExtResource("1_m624w")
-slot = "sc:wall"
-styles = PackedStringArray()
-choices = Array[ExtResource("2_s83li")]([SubResource("Resource_wl2hs")])
-
-[sub_resource type="Resource" id="Resource_wjfv1"]
-script = ExtResource("2_s83li")
-scene = ExtResource("4_hn8do")
-
-[sub_resource type="Resource" id="Resource_ojbid"]
-script = ExtResource("1_m624w")
-slot = "sc:door"
-styles = PackedStringArray()
-choices = Array[ExtResource("2_s83li")]([SubResource("Resource_wjfv1")])
-
-[sub_resource type="Resource" id="Resource_ocsv3"]
-script = ExtResource("2_s83li")
-scene = ExtResource("5_m6cjo")
-
-[sub_resource type="Resource" id="Resource_gf5s6"]
-script = ExtResource("1_m624w")
-slot = "sc:ceiling"
-styles = PackedStringArray()
-choices = Array[ExtResource("2_s83li")]([SubResource("Resource_ocsv3")])
-
-[sub_resource type="Resource" id="Resource_u6rux"]
-script = ExtResource("2_s83li")
-scene = ExtResource("6_su1iv")
-
-[sub_resource type="Resource" id="Resource_65v62"]
-script = ExtResource("1_m624w")
-slot = "sc:orosi"
-styles = PackedStringArray()
-choices = Array[ExtResource("2_s83li")]([SubResource("Resource_u6rux")])
+[ext_resource type="Script" path="res://scripts/gen/module_rule.gd" id="1_m6cjo"]
+[ext_resource type="Script" path="res://scripts/gen/module_choice.gd" id="2_su1iv"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/sc_niche_wall_4m.tscn" id="3_rp5rx"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/sc_door_wall_4m.tscn" id="4_dowbj"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/sc_ceiling_12m.tscn" id="5_iifml"]
+[ext_resource type="PackedScene" path="res://gen/modules/sc_orosi.tscn" id="6_2ti3p"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/floor_4m.tscn" id="7_gmyde"]
+[ext_resource type="PackedScene" path="res://gen/modules/exit_glow.tscn" id="8_316dh"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/sc_copy_desk.tscn" id="9_sqqre"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/sc_copy_desk_lamp.tscn" id="10_karko"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/sc_copyist_write.tscn" id="11_wl2hs"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/sc_copyist_read.tscn" id="12_jw1jo"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_herati_grand.tscn" id="13_wjfv1"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_medallion_grand.tscn" id="14_ojbid"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_kilim_grand.tscn" id="15_ocsv3"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_gabbeh_grand.tscn" id="16_gf5s6"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/rug_garden_grand.tscn" id="17_u6rux"]
+[ext_resource type="Script" path="res://scripts/gen/module_rules.gd" id="18_65v62"]
 
 [sub_resource type="Resource" id="Resource_wxlpg"]
-script = ExtResource("2_s83li")
-scene = ExtResource("7_rp5rx")
+script = ExtResource("2_su1iv")
+scene = ExtResource("3_rp5rx")
 
 [sub_resource type="Resource" id="Resource_o6fkb"]
-script = ExtResource("1_m624w")
-slot = "cell:floor"
+script = ExtResource("1_m6cjo")
+slot = "sc:wall"
 styles = PackedStringArray()
-choices = Array[ExtResource("2_s83li")]([SubResource("Resource_wxlpg")])
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_wxlpg")])
 
 [sub_resource type="Resource" id="Resource_bhgdi"]
-script = ExtResource("2_s83li")
-scene = ExtResource("8_dowbj")
+script = ExtResource("2_su1iv")
+scene = ExtResource("4_dowbj")
 
 [sub_resource type="Resource" id="Resource_tltq4"]
-script = ExtResource("1_m624w")
-slot = "stub:exit"
+script = ExtResource("1_m6cjo")
+slot = "sc:door"
 styles = PackedStringArray()
-choices = Array[ExtResource("2_s83li")]([SubResource("Resource_bhgdi")])
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_bhgdi")])
 
 [sub_resource type="Resource" id="Resource_ev2ia"]
-script = ExtResource("2_s83li")
-scene = ExtResource("9_iifml")
+script = ExtResource("2_su1iv")
+scene = ExtResource("5_iifml")
 
 [sub_resource type="Resource" id="Resource_pnmb3"]
-script = ExtResource("1_m624w")
-slot = "rug:herati"
+script = ExtResource("1_m6cjo")
+slot = "sc:ceiling"
 styles = PackedStringArray()
-choices = Array[ExtResource("2_s83li")]([SubResource("Resource_ev2ia")])
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_ev2ia")])
 
 [sub_resource type="Resource" id="Resource_2tvpy"]
-script = ExtResource("2_s83li")
-scene = ExtResource("10_2ti3p")
+script = ExtResource("2_su1iv")
+scene = ExtResource("6_2ti3p")
 
 [sub_resource type="Resource" id="Resource_fg5iy"]
-script = ExtResource("1_m624w")
-slot = "rug:medallion"
+script = ExtResource("1_m6cjo")
+slot = "sc:orosi"
 styles = PackedStringArray()
-choices = Array[ExtResource("2_s83li")]([SubResource("Resource_2tvpy")])
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_2tvpy")])
 
 [sub_resource type="Resource" id="Resource_jpe81"]
-script = ExtResource("2_s83li")
-scene = ExtResource("11_gmyde")
+script = ExtResource("2_su1iv")
+scene = ExtResource("7_gmyde")
 
 [sub_resource type="Resource" id="Resource_0pibh"]
-script = ExtResource("1_m624w")
-slot = "rug:kilim"
+script = ExtResource("1_m6cjo")
+slot = "cell:floor"
 styles = PackedStringArray()
-choices = Array[ExtResource("2_s83li")]([SubResource("Resource_jpe81")])
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_jpe81")])
 
 [sub_resource type="Resource" id="Resource_nqwdk"]
-script = ExtResource("2_s83li")
-scene = ExtResource("12_316dh")
+script = ExtResource("2_su1iv")
+scene = ExtResource("8_316dh")
 
 [sub_resource type="Resource" id="Resource_kpfc0"]
-script = ExtResource("1_m624w")
-slot = "rug:gabbeh"
+script = ExtResource("1_m6cjo")
+slot = "stub:exit"
 styles = PackedStringArray()
-choices = Array[ExtResource("2_s83li")]([SubResource("Resource_nqwdk")])
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_nqwdk")])
 
 [sub_resource type="Resource" id="Resource_o4co4"]
-script = ExtResource("2_s83li")
-scene = ExtResource("13_sqqre")
+script = ExtResource("2_su1iv")
+scene = ExtResource("9_sqqre")
 
 [sub_resource type="Resource" id="Resource_sef87"]
-script = ExtResource("1_m624w")
+script = ExtResource("1_m6cjo")
+slot = "sc:desk"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_o4co4")])
+
+[sub_resource type="Resource" id="Resource_cybx0"]
+script = ExtResource("2_su1iv")
+scene = ExtResource("10_karko")
+
+[sub_resource type="Resource" id="Resource_3w7bb"]
+script = ExtResource("1_m6cjo")
+slot = "sc:desk_lamp"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_cybx0")])
+
+[sub_resource type="Resource" id="Resource_iuevf"]
+script = ExtResource("2_su1iv")
+scene = ExtResource("11_wl2hs")
+
+[sub_resource type="Resource" id="Resource_bwy7t"]
+script = ExtResource("1_m6cjo")
+slot = "sc:copyist_write"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_iuevf")])
+
+[sub_resource type="Resource" id="Resource_26oxv"]
+script = ExtResource("2_su1iv")
+scene = ExtResource("12_jw1jo")
+
+[sub_resource type="Resource" id="Resource_id5mt"]
+script = ExtResource("1_m6cjo")
+slot = "sc:copyist_read"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_26oxv")])
+
+[sub_resource type="Resource" id="Resource_6jt5t"]
+script = ExtResource("2_su1iv")
+scene = ExtResource("13_wjfv1")
+
+[sub_resource type="Resource" id="Resource_1qu1y"]
+script = ExtResource("1_m6cjo")
+slot = "rug:herati"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_6jt5t")])
+
+[sub_resource type="Resource" id="Resource_urtrc"]
+script = ExtResource("2_su1iv")
+scene = ExtResource("14_ojbid")
+
+[sub_resource type="Resource" id="Resource_tfm0i"]
+script = ExtResource("1_m6cjo")
+slot = "rug:medallion"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_urtrc")])
+
+[sub_resource type="Resource" id="Resource_muv8e"]
+script = ExtResource("2_su1iv")
+scene = ExtResource("15_ocsv3")
+
+[sub_resource type="Resource" id="Resource_7yie5"]
+script = ExtResource("1_m6cjo")
+slot = "rug:kilim"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_muv8e")])
+
+[sub_resource type="Resource" id="Resource_tklgo"]
+script = ExtResource("2_su1iv")
+scene = ExtResource("16_gf5s6")
+
+[sub_resource type="Resource" id="Resource_6scv7"]
+script = ExtResource("1_m6cjo")
+slot = "rug:gabbeh"
+styles = PackedStringArray()
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_tklgo")])
+
+[sub_resource type="Resource" id="Resource_f57ql"]
+script = ExtResource("2_su1iv")
+scene = ExtResource("17_u6rux")
+
+[sub_resource type="Resource" id="Resource_c2y2u"]
+script = ExtResource("1_m6cjo")
 slot = "rug:garden"
 styles = PackedStringArray()
-choices = Array[ExtResource("2_s83li")]([SubResource("Resource_o4co4")])
+choices = Array[ExtResource("2_su1iv")]([SubResource("Resource_f57ql")])
 
 [resource]
-script = ExtResource("14_karko")
-rules = Array[ExtResource("1_m624w")]([SubResource("Resource_jw1jo"), SubResource("Resource_ojbid"), SubResource("Resource_gf5s6"), SubResource("Resource_65v62"), SubResource("Resource_o6fkb"), SubResource("Resource_tltq4"), SubResource("Resource_pnmb3"), SubResource("Resource_fg5iy"), SubResource("Resource_0pibh"), SubResource("Resource_kpfc0"), SubResource("Resource_sef87")])
+script = ExtResource("18_65v62")
+rules = Array[ExtResource("1_m6cjo")]([SubResource("Resource_o6fkb"), SubResource("Resource_tltq4"), SubResource("Resource_pnmb3"), SubResource("Resource_fg5iy"), SubResource("Resource_0pibh"), SubResource("Resource_kpfc0"), SubResource("Resource_sef87"), SubResource("Resource_3w7bb"), SubResource("Resource_bwy7t"), SubResource("Resource_id5mt"), SubResource("Resource_1qu1y"), SubResource("Resource_tfm0i"), SubResource("Resource_7yie5"), SubResource("Resource_6scv7"), SubResource("Resource_c2y2u")])

@@ -2,7 +2,62 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · [Approval brief](../phase-17-approval.md)
 
-## Step 2: the hall (built 2026-11-08, walked 2026-11-08: looks good)
+## Step 3: desks, copyists and lamps (built 2026-11-08, walked: looks good)
+
+Walk it the same way: the Strata Board, the Grand Study, copy
+`scriptorium_test`, Walk this seed. Try a few seeds (1, 2 and 5 are four, three
+and five bays long).
+
+Pictures: `previews/phase17_step3/`, seeds 1, 2 and 5:
+`r08_hall_<seed>_door|middle|side|up|back|copyist.png` (`copyist` is one
+kneeling figure close up).
+
+- **The desks:** rows of low copy desks on the rugs, two each side of the
+  aisle, a row every 3 m from 3 m inside the door to at least 1.2 m short of the
+  glass. Each desk has a rahl (the crossed book stand) holding an open exemplar,
+  the half-written copy and fresh sheets, an ink pot, a pen box and pen, a pile
+  of scrolls beside it and a termeh cushion to kneel on.
+- **The copyists:** robed and hooded, kneeling at the desks and facing the
+  glass. Most bend over the copy writing; about one in three sits up reading a
+  sheet. Most desks near the door have one, about a third of the far desks do
+  (step 4 turns this into the busy-to-abandoned walk).
+- **The lamps:** a small brass oil lamp with a flame on the aisle-side desk of
+  each row in the near half only, so the door end is lamplit and the far half
+  is lit only by the glass. No lamp within a bay of the glass. Four lamps in a
+  four-bay hall, six in a five-bay one.
+- **Dust:** faint motes drifting in front of the glass. They take the light
+  they float in, so they show in the coloured patches and fade in the dark.
+
+### Fixed before your walk
+
+- The copyists' robes used a hanging-cloth material that is see-through in
+  places, so only the hoods showed. They now use the solid robe cloth the
+  Fungus Terraces' workers wear.
+- The first dust was too bright (specks showed against the dark ceiling);
+  it's now smaller and fainter.
+
+### For you to judge
+
+- The desks: how closely packed? Too regular?
+- The copyists: how many, and do the kneeling figures read well?
+- The lamps: is the door end bright enough, too bright?
+- The dust: visible enough, too much?
+
+### Pieces
+
+- `tools/kit_add_r08.py`: `sc_copy_desk`, `sc_copy_desk_lamp` (with the
+  `LIGHT_desk__copy` marker), `sc_copyist_write`, `sc_copyist_read` (rev 2).
+- `ScriptoriumGrammar._place_desks`; rules `sc:desk`, `sc:desk_lamp`,
+  `sc:copyist_write`, `sc:copyist_read` in `tools/make_r08_rules.gd`.
+- `OrosiWallSetup._dust()` (the `dust` switch).
+
+### Not tested yet
+
+The pictures show no errors. No route, frame or save tests yet (step 5). The
+desk rows stand on cell centres, so the route audit may need those cells marked
+as blocked; that's checked in step 5.
+
+## Step 2: the hall (built 2026-11-08, walked: looks good; committed e500fd7)
 
 The bare hall, grown by its generator. Walk it from the Strata Board: the Grand
 Study, copy `scriptorium_test`, Walk this seed
