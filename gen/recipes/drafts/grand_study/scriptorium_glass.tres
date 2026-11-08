@@ -1,0 +1,30 @@
+[gd_resource type="Resource" script_class="AreaRecipe" format=3]
+
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_atmos"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="2_place"]
+[ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="3_recipe"]
+[ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="4_slot"]
+[ext_resource type="PackedScene" path="res://rooms/test/scriptorium_glass.tscn" id="5_room"]
+
+[sub_resource type="Resource" id="Resource_place"]
+script = ExtResource("2_place")
+envelope = AABB(-122, -8, -144, 256, 48, 256)
+
+[sub_resource type="Resource" id="Resource_entrance"]
+script = ExtResource("4_slot")
+slot_id = "entrance"
+display_name = "The Orosi Scriptorium (glass test)"
+scene_weights = PackedFloat32Array()
+scene = ExtResource("5_room")
+pinned = true
+
+[resource]
+script = ExtResource("3_recipe")
+id = "grand_study"
+display_name = "The Grand Study"
+version = 6
+slots = Array[ExtResource("4_slot")]([SubResource("Resource_entrance")])
+room_count = Vector2i(1, 1)
+max_dead_ends = 0
+placement = SubResource("Resource_place")
+atmosphere = ExtResource("1_atmos")

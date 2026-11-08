@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_qfa4p"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/sc_orosi_wall.glb" id="2_lvjdx"]
+
+[node name="sc_orosi_wall" type="Node3D" unique_id=769346715]
+script = ExtResource("1_qfa4p")
+family = "walls"
+size_cells = Vector3i(3, 1, 2)
+tags = PackedStringArray("scriptorium", "r08")
+source_glb = "res://assets/kit/walls/sc_orosi_wall.glb"
+
+[node name="Mesh" parent="." unique_id=1734130691 instance=ExtResource("2_lvjdx")]

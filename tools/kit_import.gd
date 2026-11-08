@@ -68,6 +68,13 @@ const LIGHT_PROFILES: Dictionary = {
 	# The Domicile Quarter (phase 14, R06): a pool of lamplight on the lane from a
 	# lit window or an open door.
 	"home": {"color": Color(1.0, 0.85, 0.74), "energy": 1.1, "range": 7.0, "attenuation": 1.5, "shadow": false},
+	# The Orosi Scriptorium (phase 17, R08): the lumen's light from over the moss
+	# garden through each window, carrying a picture of its glass (OrosiGlass.apply
+	# sets the picture, the cone and, for the middle window only, the shadow);
+	# and the moss's dim warm glow behind the glass.
+	"orosi": {"color": Color(1.0, 0.95, 0.84), "energy": 9.0, "range": 16.0, "attenuation": 0.6, "shadow": false, "spot": 20.0, "spot_falloff": 0.05, "fog": 0.0},
+	"orosi_bounce": {"color": Color(1.0, 0.86, 0.7), "energy": 0.7, "range": 10.0, "attenuation": 1.1, "shadow": false},
+	"lumenmoss": {"color": Color(1.0, 0.86, 0.58), "energy": 1.2, "range": 7.0, "attenuation": 1.2, "shadow": false},
 }
 const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_", "FOG_"]
 ## Physics layer 8: walls only the player collides with (project layer names).

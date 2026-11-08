@@ -1,0 +1,698 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/room_template.gd" id="1_mjxkc"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/sc_orosi_wall.tscn" id="2_oa8hv"]
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="3_1eupt"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/sc_moss_garden.tscn" id="4_ffc5h"]
+[ext_resource type="Script" path="res://scripts/gen/orosi_wall_setup.gd" id="5_glx4b"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/floor_4m.tscn" id="6_fmj3a"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_plain_4m.tscn" id="7_hc81j"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_arch_3m.tscn" id="8_oftjk"]
+[ext_resource type="Material" path="res://kit/materials/persian_wood.tres" id="9_jup70"]
+[ext_resource type="Material" path="res://kit/materials/wood.tres" id="10_ati7n"]
+[ext_resource type="Material" path="res://kit/materials/pages.tres" id="11_lbndd"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/rug_runner.tscn" id="12_qj8c4"]
+[ext_resource type="Script" path="res://scripts/world/atmosphere.gd" id="13_qh8sv"]
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="14_oasa5"]
+
+[sub_resource type="BoxMesh" id="BoxMesh_blml5"]
+size = Vector3(12, 0.2, 16)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jkx1b"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_u7hfk"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wlrcv"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_hcemn"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ihnb6"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_jpcvh"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_5wv0e"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_c57ux"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_tg7sy"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ubefn"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_ousj4"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mkobs"]
+size = Vector3(12, 0.3, 0.26)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qqsdi"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_diuqf"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxMesh" id="BoxMesh_wr4k7"]
+size = Vector3(0.6, 0.04, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_imba5"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ve87y"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxMesh" id="BoxMesh_g6kvt"]
+size = Vector3(0.6, 0.04, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_8yj75"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_hy7fl"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxMesh" id="BoxMesh_72pst"]
+size = Vector3(0.6, 0.04, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_320ko"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_yrmyk"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxMesh" id="BoxMesh_dbw0t"]
+size = Vector3(0.6, 0.04, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_l28ci"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_j2ivg"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxMesh" id="BoxMesh_47oyn"]
+size = Vector3(0.6, 0.04, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_4nmo1"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ofqr5"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxMesh" id="BoxMesh_l1yse"]
+size = Vector3(0.6, 0.04, 0.4)
+
+[sub_resource type="BoxMesh" id="BoxMesh_64w3e"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_lin8k"]
+size = Vector3(1.2, 0.35, 0.55)
+
+[sub_resource type="BoxMesh" id="BoxMesh_f65n5"]
+size = Vector3(0.6, 0.04, 0.4)
+
+[node name="ScriptoriumGlass" type="Node3D" unique_id=1729879905]
+script = ExtResource("1_mjxkc")
+room_id = "scriptorium_glass"
+display_name = "Orosi Scriptorium (glass test)"
+
+[node name="Hall" type="Node3D" parent="." unique_id=1909708784]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -16)
+
+[node name="OrosiWall" type="Node3D" parent="Hall" unique_id=769346715 instance=ExtResource("2_oa8hv")]
+script = ExtResource("3_1eupt")
+family = "walls"
+size_cells = Vector3i(3, 1, 2)
+tags = PackedStringArray("scriptorium", "r08")
+source_glb = "res://assets/kit/walls/sc_orosi_wall.glb"
+
+[node name="MossGarden" type="Node3D" parent="Hall" unique_id=497873667 instance=ExtResource("4_ffc5h")]
+script = ExtResource("3_1eupt")
+family = "walls"
+size_cells = Vector3i(3, 1, 3)
+tags = PackedStringArray("scriptorium", "r08")
+source_glb = "res://assets/kit/walls/sc_moss_garden.glb"
+
+[node name="Glass" type="Node" parent="Hall" unique_id=187453153]
+script = ExtResource("5_glx4b")
+wall = NodePath("../OrosiWall")
+
+[node name="Floor_0_0" type="Node3D" parent="Hall" unique_id=1917552914 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 4)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="Floor_0_1" type="Node3D" parent="Hall" unique_id=1396923706 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 8)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="Floor_0_2" type="Node3D" parent="Hall" unique_id=253653429 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 12)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="Floor_0_3" type="Node3D" parent="Hall" unique_id=1147152314 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="Floor_1_0" type="Node3D" parent="Hall" unique_id=467252582 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 4)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="Floor_1_1" type="Node3D" parent="Hall" unique_id=1574960773 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 8)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="Floor_1_2" type="Node3D" parent="Hall" unique_id=296191170 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 12)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="Floor_1_3" type="Node3D" parent="Hall" unique_id=36926249 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 16)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="Floor_2_0" type="Node3D" parent="Hall" unique_id=772859290 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 4)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="Floor_2_1" type="Node3D" parent="Hall" unique_id=1006878605 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 8)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="Floor_2_2" type="Node3D" parent="Hall" unique_id=127453589 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 12)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="Floor_2_3" type="Node3D" parent="Hall" unique_id=205497820 instance=ExtResource("6_fmj3a")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 16)
+script = ExtResource("3_1eupt")
+shape = 1
+family = "walls"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("stone", "floor")
+source_glb = "res://assets/kit/walls/floor_4m.glb"
+
+[node name="WallW_0_0" type="Node3D" parent="Hall" unique_id=2069859375 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 0)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallE_0_0" type="Node3D" parent="Hall" unique_id=165058572 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12, 0, 4)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallW_0_1" type="Node3D" parent="Hall" unique_id=132131727 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 4, 0)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallE_0_1" type="Node3D" parent="Hall" unique_id=1615112892 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12, 4, 4)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallW_1_0" type="Node3D" parent="Hall" unique_id=1723521688 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 4)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallE_1_0" type="Node3D" parent="Hall" unique_id=110509183 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12, 0, 8)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallW_1_1" type="Node3D" parent="Hall" unique_id=923736076 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 4, 4)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallE_1_1" type="Node3D" parent="Hall" unique_id=728750450 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12, 4, 8)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallW_2_0" type="Node3D" parent="Hall" unique_id=897475485 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 8)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallE_2_0" type="Node3D" parent="Hall" unique_id=115742775 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12, 0, 12)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallW_2_1" type="Node3D" parent="Hall" unique_id=473518078 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 4, 8)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallE_2_1" type="Node3D" parent="Hall" unique_id=1544104300 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12, 4, 12)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallW_3_0" type="Node3D" parent="Hall" unique_id=1392958192 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 0, 12)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallE_3_0" type="Node3D" parent="Hall" unique_id=1730896776 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12, 0, 16)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallW_3_1" type="Node3D" parent="Hall" unique_id=363062411 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 0, 4, 12)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallE_3_1" type="Node3D" parent="Hall" unique_id=680045486 instance=ExtResource("7_hc81j")]
+transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12, 4, 16)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallS_0_0" type="Node3D" parent="Hall" unique_id=1325796275 instance=ExtResource("7_hc81j")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, 16)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallS_0_1" type="Node3D" parent="Hall" unique_id=1314739983 instance=ExtResource("7_hc81j")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 4, 16)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallS_1_0" type="Node3D" parent="Hall" unique_id=4878044 instance=ExtResource("8_oftjk")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 0, 16)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "opening_3m"
+tags = PackedStringArray("brick", "structure", "passage")
+weight = 2.0
+source_glb = "res://assets/kit/walls/wall_arch_3m.glb"
+
+[node name="WallS_1_1" type="Node3D" parent="Hall" unique_id=831756093 instance=ExtResource("7_hc81j")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 4, 16)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallS_2_0" type="Node3D" parent="Hall" unique_id=17323902 instance=ExtResource("7_hc81j")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 0, 16)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="WallS_2_1" type="Node3D" parent="Hall" unique_id=763816115 instance=ExtResource("7_hc81j")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, 4, 16)
+script = ExtResource("3_1eupt")
+shape = 0
+family = "walls"
+size_cells = Vector3i(1, 1, 0)
+edge = "solid"
+tags = PackedStringArray("brick", "structure")
+weight = 3.0
+source_glb = "res://assets/kit/walls/wall_plain_4m.glb"
+
+[node name="Ceiling" type="MeshInstance3D" parent="Hall" unique_id=1676101195]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.5, 8)
+material_override = ExtResource("9_jup70")
+mesh = SubResource("BoxMesh_blml5")
+
+[node name="Beam_0" type="MeshInstance3D" parent="Hall" unique_id=305882367]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 0.65)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_jkx1b")
+
+[node name="Beam_1" type="MeshInstance3D" parent="Hall" unique_id=2055869316]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 1.95)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_u7hfk")
+
+[node name="Beam_2" type="MeshInstance3D" parent="Hall" unique_id=1151842147]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 3.25)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_wlrcv")
+
+[node name="Beam_3" type="MeshInstance3D" parent="Hall" unique_id=1936803106]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 4.55)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_hcemn")
+
+[node name="Beam_4" type="MeshInstance3D" parent="Hall" unique_id=1207775860]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 5.85)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_ihnb6")
+
+[node name="Beam_5" type="MeshInstance3D" parent="Hall" unique_id=540381410]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 7.15)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_jpcvh")
+
+[node name="Beam_6" type="MeshInstance3D" parent="Hall" unique_id=1567546035]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 8.45)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_5wv0e")
+
+[node name="Beam_7" type="MeshInstance3D" parent="Hall" unique_id=1908077204]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 9.75)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_c57ux")
+
+[node name="Beam_8" type="MeshInstance3D" parent="Hall" unique_id=145529373]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 11.05)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_tg7sy")
+
+[node name="Beam_9" type="MeshInstance3D" parent="Hall" unique_id=943497851]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 12.35)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_ubefn")
+
+[node name="Beam_10" type="MeshInstance3D" parent="Hall" unique_id=2135829774]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 13.65)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_ousj4")
+
+[node name="Beam_11" type="MeshInstance3D" parent="Hall" unique_id=44215521]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.25, 14.95)
+material_override = ExtResource("10_ati7n")
+mesh = SubResource("BoxMesh_mkobs")
+
+[node name="Desk_0" type="MeshInstance3D" parent="Hall" unique_id=794010846]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 0.175, 2.6)
+material_override = ExtResource("9_jup70")
+mesh = SubResource("BoxMesh_qqsdi")
+
+[node name="Desk_0Body" type="StaticBody3D" parent="Hall" unique_id=178913631]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 0.175, 2.6)
+
+[node name="@CollisionShape3D@2" type="CollisionShape3D" parent="Hall/Desk_0Body" unique_id=1502058531]
+shape = SubResource("BoxShape3D_diuqf")
+
+[node name="Book_0" type="MeshInstance3D" parent="Hall" unique_id=1640669151]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 0.37, 2.6)
+material_override = ExtResource("11_lbndd")
+mesh = SubResource("BoxMesh_wr4k7")
+
+[node name="Desk_1" type="MeshInstance3D" parent="Hall" unique_id=1694835843]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 0.175, 2.6)
+material_override = ExtResource("9_jup70")
+mesh = SubResource("BoxMesh_imba5")
+
+[node name="Desk_1Body" type="StaticBody3D" parent="Hall" unique_id=1896667021]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 0.175, 2.6)
+
+[node name="@CollisionShape3D@3" type="CollisionShape3D" parent="Hall/Desk_1Body" unique_id=354865893]
+shape = SubResource("BoxShape3D_ve87y")
+
+[node name="Book_1" type="MeshInstance3D" parent="Hall" unique_id=1191273210]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 0.37, 2.6)
+material_override = ExtResource("11_lbndd")
+mesh = SubResource("BoxMesh_g6kvt")
+
+[node name="Desk_2" type="MeshInstance3D" parent="Hall" unique_id=1487941264]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0.175, 5)
+material_override = ExtResource("9_jup70")
+mesh = SubResource("BoxMesh_8yj75")
+
+[node name="Desk_2Body" type="StaticBody3D" parent="Hall" unique_id=1053223141]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0.175, 5)
+
+[node name="@CollisionShape3D@4" type="CollisionShape3D" parent="Hall/Desk_2Body" unique_id=1736525132]
+shape = SubResource("BoxShape3D_hy7fl")
+
+[node name="Book_2" type="MeshInstance3D" parent="Hall" unique_id=1557032624]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2.6, 0.37, 5)
+material_override = ExtResource("11_lbndd")
+mesh = SubResource("BoxMesh_72pst")
+
+[node name="Desk_3" type="MeshInstance3D" parent="Hall" unique_id=529648151]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.175, 5.4)
+material_override = ExtResource("9_jup70")
+mesh = SubResource("BoxMesh_320ko")
+
+[node name="Desk_3Body" type="StaticBody3D" parent="Hall" unique_id=1228626316]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.175, 5.4)
+
+[node name="@CollisionShape3D@5" type="CollisionShape3D" parent="Hall/Desk_3Body" unique_id=895755392]
+shape = SubResource("BoxShape3D_yrmyk")
+
+[node name="Book_3" type="MeshInstance3D" parent="Hall" unique_id=1249649539]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.37, 5.4)
+material_override = ExtResource("11_lbndd")
+mesh = SubResource("BoxMesh_dbw0t")
+
+[node name="Desk_4" type="MeshInstance3D" parent="Hall" unique_id=885246351]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.4, 0.175, 5)
+material_override = ExtResource("9_jup70")
+mesh = SubResource("BoxMesh_l28ci")
+
+[node name="Desk_4Body" type="StaticBody3D" parent="Hall" unique_id=2043008156]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.4, 0.175, 5)
+
+[node name="@CollisionShape3D@6" type="CollisionShape3D" parent="Hall/Desk_4Body" unique_id=1959217832]
+shape = SubResource("BoxShape3D_j2ivg")
+
+[node name="Book_4" type="MeshInstance3D" parent="Hall" unique_id=1457952555]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.4, 0.37, 5)
+material_override = ExtResource("11_lbndd")
+mesh = SubResource("BoxMesh_47oyn")
+
+[node name="Desk_5" type="MeshInstance3D" parent="Hall" unique_id=65240669]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 0.175, 11.5)
+material_override = ExtResource("9_jup70")
+mesh = SubResource("BoxMesh_4nmo1")
+
+[node name="Desk_5Body" type="StaticBody3D" parent="Hall" unique_id=1107483820]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 0.175, 11.5)
+
+[node name="@CollisionShape3D@7" type="CollisionShape3D" parent="Hall/Desk_5Body" unique_id=680894398]
+shape = SubResource("BoxShape3D_ofqr5")
+
+[node name="Book_5" type="MeshInstance3D" parent="Hall" unique_id=885172445]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4.2, 0.37, 11.5)
+material_override = ExtResource("11_lbndd")
+mesh = SubResource("BoxMesh_l1yse")
+
+[node name="Desk_6" type="MeshInstance3D" parent="Hall" unique_id=1865309078]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 0.175, 11.5)
+material_override = ExtResource("9_jup70")
+mesh = SubResource("BoxMesh_64w3e")
+
+[node name="Desk_6Body" type="StaticBody3D" parent="Hall" unique_id=575154844]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 0.175, 11.5)
+
+[node name="@CollisionShape3D@8" type="CollisionShape3D" parent="Hall/Desk_6Body" unique_id=1995357193]
+shape = SubResource("BoxShape3D_lin8k")
+
+[node name="Book_6" type="MeshInstance3D" parent="Hall" unique_id=1371840541]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7.8, 0.37, 11.5)
+material_override = ExtResource("11_lbndd")
+mesh = SubResource("BoxMesh_f65n5")
+
+[node name="Rug_0" type="Node3D" parent="Hall" unique_id=1678517723 instance=ExtResource("12_qj8c4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3, 0.01, 8)
+script = ExtResource("3_1eupt")
+family = "walls"
+tags = PackedStringArray("cloth", "floor")
+source_glb = "res://assets/kit/walls/rug_runner.glb"
+
+[node name="Rug_1" type="Node3D" parent="Hall" unique_id=561281602 instance=ExtResource("12_qj8c4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9, 0.01, 8)
+script = ExtResource("3_1eupt")
+family = "walls"
+tags = PackedStringArray("cloth", "floor")
+source_glb = "res://assets/kit/walls/rug_runner.glb"
+
+[node name="Connectors" type="Node3D" parent="." unique_id=1580521158]
+
+[node name="SNAP_entry" type="Marker3D" parent="Connectors" unique_id=1193643542 groups=["room_connector"]]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, 0)
+metadata/snap_kind = "door"
+
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=1004463837 groups=["player_spawn"]]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0.05, -1.5)
+
+[node name="Atmosphere" type="Node" parent="." unique_id=922555830]
+script = ExtResource("13_qh8sv")
+profile = ExtResource("14_oasa5")

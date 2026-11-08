@@ -1,0 +1,10 @@
+[gd_resource type="ShaderMaterial" format=3]
+
+[ext_resource type="Shader" path="res://shaders/sc_orosi_glass.gdshader" id="1_shader"]
+[ext_resource type="Texture2D" path="res://assets/textures/px/sc_glass_side_ruby_cobalt.png" id="2_glass"]
+
+[resource]
+resource_name = "emit_sc_glass_side_ruby_cobalt"
+render_priority = 0
+shader = ExtResource("1_shader")
+shader_parameter/glass_tex = ExtResource("2_glass")
