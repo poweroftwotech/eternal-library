@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_eeoiw"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/lk_landing_quay.glb" id="2_mugy6"]
+
+[node name="lk_landing_quay" type="Node3D" unique_id=1027080287]
+script = ExtResource("1_eeoiw")
+family = "walls"
+tags = PackedStringArray("stone", "quay", "r20")
+source_glb = "res://assets/kit/walls/lk_landing_quay.glb"
+
+[node name="Mesh" parent="." unique_id=354929456 instance=ExtResource("2_mugy6")]

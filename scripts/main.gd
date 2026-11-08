@@ -459,6 +459,10 @@ func show_controls() -> void:
 		{"text":"Back","action":"menu"}],"controls")
 
 func on_choice(action: String) -> void:
+	# A room's own panel answers (the Lake Landing's ferryman: "ferry:<stop>").
+	for n: Node in get_tree().get_nodes_in_group("choice_handler"):
+		if n.has_method("handle_choice") and n.handle_choice(action):
+			return
 	if action.begins_with("read:"):
 		show_book(StringName(action.trim_prefix("read:")))
 		return

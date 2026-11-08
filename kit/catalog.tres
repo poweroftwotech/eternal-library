@@ -4561,6 +4561,222 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "walls",
+"name": "lk_back_wall",
+"scene": "res://kit/modules/walls/lk_back_wall.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("rock", "cavern", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_bed",
+"scene": "res://kit/modules/walls/lk_bed.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("rock", "cavern", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_bell",
+"scene": "res://kit/modules/walls/lk_bell.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("brass", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_boardwalk_4m",
+"scene": "res://kit/modules/walls/lk_boardwalk_4m.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 0),
+"tags": PackedStringArray("wood", "pier", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_boat",
+"scene": "res://kit/modules/walls/lk_boat.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "boat", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_boathouse",
+"scene": "res://kit/modules/walls/lk_boathouse.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 1, 2),
+"tags": PackedStringArray("wood", "boathouse", "r20", "light"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_cavern",
+"scene": "res://kit/modules/walls/lk_cavern.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("rock", "cavern", "r20", "scenery"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_crates",
+"scene": "res://kit/modules/walls/lk_crates.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("dressing", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_dock_a",
+"scene": "res://kit/modules/walls/lk_dock_a.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("rock", "cavern", "dock", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_ferry",
+"scene": "res://kit/modules/walls/lk_ferry.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("wood", "boat", "r20", "light"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_ferryman",
+"scene": "res://kit/modules/walls/lk_ferryman.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("figure", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_fishing_spot",
+"scene": "res://kit/modules/walls/lk_fishing_spot.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("dressing", "fishing", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_harbour",
+"scene": "res://kit/modules/walls/lk_harbour.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("rock", "cavern", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_headland",
+"scene": "res://kit/modules/walls/lk_headland.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("rock", "cavern", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_landing_quay",
+"scene": "res://kit/modules/walls/lk_landing_quay.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "quay", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_lantern_post",
+"scene": "res://kit/modules/walls/lk_lantern_post.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("light", "lantern", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_nets",
+"scene": "res://kit/modules/walls/lk_nets.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("dressing", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_pier_4m",
+"scene": "res://kit/modules/walls/lk_pier_4m.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 1),
+"tags": PackedStringArray("wood", "pier", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_pier_head",
+"scene": "res://kit/modules/walls/lk_pier_head.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("wood", "pier", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_quay",
+"scene": "res://kit/modules/walls/lk_quay.tscn",
+"shape": "free",
+"size_cells": Vector3i(4, 1, 2),
+"tags": PackedStringArray("stone", "quay", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_rubble",
+"scene": "res://kit/modules/walls/lk_rubble.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("dressing", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_shelf",
+"scene": "res://kit/modules/walls/lk_shelf.tscn",
+"shape": "free",
+"size_cells": Vector3i(3, 0, 1),
+"tags": PackedStringArray("stone", "water", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_terrace",
+"scene": "res://kit/modules/walls/lk_terrace.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("stone", "quay", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
+"name": "lk_traps",
+"scene": "res://kit/modules/walls/lk_traps.tscn",
+"shape": "free",
+"size_cells": Vector3i(0, 0, 0),
+"tags": PackedStringArray("dressing", "r20"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "walls",
 "name": "oculus_cell_4m",
 "scene": "res://kit/modules/walls/oculus_cell_4m.tscn",
 "shape": "cell",

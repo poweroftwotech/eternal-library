@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_uftcv"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/lk_pier_4m.glb" id="2_qh53s"]
+
+[node name="lk_pier_4m" type="Node3D" unique_id=808380357]
+script = ExtResource("1_uftcv")
+family = "walls"
+size_cells = Vector3i(0, 0, 1)
+tags = PackedStringArray("wood", "pier", "r20")
+source_glb = "res://assets/kit/walls/lk_pier_4m.glb"
+
+[node name="Mesh" parent="." unique_id=232704610 instance=ExtResource("2_qh53s")]

@@ -22,6 +22,11 @@ uniform float glow = 0.0;
 // channel running downhill); 2 the mesh's own xy, `flow` (0, -v) streaming
 // down a falling sheet.
 uniform int plane = 0;
+// Lake Landing (harbour walk 4): a stronger stir on still water, and rings
+// running out from where the water meets a hull, a pile or a rock. Both
+// leave every other water as it was at their defaults.
+uniform float wave_strength = 1.0;
+uniform float contact_ripple = 0.0;     // 0 off; 1 rings within about 0.4 m of the waterline
 uniform sampler2D screen_tex : hint_screen_texture, filter_linear_mipmap;
 uniform sampler2D depth_tex : hint_depth_texture, filter_nearest;
 varying vec3 world_pos;
@@ -50,7 +55,7 @@ void fragment(){
 	float h = waves(p, t);
 	float dx = waves(p + vec2(e, 0), t) - h;
 	float dz = waves(p + vec2(0, e), t) - h;
-	NORMAL_MAP = normalize(vec3(-dx * 3.0, -dz * 3.0, 1.0)) * .5 + .5;
+	NORMAL_MAP = normalize(vec3(-dx * 3.0 * wave_strength, -dz * 3.0 * wave_strength, 1.0)) * .5 + .5;
 	NORMAL_MAP_DEPTH = .9;
 	// Water thickness along the view ray, from the opaque depth buffer.
 	float depth = textureLod(depth_tex, SCREEN_UV, 0.0).r;
@@ -60,6 +65,10 @@ void fragment(){
 	float murk = clamp(thickness / murk_depth, 0.0, 1.0);
 	vec3 bed = textureLod(screen_tex, SCREEN_UV + vec2(dx, dz) * .05 * murk, 0.0).rgb;
 	float foam = step(thickness, .03 + h * .035);       // contact lines at banks and stones
+	// Rings running out from the contact line, fading over 0.4 m (pixel steps).
+	float ring = contact_ripple * (1.0 - smoothstep(0.0, 0.4, thickness))
+		* step(0.55, 0.5 + 0.5 * sin(floor(thickness * texel) / texel * 38.0 - t * 2.6 + h * 2.0));
+	foam = max(foam, ring * 0.35);
 	vec3 tint = mix(shallow_tint, deep_tint, murk);
 	ALBEDO = mix(tint * surface_tint, vec3(.80, .84, .76), foam * .8);
 	EMISSION = (bed + vec3(glow)) * tint * (1.0 - foam * .8);

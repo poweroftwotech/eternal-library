@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_nmjqi"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/lk_dock_a.glb" id="2_w78wc"]
+
+[node name="lk_dock_a" type="Node3D" unique_id=1255929366]
+script = ExtResource("1_nmjqi")
+family = "walls"
+tags = PackedStringArray("rock", "cavern", "dock", "r20")
+source_glb = "res://assets/kit/walls/lk_dock_a.glb"
+
+[node name="Mesh" parent="." unique_id=928493613 instance=ExtResource("2_w78wc")]

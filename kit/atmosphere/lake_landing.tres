@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="AtmosphereProfile" format=3]
+
+[ext_resource type="Script" path="res://scripts/world/atmosphere_profile.gd" id="1_prof"]
+
+[sub_resource type="Gradient" id="Gradient_lake"]
+offsets = PackedFloat32Array(0, 0.18, 0.5, 0.82, 1)
+colors = PackedColorArray(0.0, 0.008, 0.028, 1, 0.13, 0.15, 0.22, 1, 0.48, 0.48, 0.52, 1, 0.84, 0.8, 0.74, 1, 0.99, 0.97, 0.93, 1)
+
+[resource]
+script = ExtResource("1_prof")
+background_color = Color(0.018, 0.026, 0.06, 1)
+exposure = 1.35
+ambient_color = Color(0.3, 0.36, 0.62, 1)
+ambient_energy = 0.2
+glow_intensity = 1.0
+glow_bloom = 0.06
+fog_density = 0.021
+fog_albedo = Color(0.36, 0.42, 0.64, 1)
+fog_ambient_inject = 0.45
+fog_anisotropy = 0.4
+sdfgi = false
+split_tone = SubResource("Gradient_lake")
+lantern_sway = 0.06

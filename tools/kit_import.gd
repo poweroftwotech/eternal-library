@@ -75,6 +75,13 @@ const LIGHT_PROFILES: Dictionary = {
 	"orosi": {"color": Color(1.0, 0.95, 0.84), "energy": 9.0, "range": 16.0, "attenuation": 0.6, "shadow": false, "spot": 20.0, "spot_falloff": 0.05, "fog": 0.0},
 	"orosi_bounce": {"color": Color(1.0, 0.86, 0.7), "energy": 0.7, "range": 10.0, "attenuation": 1.1, "shadow": false},
 	"lumenmoss": {"color": Color(1.0, 0.86, 0.58), "energy": 1.2, "range": 7.0, "attenuation": 1.2, "shadow": false},
+	# The Lake Landing (phase 18, R20): oil lanterns on posts, the pier and the
+	# ferry, the one family of light there; and a boathouse's hanging lamp,
+	# seen through its window and door.
+	"lake_lantern": {"color": Color(1.0, 0.7, 0.36), "energy": 2.2, "range": 10.0, "attenuation": 1.25, "shadow": false},
+	"lake_lamp": {"color": Color(1.0, 0.66, 0.34), "energy": 1.1, "range": 5.0, "attenuation": 1.5, "shadow": false},
+	# the lake's glowing caps (walk 1): a faint teal wash on the rock round a big patch
+	"lake_glow": {"color": Color(0.3, 0.92, 0.84), "energy": 2.6, "range": 16.0, "attenuation": 1.4, "shadow": false},
 }
 const PREFIXES: Array[String] = ["SNAP_", "SOCKET_", "LIGHT_", "ANCHOR_", "CLAIM_", "FOG_"]
 ## Physics layer 8: walls only the player collides with (project layer names).

@@ -1,0 +1,10 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "emit_lake_glow_lime"
+albedo_color = Color(0.16, 0.3, 0.08, 1)
+roughness = 0.5
+emission_enabled = true
+emission = Color(0.66, 0.98, 0.36, 1)
+emission_energy_multiplier = 2.8
+texture_filter = 4

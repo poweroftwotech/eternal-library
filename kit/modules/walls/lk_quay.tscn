@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_j08gt"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/lk_quay.glb" id="2_jb0a0"]
+
+[node name="lk_quay" type="Node3D" unique_id=458121845]
+script = ExtResource("1_j08gt")
+family = "walls"
+size_cells = Vector3i(4, 1, 2)
+tags = PackedStringArray("stone", "quay", "r20")
+source_glb = "res://assets/kit/walls/lk_quay.glb"
+
+[node name="Mesh" parent="." unique_id=413986560 instance=ExtResource("2_jb0a0")]

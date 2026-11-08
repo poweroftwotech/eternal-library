@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_kjpe5"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/lk_boardwalk_4m.glb" id="2_gwkmn"]
+
+[node name="lk_boardwalk_4m" type="Node3D" unique_id=628319774]
+script = ExtResource("1_kjpe5")
+family = "walls"
+size_cells = Vector3i(1, 0, 0)
+tags = PackedStringArray("wood", "pier", "r20")
+source_glb = "res://assets/kit/walls/lk_boardwalk_4m.glb"
+
+[node name="Mesh" parent="." unique_id=357455691 instance=ExtResource("2_gwkmn")]

@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_myqhk"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/lk_boathouse.glb" id="2_cy67l"]
+
+[node name="lk_boathouse" type="Node3D" unique_id=1817475863]
+script = ExtResource("1_myqhk")
+family = "walls"
+size_cells = Vector3i(1, 1, 2)
+tags = PackedStringArray("wood", "boathouse", "r20", "light")
+source_glb = "res://assets/kit/walls/lk_boathouse.glb"
+
+[node name="Mesh" parent="." unique_id=1426156001 instance=ExtResource("2_cy67l")]

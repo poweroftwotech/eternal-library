@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_58fia"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/lk_nets.glb" id="2_xdmsj"]
+
+[node name="lk_nets" type="Node3D" unique_id=2134699572]
+script = ExtResource("1_58fia")
+family = "walls"
+tags = PackedStringArray("dressing", "r20")
+source_glb = "res://assets/kit/walls/lk_nets.glb"
+
+[node name="Mesh" parent="." unique_id=1239023582 instance=ExtResource("2_xdmsj")]

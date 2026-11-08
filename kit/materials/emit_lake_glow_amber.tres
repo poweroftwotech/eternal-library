@@ -1,0 +1,10 @@
+[gd_resource type="StandardMaterial3D" format=3]
+
+[resource]
+resource_name = "emit_lake_glow_amber"
+albedo_color = Color(0.34, 0.2, 0.06, 1)
+roughness = 0.5
+emission_enabled = true
+emission = Color(1.0, 0.56, 0.14, 1)
+emission_energy_multiplier = 3.0
+texture_filter = 4

@@ -17,6 +17,7 @@ uniform float specular = 0.65;
 uniform float normal_scale = 1.0;
 uniform vec3 uv1_scale = vec3(0.5);
 uniform float uv1_blend_sharpness = 1.0;
+uniform float top_squash = 1.0;        // < 1 widens the texture across up/down faces (limestone: bands read as broad sheets, not stripes)
 
 group_uniforms macro;
 uniform float tint_strength = 0.12;    // +- albedo brightness at the extremes
@@ -64,7 +65,7 @@ void vertex() {
 vec4 triplanar_texture(sampler2D p_sampler, vec3 p_weights, vec3 p_triplanar_pos) {
 	vec4 samp = vec4(0.0);
 	samp += texture(p_sampler, p_triplanar_pos.xy) * p_weights.z;
-	samp += texture(p_sampler, p_triplanar_pos.xz) * p_weights.y;
+	samp += texture(p_sampler, p_triplanar_pos.xz * vec2(1.0, top_squash)) * p_weights.y;
 	samp += texture(p_sampler, p_triplanar_pos.zy * vec2(-1.0, 1.0)) * p_weights.x;
 	return samp;
 }

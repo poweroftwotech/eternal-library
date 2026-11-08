@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_86hq6"]
+[ext_resource type="PackedScene" path="res://assets/kit/walls/lk_harbour.glb" id="2_32rj6"]
+
+[node name="lk_harbour" type="Node3D" unique_id=1113663118]
+script = ExtResource("1_86hq6")
+family = "walls"
+tags = PackedStringArray("rock", "cavern", "r20")
+source_glb = "res://assets/kit/walls/lk_harbour.glb"
+
+[node name="Mesh" parent="." unique_id=1922043693 instance=ExtResource("2_32rj6")]
