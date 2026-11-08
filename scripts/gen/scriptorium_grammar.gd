@@ -52,11 +52,17 @@ const RUG_GAP: float = 0.5
 const DESK_FIRST: float = 3.0
 const DESK_STEP: float = 3.0
 const DESK_DEPTH: float = 0.85
-const GLASS_CLEAR: float = 1.2
+const GLASS_CLEAR: float = 1.1
+## The gap after the first row is this much wider: a gangway across the hall
+## at the side doors (the second bay), so the way from the aisle to a side door
+## is clear (the route audit walks it).
+const DOOR_GANGWAY: float = 1.0
 ## Chance of a copyist at a desk in the near (lamplit) half, and of a
 ## straggler (one at most) at a desk in the row left half done.
 const COPYIST_NEAR: float = 0.8
 const COPYIST_LEFT: float = 0.2
+## The room whose red the glass keeps clear of (Q3).
+const RED_NEIGHBOUR: String = "R03"
 
 ## Nobody comes any more (the Forgotten Wing's version; the brief's Q7): no
 ## copyists, every lamp cold, every desk under dust, the moss dimmer so the
@@ -105,15 +111,22 @@ func layout(grid: CellGrid, seed_value: int) -> void:
 				doors.append(d)
 	_add_cells(grid, rows)
 	_mark_edges(grid, rows, doors)
-	_place_shell(grid, rows, _palette(rng))
+	_block_desk_bays(grid, rows, doors)
+	_place_shell(grid, rows, _palette(rng, grid))
 	_place_rugs(grid, rows, RUGS[rng.randi_range(0, RUGS.size() - 1)])
 	_place_desks(grid, rows, rng)
 	grid.meta["doors"] = doors
 	grid.meta["rows"] = rows
 
 
-func _palette(rng: RandomNumberGenerator) -> String:
+## The glass by seed (Q3). Beside the red hall (the Hypostyle Stacks, R03) no
+## ruby: the room then picks saffron and green or the full spectrum, so the
+## change across the doorway stays clear. Draws from `rng` the same either way,
+## so nothing else in the room changes.
+func _palette(rng: RandomNumberGenerator, grid: CellGrid) -> String:
 	var pick: String = OrosiGlass.PALETTES[rng.randi_range(0, OrosiGlass.PALETTES.size() - 1)]
+	if pick.begins_with("ruby") and str(grid.meta.get("host_type", "")) == RED_NEIGHBOUR:
+		pick = ["saffron_green", "spectrum"][absi(hash([grid.meta.get("area_seed", 0), grid.meta.get("slot_id", "")])) % 2]
 	return palette if palette != "" else pick
 
 
@@ -250,7 +263,7 @@ func _place_desks(grid: CellGrid, rows: int, rng: RandomNumberGenerator) -> void
 			grid.props["copy_" + k] = {"slot": "sc:copy", "xf": xf, "meta": {
 				"text": text, "variant": (i + flip) % 2, "hand": rng.randi_range(0, ScriptoriumCopy.HANDS.size() - 1), "state": state}}
 			i += 1
-		z -= DESK_STEP
+		z -= DESK_STEP + (DOOR_GANGWAY if r == 0 else 0.0)
 		r += 1
 	grid.props["life"] = {"slot": "sc:life", "xf": Transform3D(), "meta": {"forgotten": forgotten}}
 
@@ -266,3 +279,17 @@ func _place_rugs(grid: CellGrid, rows: int, design: String) -> void:
 		var z: float = -(0.5 + step * (i + 0.5))
 		for s: Array in [["w", -1.0], ["e", 5.0]]:
 			grid.props["rug_%s_%d" % [s[0], i]] = {"slot": "rug:" + design, "xf": Transform3D(quarter, Vector3(s[1], 0.0, z))}
+
+
+## The bays the desk rows stand in (the side columns) aren't walked through:
+## walks keep to the aisle (AreaTour goes round blocked cells), and cross the
+## gangway into a side door's bay. You can still walk between the desks.
+func _block_desk_bays(grid: CellGrid, rows: int, doors: Array) -> void:
+	var door_cells: Dictionary = {}
+	for d: Array in doors:
+		door_cells[d[0]] = true
+	for z: int in rows:
+		for x: int in [-1, 1]:
+			var c := Vector3i(x, 0, z)
+			if not door_cells.has(c):
+				grid.cells[c]["blocked"] = true

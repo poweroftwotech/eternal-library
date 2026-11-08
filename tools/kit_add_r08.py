@@ -425,7 +425,7 @@ def copyist_read(r):
 
 
 MODULES = [
-    ("M_sc_orosi_wall", props((3, 1, 2)), orosi_wall),
+    ("M_sc_orosi_wall", props((3, 1, 2), shape="edge", edge="solid"), orosi_wall),     # an edge piece: it closes the hall's far end (Validate Room)
     ("M_sc_moss_garden", props((3, 1, 3)), moss_garden),
     ("M_sc_niche_wall_4m", props((1, 1, 0), shape="edge", edge="solid"), niche_wall),
     ("M_sc_door_wall_4m", props((1, 1, 0), shape="edge", edge="opening_3m"), door_wall),
@@ -438,7 +438,7 @@ MODULES = [
     ("M_sc_copy_desk_dust", dict(props((1, 0, 1), "scriptorium,r08,desk"), kit_family="dressing"), copy_desk(False, "dust")),
     ("M_sc_copy_desk_dust_lamp", dict(props((1, 0, 1), "scriptorium,r08,desk,lamp"), kit_family="dressing"), copy_desk(True, "dust")),
 ]
-REBUILD = [("M_sc_orosi_wall", 2), ("M_sc_moss_garden", 1), ("M_sc_copyist_write", 2), ("M_sc_copyist_read", 2)]   # copyists rev 2: a solid robe (gorge_cloth)
+REBUILD = [("M_sc_orosi_wall", 3), ("M_sc_moss_garden", 1), ("M_sc_copyist_write", 2), ("M_sc_copyist_read", 2)]   # copyists rev 2: a solid robe (gorge_cloth); orosi wall rev 3: an edge piece
 
 
 def main():

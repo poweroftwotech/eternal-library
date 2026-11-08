@@ -535,6 +535,9 @@ static func _generated_room(p: AreaPlan, recipe: AreaRecipe, slot_id: String, di
 	# Which room this is in the area: a grammar with layouts can keep siblings apart.
 	grid.meta["slot_id"] = slot_id
 	grid.meta["area_seed"] = p.area_seed
+	# The room it opens off (a grammar can keep clear of its colours: the
+	# scriptorium's glass avoids ruby beside the red hall).
+	grid.meta["host_type"] = parent_room.room_type if parent_room != null else ""
 	grammar.layout(grid, seed_value)
 	grammar.wear_lanes(grid, seed_value)
 	r.grid = grid

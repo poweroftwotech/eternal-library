@@ -5837,11 +5837,11 @@ modules = Array[Dictionary]([{
 "tags": PackedStringArray("scriptorium", "r08"),
 "weight": 1.0
 }, {
-"edge": "",
+"edge": "solid",
 "family": "walls",
 "name": "sc_orosi_wall",
 "scene": "res://kit/modules/walls/sc_orosi_wall.tscn",
-"shape": "free",
+"shape": "edge",
 "size_cells": Vector3i(3, 1, 2),
 "tags": PackedStringArray("scriptorium", "r08"),
 "weight": 1.0

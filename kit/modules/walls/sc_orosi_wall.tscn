@@ -5,8 +5,10 @@
 
 [node name="sc_orosi_wall" type="Node3D" unique_id=769346715]
 script = ExtResource("1_qfa4p")
+shape = 0
 family = "walls"
 size_cells = Vector3i(3, 1, 2)
+edge = "solid"
 tags = PackedStringArray("scriptorium", "r08")
 source_glb = "res://assets/kit/walls/sc_orosi_wall.glb"
 

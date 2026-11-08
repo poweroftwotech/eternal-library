@@ -11,6 +11,7 @@
 [ext_resource type="Resource" path="res://gen/grammars/r07_garden.tres" id="5_itl27"]
 [ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="6_atmos"]
 [ext_resource type="Resource" path="res://gen/grammars/r05_court_3x3.tres" id="7_3u1oo"]
+[ext_resource type="Resource" path="res://gen/grammars/r08_scriptorium.tres" id="8_3vdvf"]
 
 [sub_resource type="Resource" id="Resource_3ibkb"]
 script = ExtResource("1_dpqfw")
@@ -105,6 +106,15 @@ slot_prefix = "oldStacks"
 from = PackedStringArray("Caravan_1", "Caravan_2")
 one_of = PackedStringArray()
 
+[sub_resource type="Resource" id="Resource_l2lug"]
+script = ExtResource("1_dpqfw")
+grammar = ExtResource("8_3vdvf")
+display_name = "The Orosi Scriptorium"
+count = Vector2i(1, 1)
+slot_prefix = "scriptorium"
+from = PackedStringArray("GrandHall", "ReadingRoomA_1", "ReadingRoomB_1")
+one_of = PackedStringArray()
+
 [sub_resource type="Resource" id="Resource_tandp"]
 script = ExtResource("2_0lf56")
 envelope = AABB(-122, -8, -144, 256, 48, 256)
@@ -133,9 +143,9 @@ pinned = true
 script = ExtResource("3_xveb2")
 id = "grand_study"
 display_name = "The Grand Study"
-version = 11
+version = 12
 slots = Array[ExtResource("4_r8h2h")]([SubResource("Resource_dh8qp"), SubResource("Resource_ylosu")])
-grow = Array[ExtResource("1_dpqfw")]([SubResource("Resource_3ibkb"), SubResource("Resource_3vdvf"), SubResource("Resource_3u1oo"), SubResource("Resource_8k5j5"), SubResource("Resource_wvmve"), SubResource("Resource_nwbcy"), SubResource("Resource_is6dy"), SubResource("Resource_cnp0l"), SubResource("Resource_ydagl")])
+grow = Array[ExtResource("1_dpqfw")]([SubResource("Resource_3ibkb"), SubResource("Resource_3vdvf"), SubResource("Resource_3u1oo"), SubResource("Resource_8k5j5"), SubResource("Resource_wvmve"), SubResource("Resource_nwbcy"), SubResource("Resource_is6dy"), SubResource("Resource_cnp0l"), SubResource("Resource_ydagl"), SubResource("Resource_l2lug")])
 room_count = Vector2i(1, 20)
 max_dead_ends = 0
 max_sight_depth = 4

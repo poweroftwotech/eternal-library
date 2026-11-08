@@ -1,6 +1,6 @@
 # Approval brief: the Orosi Scriptorium (R08), phase 17
 
-[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **approved 2026-11-07 as recommended (all Q1-Q8); step 1 done** ·
+[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **approved 2026-11-07 as recommended (all Q1-Q8); complete 2026-11-08 (all five steps walked)** ·
 Room type: [R08](../../design/room-atlas.html#R08) in the room atlas ·
 How a room gets its feel: [room character](room-character.md)
 
