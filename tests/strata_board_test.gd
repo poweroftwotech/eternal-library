@@ -16,6 +16,12 @@ const Service: GDScript = preload("res://addons/strata_board/strata_service.gd")
 const Board: GDScript = preload("res://addons/strata_board/strata_board.gd")
 const Client: GDScript = preload("res://addons/strata_board/planner_client.gd")
 const INTERIORS: Dictionary = {"library": "res://gen/recipes/library_wing.tres", "lower_stacks": "res://gen/recipes/lower_stacks.tres"}
+## The live stratum (gen/strata/stratum_1.tres) changes as areas are reshaped,
+## so the board is tested on a fixed stratum of its own: the camp, the Gorge
+## and two interiors kept as test fixtures, behind the Gorge doors they had
+## when the board was built. Written here; the live stratum is never touched.
+const FIXTURE_STRATUM: String = "user://test/strata_fixture.tres"
+const FIXTURE_DOORS: Dictionary = {"library": "b3_l18_W_s1_0", "lower_stacks": "b2_l17_E_s1_2"}
 
 var failures: PackedStringArray = []
 var capture_path: String = ""     # capture=<png>: the board's pictures (GPU)
@@ -32,8 +38,28 @@ func check(ok: bool, what: String) -> void:
 		failures.append(what)
 
 
+## Writes the test stratum (once) and points the service and the game code at
+## it. `drafts`, `live`, `new_recipes` as Service.scratch; `stratum` overrides
+## the stratum file (a scratch copy of the fixture).
+func use_fixture(drafts: String = "", live: Dictionary = {}, stratum: String = "", new_recipes: String = "") -> void:
+	if not FileAccess.file_exists(FIXTURE_STRATUM):
+		DirAccess.make_dir_recursive_absolute(FIXTURE_STRATUM.get_base_dir())
+		var sp := StratumPlan.new()
+		sp.places.assign([{"id": "camp", "path": "res://rooms/camp/camp.tscn"}, {"id": "gorge", "path": "res://gen/recipes/gorge.tres"}])
+		sp.links.assign([{"a": "camp", "b": "gorge", "kind": StratumPlan.CORRIDOR}])
+		for id: String in INTERIORS:
+			sp.places.append({"id": id, "path": INTERIORS[id]})
+			sp.links.append({"a": "gorge", "b": id, "kind": StratumPlan.DOOR, "at": FIXTURE_DOORS[id]})
+		var err: Error = ResourceSaver.save(sp, FIXTURE_STRATUM)
+		check(err == OK, "the test stratum is written (%s)" % error_string(err))
+	Service.scratch(drafts, live, stratum if stratum != "" else FIXTURE_STRATUM, new_recipes)
+	StratumPlan.use(ResourceLoader.load(Service.stratum_path, "", ResourceLoader.CACHE_MODE_IGNORE) as StratumPlan)
+
+
 func run() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
+	DirAccess.remove_absolute(ProjectSettings.globalize_path(FIXTURE_STRATUM))     # written fresh each run
+	use_fixture()
 	if args.size() >= 2 and args[0] in ["seed_save", "seed_load"]:
 		seed_process(args[0], args[1])
 	elif args.has("edit"):
@@ -58,6 +84,7 @@ func run() -> void:
 		await board(capture)
 		await copies()
 		await stratum_plan()
+	Service.scratch("", {})
 	print("strata_board_test: %d checks, %d failures" % [checks, failures.size()])
 	for f: String in failures:
 		print("  FAIL ", f)
@@ -73,7 +100,9 @@ func service() -> void:
 		var recipe: AreaRecipe = load(INTERIORS[id])
 		var desc: Dictionary = Service.handle({"cmd": "recipe", "path": INTERIORS[id]})
 		var root: Dictionary = (desc["slots"] as Array)[0]
-		check(bool(root["entrance_only"]), "%s: its entrance %s is marked entrance only (Q6)" % [id, root["slot_id"]])
+		# The courts have no entry door (entrance only); the Reading Room has had one
+		# since its doors were renamed (5c4d3ff), so it can join from a door too.
+		check(bool(root["entrance_only"]) == (id == "lower_stacks"), "%s: its entrance %s is marked entrance only exactly when its scenes have no entry door (Q6: %s)" % [id, root["slot_id"], root["entrance_only"]])
 		check((desc["slots"] as Array).slice(1).all(func(s: Dictionary) -> bool: return str(s["kind"]) == "scene" or not bool(s["entrance_only"])),
 			"%s: no generated room is entrance only" % id)
 		check((desc["grow"] as Array).size() == recipe.grow.size(), "%s: every grow rule is described" % id)
@@ -277,7 +306,7 @@ func edit() -> void:
 	var entrance: Dictionary = {}
 	for s: Dictionary in cat["scenes"]:
 		entrance[str(s["path"]).get_file()] = bool(s["entrance_only"])
-	check(entrance.get("reading_room.tscn") == true and entrance.get("caravanserai_5x5.tscn") == true and entrance.get("stack_gallery_west_7.tscn") == false,
+	check(entrance.get("reading_room.tscn") == false and entrance.get("caravanserai_5x5.tscn") == true and entrance.get("stack_gallery_west_7.tscn") == false,
 		"the catalog marks the entrance-only scenes (%s)" % [entrance])
 	for id: String in INTERIORS:
 		var recipe: AreaRecipe = load(INTERIORS[id])
@@ -390,8 +419,9 @@ func board_edit(b: Control) -> void:
 	b.call("remove_slot", added)
 	check(not bool(b.call("is_dirty", "lower_stacks")), "removing it again leaves the recipe as it was")
 	# Order, entrance, connections.
+	var upper_was: int = int((b.call("_grow_rule", "upper") as Dictionary)["order"])
 	b.call("move_grow", "upper", -1)
-	check(int((b.call("_grow_rule", "upper") as Dictionary)["order"]) == 2, "▲ runs a rule one earlier")
+	check(int((b.call("_grow_rule", "upper") as Dictionary)["order"]) == upper_was - 1, "▲ runs a rule one earlier (%d -> %d)" % [upper_was, int((b.call("_grow_rule", "upper") as Dictionary)["order"])])
 	b.call("revert")
 	check(str(b.call("entrance_blocked", "hall")).contains("entrance only"), "an entrance-only entrance stays the entrance (Q6)")
 	check(str(b.call("remove_blocked", "caravanserai")) != "", "the entrance can't be removed")
@@ -437,7 +467,8 @@ func copies() -> void:
 	DirAccess.copy_absolute(ProjectSettings.globalize_path(INTERIORS["lower_stacks"]), ProjectSettings.globalize_path(live))
 	var original: PackedByteArray = FileAccess.get_file_as_bytes(live)
 	var real_mtime: int = FileAccess.get_modified_time(INTERIORS["lower_stacks"])
-	Service.scratch(scratch + "/drafts", {"lower_stacks": live})
+	var real_drafts: Dictionary = _listing(Service.DRAFTS + "/lower_stacks")
+	use_fixture(scratch + "/drafts", {"lower_stacks": live})
 	var names: Callable = func() -> Array: return Service.drafts("lower_stacks").map(func(d: Dictionary) -> String: return str(d["name"]))
 
 	var desc: Dictionary = Service.handle({"cmd": "recipe", "path": live, "fresh": true})
@@ -471,9 +502,9 @@ func copies() -> void:
 	check(not d.has("error") and names.call() == ["live v%d before tight galleries" % v0], "Delete removes just that copy (%s)" % [names.call()])
 
 	await board_copies(scratch)
-	Service.scratch("", {})
+	use_fixture()
 	check(FileAccess.get_modified_time(INTERIORS["lower_stacks"]) == real_mtime, "the game's own recipe file is untouched")
-	check(not DirAccess.dir_exists_absolute(Service.DRAFTS + "/lower_stacks"), "nothing was written to the real copies folder")
+	check(_listing(Service.DRAFTS + "/lower_stacks") == real_drafts, "nothing was written to the real copies folder (%s)" % [_listing(Service.DRAFTS + "/lower_stacks")])
 
 
 func board_copies(scratch: String) -> void:
@@ -532,25 +563,25 @@ func board_copies(scratch: String) -> void:
 ## the Gorge's network reaches its door and the layout places it, its door
 ## moves, and it's removed.
 func stratum_plan() -> void:
-	StratumPlan.drop_cache()
+	use_fixture()
 	var game_areas: int = SeamlessPlaces.recipes().size()
 	check(SeamlessPlaces.recipes().get("gorge") == "res://gen/recipes/gorge.tres" and SeamlessPlaces.recipes().get("library") == "res://gen/recipes/library_wing.tres"
-		and SeamlessPlaces.recipes().get("lower_stacks") == "res://gen/recipes/lower_stacks.tres", "the game's areas come from the stratum plan, as the code had them (%s)" % SeamlessPlaces.recipes())
+		and SeamlessPlaces.recipes().get("lower_stacks") == "res://gen/recipes/lower_stacks.tres", "the game's areas come from the stratum plan (the test stratum: %s)" % SeamlessPlaces.recipes())
 	check(StratumPlan.current().triples().has(["gorge", "library", "door"]) and StratumPlan.current().triples().has(["gorge", "lower_stacks", "door"]),
-		"the links come from the stratum plan, as the code had them (%s)" % [StratumPlan.current().triples()])
+		"the links come from the stratum plan (the test stratum: %s)" % [StratumPlan.current().triples()])
 	check(SeamlessPlaces.links() == [["camp", "gorge", "corridor"]], "only the camp's corridor streams; every door travels (%s)" % [SeamlessPlaces.links()])
 	var gorge: AreaRecipe = load(SeamlessPlaces.recipes()["gorge"])
 	StratumPlan.current().apply_doors(gorge.network.frontage)
 	check(gorge.network.frontage.slot("b2_l17_E_s1_2").door == "lower_stacks" and gorge.network.frontage.slot("b3_l18_W_s1_0").door == "library",
-		"the Gorge's doors stand where the frontage had them")
+		"the Gorge's doors stand where the stratum plan puts them")
 
 	var scratch: String = "user://test/stratum"
 	_wipe(ProjectSettings.globalize_path(scratch))
 	DirAccess.make_dir_recursive_absolute(scratch)
 	for f: String in ["stratum.tres", "gorge.tres"]:
-		var src: String = StratumPlan.PATH if f == "stratum.tres" else SeamlessPlaces.recipes()["gorge"]
+		var src: String = FIXTURE_STRATUM if f == "stratum.tres" else SeamlessPlaces.recipes()["gorge"]
 		DirAccess.copy_absolute(ProjectSettings.globalize_path(src), ProjectSettings.globalize_path(scratch + "/" + f))
-	Service.scratch("", {"gorge": scratch + "/gorge.tres"}, scratch + "/stratum.tres", scratch + "/recipes")
+	use_fixture("", {"gorge": scratch + "/gorge.tres"}, scratch + "/stratum.tres", scratch + "/recipes")
 	var real: Dictionary = {}
 	for p: String in [StratumPlan.PATH, SeamlessPlaces.recipes()["gorge"], SeamlessPlaces.recipes()["lower_stacks"]]:
 		real[p] = FileAccess.get_modified_time(p)
@@ -607,11 +638,10 @@ func stratum_plan() -> void:
 	await board_stratum(at)
 	if trial != null:
 		trial.door_place = false
-	Service.scratch("", {})
-	StratumPlan.drop_cache()
+	use_fixture()
 	for p: String in real:
 		check(FileAccess.get_modified_time(p) == int(real[p]), "the game's own %s is untouched" % p.get_file())
-	check(SeamlessPlaces.recipes().size() == game_areas, "back on the game's stratum plan")
+	check(SeamlessPlaces.recipes().size() == game_areas, "back on the test stratum plan")
 
 
 ## The stratum on the board: + Area, the door picker, from above, remove.
@@ -650,6 +680,15 @@ func board_stratum(at: String) -> void:
 	check(((b.get("stratum") as Dictionary)["places"] as Array).size() == places_n and str(b.get("notice")).contains("Took"), "Remove area takes it out and opens another (%s)" % b.get("notice"))
 	b.queue_free()
 	await process_frame
+
+
+## File name -> modified time for the files in `dir` ({} = none or no folder).
+func _listing(dir: String) -> Dictionary:
+	var out: Dictionary = {}
+	if DirAccess.dir_exists_absolute(dir):
+		for f: String in DirAccess.get_files_at(dir):
+			out[f] = FileAccess.get_modified_time(dir.path_join(f))
+	return out
 
 
 func _wipe(dir: String) -> void:

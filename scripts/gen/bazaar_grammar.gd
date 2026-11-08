@@ -67,22 +67,12 @@ const SETS: Array = [["N", "E", "W"], ["N", "E"], ["N", "W"], ["E", "W"], ["N"],
 @export var deserted: bool = false
 
 
-func tweak_fields() -> Array[Dictionary]:
-	return [
-		{"key": "state", "label": "State", "tip": "Lived in, crowded at the crossing and quiet at the row ends; or deserted: no people, stalls bare, cloth in rags, glass broken.", "options": [
-			{"label": "Lived in", "value": ""},
-			{"label": "Deserted", "value": "deserted"}]},
-	]
+func state_options() -> PackedStringArray:
+	return ["Lived in", "Deserted", "Lived in, crowded at the crossing and quiet at the row ends; or deserted: no people, stalls bare, cloth in rags, glass broken."]
 
 
-func tweaked(tweaks: Dictionary) -> RoomGrammar:
-	if tweaks.is_empty():
-		return self
-	var g: BazaarGrammar = duplicate(false)
-	g.set_meta("source_path", source_path())
-	if str(tweaks.get("state", "")) == "deserted":
-		g.deserted = true
-	return g
+func _abandon() -> void:
+	deserted = true
 
 
 func layout(grid: CellGrid, seed_value: int) -> void:

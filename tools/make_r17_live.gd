@@ -8,7 +8,7 @@ extends SceneTree
 const WORLDS: int = 40
 const AREAS: Dictionary = {
 	"mahaleh": {"from": ["quarter_1", "quarter_2", "quarter_3", "quarter_4"], "tweaks": {}},
-	"forgotten_city": {"from": [], "tweaks": {"state": "forgotten"}},
+	"forgotten_city": {"from": [], "tweaks": {"state": "abandoned"}},
 }
 
 

@@ -2,7 +2,7 @@
 
 [ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_8rafp"]
 [ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="2_jh1t8"]
-[ext_resource type="Resource" path="res://gen/grammars/r07_garden_wild.tres" id="3_irldv"]
+[ext_resource type="Resource" path="res://gen/grammars/r07_garden.tres" id="3_8rafp"]
 [ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="4_bo6e3"]
 [ext_resource type="Resource" path="res://gen/grammars/r09_lightwell.tres" id="5_hw4vr"]
 [ext_resource type="Resource" path="res://gen/grammars/r21_bridge_hall.tres" id="6_ndjmi"]
@@ -17,7 +17,10 @@
 
 [sub_resource type="Resource" id="Resource_33s8d"]
 script = ExtResource("2_jh1t8")
-grammar = ExtResource("3_irldv")
+grammar = ExtResource("3_8rafp")
+tweaks = {
+"state": "abandoned"
+}
 display_name = "The Garden Court"
 count = Vector2i(1, 1)
 slot_prefix = "garden"

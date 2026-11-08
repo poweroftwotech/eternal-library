@@ -83,10 +83,6 @@ func _initialize() -> void:
 	g.mood_tint = Color(1.0, 0.95, 0.88, 0.6)
 	g.lamps_dark = true     # daylight only: the bays' reading lamps stay dark
 	err = maxi(err, ResourceSaver.save(g, "res://gen/grammars/r07_garden.tres"))
-	# The Forgotten Wing's garden, gone wild (Q5).
-	var gw: GardenCourtGrammar = g.duplicate(true)
-	gw.wild = true
-	gw.rules = load("res://gen/rules/r07_garden.tres")
-	err = maxi(err, ResourceSaver.save(gw, "res://gen/grammars/r07_garden_wild.tres"))
+	# Gone wild (Q5) is the room's State setting (RoomGrammar.state_options), not a file.
 	print("make_r07_rules: %d rules, saved (%d)" % [list.size(), err])
 	quit(err)

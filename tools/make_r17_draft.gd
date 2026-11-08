@@ -26,7 +26,7 @@ func _initialize() -> void:
 	var f: AreaRecipe = r.duplicate(true)
 	for x: AreaGrow in f.grow:
 		if x.slot_prefix == "ossuary":
-			x.tweaks = {"state": "forgotten"}
+			x.tweaks = {"state": "abandoned"}
 	err = maxi(err, ResourceSaver.save(f, OUT.replace("ossuary_test", "ossuary_forgotten_test")))
 	var found: int = 0
 	for s: int in range(1, 21):

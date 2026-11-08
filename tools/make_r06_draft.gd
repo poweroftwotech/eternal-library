@@ -27,7 +27,7 @@ func _initialize() -> void:
 	# The same with every quarter deserted, for the Forgotten City's tests.
 	var empty: AreaRecipe = r.duplicate(true)
 	var eg: AreaGrow = empty.grow[empty.grow.size() - 1]
-	eg.tweaks = {"alley": "short", "state": "deserted"}
+	eg.tweaks = {"alley": "short", "state": "abandoned"}
 	err = maxi(err, ResourceSaver.save(empty, OUT_DESERTED))
 	var found: int = 0
 	for s: int in range(1, 21):

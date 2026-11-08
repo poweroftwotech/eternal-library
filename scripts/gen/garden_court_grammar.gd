@@ -29,14 +29,22 @@ extends RoomGrammar
 		orchard_trees = value
 		emit_changed()
 
-## The garden's state (phase 13 Q5): tended in the Lower Stacks; gone wild in
-## the Forgotten Wing (its own grammar resource, r07_garden_wild.tres): the
-## fountain dry and broken, the rills dry and cracked, the beds overgrown,
-## ivy over the talar, the gardener's things left long ago.
+## The garden's state (phase 13 Q5): tended, or gone wild: the fountain dry
+## and broken, the rills dry and cracked, the beds overgrown, ivy over the
+## talar, the gardener's things left long ago. Set by the room's State on the
+## Strata Board (_abandon), not in a grammar file.
 @export var wild: bool = false:
 	set(value):
 		wild = value
 		emit_changed()
+
+
+func state_options() -> PackedStringArray:
+	return ["Tended", "Gone wild", "Tended: the fountain running, beds kept, the gardener's things about. Gone wild: fountain and rills dry and cracked, beds overgrown, ivy over the talar."]
+
+
+func _abandon() -> void:
+	wild = true
 
 const CORR: int = 2          # corridor bays at each end
 const H_RING: int = 3        # ring cells run x -3..3

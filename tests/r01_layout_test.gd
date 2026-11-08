@@ -31,6 +31,9 @@ func run() -> void:
 					grown += 1
 			most = maxi(most, grown)
 			check(int(hall.style_overrides.get("gallery_build", -1)) == want, "%s world %d style" % [v, w])
+			# Kept or left is the State setting on one grammar per build (no _left files).
+			check(hall.grammar is ReadingRoomGrammar and (hall.grammar as ReadingRoomGrammar).abandoned == v.ends_with("_left"), "%s world %d state" % [v, w])
+			check(hall.grammar.source_path() == "res://gen/grammars/r01_reading_%s.tres" % v.trim_suffix("_left"), "%s world %d grammar file" % [v, w])
 			check(p.rooms.size() >= 2, "%s world %d grew nothing (%s)" % [v, w, str(p.failures) if "failures" in p else ""])
 			if w == 1:
 				print("  ", v, " rooms ", p.rooms.size(), " at ", hall.xf.origin, " connectors ", hall.connectors.keys())

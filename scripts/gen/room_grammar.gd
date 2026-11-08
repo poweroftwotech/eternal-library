@@ -272,17 +272,57 @@ static func _xz(v: Vector3) -> Vector2:
 		emit_changed()
 
 
+## A room's state, the same for every room type that has one: the Strata
+## Board's "State" setting (AreaSlot.tweaks["state"]). "" is the room kept, as
+## its grammar file makes it; ABANDONED is the room left. One grammar file per
+## room type, never one per state: each type names its two states
+## (state_options) and says what left means for it (_abandon).
+const ABANDONED: String = "abandoned"
+
+
+## [kept label, abandoned label, tip] for the board ("Lived in", "Deserted",
+## ...). Empty: this room type has no states.
+func state_options() -> PackedStringArray:
+	return PackedStringArray()
+
+
+## This room left (state ABANDONED), on a tweaked copy: set its own fields.
+func _abandon() -> void:
+	pass
+
+
 ## Settings a single room can change on the Strata Board (AreaSlot.tweaks):
 ## each {key, label, tip, default} with min and max, or options as
 ## [{label, value}] whose first entry is the grammar's own. Empty: none.
+## The State comes first when the type has one; a subclass appends its own
+## settings to super()'s.
 func tweak_fields() -> Array[Dictionary]:
-	return []
+	var out: Array[Dictionary] = []
+	var s: PackedStringArray = state_options()
+	if s.size() >= 3:
+		out.append({"key": "state", "label": "State", "tip": s[2], "options": [
+			{"label": s[0], "value": ""},
+			{"label": s[1], "value": ABANDONED}]})
+	return out
 
 
 ## This grammar with a room's tweaks applied: itself when there are none,
 ## else a copy for that room alone (source_path says which file it came from).
-func tweaked(_tweaks: Dictionary) -> RoomGrammar:
-	return self
+## A subclass sets its own settings in _tweak, on the copy.
+func tweaked(tweaks: Dictionary) -> RoomGrammar:
+	if tweaks.is_empty():
+		return self
+	var g: RoomGrammar = duplicate(false)
+	g.set_meta("source_path", source_path())
+	if str(tweaks.get("state", "")) == ABANDONED and not state_options().is_empty():
+		g._abandon()
+	g._tweak(tweaks)
+	return g
+
+
+## A tweaked copy's own settings besides the State (see tweaked).
+func _tweak(_tweaks: Dictionary) -> void:
+	pass
 
 
 ## The file this grammar came from, a tweaked copy's too.

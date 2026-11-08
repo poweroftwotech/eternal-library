@@ -8,8 +8,8 @@ extends SceneTree
 ##   godot --headless --path . --script res://tools/make_r07_draft.gd
 
 const COPIES: Array = [
-	["lower_stacks", "res://gen/grammars/r07_garden.tres"],
-	["forgotten_wing", "res://gen/grammars/r07_garden_wild.tres"],
+	["lower_stacks", {}],
+	["forgotten_wing", {"state": RoomGrammar.ABANDONED}],
 ]
 
 
@@ -21,7 +21,8 @@ func _initialize() -> void:
 		var live: AreaRecipe = load("res://gen/recipes/%s.tres" % area)
 		var r: AreaRecipe = live.duplicate(true)
 		var g := AreaGrow.new()
-		g.grammar = load(copy[1])
+		g.grammar = load("res://gen/grammars/r07_garden.tres")
+		g.tweaks = (copy[1] as Dictionary).duplicate()
 		g.display_name = "The Garden Court"
 		g.count = Vector2i(1, 1)
 		g.slot_prefix = "garden"

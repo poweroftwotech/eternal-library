@@ -151,8 +151,18 @@ var _oz: int = 0                # the block's first row
 var _flip: int = 1              # 1, or -1: the layout mirrored
 
 
+func state_options() -> PackedStringArray:
+	return ["Lived in", "Deserted", "Lived in, thinning out toward the edges; or deserted: no people, no lamps, plants coming in."]
+
+
+func _abandon() -> void:
+	deserted = true
+	lamps_dark = true
+
+
 func tweak_fields() -> Array[Dictionary]:
-	return [
+	var out: Array[Dictionary] = super()
+	out.append_array([
 		{"key": "layout", "label": "Layout", "tip": "Each layout has its own lanes and landmark. Seed picks: quarters of an area take different ones.", "options": [
 			{"label": "Seed picks", "value": ""},
 			{"label": "Hauz Square", "value": "hauz"},
@@ -163,24 +173,14 @@ func tweak_fields() -> Array[Dictionary]:
 			{"label": "None", "value": ""},
 			{"label": "Short (8 m)", "value": "short"},
 			{"label": "Long (12 m)", "value": "long"}]},
-		{"key": "state", "label": "State", "tip": "Lived in, thinning out toward the edges; or deserted: no people, no lamps, plants coming in.", "options": [
-			{"label": "Lived in", "value": ""},
-			{"label": "Deserted", "value": "deserted"}]},
-	]
+	])
+	return out
 
 
-func tweaked(tweaks: Dictionary) -> RoomGrammar:
-	if tweaks.is_empty():
-		return self
-	var g: QuarterGrammar = duplicate(false)
-	g.set_meta("source_path", source_path())
+func _tweak(tweaks: Dictionary) -> void:
 	if LAYOUTS.has(str(tweaks.get("layout", ""))):
-		g.layout_name = str(tweaks["layout"])
-	g.alley = int(ALLEYS.get(str(tweaks.get("alley", "")), alley))
-	if str(tweaks.get("state", "")) == "deserted":
-		g.deserted = true
-		g.lamps_dark = true
-	return g
+		layout_name = str(tweaks["layout"])
+	alley = int(ALLEYS.get(str(tweaks.get("alley", "")), alley))
 
 
 func layout(grid: CellGrid, seed_value: int) -> void:

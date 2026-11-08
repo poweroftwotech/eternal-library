@@ -7,8 +7,9 @@ extends RoomGrammar
 ## entry, lamps on the furniture. rooms/authored/reading_room.tscn is the
 ## hand-built room this came from.
 ##
-## Four versions (gen/grammars/r01_*.tres): fixed_styles gallery_build says
-## masonry or wood steps and deck; `abandoned` says kept or left.
+## Two versions (gen/grammars/r01_reading_*.tres): fixed_styles gallery_build
+## says masonry or wood steps and deck. Kept or left is the room's State on
+## the Strata Board (RoomGrammar.state_options), which sets `abandoned`.
 ##
 ## Up to five doors: the entry, a door in the second bay of each side wall,
 ## and a shelf bay at the far end of each side wall that opens only if a room
@@ -19,6 +20,7 @@ extends RoomGrammar
 ## are there so nothing else is built in them.
 
 ## Kept or left: shelves emptied, flames out, furniture gone, water and rubble.
+## Set by the State setting (_abandon), not in a grammar file.
 @export var abandoned: bool = false:
 	set(value):
 		abandoned = value
@@ -43,6 +45,15 @@ const ROWS: int = 5
 const BAY: float = CellGrid.BAY
 const LEFT_TINT := Color(0.42, 0.6, 0.85, 0.55)
 const COOL := Color(0.1725, 0.4549, 0.902)
+
+
+func state_options() -> PackedStringArray:
+	return ["Kept", "Abandoned", "Kept: full shelves, lamps lit, readers' things on the tables. Abandoned: shelves emptied, flames out, furniture gone, water and rubble, a cold blue light."]
+
+
+func _abandon() -> void:
+	abandoned = true
+	wetness = 0.35
 
 
 func layout(grid: CellGrid, seed_value: int) -> void:

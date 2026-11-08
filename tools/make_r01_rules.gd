@@ -49,15 +49,12 @@ func run() -> void:
 	out.rules = list
 	print("G rules ", ResourceSaver.save(out, "res://gen/rules/r01_reading.tres"))
 	var rules: ModuleRules = load("res://gen/rules/r01_reading.tres")
-	for v: Array in [["masonry", "masonry", 0, false], ["wood", "wood", 1, false], ["masonry_left", "masonry, abandoned", 0, true], ["wood_left", "wood, abandoned", 1, true]]:
+	for v: Array in [["masonry", "masonry", 0], ["wood", "wood", 1]]:
 		var g := ReadingRoomGrammar.new()
 		g.variant_name = v[1]
 		g.rules = rules
 		var fixed: Dictionary[String, int] = {"gallery_build": int(v[2])}
 		g.fixed_styles = fixed
-		g.abandoned = v[3]
-		if v[3]:
-			g.wetness = 0.35
 		var a := LoreBookPin.new()
 		a.socket = "Shell/edge_-1_0_0_W/Mesh/M_wall_shelfbay_4m/SOCKET_recess_fill"
 		a.level = 3
@@ -78,7 +75,10 @@ func run() -> void:
 		var s := AreaSlot.new()
 		s.slot_id = "entrance"
 		s.display_name = "The Reading Room"
-		s.grammar = load("res://gen/grammars/r01_reading_%s.tres" % v)
+		# Abandoned is the room's State setting (RoomGrammar.state_options), not a file.
+		s.grammar = load("res://gen/grammars/r01_reading_%s.tres" % v.trim_suffix("_left"))
+		if v.ends_with("_left"):
+			s.tweaks = {"state": RoomGrammar.ABANDONED}
 		s.pinned = true
 		var slots: Array[AreaSlot] = [s]
 		d.slots = slots

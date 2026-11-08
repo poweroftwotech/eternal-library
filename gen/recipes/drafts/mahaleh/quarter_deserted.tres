@@ -3,7 +3,7 @@
 [ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_xibga"]
 [ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="2_dfhl0"]
 [ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="3_11ynu"]
-[ext_resource type="Resource" path="res://gen/grammars/r07_garden_wild.tres" id="4_645ds"]
+[ext_resource type="Resource" path="res://gen/grammars/r07_garden.tres" id="4_xibga"]
 [ext_resource type="Resource" path="res://gen/grammars/r06_quarter.tres" id="5_x4c1o"]
 [ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="6_nyvk8"]
 [ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="7_flx8y"]
@@ -25,7 +25,10 @@ one_of = PackedStringArray()
 
 [sub_resource type="Resource" id="Resource_rr56r"]
 script = ExtResource("2_dfhl0")
-grammar = ExtResource("4_645ds")
+grammar = ExtResource("4_xibga")
+tweaks = {
+"state": "abandoned"
+}
 display_name = "Gardens"
 count = Vector2i(1, 1)
 slot_prefix = "garden"
@@ -37,7 +40,7 @@ script = ExtResource("2_dfhl0")
 grammar = ExtResource("5_x4c1o")
 tweaks = {
 "alley": "short",
-"state": "deserted"
+"state": "abandoned"
 }
 display_name = "The Domicile Quarter"
 count = Vector2i(2, 4)

@@ -6,7 +6,7 @@
 [ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="4_wucwu"]
 [ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="5_mwio8"]
 [ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="6_kp5eo"]
-[ext_resource type="Resource" path="res://gen/grammars/r01_reading_masonry_left.tres" id="7_wlob7"]
+[ext_resource type="Resource" path="res://gen/grammars/r01_reading_masonry.tres" id="7_fwi3e"]
 
 [sub_resource type="Resource" id="Resource_ep1t8"]
 script = ExtResource("2_2xwvg")
@@ -26,7 +26,10 @@ script = ExtResource("6_kp5eo")
 slot_id = "entrance"
 display_name = "The Reading Room"
 scene_weights = PackedFloat32Array()
-grammar = ExtResource("7_wlob7")
+grammar = ExtResource("7_fwi3e")
+tweaks = {
+"state": "abandoned"
+}
 pinned = true
 
 [resource]

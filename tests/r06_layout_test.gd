@@ -46,7 +46,7 @@ func _initialize() -> void:
 ## Lived in: people, smoke, lamps, a thinner edge. Deserted: none of those.
 func _state(base: QuarterGrammar, s: int) -> void:
 	var lived: Dictionary = _slots(base.tweaked({"alley": "short"}), s)
-	var empty: Dictionary = _slots(base.tweaked({"alley": "short", "state": "deserted"}), s)
+	var empty: Dictionary = _slots(base.tweaked({"alley": "short", "state": "abandoned"}), s)
 	var name: String = "seed %d" % s
 	check(lived["people"] > 0, name + ": people in a lived-in quarter")
 	check(lived["lit"] > 0 and lived["glow"] > 0, name + ": lit fronts and lamps in a lived-in quarter")

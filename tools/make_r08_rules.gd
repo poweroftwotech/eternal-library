@@ -55,7 +55,7 @@ func run() -> void:
 	g.rules = load("res://gen/rules/r08_scriptorium.tres")
 	err = maxi(err, ResourceSaver.save(g, "res://gen/grammars/r08_scriptorium.tres"))
 	err = maxi(err, _draft("scriptorium_test", {}))
-	err = maxi(err, _draft("scriptorium_forgotten", {"state": "forgotten"}))
+	err = maxi(err, _draft("scriptorium_forgotten", {"state": "abandoned"}))
 	print("make_r08_rules: %d rules, saved (%d)" % [list.size(), err])
 	quit(err)
 

@@ -10,8 +10,8 @@ extends SceneTree
 ##   godot --headless --path . --script res://tools/make_r07_live.gd [-- --dry]
 
 const AREAS: Dictionary = {
-	"lower_stacks": "res://gen/grammars/r07_garden.tres",
-	"forgotten_wing": "res://gen/grammars/r07_garden_wild.tres",
+	"lower_stacks": {},
+	"forgotten_wing": {"state": RoomGrammar.ABANDONED},
 }
 const WORLDS: int = 40
 const OTHERS: PackedStringArray = ["lightwell_1", "bridge_1", "cistern_1"]
@@ -31,7 +31,8 @@ func _initialize() -> void:
 			if g != null and g.slot_prefix != "garden":
 				grows.append(g)
 		var g := AreaGrow.new()
-		g.grammar = load(AREAS[id])
+		g.grammar = load("res://gen/grammars/r07_garden.tres")
+		g.tweaks = (AREAS[id] as Dictionary).duplicate()
 		g.display_name = "The Garden Court"
 		g.count = Vector2i(1, 1)
 		g.slot_prefix = "garden"

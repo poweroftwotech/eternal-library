@@ -3,12 +3,12 @@
 [ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_f6k8s"]
 [ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="2_xb1oy"]
 [ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="3_22nm3"]
-[ext_resource type="Resource" path="res://gen/grammars/r01_reading_masonry_left.tres" id="3_cmeof"]
+[ext_resource type="Resource" path="res://gen/grammars/r01_reading_masonry.tres" id="3_h1vwa"]
 [ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="4_cmeof"]
-[ext_resource type="Resource" path="res://gen/grammars/r01_reading_wood_left.tres" id="5_lseib"]
+[ext_resource type="Resource" path="res://gen/grammars/r01_reading_wood.tres" id="5_eabf2"]
 [ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="5_w5i8p"]
 [ext_resource type="Resource" path="res://gen/grammars/r02_stack_gallery.tres" id="6_lseib"]
-[ext_resource type="Resource" path="res://gen/grammars/r07_garden_wild.tres" id="6_wmflr"]
+[ext_resource type="Resource" path="res://gen/grammars/r07_garden.tres" id="6_xuc5k"]
 [ext_resource type="Resource" path="res://gen/grammars/r06_quarter.tres" id="7_lseib"]
 [ext_resource type="Resource" path="res://gen/grammars/r04_bazaar.tres" id="8_wmflr"]
 [ext_resource type="Resource" path="res://gen/grammars/r17_ossuary.tres" id="9_wmflr"]
@@ -16,7 +16,10 @@
 
 [sub_resource type="Resource" id="Resource_lseib"]
 script = ExtResource("2_xb1oy")
-grammar = ExtResource("3_cmeof")
+grammar = ExtResource("3_h1vwa")
+tweaks = {
+"state": "abandoned"
+}
 display_name = "Forgotten Study"
 count = Vector2i(1, 1)
 slot_prefix = "readinga"
@@ -38,7 +41,10 @@ one_of = PackedStringArray()
 
 [sub_resource type="Resource" id="Resource_h1vwa"]
 script = ExtResource("2_xb1oy")
-grammar = ExtResource("5_lseib")
+grammar = ExtResource("5_eabf2")
+tweaks = {
+"state": "abandoned"
+}
 display_name = "Forgotten Room"
 count = Vector2i(1, 2)
 slot_prefix = "readingb"
@@ -47,7 +53,10 @@ one_of = PackedStringArray()
 
 [sub_resource type="Resource" id="Resource_eabf2"]
 script = ExtResource("2_xb1oy")
-grammar = ExtResource("6_wmflr")
+grammar = ExtResource("6_xuc5k")
+tweaks = {
+"state": "abandoned"
+}
 display_name = "OldGarden"
 count = Vector2i(1, 1)
 slot_prefix = "oldGarden"
@@ -59,7 +68,7 @@ script = ExtResource("2_xb1oy")
 grammar = ExtResource("7_lseib")
 tweaks = {
 "alley": "short",
-"state": "deserted"
+"state": "abandoned"
 }
 display_name = "Old City"
 count = Vector2i(1, 1)
@@ -71,7 +80,7 @@ one_of = PackedStringArray()
 script = ExtResource("2_xb1oy")
 grammar = ExtResource("8_wmflr")
 tweaks = {
-"state": "deserted"
+"state": "abandoned"
 }
 display_name = "Old Market"
 count = Vector2i(1, 1)
@@ -83,7 +92,7 @@ one_of = PackedStringArray()
 script = ExtResource("2_xb1oy")
 grammar = ExtResource("9_wmflr")
 tweaks = {
-"state": "forgotten"
+"state": "abandoned"
 }
 display_name = "The Ossuary of Books"
 count = Vector2i(1, 1)
@@ -95,7 +104,7 @@ one_of = PackedStringArray()
 script = ExtResource("2_xb1oy")
 grammar = ExtResource("10_h1vwa")
 tweaks = {
-"state": "forgotten"
+"state": "abandoned"
 }
 display_name = "The Orosi Scriptorium"
 count = Vector2i(1, 1)

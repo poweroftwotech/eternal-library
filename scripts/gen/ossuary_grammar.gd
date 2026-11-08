@@ -88,24 +88,14 @@ var _lit_biers: Dictionary    # bier cell -> true: it has its own candle
 var _seed: int
 
 
-func tweak_fields() -> Array[Dictionary]:
-	return [
-		{"key": "state", "label": "State", "tip": "Tended near the entry and forgotten deeper in; or forgotten throughout: every niche dark, cloth in rags, one candle still burning at the shrine.", "options": [
-			{"label": "Tended", "value": ""},
-			{"label": "Forgotten", "value": "forgotten"}]},
-	]
+func state_options() -> PackedStringArray:
+	return ["Tended", "Forgotten", "Tended near the entry and forgotten deeper in; or forgotten throughout: every niche dark, cloth in rags, one candle still burning at the shrine."]
 
 
-func tweaked(tweaks: Dictionary) -> RoomGrammar:
-	if tweaks.is_empty():
-		return self
-	var g: OssuaryGrammar = duplicate(false)
-	g.set_meta("source_path", source_path())
-	if str(tweaks.get("state", "")) == "forgotten":
-		g.forgotten = true
-		g.mood_tint = Color(0.5, 0.62, 0.85, 0.9)
-		g.ambient_scale = 0.85
-	return g
+func _abandon() -> void:
+	forgotten = true
+	mood_tint = Color(0.5, 0.62, 0.85, 0.9)
+	ambient_scale = 0.85
 
 
 func layout(grid: CellGrid, seed_value: int) -> void:

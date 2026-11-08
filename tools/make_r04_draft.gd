@@ -27,7 +27,7 @@ func _initialize() -> void:
 	var empty: AreaRecipe = r.duplicate(true)
 	for eg: AreaGrow in empty.grow:
 		if eg.slot_prefix == "bazaar":
-			eg.tweaks = {"state": "deserted"}
+			eg.tweaks = {"state": "abandoned"}
 	err = maxi(err, ResourceSaver.save(empty, OUT_DESERTED))
 	var found: int = 0
 	for s: int in range(1, 21):

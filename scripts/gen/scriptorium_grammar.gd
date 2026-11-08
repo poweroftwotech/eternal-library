@@ -70,23 +70,13 @@ const RED_NEIGHBOUR: String = "R03"
 @export var forgotten: bool = false
 
 
-func tweak_fields() -> Array[Dictionary]:
-	return [
-		{"key": "state", "label": "State", "tip": "Tended: copyists at work by the door, copies left half done and then under dust toward the glass. Forgotten: nobody, every lamp cold, every desk under dust, the glass glowing faintly.", "options": [
-			{"label": "Tended", "value": ""},
-			{"label": "Forgotten", "value": "forgotten"}]},
-	]
+func state_options() -> PackedStringArray:
+	return ["Tended", "Forgotten", "Tended: copyists at work by the door, copies left half done and then under dust toward the glass. Forgotten: nobody, every lamp cold, every desk under dust, the glass glowing faintly."]
 
 
-func tweaked(tweaks: Dictionary) -> RoomGrammar:
-	if tweaks.is_empty():
-		return self
-	var g: ScriptoriumGrammar = duplicate(false)
-	g.set_meta("source_path", source_path())
-	if str(tweaks.get("state", "")) == "forgotten":
-		g.forgotten = true
-		g.ambient_scale = 0.8
-	return g
+func _abandon() -> void:
+	forgotten = true
+	ambient_scale = 0.8
 
 
 func layout(grid: CellGrid, seed_value: int) -> void:

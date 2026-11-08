@@ -19,7 +19,7 @@ const WORLDS: int = 40
 const AREAS: Dictionary = {
 	"grand_study": {"from": ["GrandHall", "ReadingRoomA_1", "ReadingRoomB_1"], "after": "oldStacks", "tweaks": {},
 		"others": ["ReadingRoomA_1", "ReadingRoomB_1", "Gardens_1", "Caravan_1", "oldStacks_1", "RoomAStacks_1", "RoomAStacks_2_1"]},
-	"forgotten_city": {"from": [], "after": "ossuary", "tweaks": {"state": "forgotten"},
+	"forgotten_city": {"from": [], "after": "ossuary", "tweaks": {"state": "abandoned"},
 		"others": ["readinga_1", "stacks_1", "stacks_2", "readingb_1", "oldGarden_1", "Old_City_1", "old_Market_1", "ossuary_1"]},
 }
 ## Areas the scriptorium is taken out of (version bumped once).
