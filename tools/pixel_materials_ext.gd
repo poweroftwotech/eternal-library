@@ -30,6 +30,11 @@ func _init() -> void:
 		print("wrote the ossuary's maps")
 		quit()
 		return
+	if OS.get_cmdline_user_args().has("scriptorium"):  # -- scriptorium: only the Orosi Scriptorium's maps
+		scriptorium()
+		print("wrote the scriptorium's maps")
+		quit()
+		return
 	if OS.get_cmdline_user_args().has("quarter"):  # -- quarter: only the Domicile Quarter's maps
 		quarter()
 		print("wrote the quarter's maps")
@@ -62,6 +67,7 @@ func _init() -> void:
 	persian()
 	quarter()
 	ossuary()
+	scriptorium()
 	rugs()
 	var file: FileAccess = FileAccess.open(OUT + "manifest_ext.json", FileAccess.WRITE)
 	file.store_string(JSON.stringify({"texel_density": 32, "materials": manifest}, " "))
@@ -794,6 +800,12 @@ func ossuary() -> void:
 	ossuary_goods()
 	mottled_kit("ossuary_stone", pal(["#6e7068", "#7e8076", "#8e9084", "#9ea192", "#aeb2a0", "#bcc0ae"]), 64, 9, 321, 1.1, .92)
 	mottled_kit("ossuary_floor", pal(["#4e5048", "#5a5d53", "#66695e", "#72756a", "#7e8175"]), 64, 6, 322, .9, .9)
+
+
+## The Orosi Scriptorium (phase 17 step 4): the grey-fawn dust lying on the
+## desks nobody has come back to (the far half, and the Forgotten version).
+func scriptorium() -> void:
+	mottled_kit("sc_dust", pal(["#6a655a", "#777266", "#837e70", "#8f8a7b", "#9b9686", "#a6a191"]), 64, 3, 331, .7, .97)
 
 
 ## What lies in the ossuary's niches: a palette tools/kit_r17_goods.py picks from

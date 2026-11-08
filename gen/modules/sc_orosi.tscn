@@ -5,7 +5,7 @@
 [ext_resource type="PackedScene" path="res://kit/modules/walls/sc_moss_garden.tscn" id="3_m0uoy"]
 [ext_resource type="Script" path="res://scripts/gen/orosi_wall_setup.gd" id="4_o8qwg"]
 
-[node name="ScOrosi" type="Node3D" unique_id=1073040830]
+[node name="ScOrosi" type="Node3D" unique_id=882916981]
 
 [node name="Wall" type="Node3D" parent="." unique_id=769346715 instance=ExtResource("1_x7iyx")]
 script = ExtResource("2_vggsn")
@@ -21,6 +21,6 @@ size_cells = Vector3i(3, 1, 3)
 tags = PackedStringArray("scriptorium", "r08")
 source_glb = "res://assets/kit/walls/sc_moss_garden.glb"
 
-[node name="Glass" type="Node" parent="." unique_id=1226700567]
+[node name="Glass" type="Node" parent="." unique_id=246881727]
 script = ExtResource("4_o8qwg")
 wall = NodePath("../Wall")

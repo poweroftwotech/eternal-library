@@ -291,7 +291,16 @@ def _moved(bm, build, m):
     bmesh.ops.transform(bm, matrix=m, verts=[v for v in bm.verts if v not in before])
 
 
-def copy_desk(lamp):
+def copy_desk(lamp, state="tended"):
+    """A low copy desk. `state` (phase 17 step 4, the busy-to-abandoned walk):
+    "tended" the copy under way, everything to hand; "left" the copy left half
+    done: the cushion pushed back, the pen and a sheet dropped on the floor;
+    "dust" nobody has come back: dust over the desk, the pages and the cushion,
+    more sheets on the floor, a cobweb on the rahl. A lamp on a dust desk is
+    cold (no flame, no light)."""
+    left, dust = state in ("left", "dust"), state == "dust"
+    paper = "sc_dust" if dust else "pages"
+
     def build(r):
         name = r.name[2:]
 
@@ -301,6 +310,8 @@ def copy_desk(lamp):
                 add_box(bm, x - 0.04, x + 0.04, -0.82, -0.38, 0.0, DESK_TOP - 0.05)
             add_box(bm, -0.55, 0.55, -0.83, -0.79, 0.04, DESK_TOP - 0.05)              # the back apron
         solid(name + "__desk", r, ["persian_wood"], desk)
+        if dust:
+            solid(name + "__dust", r, ["sc_dust"], lambda bm: add_box(bm, -0.58, 0.58, -0.83, -0.37, DESK_TOP, DESK_TOP + 0.003))
 
         def stand(bm):
             # The rahl on the desk's back: two leaves crossed, open as a V, holding
@@ -312,31 +323,53 @@ def copy_desk(lamp):
         def exemplar(bm):
             for side in (-1, 1):
                 add_obox(bm, (side * 0.105, -0.68, DESK_TOP + 0.17), (0.2, 0.012, 0.27), (math.radians(-28), side * math.radians(8), 0.0))
-        solid(name + "__exemplar", r, ["pages"], exemplar)
+        solid(name + "__exemplar", r, [paper], exemplar)
         solid(name + "__cover", r, ["book_leather"], lambda bm: add_obox(bm, (0.0, -0.69, DESK_TOP + 0.165), (0.44, 0.01, 0.29), (math.radians(-28), 0.0, 0.0)))
 
         def sheet(bm):
             add_box(bm, -0.2, 0.18, -0.58, -0.4, DESK_TOP, DESK_TOP + 0.006)           # the copy, half written
             add_box(bm, 0.25, 0.5, -0.62, -0.44, DESK_TOP, DESK_TOP + 0.03)            # fresh sheets
-        solid(name + "__sheets", r, ["pages"], sheet)
+            if left:
+                add_obox(bm, (0.78, -0.08, 0.003), (0.19, 0.26, 0.004), (0.0, 0.0, 0.5))     # one slid to the floor
+            if dust:
+                add_obox(bm, (-0.82, -0.3, 0.003), (0.19, 0.26, 0.004), (0.0, 0.0, -0.9))
+                add_obox(bm, (0.55, 0.35, 0.005), (0.19, 0.26, 0.004), (0.0, 0.0, 1.9))
+        solid(name + "__sheets", r, [paper], sheet)
 
         def ink(bm):
             add_lathe(bm, [(0.0, 0.0), (0.04, 0.0), (0.045, 0.035), (0.02, 0.05), (0.0, 0.05)], 0.36, -0.4, segs=8)
-            for z in (0.0,):
-                add_box(bm, -0.42, -0.26, -0.48, -0.42, z, z + 0.012)                  # a pen box
+            add_box(bm, -0.42, -0.26, -0.48, -0.42, 0.0, 0.012)                        # a pen box
         _moved_ink = bmesh.new()
         ink(_moved_ink)
         bmesh.ops.translate(_moved_ink, verts=_moved_ink.verts, vec=(0.0, 0.0, DESK_TOP))
         mesh_object(name + "__ink", _moved_ink, ["iron"], r)
-        solid(name + "__pen", r, ["wood"], lambda bm: add_obox(bm, (0.05, -0.46, DESK_TOP + 0.01), (0.012, 0.22, 0.012), (0.0, 0.0, 0.5)))
-        # The cushion the copyist kneels on, and a pile of scrolls to the right.
-        solid(name + "__cushion", r, ["cushion_termeh"], lambda bm: add_box(bm, -0.32, 0.32, -0.22, 0.32, 0.0, 0.1))
+        if left:       # dropped beside the cushion
+            solid(name + "__pen", r, ["wood"], lambda bm: add_obox(bm, (0.42, 0.18, 0.012), (0.012, 0.22, 0.012), (0.0, 0.0, 1.2)))
+        else:
+            solid(name + "__pen", r, ["wood"], lambda bm: add_obox(bm, (0.05, -0.46, DESK_TOP + 0.01), (0.012, 0.22, 0.012), (0.0, 0.0, 0.5)))
+        # The cushion the copyist kneels on (pushed back when the copy was left),
+        # and a pile of scrolls to the right.
+        if left:
+            solid(name + "__cushion", r, ["sc_dust" if dust else "cushion_termeh"], lambda bm: add_obox(bm, (0.1, 0.16, 0.05), (0.64, 0.54, 0.1), (0.0, 0.0, 0.35)))
+        else:
+            solid(name + "__cushion", r, ["cushion_termeh"], lambda bm: add_box(bm, -0.32, 0.32, -0.22, 0.32, 0.0, 0.1))
 
         def scrolls(bm):
             for (x, y, z, rot) in ((0.95, -0.5, 0.05, 0.1), (0.95, -0.66, 0.05, -0.05), (0.95, -0.34, 0.05, 0.0), (0.95, -0.58, 0.14, 0.2)):
                 _moved(bm, lambda b: add_lathe(b, [(0.0, -0.22), (0.045, -0.22), (0.045, 0.22), (0.0, 0.22)], segs=7),
                        Matrix.Translation((x, y, z)) @ Matrix.Rotation(math.pi / 2, 4, "X") @ Matrix.Rotation(rot, 4, "Y"))
-        solid(name + "__scrolls", r, ["pages"], scrolls)
+        solid(name + "__scrolls", r, [paper], scrolls)
+        if dust:
+            # A cobweb from the rahl's top to the desk's corner and the scrolls.
+            top = (0.22, -0.76, DESK_TOP + 0.27)
+
+            def web(bm):
+                for end in ((0.58, -0.8, DESK_TOP), (0.58, -0.55, DESK_TOP), (0.9, -0.66, 0.12), (0.4, -0.84, DESK_TOP - 0.02)):
+                    mid = tuple((a + b) / 2 for a, b in zip(top, end))
+                    add_tube(bm, [top, (mid[0], mid[1], mid[2] - 0.02), end], [0.0025, 0.002, 0.0025], segs=3)
+            web_bm = bmesh.new()
+            web(web_bm)
+            mesh_object(name + "__web", web_bm, ["cobweb"], r)
         if lamp:
             # A small brass oil lamp on the desk's left corner (the near half's
             # only light: Light in the brief, low and on the desks).
@@ -344,10 +377,11 @@ def copy_desk(lamp):
             solid(name + "__lamp", r, ["brass"], lambda bm: (
                 _moved(bm, lambda b: add_lathe(b, [(0.0, 0.0), (0.05, 0.0), (0.06, 0.03), (0.03, 0.06), (0.0, 0.065)], -0.45, -0.45, segs=8), on_desk),
                 _moved(bm, lambda b: add_obox(b, (-0.38, -0.45, 0.045), (0.08, 0.02, 0.015), (0.0, 0.0, 0.0)), on_desk)))
-            solid(name + "__flame", r, ["emit_lantern"], lambda bm: _moved(
-                bm, lambda b: add_lathe(b, [(0.0, 0.0), (0.012, 0.012), (0.008, 0.04), (0.0, 0.055)], -0.33, -0.45, segs=6),
-                Matrix.Translation((0.0, 0.0, DESK_TOP + 0.05))))
-            marker("LIGHT_desk__copy", r, (-0.33, -0.45, DESK_TOP + 0.2))
+            if not dust:
+                solid(name + "__flame", r, ["emit_lantern"], lambda bm: _moved(
+                    bm, lambda b: add_lathe(b, [(0.0, 0.0), (0.012, 0.012), (0.008, 0.04), (0.0, 0.055)], -0.33, -0.45, segs=6),
+                    Matrix.Translation((0.0, 0.0, DESK_TOP + 0.05))))
+                marker("LIGHT_desk__copy", r, (-0.33, -0.45, DESK_TOP + 0.2))
         solid(name + "-colonly", r, ["persian_wood"], lambda bm: add_box(bm, -0.62, 0.62, -0.87, -0.33, 0.0, 0.5))
     return build
 
@@ -400,6 +434,9 @@ MODULES = [
     ("M_sc_copy_desk_lamp", dict(props((1, 0, 1), "scriptorium,r08,desk,lamp"), kit_family="dressing"), copy_desk(True)),
     ("M_sc_copyist_write", dict(props((1, 0, 1), "scriptorium,r08,figure"), kit_family="dressing"), copyist_write),
     ("M_sc_copyist_read", dict(props((1, 0, 1), "scriptorium,r08,figure"), kit_family="dressing"), copyist_read),
+    ("M_sc_copy_desk_left", dict(props((1, 0, 1), "scriptorium,r08,desk"), kit_family="dressing"), copy_desk(False, "left")),
+    ("M_sc_copy_desk_dust", dict(props((1, 0, 1), "scriptorium,r08,desk"), kit_family="dressing"), copy_desk(False, "dust")),
+    ("M_sc_copy_desk_dust_lamp", dict(props((1, 0, 1), "scriptorium,r08,desk,lamp"), kit_family="dressing"), copy_desk(True, "dust")),
 ]
 REBUILD = [("M_sc_orosi_wall", 2), ("M_sc_moss_garden", 1), ("M_sc_copyist_write", 2), ("M_sc_copyist_read", 2)]   # copyists rev 2: a solid robe (gorge_cloth)
 

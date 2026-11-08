@@ -3,7 +3,9 @@ extends SceneTree
 ## Strata Board does it: the Grand Study test copy (drafts/grand_study/
 ## scriptorium_test), one boot per area seed. Needs a display, not --headless;
 ## run `godot --headless --import` first.
-##   godot --path . --resolution 1920x1080 --script res://tests/r08_hall_capture.gd -- <out dir> [seed,seed,...]
+##   godot --path . --resolution 1920x1080 --script res://tests/r08_hall_capture.gd -- <out dir> [seed,seed,...] [draft]
+## (draft: a file in gen/recipes/drafts/grand_study, default scriptorium_test;
+## another adds its name after "scriptorium_" to the pictures, e.g. forgotten_)
 ## Writes r08_hall_<seed>_<view>.png and prints each seed's length and palette:
 ##   door    from the doorway, the whole hall and the glass
 ##   middle  halfway in, across the rugs to the glass
@@ -11,7 +13,7 @@ extends SceneTree
 ##   up      up at the niche wall, the cornice and the timber ceiling
 ##   back    from under the glass back to the door
 
-const DRAFT: String = "res://gen/recipes/drafts/grand_study/scriptorium_test.tres"
+const DRAFT: String = "res://gen/recipes/drafts/grand_study/%s.tres"
 
 
 func _initialize() -> void:
@@ -22,11 +24,12 @@ func run() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	var out_dir: String = args[0] if args.size() > 0 else "user://r08_hall"
 	var seeds: PackedStringArray = (args[1] if args.size() > 1 else "1").split(",")
+	var draft: String = args[2] if args.size() > 2 else "scriptorium_test"
 	DirAccess.make_dir_recursive_absolute(out_dir)
 	var ws: Node = root.get_node_or_null("/root/WorldState")
 	for sd: String in seeds:
 		ws.set("walk_area", "grand_study")
-		ws.set("walk_recipe", DRAFT)
+		ws.set("walk_recipe", DRAFT % draft)
 		Area.seed_override = int(sd)
 		var game: Node = load("res://main.tscn").instantiate()
 		root.add_child(game)
@@ -75,13 +78,22 @@ func run() -> void:
 			var f: Node3D = figs[0] as Node3D
 			var fp: Vector3 = f.global_position
 			views.append(["copyist", fp - into * 1.6 + across * 1.2, fp + Vector3(0, 0.6, 0), 60.0])
+		# far: the last row's aisle-side desk close up (step 4: under dust).
+		var last: Node3D = null
+		for n: Node in root.find_children("prop_desk_*_w1", "Node3D", true, false):
+			if last == null or String(n.name) > String(last.name):
+				last = n as Node3D
+		if last != null:
+			var dp: Vector3 = last.global_position - into * 0.6
+			views.append(["far", dp + across * 1.4 + into * 1.0, dp + Vector3(0, 0.2, 0), 60.0])
 		for v: Array in views:
 			game.player.teleport(v[1] + Vector3(0, 0.05, 0))
 			game.player.camera.fov = v[3]
 			game.look_toward(v[2])
 			for _i: int in 90:
 				await process_frame
-			var path: String = out_dir.path_join("r08_hall_%s_%s.png" % [sd, v[0]])
+			var tag: String = "" if draft == "scriptorium_test" else draft.trim_prefix("scriptorium_") + "_"
+			var path: String = out_dir.path_join("r08_hall_%s%s_%s.png" % [tag, sd, v[0]])
 			root.get_viewport().get_texture().get_image().save_png(path)
 			print("r08_hall_capture: ", path)
 		game.queue_free()

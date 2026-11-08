@@ -1,0 +1,13 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_qqvpo"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/sc_copy_desk_left.glb" id="2_s5dwn"]
+
+[node name="sc_copy_desk_left" type="Node3D" unique_id=731817323]
+script = ExtResource("1_qqvpo")
+family = "dressing"
+size_cells = Vector3i(1, 0, 1)
+tags = PackedStringArray("scriptorium", "r08", "desk")
+source_glb = "res://assets/kit/dressing/sc_copy_desk_left.glb"
+
+[node name="Mesh" parent="." unique_id=1321441360 instance=ExtResource("2_s5dwn")]

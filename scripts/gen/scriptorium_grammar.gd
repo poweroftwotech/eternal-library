@@ -53,9 +53,34 @@ const DESK_FIRST: float = 3.0
 const DESK_STEP: float = 3.0
 const DESK_DEPTH: float = 0.85
 const GLASS_CLEAR: float = 1.2
-## Chance of a copyist at a desk in the near (lamplit) half and the far half.
-const COPYIST_NEAR: float = 0.75
-const COPYIST_FAR: float = 0.35
+## Chance of a copyist at a desk in the near (lamplit) half, and of a
+## straggler (one at most) at a desk in the row left half done.
+const COPYIST_NEAR: float = 0.8
+const COPYIST_LEFT: float = 0.2
+
+## Nobody comes any more (the Forgotten Wing's version; the brief's Q7): no
+## copyists, every lamp cold, every desk under dust, the moss dimmer so the
+## glass glows faintly.
+@export var forgotten: bool = false
+
+
+func tweak_fields() -> Array[Dictionary]:
+	return [
+		{"key": "state", "label": "State", "tip": "Tended: copyists at work by the door, copies left half done and then under dust toward the glass. Forgotten: nobody, every lamp cold, every desk under dust, the glass glowing faintly.", "options": [
+			{"label": "Tended", "value": ""},
+			{"label": "Forgotten", "value": "forgotten"}]},
+	]
+
+
+func tweaked(tweaks: Dictionary) -> RoomGrammar:
+	if tweaks.is_empty():
+		return self
+	var g: ScriptoriumGrammar = duplicate(false)
+	g.set_meta("source_path", source_path())
+	if str(tweaks.get("state", "")) == "forgotten":
+		g.forgotten = true
+		g.ambient_scale = 0.8
+	return g
 
 
 func layout(grid: CellGrid, seed_value: int) -> void:
@@ -176,26 +201,58 @@ func _place_shell(grid: CellGrid, rows: int, glass: String) -> void:
 
 
 ## Rows of copy desks on the rugs, two a side, the copyists kneeling behind them
-## facing the glass. Lamps only in the near half (Light in the brief: the glass
-## lights the far half and no flame stands beside it): the aisle-side desk of
-## each near row. Copyists at most desks by the door, fewer toward the glass
-## (step 4 turns that into the busy-to-abandoned walk).
+## facing the glass, and on every desk a copy you can read (ScriptoriumCopy).
+## Lamps only in the near half (Light in the brief: the glass lights the far
+## half and no flame stands beside it): the aisle-side desk of each near row.
+## Story (step 4): busy near the door (copyists at most desks, the copies under
+## way); the first row past the lamps left half done (a straggler at most, the
+## other desks' copies broken off); beyond it, desks under dust. Forgotten:
+## every desk under dust, the lamps cold, nobody.
 func _place_desks(grid: CellGrid, rows: int, rng: RandomNumberGenerator) -> void:
 	var length: float = rows * BAY
 	var face := Basis(Vector3.UP, PI)        # the modules face +Z; the copyists face the glass (-Z)
 	var r: int = 0
 	var z: float = -DESK_FIRST
+	var text: int = -1
+	var left_row: int = -1                     # the first row past the lamps
+	var straggler: bool = false               # at most one copyist still at it there
 	while z - DESK_DEPTH > -length + GLASS_CLEAR:
 		var near: bool = z > -length * 0.5
+		if not near and left_row < 0:
+			left_row = r
+		var story: String = "busy" if near else ("left" if r == left_row else "dust")
+		if forgotten:
+			story = "dust"
+		# One text a row (never the last row's), the desks beside each other
+		# disagreeing in a word.
+		var t: int = rng.randi_range(0, ScriptoriumCopy.TEXTS.size() - 2)
+		text = t + 1 if text >= 0 and t >= text else t
+		var flip: int = rng.randi_range(0, 1)
+		var i: int = 0
 		for d: Array in [["w0", -1.85, false], ["w1", -0.15, true], ["e0", 4.15, true], ["e1", 5.85, false]]:
-			var at := Vector3(d[1], 0.0, z)
-			var lit: bool = near and d[2]
-			var k: String = "desk_%d_%s" % [r, d[0]]
-			grid.props[k] = {"slot": "sc:desk_lamp" if lit else "sc:desk", "xf": Transform3D(face, at)}
-			if rng.randf() < (COPYIST_NEAR if near else COPYIST_FAR):
-				grid.props["copyist_%d_%s" % [r, d[0]]] = {"slot": "sc:copyist_read" if rng.randf() < 0.3 else "sc:copyist_write", "xf": Transform3D(face, at)}
+			var xf := Transform3D(face, Vector3(d[1], 0.0, z))
+			var lamp: bool = near and d[2]
+			var state: String = story
+			var copyist: bool = false
+			if story == "busy":
+				copyist = rng.randf() < COPYIST_NEAR
+			elif story == "left" and not straggler and rng.randf() < COPYIST_LEFT:
+				straggler = true
+				copyist = true                 # a straggler still at it
+				state = "busy"
+			var slot: String = {"busy": "sc:desk", "left": "sc:desk_left", "dust": "sc:desk_dust"}[state]
+			if lamp:
+				slot = "sc:desk_dust_lamp" if state == "dust" else "sc:desk_lamp"
+			var k: String = "%d_%s" % [r, d[0]]
+			grid.props["desk_" + k] = {"slot": slot, "xf": xf}
+			if copyist:
+				grid.props["copyist_" + k] = {"slot": "sc:copyist_read" if rng.randf() < 0.3 else "sc:copyist_write", "xf": xf}
+			grid.props["copy_" + k] = {"slot": "sc:copy", "xf": xf, "meta": {
+				"text": text, "variant": (i + flip) % 2, "hand": rng.randi_range(0, ScriptoriumCopy.HANDS.size() - 1), "state": state}}
+			i += 1
 		z -= DESK_STEP
 		r += 1
+	grid.props["life"] = {"slot": "sc:life", "xf": Transform3D(), "meta": {"forgotten": forgotten}}
 
 
 ## Grand rugs down either side of a bare aisle, end to end from the entry to

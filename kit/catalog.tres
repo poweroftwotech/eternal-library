@@ -1492,11 +1492,38 @@ modules = Array[Dictionary]([{
 }, {
 "edge": "",
 "family": "dressing",
+"name": "sc_copy_desk_dust",
+"scene": "res://kit/modules/dressing/sc_copy_desk_dust.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("scriptorium", "r08", "desk"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "sc_copy_desk_dust_lamp",
+"scene": "res://kit/modules/dressing/sc_copy_desk_dust_lamp.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("scriptorium", "r08", "desk", "lamp"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
 "name": "sc_copy_desk_lamp",
 "scene": "res://kit/modules/dressing/sc_copy_desk_lamp.tscn",
 "shape": "free",
 "size_cells": Vector3i(1, 0, 1),
 "tags": PackedStringArray("scriptorium", "r08", "desk", "lamp"),
+"weight": 1.0
+}, {
+"edge": "",
+"family": "dressing",
+"name": "sc_copy_desk_left",
+"scene": "res://kit/modules/dressing/sc_copy_desk_left.tscn",
+"shape": "free",
+"size_cells": Vector3i(1, 0, 1),
+"tags": PackedStringArray("scriptorium", "r08", "desk"),
 "weight": 1.0
 }, {
 "edge": "",

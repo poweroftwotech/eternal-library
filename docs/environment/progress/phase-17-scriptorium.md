@@ -2,7 +2,82 @@
 
 [Back to the front page](../../../ENVIRONMENT_PLAN.md) · [Approval brief](../phase-17-approval.md)
 
-## Step 3: desks, copyists and lamps (built 2026-11-08, walked: looks good)
+## Step 4: life and story (built 2026-11-08, walked: looks good)
+
+Walk it from the Strata Board, in the Grand Study:
+
+- copy `scriptorium_test`, Walk this seed: the tended scriptorium;
+- copy `scriptorium_forgotten`, Walk this seed: the Forgotten version.
+
+Seeds 1, 2 and 5 are four, three and five bays long. On a desk, look at the
+copy and press E to read it.
+
+Pictures: `previews/phase17_step4/`. Tended, seeds 1, 2 and 5:
+`r08_hall_<seed>_door|middle|side|up|back|copyist|far.png` (`far` is the last
+row's desk close up, under dust). Forgotten, seeds 1 and 5:
+`r08_hall_forgotten_<seed>_<view>.png`.
+
+- **Busy to abandoned.** Walking from the door to the glass:
+  - the lamplit rows are busy: copyists at most desks (four in five), the
+    copies under way;
+  - the first row past the lamps is left half done. The cushions are pushed
+    back, the pens and a sheet lie on the floor, and at most one copyist is
+    still at work;
+  - beyond it, the desks are under dust: grey dust over the desk, the pages and
+    the cushion, more sheets on the floor, and a cobweb from the book stand.
+- **Copies you can read** (Q5). Every desk has a copy; E reads it.
+  - The title names the text and whose hand it is in, from ten copyists.
+  - All the desks in a row copy the same text, and the desks beside each other
+    disagree in one word. For example, one says a book in the dark is "only
+    paper", the next that it is "still a book".
+  - A busy copy breaks off with the ink still wet. A copy left half done stops
+    mid-line, long dry. A dusty one is finished and signed but was never
+    collected.
+  - Six texts and ten names, all placeholders for you to replace or approve.
+- **The moss breathes** (Q8). The glow behind the glass swells and fades over
+  about half a minute, and the glass, its coloured patches, its glow on the hall
+  and the moss light swell with it, about a fifth either way. The desk lamps'
+  flames flicker.
+- **The Forgotten version** (Q7) is the room's State setting on the board
+  (Tended or Forgotten).
+  - No copyists, and every desk is under dust.
+  - The lamps are cold: still on the desks, with no flame.
+  - The moss is at 40%, so the glass glows faintly over a dark hall.
+  - It goes into the Forgotten Wing in step 5.
+
+### For you to judge
+
+- Where it turns: the abandoned part starts at the first row past the lamps.
+  Earlier, later?
+- The dust: too grey, not enough? The cobwebs?
+- The copies' texts and the copyists' names (placeholders).
+- The swell: enough to notice, too much?
+- The Forgotten hall: too dark?
+
+### Pieces
+
+- `tools/kit_add_r08.py`: `sc_copy_desk_left`, `sc_copy_desk_dust`,
+  `sc_copy_desk_dust_lamp` (`copy_desk(lamp, state)`); the dust material
+  `sc_dust` (`tools/pixel_materials_ext.gd -- scriptorium`, `kit/materials/sc_dust.tres`).
+- `scripts/world/scriptorium_copy.gd` (`ScriptoriumCopy`, the texts and names),
+  module `gen/modules/sc_copy.tscn`.
+- `scripts/gen/scriptorium_life.gd` (`ScriptoriumLife`: the swell and the lamp
+  flicker), module `gen/modules/scriptorium_life.tscn`; the glass shader's
+  `swell` instance uniform.
+- `ScriptoriumGrammar`: the story in `_place_desks`, `forgotten` and the State
+  setting; `tools/make_r08_rules.gd` writes 20 rules and both test copies.
+- `tests/r08_hall_capture.gd -- <out dir> [seeds] [draft]` (new `far` view).
+
+### Checked
+
+- Seed 5: all 20 copies are found by the look ray from in front of their desks,
+  and their texts disagree as above.
+- The swell moves the window lights (tended about 9.7 to 10.0 over 8 s; the
+  Forgotten version at 40%).
+
+No route, frame or save tests yet (step 5).
+
+## Step 3: desks, copyists and lamps (built 2026-11-08, walked: looks good; committed 010cfce)
 
 Walk it the same way: the Strata Board, the Grand Study, copy
 `scriptorium_test`, Walk this seed. Try a few seeds (1, 2 and 5 are four, three

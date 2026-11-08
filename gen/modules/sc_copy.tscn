@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/scriptorium_copy.gd" id="1_in7ec"]
+
+[node name="ScCopy" type="StaticBody3D" unique_id=530101828]
+script = ExtResource("1_in7ec")

@@ -14,6 +14,8 @@ extends SceneTree
 const WALLS: String = "res://kit/modules/walls/%s.tscn"
 const ORO: String = "res://gen/modules/sc_orosi.tscn"
 const DRESSING: String = "res://kit/modules/dressing/%s.tscn"
+const COPY: String = "res://gen/modules/sc_copy.tscn"
+const LIFE: String = "res://gen/modules/scriptorium_life.tscn"
 
 
 func _initialize() -> void:
@@ -33,11 +35,15 @@ func rule(slot: String, path: String) -> ModuleRule:
 
 func run() -> void:
 	var err: int = _orosi_module()
+	err = maxi(err, _script_module(COPY, "ScCopy", StaticBody3D.new(), load("res://scripts/world/scriptorium_copy.gd")))
+	err = maxi(err, _script_module(LIFE, "ScriptoriumLife", Node3D.new(), load("res://scripts/gen/scriptorium_life.gd")))
 	var list: Array[ModuleRule] = []
 	for p: Array in [["sc:wall", WALLS % "sc_niche_wall_4m"], ["sc:door", WALLS % "sc_door_wall_4m"], ["sc:ceiling", WALLS % "sc_ceiling_12m"],
 			["sc:orosi", ORO], ["cell:floor", WALLS % "floor_4m"], ["stub:exit", "res://gen/modules/exit_glow.tscn"],
 			["sc:desk", DRESSING % "sc_copy_desk"], ["sc:desk_lamp", DRESSING % "sc_copy_desk_lamp"],
-			["sc:copyist_write", DRESSING % "sc_copyist_write"], ["sc:copyist_read", DRESSING % "sc_copyist_read"]]:
+			["sc:copyist_write", DRESSING % "sc_copyist_write"], ["sc:copyist_read", DRESSING % "sc_copyist_read"],
+			["sc:desk_left", DRESSING % "sc_copy_desk_left"], ["sc:desk_dust", DRESSING % "sc_copy_desk_dust"],
+			["sc:desk_dust_lamp", DRESSING % "sc_copy_desk_dust_lamp"], ["sc:copy", COPY], ["sc:life", LIFE]]:
 		list.append(rule(p[0], p[1]))
 	for d: String in ScriptoriumGrammar.RUGS:
 		list.append(rule("rug:" + d, "res://kit/modules/dressing/rug_%s_grand.tscn" % d))
@@ -48,7 +54,8 @@ func run() -> void:
 	g.styles = PackedStringArray(["scriptorium"])
 	g.rules = load("res://gen/rules/r08_scriptorium.tres")
 	err = maxi(err, ResourceSaver.save(g, "res://gen/grammars/r08_scriptorium.tres"))
-	err = maxi(err, _draft())
+	err = maxi(err, _draft("scriptorium_test", {}))
+	err = maxi(err, _draft("scriptorium_forgotten", {"state": "forgotten"}))
 	print("make_r08_rules: %d rules, saved (%d)" % [list.size(), err])
 	quit(err)
 
@@ -77,15 +84,17 @@ func _orosi_module() -> int:
 	return err
 
 
-## The Grand Study test copy: the scriptorium is the first room (its entry is
+## The Grand Study test copies: the scriptorium is the first room (its entry is
 ## the door back to the Gorge), short stack galleries grow off its side doors.
-func _draft() -> int:
+## `tweaks` set the room's State (scriptorium_forgotten: the Forgotten version).
+func _draft(file: String, tweaks: Dictionary) -> int:
 	var base: AreaRecipe = load("res://gen/recipes/grand_study.tres")
 	var d: AreaRecipe = base.duplicate(false)
 	var s := AreaSlot.new()
 	s.slot_id = "entrance"
 	s.display_name = "The Orosi Scriptorium"
 	s.grammar = load("res://gen/grammars/r08_scriptorium.tres")
+	s.tweaks = tweaks
 	s.pinned = true
 	d.slots = [s] as Array[AreaSlot]
 	var st := AreaGrow.new()
@@ -98,4 +107,16 @@ func _draft() -> int:
 	d.room_count = Vector2i(1, 3)
 	d.max_dead_ends = 0
 	DirAccess.make_dir_recursive_absolute("res://gen/recipes/drafts/grand_study")
-	return ResourceSaver.save(d, "res://gen/recipes/drafts/grand_study/scriptorium_test.tres")
+	return ResourceSaver.save(d, "res://gen/recipes/drafts/grand_study/%s.tres" % file)
+
+
+## A one-node module scene: `node` named `node_name` with `script`.
+func _script_module(path: String, node_name: String, node: Node, script: Script) -> int:
+	node.name = node_name
+	node.set_script(script)
+	var packed := PackedScene.new()
+	var err: int = packed.pack(node)
+	if err == OK:
+		err = ResourceSaver.save(packed, path)
+	node.free()
+	return err

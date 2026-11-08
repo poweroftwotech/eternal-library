@@ -1,0 +1,6 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/gen/scriptorium_life.gd" id="1_csahg"]
+
+[node name="ScriptoriumLife" type="Node3D" unique_id=2056080251]
+script = ExtResource("1_csahg")
