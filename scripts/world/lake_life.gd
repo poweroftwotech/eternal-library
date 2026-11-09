@@ -54,6 +54,8 @@ func _ready() -> void:
 	_boathouses()
 	_far_ferry()
 	_wet_structures()
+	_seeded()
+	_dock_glows()
 	var pier: Node = owner.get_node_or_null("Pier") if owner != null else null
 	if pier != null:
 		for l: Node in pier.find_children("*", "Light3D", true, false):
@@ -121,18 +123,85 @@ func _lights() -> Array[Light3D]:
 	return out
 
 
+# ------------------------------------------------------------------ the docks (step 4)
+
+## Each dock style's fungi (the cave rule: off-structure light is glowing
+## fungi, a colour to each place): its two glow ledges in the chamber, their
+## caps and their lights. The channel mouths keep the lake's colours.
+const DOCK_GLOW: Dictionary = {
+	"town": ["emit_lake_glow_amber", Color(1.0, 0.56, 0.2)],
+	"garden": ["emit_lake_glow_lime", Color(0.62, 0.95, 0.36)],
+	"ruin": ["emit_lake_glow_violet", Color(0.68, 0.42, 1.0)],
+	"default": ["emit_lake_glowcap", Color(0.3, 0.92, 0.84)],
+}
+
+
+func _dock_glows() -> void:
+	var docks: Node = owner.get_node_or_null("Docks") if owner != null else null
+	if docks == null:
+		return
+	for d: Node in docks.get_children():
+		var style: String = String(d.name).trim_prefix("Dock_")
+		var m: Node = d.get_node_or_null("Rock/Mesh/M_lk_dock_a")
+		if m == null or not DOCK_GLOW.has(style):
+			continue
+		var mat: Material = load("res://kit/materials/%s.tres" % DOCK_GLOW[style][0])
+		for mesh: String in ["lk_dock_a__glow_amber", "lk_dock_a__glow_violet"]:
+			var mi: MeshInstance3D = m.get_node_or_null(mesh) as MeshInstance3D
+			if mi != null:
+				mi.material_override = mat
+		for light: String in ["LIGHT_lake_glow", "LIGHT_lake_glow2"]:
+			var l: Light3D = m.get_node_or_null(light) as Light3D
+			if l != null:
+				l.light_color = DOCK_GLOW[style][1]
+
+
+## The docks' seeded dressing (build_lake.gd _dock_life): each group stays by
+## its chance; of the groups sharing a one_of, exactly one stays.
+func _seeded() -> void:
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash("lake_seeded:%d" % seed_value)
+	var room: Node = owner if owner != null else get_parent()
+	var sets: Dictionary = {}
+	var nodes: Array[Node3D] = []
+	for n: Node in get_tree().get_nodes_in_group("lake_seeded"):
+		if room.is_ancestor_of(n):
+			nodes.append(n as Node3D)
+	nodes.sort_custom(func(a: Node3D, b: Node3D) -> bool: return str(a.get_path()) < str(b.get_path()))
+	for n: Node3D in nodes:
+		var key: String = str(n.get_meta("one_of", ""))
+		if key == "":
+			if rng.randf() >= float(n.get_meta("chance", 1.0)):
+				n.queue_free()
+			continue
+		if not sets.has(key):
+			sets[key] = []
+		(sets[key] as Array).append(n)
+	for key: String in sets:
+		var group: Array = sets[key]
+		var keep: int = rng.randi_range(0, group.size() - 1)
+		for i: int in group.size():
+			if i != keep:
+				(group[i] as Node).queue_free()
+
+
 # ------------------------------------------------------------------ boats
 
 func _moor_boats() -> void:
 	var room: Node = owner if owner != null else get_parent()
 	var harbour: Array[Node3D] = []
 	var inside: Array[Node3D] = []
+	var pools: Dictionary = {}     # step 4: a dock style -> its extra places
 	for n: Node in get_tree().get_nodes_in_group("lake_boat_slot"):
 		if not room.is_ancestor_of(n):
 			continue
 		var m := n as Node3D
 		if bool(m.get_meta("always", false)):
 			_moor(m, bool(m.get_meta("lantern", false)))
+		elif m.has_meta("pool"):
+			if not pools.has(m.get_meta("pool")):
+				pools[m.get_meta("pool")] = []
+			(pools[m.get_meta("pool")] as Array).append(m)
 		elif bool(m.get_meta("inside", false)):
 			inside.append(m)
 		else:
@@ -148,6 +217,18 @@ func _moor_boats() -> void:
 	_shuffle(inside)
 	for m: Node3D in inside.slice(0, _rng.randi_range(1, 2)):
 		_moor(m, false)
+	var dock_rng := RandomNumberGenerator.new()     # its own, so the harbour's picks stay as they were
+	dock_rng.seed = hash("lake_dock_boats:%d" % seed_value)
+	for style: String in pools:
+		var at: Array = pools[style]
+		at.sort_custom(func(a: Node3D, b: Node3D) -> bool: return String(a.name) < String(b.name))
+		for i: int in range(at.size() - 1, 0, -1):
+			var j: int = dock_rng.randi_range(0, i)
+			var tmp = at[i]
+			at[i] = at[j]
+			at[j] = tmp
+		for m: Node3D in at.slice(0, dock_rng.randi_range(0, int((at[0] as Node3D).get_meta("most", 1)))):
+			_moor(m, false)
 
 
 func _shuffle(a: Array) -> void:

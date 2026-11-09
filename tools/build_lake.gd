@@ -389,6 +389,8 @@ func _dock(id: String) -> void:
 		_channel_fog("ChannelFog_%d" % m, Vector3(last.x + 2.0 * signf(last.x), W + 3.0, last.z), Vector3(22.0, 8.0, 26.0), atan2(-(last - prev).x, -(last - prev).z))
 	_parent = root
 	_landing(str(LakeLayout.STYLES[id][3]), root, true)
+	_parent = root
+	_dock_life(id)
 	# The painted board naming the destination this dock serves (LakeFerry.dress
 	# sets its words), on a post at the stage's west corner, read from the water.
 	_parent = root
@@ -470,12 +472,13 @@ func _landing(id: String, root: Node3D, dock: bool = false) -> void:
 				# The Persian walls' room side is -Z: turned, their street face looks at the lake.
 				_put(P + piece + ".tscn", "%s_%d_%d" % [piece.trim_prefix("persian_wall_"), int(y), int(u)], Transform3D(turned, Vector3(u + 4.0, y, 0.0)))
 			u += 4.0
-		# A cornice along the top of each storey.
+		# A cornice along the top of each storey (the piece carries its own 3.45 m
+		# rise: it is placed at the storey's foot; step 4 found it floating a storey up).
 		var top: float = y + 4.0
 		var u0: float = storey[1]
 		for k: int in (storey[2] as Array).size():
 			if (storey[2] as Array)[k] != "":
-				_put(P + "persian_cornice.tscn", "Cornice_%d_%d" % [int(top), k], Transform3D(turned, Vector3(u0 + 4.0 * k + 4.0, top, 0.0)))
+				_put(P + "persian_cornice.tscn", "Cornice_%d_%d" % [int(top), k], Transform3D(turned, Vector3(u0 + 4.0 * k + 4.0, y, 0.0)))
 	# The facade stops you where its walls are (they are scenery): the ground
 	# storey either side of the door.
 	var half: float = float(LakeLayout.LANDINGS[id][1]) if LakeLayout.LANDINGS.has(id) else 6.0
@@ -506,8 +509,8 @@ func _landing(id: String, root: Node3D, dock: bool = false) -> void:
 				# over the garden front.
 				shaft.transform = Transform3D(Basis.IDENTITY, Vector3(-1.0, 0.0, -1.5))
 				shaft.height = 18.0
-				shaft.radius = 4.5
-				shaft.energy = 9.0
+				shaft.radius = 6.0     # step 4: 4.5 / 9 hardly showed
+				shaft.energy = 14.0
 			else:
 				shaft.transform = Transform3D(Basis.IDENTITY, f.affine_inverse() * LakeLayout.CRACK)
 				shaft.height = LakeLayout.CRACK.y + 0.5
@@ -580,3 +583,92 @@ func _markers() -> void:
 	_marker("SafeShelf", "lake_safe", _at(-4.0, W - 0.4, -16.5))
 	_marker("SafeStage", "lake_safe", _at(8.0, LakeLayout.STAGE + 0.05, -39.6))
 	_marker("SafeBoardwalk", "lake_safe", _at(-12.0, 0.05, -8.6))
+
+
+# ------------------------------------------------------------------ dock life (step 4)
+
+const DR: String = "res://kit/modules/dressing/"
+
+
+## Step 4: what each dock may hold, shown or not by world seed (LakeLife._seeded):
+## a group in "lake_seeded" stays with `chance`; of those sharing a `one_of`,
+## exactly one stays. Moored boats' extra places by seed (pool: the style).
+func _dock_life(style: String) -> void:
+	if style != "ruin":     # the strips either side, lit at their ends (the ruin keeps to its fungi)
+		_put(K + "lk_lantern_post.tscn", "StripLanternW", _at(-11.2, 0.0, -2.75, -PI / 2.0))
+		_put(K + "lk_lantern_post.tscn", "StripLanternE", _at(11.2, 0.0, -2.75, -PI / 2.0))
+	match style:
+		"town":
+			# A fisher mending at one end of the strip or the other, his gear by him.
+			for side: Array in [["FisherW", -8.8, -0.4], ["FisherE", 8.6, 0.4]]:
+				var g: Node3D = _seeded(str(side[0]), _at(float(side[1]), 0.0, -1.7, PI + float(side[2])), 1.0, "town_fisher")
+				_put(K + "qt_fig_mend.tscn", "Fisher", Transform3D.IDENTITY)
+				_put(K + "lk_nets.tscn", "Nets", _at(1.3, 0.0, 0.6, PI / 2.0))     # edge-on to the water
+				_put(K + "lk_traps.tscn", "Traps", _at(-1.4, 0.0, 0.7, 1.1))
+				_parent = g.get_parent() as Node3D
+			_seeded("Pots", _at(-13.5, 0.0, -0.9, 0.4), 0.6)
+			_put(DR + "prop_pot.tscn", "Pot", Transform3D.IDENTITY)
+			_put(DR + "prop_pot.tscn", "Pot2", _at(0.6, 0.0, 0.2, 1.0))
+			_parent = _parent.get_parent() as Node3D
+			_seeded("Crates2", _at(13.0, 0.0, -1.0, -0.3), 0.6)
+			_put(K + "lk_crates.tscn", "Crates", Transform3D.IDENTITY)
+			_parent = _parent.get_parent() as Node3D
+			_slots(style, [[-12.3, -4.1, PI / 2.0 + 0.05], [12.3, -4.1, PI / 2.0 - 0.08]], 2)     # 4.4 m boats beside the fixed ones at x 7.2
+		"garden":
+			# Beds and pots along the strip, a gardener with a jar, a line in the water.
+			var beds: Array = [["BedW2", "garden_planter", -8.4, -1.2, 0.0], ["BedW3", "garden_planter_wild", -12.6, -1.3, 0.1],
+				["ShrubE", "garden_shrub", 8.6, -1.0, 0.0], ["BedE2", "garden_planter", 12.4, -1.2, -0.1], ["ShrubW", "garden_shrub", -15.8, -1.0, 0.7]]
+			for b: Array in beds:
+				_seeded(str(b[0]), _at(float(b[2]), 0.0, float(b[3]), float(b[4])), 0.65)
+				_put(DR + str(b[1]) + ".tscn", "Bed", Transform3D.IDENTITY)
+				_parent = _parent.get_parent() as Node3D
+			_seeded("Gardener", _at(-6.6, 0.0, -1.9, PI - 0.5), 0.5)
+			_put(K + "qt_fig_jar.tscn", "Figure", Transform3D.IDENTITY)
+			_parent = _parent.get_parent() as Node3D
+			_seeded("Line", _at(-9.6, 0.0, -2.55), 0.5)
+			_fishing("Fishing", Transform3D.IDENTITY)
+			_parent = _parent.get_parent() as Node3D
+			_slots(style, [[7.2, -4.1, PI / 2.0 - 0.1], [12.3, -4.1, PI / 2.0 + 0.1]], 1)
+		"ruin":
+			# Nobody: a boat sunk at its mooring, broken jars, fallen stone.
+			for side: Array in [["SunkW", -8.4, -5.0, 1.2], ["SunkE", 8.8, -5.4, -1.9]]:
+				var sunk: Node3D = _seeded(str(side[0]), _at(float(side[1]), 0.0, float(side[2]), float(side[3])), 1.0, "ruin_sunk")
+				var boat: Node3D = _put(K + "lk_boat.tscn", "Boat", Transform3D(
+					Basis(Vector3.RIGHT, deg_to_rad(14.0)) * Basis(Vector3.BACK, deg_to_rad(26.0)), Vector3(0.0, W - 0.35, 0.0)))
+				boat.set_meta("sunk", true)
+				_parent = sunk.get_parent() as Node3D
+			_seeded("Jars", _at(6.4, 0.0, -1.0, 0.6), 0.7)
+			_put(DR + "prop_vase_floor_broken.tscn", "Jar", Transform3D.IDENTITY)
+			_put(DR + "prop_vase_floor_broken.tscn", "Jar2", _at(0.7, 0.0, 0.3, 2.0))
+			_parent = _parent.get_parent() as Node3D
+			_seeded("Fallen", _at(8.6, 0.0, -1.6, 0.9), 0.7)
+			_put(DR + "debris_rubble.tscn", "Rubble", Transform3D.IDENTITY)
+			_parent = _parent.get_parent() as Node3D
+		"default":
+			_seeded("Sitter", _at(-9.0, 0.0, -1.3, PI + 0.3), 0.5)
+			_put(K + "qt_fig_sit.tscn", "Figure", Transform3D.IDENTITY)
+			_parent = _parent.get_parent() as Node3D
+			_slots(style, [[-7.2, -4.1, PI / 2.0 + 0.1], [12.3, -4.1, PI / 2.0]], 1)
+
+
+## A seeded group at `xform` under the current parent; it becomes the parent.
+func _seeded(node_name: String, xform: Transform3D, chance: float, one_of: String = "") -> Node3D:
+	var up: Node3D = _parent
+	var g := Node3D.new()
+	g.name = node_name
+	g.transform = xform
+	_add(g)
+	g.add_to_group("lake_seeded", true)
+	g.set_meta("chance", chance)
+	if one_of != "":
+		g.set_meta("one_of", one_of)
+	_parent = g
+	assert(up != null)
+	return g
+
+
+## Extra moored boats' places at a dock: up to `most` of them by seed.
+func _slots(style: String, spots: Array, most: int) -> void:
+	for i: int in spots.size():
+		var s: Array = spots[i]
+		_marker("BoatSeed_%d" % i, "lake_boat_slot", _at(float(s[0]), W, float(s[1]), float(s[2])), {"pool": style, "most": most})

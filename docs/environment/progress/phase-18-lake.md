@@ -326,3 +326,17 @@ Steps 1 and 2 were committed together (32a4552). The user asked to go on.
   - elsewhere: 5/5;
   - headless gate clean.
 - **Picture:** `previews/phase18_ride3/`.
+
+## Step 4: life and dressing at the docks (2026-11-08, first pass)
+
+- **Fungi:** each dock style has its own fungus colour (the cave rule: light away from buildings comes from glowing fungi, a colour to each place). The town dock is amber, the garden dock lime, the ruin violet, and the default dock teal. It applies to the two glow ledges in the chamber, their caps and their lights (`LakeLife._dock_glows`). The channel mouths keep the lake's colours.
+- **Life by world seed** (`build_lake.gd _dock_life`, picked by `LakeLife._seeded`):
+  - **Town:** a fisher mending at one end of the strip or the other, with his nets and traps; pots and crates. Up to 2 extra moored boats.
+  - **Garden:** up to 5 beds, planters and shrubs; a gardener with a jar; a fishing line. Up to 1 extra boat.
+  - **Ruin:** nobody. A boat sunk at one mooring or the other, broken jars and fallen stone.
+  - **Default:** a figure sitting on the strip. Up to 1 extra boat.
+  - Dock boats come from their own random sequence, so the harbour's boats for a seed are unchanged.
+- **Lighting:** lantern posts at both ends of the strips for the town, garden and default docks. The ruin keeps to its fungi. The garden's daylight from the crack is wider and brighter (radius 6, energy 14).
+- **Found while taking pictures:** the facade's top cornice was placed one storey too high on every dock and landing, so it floated about 3.5 m above the wall. It now sits on the wall.
+- **Pictures:** `previews/phase18_step4/` (seeds 1 and 5: each dock wide, both strips, a glow ledge). Headless gate clean.
+- **Look approved 2026-11-08 ("looks good").** Tests: ride 37/37, save 2/2, load 5/5 (separate processes), elsewhere 5/5. The harbour's own life (fisher, boats, hearth, fishing spots) is unchanged from the walks you approved. Route audit and frame gate come in step 5.
