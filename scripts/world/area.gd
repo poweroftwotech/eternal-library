@@ -35,6 +35,8 @@ var _arrival: Variant = null
 const ARRIVE_IN: float = 2.0
 var streamer: AreaStreamer
 var light_budget: LightBudget
+## The area's animals (phase 19).
+var fauna: Fauna
 ## What building cost: plan_ms, wear_ms, total_ms, and with streaming off per
 ## room {slot: {instance_ms, enter_ms}} (enter = generate, sockets, save restore).
 var timings: Dictionary = {}
@@ -253,6 +255,7 @@ func _ready() -> void:
 	else:
 		for r: AreaPlan.Room in plan.rooms:
 			build_room(r)
+	fauna = Fauna.attach(self)     # the animals follow the rooms in and out (phase 19)
 	if active:
 		var tw: int = Time.get_ticks_usec()
 		FloorWear.rebuild_now()

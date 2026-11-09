@@ -70,7 +70,7 @@ func _ready() -> void:
 		_line(box, k)
 	_graph = FrameGraph.new()
 	box.add_child(_graph)
-	for k: String in ["draws", "tris", "vram", "world"]:
+	for k: String in ["draws", "tris", "vram", "world", "creatures"]:
 		_line(box, k)
 	_stream_box = VBoxContainer.new()
 	_stream_box.add_theme_constant_override("separation", 2)
@@ -158,6 +158,7 @@ func _update_text() -> void:
 	_show("tris", "triangles %.0f k / %.0f k" % [tris / 1000.0, float(budget[1]) / 1000.0], tris > int(budget[1]))
 	_show("vram", "video memory %.0f / %.0f MB" % [vram, BUDGET_VRAM_MB], vram > BUDGET_VRAM_MB)
 	_show("world", _world_text())
+	_show_creatures()
 	var st: AreaStreamer = area.streamer if area != null and is_instance_valid(area) else null
 	_stream_box.visible = st != null
 	if st == null:
@@ -170,6 +171,19 @@ func _update_text() -> void:
 	_show("cost", "streaming %.1f ms now · %.1f worst / %.1f budget" % [st.stats["last_frame_ms"], st.stats["max_frame_ms"], st.settings.build_budget_ms],
 		float(st.stats["max_frame_ms"]) > st.settings.build_budget_ms * 1.5)
 	_show("wear", "floor wear %s · last region %.0f ms (thread)" % ["drawing" if FloorWear.busy() else "idle", FloorWear.last_region_ms])
+
+
+## The animals of the place you're in (phase 19): how many, how many awake
+## (simple ones thinking, swarms), and what ticking and finding their water cost.
+func _show_creatures() -> void:
+	var f: Fauna = get_tree().get_first_node_in_group(Fauna.GROUP) as Fauna
+	if f == null:
+		_show("creatures", "creatures: none here")
+		return
+	var s: Dictionary = f.stats
+	_show("creatures", "creatures %d · awake %d · thinking %d · swarms %d · tick %.2f ms (%.2f worst) · finding water %.1f ms worst" % [s["animals"],
+		s["awake"], s["thinking"], s["swarms"], s["tick_ms"], s["worst_tick_ms"], s["worst_scan_ms"]],
+		float(s["worst_tick_ms"]) > Fauna.BUDGET_MS or float(s["worst_scan_ms"]) > Fauna.BUDGET_MS * 2.0)
 
 
 ## The world seed (phase 10 step 1), and the seed the area you're in plans from.

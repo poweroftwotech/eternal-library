@@ -89,6 +89,9 @@ func _ready() -> void:
 	_make_streaks()
 	_build_fade()
 	_reach_fog.call_deferred()
+	var lake_root: Node3D = (owner if owner != null else get_parent()) as Node3D
+	if lake_root != null and lake_root.get_node_or_null("Fauna") == null:
+		Fauna.attach.call_deferred(lake_root, "lake")     # cave barbs in the harbour (phase 19)
 
 
 ## The lake is 170 m across: carry the volumetric fog the whole way so the

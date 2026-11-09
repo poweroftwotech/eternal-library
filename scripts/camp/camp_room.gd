@@ -39,6 +39,7 @@ func _ready() -> void:
 			if body != null:
 				gatherables[str(v.name)] = {"kind": str(v.get_meta("kind", "")), "visual": v, "body": body, "taken": false}
 	_add_back_door()
+	Fauna.attach(self, "camp")     # the stream's goldfish (phase 19)
 	for n: Node in find_children("*", "Light3D", true, false):
 		if n.has_meta("camp_light"):
 			_lights.append(n as Light3D)

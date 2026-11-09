@@ -1,0 +1,424 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library Creature Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Alegreya:ital,wght@0,400;0,600;1,400&family=VT323&family=Vazirmatn:wght@400&display=swap">
+<style>
+/* Layout: a field atlas, sister page to room-atlas.html. One long column of creature plates: a spec sheet per animal, with a scale strip against the player and the colours it is painted in. */
+:root{
+  --bg:#10161b; --panel:#17212a; --ink:#ece3cf; --muted:#a59a86; --line:#2a3641;
+  --amber:#e4a65a; --turq:#4fb3a8; --lapis:#7aa0dc; --brick:#c9825a; --rose:#d58aa0;
+  --display:'Marcellus',Georgia,'Times New Roman',serif;
+  --body:'Alegreya',Georgia,'Times New Roman',serif;
+  --mono:'VT323',ui-monospace,Consolas,monospace;
+  --fa:'Vazirmatn',Tahoma,sans-serif;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#eee6d4; --panel:#e5dac4; --ink:#1f2328; --muted:#5c5445; --line:#cbbd9e;
+  --amber:#985814; --turq:#1d6f66; --lapis:#2c579b; --brick:#9a4e26; --rose:#99405a; color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#eee6d4; --panel:#e5dac4; --ink:#1f2328; --muted:#5c5445; --line:#cbbd9e;
+  --amber:#985814; --turq:#1d6f66; --lapis:#2c579b; --brick:#9a4e26; --rose:#99405a; color-scheme:light}
+:root[data-theme="dark"]{
+  --bg:#10161b; --panel:#17212a; --ink:#ece3cf; --muted:#a59a86; --line:#2a3641;
+  --amber:#e4a65a; --turq:#4fb3a8; --lapis:#7aa0dc; --brick:#c9825a; --rose:#d58aa0; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;padding-block:48px 96px}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.3rem,5vw,3.6rem);line-height:1.05;letter-spacing:.01em}
+h2{font-size:clamp(1.6rem,3vw,2.1rem);line-height:1.15}
+h3{font-size:1.55rem;line-height:1.15}
+p{margin:0}
+.eyebrow,.mono{font-family:var(--mono);font-size:1.15rem;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.lede{max-width:66ch;font-size:1.12rem;margin-top:18px}
+.lede + .lede{margin-top:12px}
+header{display:grid;gap:6px;padding-bottom:36px;border-bottom:1px solid var(--line)}
+.legend{display:flex;flex-wrap:wrap;gap:10px 22px;margin-top:22px}
+.chip{display:inline-flex;align-items:center;gap:8px;font-family:var(--mono);font-size:1.15rem;letter-spacing:.05em;text-transform:uppercase}
+.dot{width:11px;height:11px;border-radius:2px;display:inline-block;background:var(--m)}
+.c-aquatic{--m:var(--turq)} .c-ground{--m:var(--amber)} .c-flying{--m:var(--lapis)}
+section{padding-block:44px;border-bottom:1px solid var(--line)}
+section > h2{margin-bottom:10px}
+.section-intro{max-width:68ch;color:var(--muted);margin-bottom:26px}
+code{font-family:ui-monospace,Consolas,monospace;font-size:.86em;background:var(--panel);padding:1px 5px;border-radius:3px}
+.table-wrap{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.98rem}
+th,td{text-align:left;vertical-align:top;padding:9px 12px 9px 0;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-weight:400;font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.id{font-family:var(--mono);font-size:1.15rem;color:var(--muted);white-space:nowrap}
+td a{color:var(--ink);text-decoration-color:var(--line);text-underline-offset:3px}
+td a:hover{text-decoration-color:var(--amber)}
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(260px,1fr));gap:12px 26px;padding:0;margin:0;list-style:none}
+.principles li{border-left:3px solid var(--amber);padding:2px 0 2px 12px;font-size:.98rem}
+.principles b{display:block}
+.toc{display:flex;flex-wrap:wrap;gap:8px;margin-top:18px}
+.toc a{font-family:var(--mono);font-size:1.1rem;letter-spacing:.04em;color:var(--ink);text-decoration:none;border:1px solid var(--line);border-left:3px solid var(--m);padding:2px 10px;border-radius:2px}
+.toc a:hover{border-color:var(--m)}
+
+.creature{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,1.25fr);gap:30px;padding-block:44px;border-bottom:1px solid var(--line);scroll-margin-top:12px}
+.c-title{grid-column:1/-1;display:flex;flex-wrap:wrap;align-items:baseline;gap:6px 16px}
+.c-title .cid{font-family:var(--mono);font-size:1.4rem;color:var(--muted)}
+.c-title .tr{font-style:italic;color:var(--muted);font-size:1.05rem}
+.c-title .fa{font-family:var(--fa);color:var(--muted);font-size:1.05rem}
+.badge{font-family:var(--mono);font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--m);border:1px solid var(--m);padding:0 8px;border-radius:2px;white-space:nowrap}
+.kind{font-family:var(--mono);font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted);border:1px solid var(--line);padding:0 8px;border-radius:2px;white-space:nowrap}
+.kind.mythic{color:var(--rose);border-color:var(--rose)}
+.card{display:grid;gap:14px;align-content:start;min-width:0}
+.scale{background:var(--panel);border-radius:3px;padding:14px 16px;display:grid;gap:8px}
+.scale svg{width:100%;height:auto;display:block;max-width:340px}
+.scale .cap{font-family:var(--mono);font-size:1.1rem;color:var(--muted);letter-spacing:.03em}
+.swatches{display:flex;gap:6px;align-items:center;flex-wrap:wrap}
+.swatch{display:inline-block;width:2.6em;height:1.5em;border-radius:2px;border:1px solid var(--line)}
+.facts{display:grid;gap:4px;font-family:var(--mono);font-size:1.1rem;color:var(--muted);letter-spacing:.03em}
+.facts b{font-weight:400;color:var(--ink)}
+.link{border-left:3px solid var(--m);padding:4px 0 4px 12px;font-size:.98rem}
+.sheet{display:grid;gap:14px;align-content:start;min-width:0}
+dl{margin:0;display:grid;gap:12px}
+dt{font-family:var(--mono);font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+dd{margin:2px 0 0;font-size:.98rem;max-width:62ch}
+.next{display:grid;grid-template-columns:repeat(2,minmax(0,1fr));gap:12px 28px;padding:0;margin:0;list-style:none}
+.next li{display:grid;gap:2px;border-top:1px solid var(--line);padding-top:10px}
+.next b{font-family:var(--display);font-weight:400;font-size:1.15rem}
+.next span{color:var(--muted);font-size:.95rem}
+.note{max-width:70ch;color:var(--muted);font-size:.98rem}
+@media (max-width:860px){
+  .creature{grid-template-columns:minmax(0,1fr)}
+  .next{grid-template-columns:minmax(0,1fr)}
+}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">The Eternal Library · creature design · draft 0.1 · 2026-11-09 · the twenty approved 2026-11-09, nothing built yet</p>
+  <h1>Library Creature Atlas</h1>
+  <p class="lede">Twenty animals for the first stratum: six of the water, eight of the ground and six of the air. Seventeen are real animals of Iran or of every old town; three are from Persian legend and are rare. All of them only live here for now. Each plate also says what the animal is for later (defending itself, attacking, being fished, hunted or possessed), so nothing has to be redesigned when those arrive.</p>
+  <p class="lede">An animal is not tied to an area, but each area has a few it is known by. The plan for building them is in <code>docs/npc/phase-19-approval.md</code>.</p>
+  <div class="legend">
+    <span class="chip c-aquatic"><i class="dot"></i>Water</span>
+    <span class="chip c-ground"><i class="dot"></i>Ground and walls</span>
+    <span class="chip c-flying"><i class="dot"></i>Air</span>
+  </div>
+  <nav class="toc" id="toc" aria-label="Creatures"></nav>
+</header>
+
+<section>
+  <h2>How animals fit a world with no sky</h2>
+  <p class="section-intro">The rooms get their character from light, colour, motion, one landmark and life. The animals follow the same rules, and add four of their own.</p>
+  <ul class="principles">
+    <li><b>They live where something feeds them</b>Light shafts, lamps, water, fungus, stores of food, old paper. No animal stands in an empty corridor.</li>
+    <li><b>They tell you about the room</b>Geckos mean a lamp is tended. A nightingale means a garden is kept. Rats and bats mean nobody comes here any more.</li>
+    <li><b>They never add a light</b>Glowing animals glow by themselves and light nothing. Every area is already at its limit of lamps.</li>
+    <li><b>Natural glow shines alone</b>Glowworms keep a bay away from any flame or glowing fungus, as the fungi do, and take the area's fungus colour.</li>
+    <li><b>They notice you</b>Fish scatter, the cat looks up, bats leave when a light comes near. Nothing harms you yet: spooky, not dangerous.</li>
+    <li><b>Legend is rare and far</b>The three mythic animals are seen seldom, at a distance, one at a time. You should wonder whether you saw it.</li>
+    <li><b>Every body is a possible host</b>The design foundation makes almost any creature possessable. Each plate notes what that body would be good and bad at.</li>
+    <li><b>They eat each other</b>Moths feed geckos and bats, rats feed cats, fish feed otters. Later, hunting one changes the numbers of another.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>Who lives where</h2>
+  <p class="section-intro">The animals an area is known by, then the others you may meet there. "Rare" means one, by world seed, not on every visit.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>Area</th><th>Known by</th><th>Also there</th><th>Rare</th></tr></thead>
+    <tbody id="areas"></tbody>
+  </table>
+  </div>
+</section>
+
+<section>
+  <h2>The twenty</h2>
+  <p class="section-intro">"Build" is how the animal is made, which decides its cost: a <b>swarm</b> is many tiny animals drawn as one object; a <b>simple</b> animal is a small model that moves by bending or swapping a few poses; a <b>rigged</b> animal has a skeleton and animations made in Blender, the same way people will be made later.</p>
+  <div class="table-wrap">
+  <table>
+    <thead><tr><th>ID</th><th>Animal</th><th>Class</th><th>Kind</th><th>Size</th><th>Build</th><th>Known in</th><th>Built in</th></tr></thead>
+    <tbody id="overview"></tbody>
+  </table>
+  </div>
+</section>
+
+<div id="plates"></div>
+
+<section>
+  <h2>Kept in reserve</h2>
+  <p class="section-intro">Good fits that didn't make the twenty. Any of them can be swapped in.</p>
+  <ul class="next">
+    <li><b>Hedgehog (juje-tighi)</b><span>Honoured in Zoroastrian writing as a killer of ants and snakes. A gardener's friend in the Garden Court and the terraces.</span></li>
+    <li><b>Rooster and hens (khorus)</b><span>The bird that calls the dawn and drives off the dark. Quarter courts and caravanserai stables; eggs later.</span></li>
+    <li><b>Hoopoe (hodhod)</b><span>The guide of the birds in Attar's Conference of the Birds. An animal that leads you somewhere.</span></li>
+    <li><b>Freshwater crab (kharchang)</b><span>Common in Iran's streams and qanats. Walks the water steps and the wading shelves.</span></li>
+    <li><b>Marsh frog (ghurbaghe)</b><span>A voice for the rills and the cistern once the game has sound. In the old story, a frog is what the Kar fish guards against.</span></li>
+    <li><b>Tortoise (lak-posht)</b><span>Slow keeper of the Garden Court's beds.</span></li>
+  </ul>
+  <p class="note" style="margin-top:22px">Held for the later monster and legend tier, because they are not passive animals: the Simurgh, the Karkadann, the Mardkhor (the manticore, a Persian word), the div, the pari and the azhdaha. The Camrus stays the companion bird of the design foundation and is not in this atlas.</p>
+</section>
+
+<section style="border-bottom:0">
+  <h2>About this atlas</h2>
+  <p class="note">There are no pictures yet: this session has no image generator, and a small animal can't be mocked honestly with the room atlas's flat-polygon painter. Each plate gives the size against you (1.75 m), the three main colours and what the animal does, which is enough to agree the list. The first model of each animal is shown to you in the game before anything else is built on it.</p>
+</section>
+</div>
+
+<script>
+const CLS={aquatic:'Water',ground:'Ground',flying:'Air'};
+const KIND={real:'Real animal',domestic:'Kept animal',mythic:'Legend'};
+const BUILD={swarm:'Swarm',simple:'Simple',rigged:'Rigged'};
+
+const AREAS=[
+  ['The camp','C01 C07','C17 C19',''],
+  ['The Gorge','C11 C16 C15','C13 C18','C20 C14'],
+  ['The Grand Study','C09 C17 C07','C19 C01 C08',''],
+  ['The Gardens','C04 C02 C18','C03 C15','C14'],
+  ['The Mahaleh','C07 C16','C01 C10 C08 C09 C17 C19',''],
+  ['The Forgotten City','C08 C15 C12','C13 C17',''],
+  ['The Lake Landing','C05 C02','C03 C18 C15','C06'],
+];
+
+const CREATURES=[
+{id:'C01',name:'Hauz goldfish',tr:'Mahi-ye qermez',fa:'ماهی قرمز',cls:'aquatic',kind:'domestic',size:.12,sizeText:'12 cm',group:'3 to 9 in a pool',build:'simple',step:'19.1',
+ home:'The camp, the Grand Study, the Mahaleh',
+ where:'Every tended pool: the camp\'s pool, the Garden Court\'s hauz, the Hypostyle Stacks\' hauz, the quarter\'s hauz, the bazaar\'s fountain.',
+ now:'Drift and circle, gather under the fountain\'s falling drops, rise to the surface and turn away.',
+ you:'Scatter when you step to the edge or wade in, and drift back when you stand still.',
+ later:'Fed with crumbs, they come to you. Not for eating: the keepers mind. A forgotten pool has none, or one huge pale survivor.',
+ host:'A poor body: one pool is its whole world.',
+ eats:'Eaten by the cat, if it can.',
+ link:'The goldfish of the Nowruz table, and of the pool in every Persian courtyard.',
+ pal:['#e8632a','#f3b04a','#f6e9d0']},
+{id:'C02',name:'Blind cave barb',tr:'Mahi-ye kur-e ghar',fa:'ماهی کور غار',cls:'aquatic',kind:'real',size:.06,sizeText:'6 cm',group:'schools of 20 to 60',build:'swarm',step:'19.1',
+ home:'The Gardens, the Lake Landing',
+ where:'Dark water: the Cistern Archive, the lake\'s harbour and channels, the Bridge Hall\'s pit pool, the Light-Well\'s pool.',
+ now:'Slow pale schools that feel their way along piers and walls and gather where drips land.',
+ you:'They can\'t see you. They feel your steps in the water and the school parts round you.',
+ later:'The staple catch: the cistern already has nets, spears and traps waiting. Numbers fall if you overfish and come back with time.',
+ host:'Blind, but feels every movement in the water.',
+ eats:'Eaten by the eel and the otter.',
+ link:'A real fish found only in Iran: the cave barb of a single cave system in Lorestan, pink and eyeless.',
+ pal:['#e9c9c2','#c79a98','#f4ece6']},
+{id:'C03',name:'Spiny eel',tr:'Mar-mahi',fa:'مارماهی',cls:'aquatic',kind:'real',size:.6,sizeText:'60 cm',group:'alone',build:'simple',step:'20',
+ home:'The Gardens (the cistern), the Lake Landing',
+ where:'Holes between the cistern\'s piers and under its causeway, the lake\'s channels, the dark flooded channel.',
+ now:'Lies in a hole with its head out, slides along the bottom to another hole, and goes in tail first.',
+ you:'Draws back into its hole when you come close.',
+ later:'What the eel traps catch. Bites if grabbed. A good smoked meal once someone teaches you how.',
+ host:'Reaches any gap under water; helpless out of it.',
+ eats:'Eats cave barbs.',
+ link:'The spiny eel of the rivers of western Iran.',
+ pal:['#3b3a2e','#7a6f45','#c9b877']},
+{id:'C04',name:'Luristan newt',tr:'Samandar-e Lorestani',fa:'سمندر لرستانی',cls:'aquatic',kind:'real',size:.13,sizeText:'13 cm',group:'2 to 5 by a stream',build:'simple',step:'20',
+ home:'The Gardens',
+ where:'Wet stone at the edge of clean running water: the Fungus Terraces\' cascade and channels, the Light-Well\'s pool, the cave mouths of the Bridge Hall, a wild Garden Court\'s rills.',
+ now:'Sits on wet stone, walks slowly along a channel\'s floor, slips into the water.',
+ you:'Freezes, then slips into the water when you are within two metres.',
+ later:'Its skin is poisonous: a first lesson in what not to cook raw. Where newts live the water is good to drink.',
+ host:'Walks and swims; small enough for drains.',
+ eats:'Eats glowworms that fall in.',
+ link:'A real newt found only in a few streams of the Zagros, black and white with orange: one of Iran\'s best known rare animals.',
+ pal:['#17171a','#f1ede2','#e2702a']},
+{id:'C05',name:'Otter',tr:'Sag-e abi',fa:'سگ آبی',cls:'aquatic',kind:'real',size:1.1,sizeText:'1.1 m with its tail',group:'a pair or a family of 2 to 4',build:'rigged',step:'20',
+ home:'The Lake Landing',
+ where:'The harbour: the water steps, the moored boats, the boathouse decks; and the docks.',
+ now:'Swims leaving a V on the water, dives, floats on its back eating, climbs the steps to groom, sleeps in a moored boat.',
+ you:'Watches you from the water and keeps about six metres off. Dives if you run.',
+ later:'Steals from your line, or shows you where the fish are. Harming one turns the lake\'s people against you.',
+ host:'The best swimmer in the stratum.',
+ eats:'Eats barbs and eels.',
+ link:'The "water dog" of the Avesta, where harming an otter is among the gravest wrongs. It lives in Iran\'s rivers today.',
+ pal:['#4a3526','#8a6a4c','#d9c5a5']},
+{id:'C06',name:'The Kar fish',tr:'Kar-mahi',fa:'کَرماهی',cls:'aquatic',kind:'mythic',size:6,sizeText:'about 6 m',group:'one',build:'simple',step:'21',
+ home:'The Lake Landing',
+ where:'Only the lake\'s deep water, past the wading shelf, and the fog channels during a ferry trip.',
+ now:'A pale shape passing under the ferry. A slow back breaking the surface far out. A wake across the lantern streaks. Seldom.',
+ you:'Never comes to the quay. You can\'t reach it.',
+ later:'The lake\'s legend and the fisherfolk\'s stories. A guardian of whatever lies down the flooded channel. Never a boss fight.',
+ host:'Not a host.',
+ eats:'',
+ link:'In the Bundahishn, the Kar fish circle the tree of life in the cosmic sea without rest, guarding its root.',
+ pal:['#cfd8d6','#8fa7a8','#2b3b44']},
+{id:'C07',name:'Cat',tr:'Gorbe',fa:'گربه',cls:'ground',kind:'domestic',size:.5,sizeText:'50 cm',group:'alone; 2 to 6 in a quarter',build:'rigged',step:'19.3',
+ home:'The Mahaleh; also the Grand Study and the camp',
+ where:'The Domicile Quarter\'s lanes and doorsteps, the bazaar\'s food stalls, the caravanserai\'s cells, a scriptorium desk, a reading room\'s cushions. One cat at the camp.',
+ now:'Sleeps on carpets and by hearths, sits and washes, strolls the lanes, watches the fish and the pigeons.',
+ you:'Looks at you. Walks off if you run at it. The camp\'s cat may follow you a few steps.',
+ later:'Befriended with fish. Keeps rats down where it lives. Wary and wild in the Forgotten City. Scratches if cornered.',
+ host:'Quick, quiet, fits narrow gaps, sees in the dark.',
+ eats:'Eats rats and geckos; watches the goldfish.',
+ link:'The Persian cat. The rumour board\'s lost grey cat and the child\'s note in the quarter already promise it.',
+ pal:['#8b8d8f','#d9d2c4','#e0a657']},
+{id:'C08',name:'Rat',tr:'Mush',fa:'موش',cls:'ground',kind:'real',size:.22,sizeText:'22 cm and a tail',group:'3 to 10',build:'simple',step:'19.4',
+ home:'The Forgotten City',
+ where:'Where nobody tidies: the far ends of stack galleries, collapsed bays, the ossuary\'s deep passages, deserted bazaar rows, storerooms.',
+ now:'Runs along the foot of the walls from hole to hole, stops to sniff, gnaws at fallen books.',
+ you:'Bolts for the nearest hole when you are five metres off.',
+ later:'A pest of food stores (work for a settlement). Bites when cornered; a swarm in deeper strata. Food of last resort.',
+ host:'Goes through any crack or hole.',
+ eats:'Eats bookworms and stores; eaten by cats.',
+ link:'Every library\'s oldest enemy.',
+ pal:['#4d443c','#7c6e60','#c9a79a']},
+{id:'C09',name:'Wall gecko',tr:'Marmulak',fa:'مارمولک',cls:'ground',kind:'real',size:.12,sizeText:'12 cm',group:'1 to 3 at a lamp',build:'simple',step:'19.4',
+ home:'The Grand Study; anywhere lamps burn',
+ where:'On the wall beside any burning lamp: reading rooms, the galleries\' pier lamps, the bazaar, the quarter\'s door lanterns.',
+ now:'Clings near the lamp, darts at a moth, freezes.',
+ you:'Runs up the wall out of reach.',
+ later:'Drops its tail to get away. A lamp with geckos is a lamp someone tends; when the lamp fails, they leave.',
+ host:'Walks on walls and ceilings.',
+ eats:'Eats moths; eaten by cats.',
+ link:'The small lizard on the wall of every lamplit house in Iran.',
+ pal:['#b9a37c','#8c7a58','#e8dcc0']},
+{id:'C10',name:'Four-eyed dog',tr:'Sag-e chahar-cheshm',fa:'سگ چهارچشم',cls:'ground',kind:'domestic',size:.9,sizeText:'90 cm long',group:'one to an ossuary',build:'rigged',step:'20',
+ home:'The Mahaleh (the Ossuary of Books)',
+ where:'The ossuary\'s entry and shrine chamber, and the alley outside its door.',
+ now:'Lies at the door. Walks the candlelit passage to the shrine and back. Sits facing the biers. Lifts its head as you pass.',
+ you:'Watches you. The first time, walks beside you to the shrine. Stops where the candles stop and will not go on.',
+ later:'Guards the dead against robbers. Can see you when you are a spirit. In a forgotten ossuary there is only its collar.',
+ host:'Strong nose, trusted by people.',
+ eats:'',
+ link:'A black and tan dog with a pale spot over each eye. In the Zoroastrian rite of sagdid such a dog looks on the dead to drive off the corpse demon.',
+ pal:['#2a2622','#c9a063','#efe6d2']},
+{id:'C11',name:'Wild goat',tr:'Pazan',fa:'پازن',cls:'ground',kind:'real',size:1.4,sizeText:'1.4 m, long curved horns',group:'herds of 3 to 7',build:'rigged',step:'21',
+ home:'The Gorge',
+ where:'Rock ledges, terraces, the lit parks and the pools by the falls. On the far banks, shapes against the mist.',
+ now:'Stand on ledges nothing should stand on, graze the terraces, drink at the pools. One with great horns keeps the highest point.',
+ you:'Heads come up at 25 metres. At 12 the herd moves off up the ledges.',
+ later:'The first animal to hunt: meat, hide, horn. A charge if cornered. The bezoar stone from its gut is the old cure for poison.',
+ host:'Climbs what you can\'t.',
+ eats:'Grazes plants and fungi.',
+ link:'The wild goat of the Iranian mountains, painted with sweeping horns on Iranian pottery for six thousand years. "Bezoar" is the Persian pad-zahr.',
+ pal:['#8a6f52','#3a2e26','#d8c8ac']},
+{id:'C12',name:'Bookworm',tr:'Kerm-e ketab',fa:'کرم کتاب',cls:'ground',kind:'real',size:.03,sizeText:'3 cm',group:'colonies of 20 to 100',build:'swarm',step:'21',
+ home:'The Forgotten City',
+ where:'Ruined books: abandoned shelves at the galleries\' far ends, fallen heaps, the ossuary\'s book niches, every forgotten room.',
+ now:'Pale grubs working through old paper. The young of the candle moth.',
+ you:'Take no notice.',
+ later:'Tells you which shelves are past reading. Bait for fishing. A story: some pages are known only to what ate them.',
+ host:'The design foundation\'s own example: useless hands, but hides anywhere and feels every footstep.',
+ eats:'Eats books; eaten by rats.',
+ link:'Kerm-e ketab also means a person who reads too much.',
+ pal:['#e9dfc6','#c9b68c','#7a5a3a']},
+{id:'C13',name:'Spider-tailed viper',tr:'Mar-e dom-ankabuti',fa:'مار دم‌عنکبوتی',cls:'ground',kind:'real',size:.7,sizeText:'70 cm',group:'alone, uncommon',build:'simple',step:'21',
+ home:'The Gorge, the Forgotten City',
+ where:'Where bare rock shows: Gorge ledges and cave mouths, the Bridge Hall\'s cave passages, rock breaking through a far gallery, rubble.',
+ now:'Lies coiled and rock-coloured, almost unseen. Only its tail tip moves: a lure shaped like a spider, to draw birds.',
+ you:'Stays still. Within a metre and a half it hisses and draws back into a crack. It does not bite yet.',
+ later:'The first real danger: a bite if you step on it, and a cure to learn. Teaches you to look before you step.',
+ host:'Slow, but nothing comes near it.',
+ eats:'Eats pigeons and rats.',
+ link:'A real viper found only in the western Zagros of Iran, described in 2006; its tail really does look like a spider.',
+ pal:['#a8957a','#6e5f4c','#d9cbb2']},
+{id:'C14',name:'Shadhavar',tr:'Shadhavar',fa:'شادهوار',cls:'ground',kind:'mythic',size:1.3,sizeText:'1.3 m, one branching hollow horn',group:'one',build:'rigged',step:'21',
+ home:'The Gardens, the Gorge',
+ where:'Where air moves: by a light shaft, at a cave mouth, the top of the Fungus Terraces, a Gorge park, a wild Garden Court.',
+ now:'Stands grazing in a draught. Animals near it stop and turn toward it. With sound, its horn will play when the air moves.',
+ you:'Sees you at twenty metres and walks away, never runs. Gone round a corner when you follow.',
+ later:'Its music calms animals and people, or saddens them. A darker cousin that lures with music belongs to the monster tier.',
+ host:'Not a host.',
+ eats:'Grazes.',
+ link:'From Qazwini\'s Wonders of Creation: a gazelle-like animal whose single horn has forty-two hollow branches that sing in the wind.',
+ pal:['#d9c7a0','#f2ead8','#7fb0a8']},
+{id:'C15',name:'Bat',tr:'Khoffash',fa:'خفاش',cls:'flying',kind:'real',size:.25,sizeText:'25 cm across the wings',group:'colonies of 10 to 40',build:'swarm',step:'19.2',
+ home:'The Forgotten City, the Gorge',
+ where:'Dark roofs: the Hypostyle Stacks\' collapsed bays, the Bridge Hall\'s cavern and cave passages, the Gorge\'s roof, lake channels, ossuary dead ends.',
+ now:'Hang in clusters and shift. A few circle. Now and then the colony streams along the vault to another dark place.',
+ you:'Leave the roost when you come within six metres.',
+ later:'Guano for growing and crafting. Bats fly toward open air: follow them to find a way out. Fly at a carried flame.',
+ host:'Flies, and finds its way in the dark by sound.',
+ eats:'Eats moths and glowworms.',
+ link:'The cave bats of Iran\'s limestone, as at Ali-Sadr.',
+ pal:['#2e2a2c','#5a4c48','#8a6f66']},
+{id:'C16',name:'Pigeon',tr:'Kabutar',fa:'کبوتر',cls:'flying',kind:'domestic',size:.33,sizeText:'33 cm',group:'flocks of 6 to 20',build:'simple',step:'20',
+ home:'The Mahaleh, the Gorge',
+ where:'The quarter\'s pigeon tower and sabats, the bazaar dome\'s eye and its beam, caravanserai parapets, Gorge roofs and terraces.',
+ now:'Perch in rows, strut and peck on open ground. A flock wheels round the tower or through the dome\'s beam and comes back.',
+ you:'Walk out of your way. Burst into flight if you run.',
+ later:'Eggs and meat. Carried messages between settlements. A forgotten tower stands empty.',
+ host:'Flies, and is ignored by everyone.',
+ eats:'Eaten by the viper.',
+ link:'The pigeon towers of Isfahan. The quarter already has one.',
+ pal:['#8e98a6','#5c6675','#4fa38a']},
+{id:'C17',name:'Candle moth',tr:'Parvane',fa:'پروانه',cls:'flying',kind:'real',size:.03,sizeText:'3 cm',group:'3 to 12 at a flame',build:'swarm',step:'19.2',
+ home:'The Grand Study, the Ossuary',
+ where:'Every candle and open flame: the ossuary\'s candles and shrine, scriptorium desk lamps, gallery candles, the camp\'s fire, the Garden Court (drawn there already as specks).',
+ now:'Circle the flame, settle on the wall beside it, and now and then one flies in.',
+ you:'Take no notice.',
+ later:'Come to a light you carry, which shows others where you are. Tell a real flame from a cold glow. Grown from bookworms.',
+ host:'Flies, briefly.',
+ eats:'Eaten by geckos and bats.',
+ link:'Sham\' o parvane, the candle and the moth: the lover and the beloved of Persian poetry.',
+ pal:['#e9e1cf','#c8b48f','#f2c56b']},
+{id:'C18',name:'Glowworm',tr:'Kerm-e shab-tab',fa:'کرم شب‌تاب',cls:'flying',kind:'real',size:.01,sizeText:'1 cm',group:'colonies of 30 to 200',build:'swarm',step:'19.2',
+ home:'The Lake Landing (the channels), the Gardens',
+ where:'Cave roofs with no lamp or glowing fungus within a bay: lake channel roofs, mirrored in the water; the Bridge Hall\'s cave passages; the terraces\' upper roof; Gorge cave mouths.',
+ now:'Points of light on the roof like stars, pulsing slowly. A few drift over water and beds.',
+ you:'Go dark when you run or bring a flame. Come back when you have stood still for ten seconds.',
+ later:'Kept in a jar: a living lantern, which is the design foundation\'s "light can be cultivated". They take the area\'s fungus colour.',
+ host:'Not much of one.',
+ eats:'Eaten by bats and newts.',
+ link:'Shab-tab: "night-shining".',
+ pal:['#9fe8d0','#4fb3a8','#1b3b3a']},
+{id:'C19',name:'Nightingale',tr:'Bolbol',fa:'بلبل',cls:'flying',kind:'real',size:.16,sizeText:'16 cm',group:'one or two to a garden',build:'simple',step:'20',
+ home:'The Grand Study (the Garden Court)',
+ where:'The Garden Court\'s old pomegranate, wild figs and rose beds; the Light-Well\'s garden; the camp; a cage at a bazaar stall.',
+ now:'Perches, hops from branch to branch, flies short arcs between the tree and the talar\'s roof, visits the roses. With sound, it sings.',
+ you:'Flies to a higher perch when you come close.',
+ later:'Its song marks a kept, safe place; a garden gone silent is a warning. Caged birds are traded.',
+ host:'Flies; welcome anywhere.',
+ eats:'',
+ link:'Gol o bolbol, the rose and the nightingale.',
+ pal:['#8a6e4e','#c9a67a','#efe3cc']},
+{id:'C20',name:'The Huma',tr:'Homa',fa:'هما',cls:'flying',kind:'mythic',size:3,sizeText:'3 m across the wings',group:'one',build:'simple',step:'21',
+ home:'The Gorge',
+ where:'High under the Gorge\'s roof, over the mist and the falls, through the light shafts. Seen from the Overlook, the spans and the terraces.',
+ now:'Circles and never lands. Passes through a shaft of light. Its shadow crosses a terrace. Seldom.',
+ you:'Out of reach, always.',
+ later:'Its shadow falling on you is the old sign of kingship: a blessing, and people treat you differently for a while. A feather on a high ledge.',
+ host:'Not a host.',
+ eats:'',
+ link:'The bird of fortune that lives its whole life on the wing. Distant luck, where the Camrus is a companion.',
+ pal:['#e9d9a8','#c98f3a','#7a3e2a']},
+];
+
+const byId=Object.fromEntries(CREATURES.map(c=>[c.id,c]));
+const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
+const names=ids=>ids.trim()?ids.trim().split(/\s+/).map(i=>`<a href="#${i}">${esc(byId[i].name)}</a>`).join(', '):'';
+
+document.getElementById('areas').innerHTML=AREAS.map(a=>`<tr><td>${a[0]}</td><td>${names(a[1])}</td><td>${names(a[2])}</td><td>${names(a[3])}</td></tr>`).join('');
+document.getElementById('toc').innerHTML=CREATURES.map(c=>`<a class="c-${c.cls}" href="#${c.id}">${c.id} ${esc(c.name)}</a>`).join('');
+document.getElementById('overview').innerHTML=CREATURES.map(c=>`<tr><td class="id">${c.id}</td><td><a href="#${c.id}">${esc(c.name)}</a></td><td>${CLS[c.cls]}</td><td>${KIND[c.kind]}</td><td>${esc(c.sizeText)}</td><td>${BUILD[c.build]}</td><td>${esc(c.home)}</td><td class="id">${c.step}</td></tr>`).join('');
+
+/* The scale strip: you (1.75 m) as a standing bar, the animal as a lying bar, at one scale. */
+function scale(c){
+  const Wd=320,Hd=110,base=96,s=Math.min(48,230/Math.max(c.size,.01)),ph=1.75*s,pw=.42*s;
+  const len=Math.max(c.size*s,3),th=Math.max(Math.min(c.size*s*.32,26),3),x0=28+pw+18;
+  return `<svg viewBox="0 0 ${Wd} ${Hd}" role="img" aria-label="${esc(c.name)}, ${esc(c.sizeText)}, beside a person 1.75 m tall">
+    <line x1="8" y1="${base}" x2="${Wd-8}" y2="${base}" stroke="var(--line)"/>
+    <rect x="28" y="${base-ph}" width="${Math.max(pw,2)}" height="${ph}" fill="var(--muted)" opacity=".55"/>
+    <rect x="${x0}" y="${base-th}" width="${len}" height="${th}" fill="${c.pal[0]}" stroke="var(--line)"/>
+  </svg>`;
+}
+
+document.getElementById('plates').innerHTML=CREATURES.map(c=>`
+<article class="creature c-${c.cls}" id="${c.id}">
+  <div class="c-title"><span class="cid">${c.id}</span><h3>${esc(c.name)}</h3><span class="tr">${esc(c.tr)}</span><span class="fa" lang="fa" dir="rtl">${c.fa}</span><span class="badge">${CLS[c.cls]}</span><span class="kind ${c.kind}">${KIND[c.kind]}</span></div>
+  <div class="card">
+    <div class="scale">${scale(c)}<span class="cap">Grey: you, 1.75 m · colour: ${esc(c.name.toLowerCase())}, ${esc(c.sizeText)}</span>
+      <div class="swatches">${c.pal.map(p=>`<i class="swatch" style="background:${p}"></i>`).join('')}</div></div>
+    <div class="facts"><span>Numbers <b>${esc(c.group)}</b></span><span>Build <b>${BUILD[c.build]}</b></span><span>Known in <b>${esc(c.home)}</b></span><span>Built in step <b>${c.step}</b></span></div>
+    <p class="link">${esc(c.link)}</p>
+  </div>
+  <div class="sheet"><dl>
+    <div><dt>Where</dt><dd>${esc(c.where)}</dd></div>
+    <div><dt>What it does now</dt><dd>${esc(c.now)}</dd></div>
+    <div><dt>When you come near</dt><dd>${esc(c.you)}</dd></div>
+    <div><dt>Later</dt><dd>${esc(c.later)}</dd></div>
+    <div><dt>As a host</dt><dd>${esc(c.host)}</dd></div>
+    ${c.eats?`<div><dt>Food web</dt><dd>${esc(c.eats)}</dd></div>`:''}
+  </dl></div>
+</article>`).join('');
+</script>

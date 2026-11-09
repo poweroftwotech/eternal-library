@@ -315,6 +315,7 @@ func tweaked(tweaks: Dictionary) -> RoomGrammar:
 	var g: RoomGrammar = duplicate(false)
 	g.set_meta("source_path", source_path())
 	if str(tweaks.get("state", "")) == ABANDONED and not state_options().is_empty():
+		g.set_meta("state", ABANDONED)     # what lives here (phase 19, Fauna) reads it
 		g._abandon()
 	g._tweak(tweaks)
 	return g

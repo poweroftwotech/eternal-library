@@ -1,0 +1,31 @@
+[gd_resource type="Resource" script_class="CreatureDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/creature_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+habitat = "water"
+build = "swarm"
+rooms = PackedStringArray("R09", "R11", "R21", "lake")
+state = "any"
+min_depth = 0.2
+min_area = 6.0
+swim_depth = Vector2(0.12, 0.45)
+area_each = 70.0
+group_size = Vector2i(20, 60)
+max_groups = 4
+startle_radius = 1.2
+feels_water_only = true
+self_glow = 0.12
+girth = Vector2(0.2, 0.2)
+patterns = 3
+blind = true
+clarity = 0.55
+id = &"cave_barb"
+display_name = "Blind cave barb"
+local_name = "Mahi-ye kur-e ghar"
+atlas_id = "C02"
+length_m = 0.075
+length_spread = Vector2(0.8, 1.2)
+speed = Vector2(0.08, 0.45)
+palette = PackedColorArray(0.914, 0.788, 0.761, 1, 0.78, 0.604, 0.596, 1, 0.957, 0.925, 0.902, 1)
