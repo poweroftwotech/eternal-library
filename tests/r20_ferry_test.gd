@@ -11,6 +11,11 @@ extends SceneTree
 ## save: board at the quay, ask for the Mahaleh, quit through the game's own
 ##       save-and-quit halfway across.
 ## load: a new process resumes on the quay's stage (Q9) with the ferry at the quay.
+## route: (step 5) walks the harbour with the real controller: the passage onto
+##       the quay, west along the boardwalk, east onto the terrace, out along
+##       the pier; then at every dock, from the ferry's stage up onto the
+##       landing quay and along each strip to its end.
+##       --world-seed=N walks world N's docks (their seeded dressing).
 ## elsewhere: a save left the ferry at another stop than yours (the user's world,
 ##       step 3 ride): once you are placed it waits where you are, at the quay
 ##       and at a dock.
@@ -44,6 +49,9 @@ func run() -> void:
 	ws = root.get_node_or_null("WorldState")
 	if mode != "load":
 		main_script.room_override = SCENE
+	for a: String in args:     # route: any world (its seeded dock dressing)
+		if a.begins_with("--world-seed=") and ws != null:
+			ws.data["world_seed"] = a.trim_prefix("--world-seed=").to_int()
 	game = (load("res://main.tscn") as PackedScene).instantiate()
 	root.add_child(game)
 	current_scene = game
@@ -63,9 +71,42 @@ func run() -> void:
 			await save_mode()
 		"elsewhere":
 			await elsewhere_mode()
+		"route":
+			await route_mode()
 		_:
 			await load_mode()
 	finish(mode)
+
+
+# ------------------------------------------------------------------ route
+
+func route_mode() -> void:
+	var ok: bool = await walk([Vector3(0, 0, -9.0), Vector3(-6.0, 0, -9.0), Vector3(-12.0, 0, -8.6), Vector3(-6.0, 0, -9.0),
+		Vector3(4.0, 0, -9.5), Vector3(12.8, 0, -12.5), Vector3(8.0, 0, -15.0), Vector3(8.0, 0, -39.0)], "the harbour")
+	check(ok, "the harbour walks: passage, quay, boardwalk, terrace, pier")
+	for style: String in LakeLayout.STYLES:
+		var f: Transform3D = LakeLayout.dock_frame(style)
+		var stage: Vector3 = f * Vector3(0, LakeLayout.STAGE + 0.05, -4.6)
+		game.player.teleport(stage, game.player.rotation.y)
+		for _i: int in 20:
+			await physics_frame
+		ok = await walk([f * Vector3(0, 0, -2.0)], "the %s dock" % style)
+		check(ok, "the %s dock: up from the ferry's stage onto the landing quay" % style)
+		for side: float in [-1.0, 1.0]:
+			# The ruin's west strip is a heap of fallen stone past 6 m (by design).
+			var end: float = 5.9 if style == "ruin" and side < 0.0 else 17.6
+			var lane_ok: float = NAN
+			for lane: float in [-2.3, -1.8, -0.7]:
+				game.player.teleport(f * Vector3(0, 0.05, -2.0), game.player.rotation.y)
+				for _i: int in 6:
+					await physics_frame
+				if await walk([f * Vector3(side * 3.5, 0, lane), f * Vector3(side * end, 0, lane)], "", false):
+					lane_ok = lane
+					break
+			check(not is_nan(lane_ok), "the %s dock's %s strip walks to its end (%.1f m)" % [style, "west" if side < 0.0 else "east", end])
+			check(game.player.global_position.y > -0.3, "on the %s dock's strip, not in the water (%s)" % [style, game.player.global_position])
+			if not is_nan(lane_ok) and lane_ok != -2.3:
+				print("r20_ferry_test: the %s dock's %s strip walks at z %.1f" % [style, "west" if side < 0.0 else "east", lane_ok])
 
 
 # ------------------------------------------------------------------ elsewhere
@@ -254,7 +295,7 @@ func far_boat_clear() -> void:
 
 
 ## Walks the player through `points` (the real controller, "forward" held).
-func walk(points: Array[Vector3], what: String) -> bool:
+func walk(points: Array[Vector3], what: String, report: bool = true) -> bool:
 	for p: Vector3 in points:
 		var t: float = 0.0
 		var reached: bool = false
@@ -270,7 +311,8 @@ func walk(points: Array[Vector3], what: String) -> bool:
 			t += 1.0 / Engine.physics_ticks_per_second
 		Input.action_release("forward")
 		if not reached:
-			check(false, "%s: stuck short of %s at %s" % [what, p, game.player.global_position])
+			if report:
+				check(false, "%s: stuck short of %s at %s" % [what, p, game.player.global_position])
 			return false
 	for _i: int in 10:
 		await physics_frame

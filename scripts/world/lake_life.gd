@@ -56,6 +56,7 @@ func _ready() -> void:
 	_wet_structures()
 	_seeded()
 	_dock_glows()
+	_entry_door()
 	var pier: Node = owner.get_node_or_null("Pier") if owner != null else null
 	if pier != null:
 		for l: Node in pier.find_children("*", "Light3D", true, false):
@@ -584,6 +585,17 @@ func _physics_process(_delta: float) -> void:
 		return
 	if p.global_position.y < LakeLayout.WATER - DEEP:
 		_back_to_shore(p)
+
+
+## The passage's door leads where the stratum plan says the lake is reached
+## from (the camp's back door; it was a Gorge door in step 5's first build).
+func _entry_door() -> void:
+	var door: Threshold = owner.find_child("EntryDoor", true, false) as Threshold if owner != null else null
+	var outside: String = StratumPlan.current().outside_of("lake")
+	if door == null or outside == "":
+		return
+	door.to = outside
+	door.to_name = StratumPlan.current().place_name(outside)
 
 
 ## Fell in deep water: a splash, a quick fade, then the nearest steps.

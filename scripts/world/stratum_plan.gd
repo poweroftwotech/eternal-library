@@ -64,6 +64,24 @@ func recipes() -> Dictionary:
 	return out
 
 
+## Place id -> its scene, for each place that is a fixed scene of its own
+## other than the camp (phase 18 step 5: the Lake Landing).
+func scenes() -> Dictionary:
+	var out: Dictionary = {}
+	for p: Dictionary in places:
+		if str(p["path"]).get_extension() == "tscn" and str(p["id"]) != "camp" and ResourceLoader.exists(str(p["path"])):
+			out[str(p["id"])] = str(p["path"])
+	return out
+
+
+## The place whose scene is `path` ("" = none).
+func scene_place(path: String) -> String:
+	for id: String in scenes():
+		if scenes()[id] == path:
+			return id
+	return ""
+
+
 func path_of(place: String) -> String:
 	for p: Dictionary in places:
 		if str(p["id"]) == place:
@@ -76,10 +94,46 @@ func path_of(place: String) -> String:
 func place_name(place: String) -> String:
 	if place == "camp":
 		return "the camp"
+	for p: Dictionary in places:     # a place can name itself ("the Lake Landing")
+		if str(p["id"]) == place and p.has("name"):
+			return str(p["name"])
 	var path: String = path_of(place)
-	var recipe: AreaRecipe = load(path) as AreaRecipe if path.get_extension() == "tres" and ResourceLoader.exists(path) else null
-	var shown: String = recipe.display_name if recipe != null and recipe.display_name != "" else place.capitalize()
+	var shown: String = recipe_name(path)
+	if shown == "":
+		shown = place.capitalize()
 	return "the " + shown.substr(4) if shown.begins_with("The ") else shown     # mid-sentence: "the Sanctum"
+
+
+## Recipe path -> its display name, read once.
+static var _names: Dictionary = {}
+static var _names_lock := Mutex.new()
+
+
+## A recipe's display name ("" = none), read from its file's own [resource]
+## section, not loaded: loading a recipe pulls in all its rooms (0.7-1.3 s,
+## every time, as the Gorge built each door ledge beside the camp).
+static func recipe_name(path: String) -> String:
+	_names_lock.lock()
+	var known: Variant = _names.get(path)
+	_names_lock.unlock()
+	if known != null:
+		return known
+	var shown: String = ""
+	if path.get_extension() == "tres" and FileAccess.file_exists(path):
+		var text: String = FileAccess.get_file_as_string(path)
+		var at: int = text.rfind("
+[resource]")
+		var re := RegEx.create_from_string("(?m)^display_name = \"(.*)\"$")
+		var m: RegExMatch = re.search(text, at) if at >= 0 else null
+		if m != null:
+			shown = m.get_string(1).c_unescape()
+	elif path.get_extension() == "res" and ResourceLoader.exists(path):
+		var recipe: AreaRecipe = load(path) as AreaRecipe     # a binary recipe: no text to read
+		shown = recipe.display_name if recipe != null else ""
+	_names_lock.lock()
+	_names[path] = shown
+	_names_lock.unlock()
+	return shown
 
 
 ## [a, b, kind] for each link.

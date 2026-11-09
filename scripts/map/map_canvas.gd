@@ -57,6 +57,8 @@ var note: String = ""
 var trace: MapTrace
 var trace_ink: Texture2D
 var trace_pencil: Texture2D
+## Names written on it ({at: Vector2, text}: the lake's docks), on tiles you know.
+var trace_names: Array = []
 var walked: Dictionary = {}
 var sighted: Dictionary = {}
 ## Your marks on the place drawn: {at: Vector2 (metres), storey, symbol, note};
@@ -152,6 +154,7 @@ func use(layer: Dictionary) -> void:
 	walked = layer["walked"]
 	sighted = layer["sighted"]
 	door_labels = layer["door_labels"]
+	trace_names = layer.get("names", [])
 	marks = layer["marks"]
 	frame = layer.get("frame", Transform2D.IDENTITY)
 
@@ -247,6 +250,19 @@ func _draw_trace() -> void:
 	for d: Dictionary in trace.doors:
 		if walked.has(trace.tile_of(d["at"])):
 			_door_mark({"mid": d["at"], "out": d["out"], "kind": d["kind"], "to": d["raw"]}, true)
+	for l: Dictionary in trace.lines:     # the ferry lines, dotted through the fog
+		if _knows(l["at_a"]) and _knows(l["at_b"]):
+			draw_dashed_line(to_px(l["a"]), to_px(l["b"]), PENCIL, 1.0, 4.0)
+	if _named:
+		for n: Dictionary in trace_names:
+			if _knows(n["at"]):
+				_text_at(to_px(n["at"]) + Vector2(0, font_size * 1.6), n["text"], INK, 0.0, font_size)     # below the dock: behind its houses, clear of you on the strip
+
+
+## Whether the trace's tile at `m` (metres) is on the map, walked or seen.
+func _knows(m: Vector2) -> bool:
+	var t: int = trace.tile_of(m)
+	return walked.has(t) or sighted.has(t)
 
 
 ## A trace image as drawn: its own pixels while a sample is a pixel or more;

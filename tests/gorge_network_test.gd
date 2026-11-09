@@ -76,6 +76,9 @@ func run() -> void:
 		check(cliffs.size() == 2, "%s: ledges on both cliffs (%s)" % [tag, cliffs.keys()])
 		check(p.room("span") != null and p.room("span").parent == "overlook", "%s: the main span leaves the Overlook" % tag)
 		check(reached(p) == p.rooms.size(), "%s: every room is reached from the Overlook (%d of %d)" % [tag, reached(p), p.rooms.size()])
+		var clear_stop: int = Time.get_ticks_msec() + 60000     # the scenery clears over frames (Area: CLEAR_BUDGET_MS)
+		while not area.timings.has("cleared") and Time.get_ticks_msec() < clear_stop:
+			await process_frame
 		check(int(area.timings.get("cleared", 0)) > 0, "%s: the gorge's pieces where the network stands are cleared" % tag)
 		layout_checks(p, tiers, tag)
 		var body: CharacterBody3D = make_capsule(area)

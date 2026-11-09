@@ -22,6 +22,10 @@ places = Array[Dictionary]([{
 }, {
 "id": "forgotten_city",
 "path": "res://gen/recipes/forgotten_city.tres"
+}, {
+"id": "lake",
+"name": "the Lake Landing",
+"path": "res://rooms/lake/landing.tscn"
 }])
 links = Array[Dictionary]([{
 "a": "camp",
@@ -46,5 +50,10 @@ links = Array[Dictionary]([{
 "a": "gorge",
 "at": "b4_l14_E_s2_6",
 "b": "forgotten_city",
+"kind": "door"
+}, {
+"a": "camp",
+"at": "SNAP_exit_front",
+"b": "lake",
 "kind": "door"
 }])

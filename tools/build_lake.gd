@@ -120,13 +120,18 @@ func _box_body(node_name: String, size: Vector3, xform: Transform3D) -> void:
 
 # ------------------------------------------------------------------ the place
 
-## The entry door (the Gorge's door in step 5; sealed for now) and 8 m of
+## The entry door (step 5: the door back out, to the camp; LakeLife._entry_door
+## points it wherever the stratum plan's "lake" link comes from) and 8 m of
 ## cave passage to the mouth in the back wall.
 func _passage() -> void:
 	_group("Passage")
 	_put(K + "wall_arch_3m.tscn", "EntryWall", _at(-2.0, 0.0, 0.0))
-	var door := SealedDoor.new()
+	var door := Threshold.new()
 	door.name = "EntryDoor"
+	door.to = "camp"
+	door.to_name = "the camp"
+	door.look = "ornate"
+	door.arch = "kit"
 	door.transform = _at(0.0, 0.0, 0.0, PI)
 	_add(door)
 	# The passage pieces sit 1 cm down: their floors run out under the quay
@@ -487,8 +492,7 @@ func _landing(id: String, root: Node3D, dock: bool = false) -> void:
 		_box_body("FacadeE", Vector3(half - 2.0, 4.0, 0.6), Transform3D(Basis.IDENTITY, Vector3((half + 2.0) / 2.0, 2.0 + sunk, 0.3)))
 	match id:
 		"mahaleh":
-			_put(K + "lk_lantern_post.tscn", "LanternW", _at(-4.4, 0.0, -2.2))
-			_put(K + "lk_lantern_post.tscn", "LanternE", _at(4.4, 0.0, -2.2, PI))
+			_side_lanterns(dock)
 			_put(P + "persian_lamp_bracket.tscn", "DoorLamp", Transform3D(turned, Vector3(0.0, 3.4, -0.05)))
 			_put(P + "persian_dome_small.tscn", "Dome", Transform3D(turned, Vector3(2.0, 12.0, 4.0)))
 			_put(P + "persian_awning.tscn", "Awning", Transform3D(turned, Vector3(10.0, 3.0, 0.0)))
@@ -527,20 +531,21 @@ func _landing(id: String, root: Node3D, dock: bool = false) -> void:
 			_marker("Boat", "lake_boat_slot", _at(-7.0, W, -3.6, PI / 2.0), {"always": true})
 		"default":
 			# Step 3: the plain cave dock, for a destination no style suits.
-			_put(K + "lk_lantern_post.tscn", "LanternW", _at(-4.4, 0.0, -2.2))
-			_put(K + "lk_lantern_post.tscn", "LanternE", _at(4.4, 0.0, -2.2, PI))
+			_side_lanterns(dock)
 			_put(K + "lk_crates.tscn", "Crates", _at(-4.2, 0.0, -0.9, 0.2))
 			_put(K + "lk_traps.tscn", "Traps", _at(6.5, 0.0, -1.5, 0.7))
 			_marker("Boat", "lake_boat_slot", _at(7.2, W, -4.0, PI / 2.0 - 0.1), {"always": true})
 		"forgotten":
-			_put(K + "lk_lantern_post.tscn", "Lantern", _at(3.9, 0.0, -2.0, PI))
+			# Step 5 (route audit): on a dock it stands out at the strip's water edge,
+			# clear of the way from the landing quay onto the strip.
+			_put(K + "lk_lantern_post.tscn", "Lantern", _at(5.7, 0.0, -2.8, PI) if dock else _at(3.9, 0.0, -2.0, PI))
 			# Ride 1 of step 3: the heap lay over the steps and stage (it was placed
 			# for the old sunk landing); on the dock it lies on the strip west of the
 			# quay, on its own level, and nothing stands behind the house front.
 			_put(K + "lk_rubble.tscn", "Rubble", _at(-12.0, 0.0, 0.3, 0.0) if dock else _at(-5.0, 0.0, -2.5, 0.2))
 			if not dock:
 				_put(K + "lk_rubble.tscn", "RubbleIn", _at(-0.5, 0.0, 6.5, -0.4))
-			_fishing("Fishing", _at(-5.0, 0.0, -1.2, PI / 2.0))
+			_fishing("Fishing", _at(13.5, 0.0, -2.6) if dock else _at(-5.0, 0.0, -1.2, PI / 2.0))     # a dock's: on the east strip, off the way on
 		"dark":
 			_put(K + "lk_rubble.tscn", "Rubble", _at(-3.0, sunk, -2.8, 0.5))
 			var boat: Node3D = _put(K + "lk_boat.tscn", "SunkBoat", Transform3D(
@@ -559,6 +564,14 @@ func _landing(id: String, root: Node3D, dock: bool = false) -> void:
 func _group_or(node_name: String) -> Node3D:
 	var n: Node3D = _room.get_node_or_null(node_name) as Node3D
 	return n if n != null else _group(node_name)
+
+
+## A landing's two lantern posts. On a dock (step 5, route audit) they stand
+## out at the strips' water edge: at the quay's corners they and the crates
+## left a 0.6 m squeeze onto the strips.
+func _side_lanterns(dock: bool) -> void:
+	_put(K + "lk_lantern_post.tscn", "LanternW", _at(-5.7, 0.0, -2.8) if dock else _at(-4.4, 0.0, -2.2))
+	_put(K + "lk_lantern_post.tscn", "LanternE", _at(5.7, 0.0, -2.8, PI) if dock else _at(4.4, 0.0, -2.2, PI))
 
 
 ## Lit windows on a landing: the water doubles them (LakeLife streaks).

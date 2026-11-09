@@ -1400,7 +1400,7 @@ def landing_quay(r):
     t = 1.5 / 4.0
     ramp(r, "lk_landing_quay", 0.0, 10.0, [(2.5, 0.0), (4.0 - t / 2.0, -0.9)])
     solid("lk_landing_quay__paving-col", r, [PAVE], lambda bm: add_box(bm, 0.0, 10.0, -0.5, 2.5, -0.08, 0.0))
-    solid("lk_landing_quay__edge", r, ["persian_rock_dressed"], lambda bm: (add_box(bm, -0.25, 0.0, -0.5, 6.0, BED, 0.0),
+    solid("lk_landing_quay__edge-col", r, ["persian_rock_dressed"], lambda bm: (add_box(bm, -0.25, 0.0, -0.5, 6.0, BED, 0.0),
                                                                           add_box(bm, 10.0, 10.25, -0.5, 6.0, BED, 0.0)))
     bollards(r, "lk_landing_quay", [(0.6, 5.6), (9.4, 5.6)], z=STAGE)
 
@@ -1937,12 +1937,13 @@ AT_ORIGIN = {"M_lk_cavern", "M_lk_bed", "M_lk_headland", "M_lk_harbour", "M_lk_d
 
 # Script-made modules remade in place at a new revision (kit_blender.rebuild).
 # (module, rev): rebuilt when the .blend has an older rev.
-REBUILD = [("M_lk_quay", 4), ("M_lk_pier_head", 4), ("M_lk_landing_quay", 4),
+REBUILD = [("M_lk_quay", 4), ("M_lk_pier_head", 4), ("M_lk_landing_quay", 5),
            ("M_lk_cavern", 3), ("M_lk_bed", 2), ("M_lk_headland", 3), ("M_lk_back_wall", 6),
            ("M_lk_harbour", 7), ("M_lk_boathouse", 3), ("M_lk_dock_a", 3),
            ("M_lk_ferry", 4), ("M_lk_ferryman", 2), ("M_lk_lantern_post", 2)]
 # ferry: rev 3 (rev 4 a softer canopy light, finer tassels), lantern post: rev 2 (step 3 ride 2) a Persian lantern barge; pierced brass lanterns on carved posts.
 # pier head, landing quay: rev 4 (step 3 ride 3) bollards down on the stage.
+# landing quay: rev 5 (step 5) its edge stones collide: a 25 cm slot to the strips (the map trace fell in it).
 # ferry, ferryman: rev 2 (step 3 ride 1) bow taper rails turned inward; a robe that draws.
 # quay, pier head, landing quay: rev 2 steps walked on hidden ramps, rev 3 ramps flush with the deck edge.
 # quay: rev 4 (walk 2) paving stops short of the steps' coping. back wall: rev 5 (walk 2) swells, ledges, lean.

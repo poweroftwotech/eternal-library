@@ -1,111 +1,103 @@
 [gd_scene format=3]
 
-[ext_resource type="Script" path="res://scripts/world/room_template.gd" id="1_35ukn"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_arch_3m.tscn" id="2_2vbtd"]
-[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="3_kxnb4"]
-[ext_resource type="Script" path="res://scripts/world/sealed_door.gd" id="4_7sj3y"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/bh_cave_straight.tscn" id="5_8y6gd"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/bh_cave_mouth.tscn" id="6_5whbr"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_harbour.tscn" id="7_u1mwe"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_back_wall.tscn" id="8_yvh3u"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_quay.tscn" id="9_l4tkd"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_shelf.tscn" id="10_uq1mb"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_boardwalk_4m.tscn" id="11_bh7u0"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_lantern_post.tscn" id="12_vyubv"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_crates.tscn" id="13_665uu"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_terrace.tscn" id="14_tun10"]
-[ext_resource type="PackedScene" path="res://kit/dressing/niche_hearth.tscn" id="15_ehc6p"]
-[ext_resource type="PackedScene" path="res://kit/modules/camp/camp_bedroll.tscn" id="16_ywdvu"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_fishing_spot.tscn" id="17_0m4a3"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_pier_4m.tscn" id="18_ym8r4"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_pier_head.tscn" id="19_moijl"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_bell.tscn" id="20_p7gp7"]
-[ext_resource type="Material" path="res://kit/materials/persian_wood.tres" id="21_15dcf"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_boathouse.tscn" id="22_kgtes"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_traps.tscn" id="23_rhrpk"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_nets.tscn" id="24_6vcf5"]
-[ext_resource type="Material" path="res://kit/materials/lake_water.tres" id="25_wcp27"]
-[ext_resource type="Script" path="res://scripts/world/stack_drips.gd" id="26_dp04v"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_dock_a.tscn" id="27_rlx2v"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_landing_quay.tscn" id="28_yllvk"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_window.tscn" id="29_dw65d"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_window_dark.tscn" id="30_r7kkg"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster.tscn" id="31_0iqvb"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_door.tscn" id="32_n5mlu"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime_window2.tscn" id="33_m57wy"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_cornice.tscn" id="34_g6f4m"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_window2.tscn" id="35_lcss5"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_banai_window2.tscn" id="36_evc4u"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_tile_window.tscn" id="37_te43a"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_window2_dark.tscn" id="38_jocab"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_banai_window.tscn" id="39_wpdl3"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime_window.tscn" id="40_1fm7r"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_lamp_bracket.tscn" id="41_6brki"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_dome_small.tscn" id="42_frib4"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_awning.tscn" id="43_wr6h2"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_a.tscn" id="44_6o7qs"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_c.tscn" id="45_sdedf"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_e.tscn" id="46_5sxmo"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/qt_fig_sit.tscn" id="47_p6hrs"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/qt_fig_mend.tscn" id="48_pao6s"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_pot.tscn" id="49_7kull"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime.tscn" id="50_fqhgb"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime_window_dark.tscn" id="51_ksal2"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime_window2_dark.tscn" id="52_jykce"]
-[ext_resource type="Script" path="res://scripts/world/light_shaft.gd" id="53_bsmy0"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_bed.tscn" id="54_q785f"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_pomegranate.tscn" id="55_8orye"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_planter.tscn" id="56_g30n2"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_planter_wild.tscn" id="57_2y8j6"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_shrub.tscn" id="58_h3gn5"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/qt_fig_jar.tscn" id="59_g7b3c"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_rock.tscn" id="60_hl5ji"]
-[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_rock_window_dark.tscn" id="61_2sy5s"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_rubble.tscn" id="62_usfw7"]
-[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_boat.tscn" id="63_lnui6"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_vase_floor_broken.tscn" id="64_4qadt"]
-[ext_resource type="PackedScene" path="res://kit/modules/dressing/debris_rubble.tscn" id="65_mh1os"]
-[ext_resource type="Script" path="res://scripts/world/lake_ferry.gd" id="66_4af7f"]
-[ext_resource type="Script" path="res://scripts/world/lake_life.gd" id="67_u3tkr"]
-[ext_resource type="Script" path="res://scripts/world/atmosphere.gd" id="68_7vgdo"]
-[ext_resource type="Resource" path="res://kit/atmosphere/lake_landing.tres" id="69_g8107"]
+[ext_resource type="Script" path="res://scripts/world/room_template.gd" id="1_2vbtd"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/wall_arch_3m.tscn" id="2_kxnb4"]
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="3_7sj3y"]
+[ext_resource type="Script" path="res://scripts/world/threshold.gd" id="4_8y6gd"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bh_cave_straight.tscn" id="5_5whbr"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bh_cave_mouth.tscn" id="6_u1mwe"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_harbour.tscn" id="7_yvh3u"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_back_wall.tscn" id="8_l4tkd"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_quay.tscn" id="9_uq1mb"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_shelf.tscn" id="10_bh7u0"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_boardwalk_4m.tscn" id="11_vyubv"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_lantern_post.tscn" id="12_665uu"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_crates.tscn" id="13_tun10"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_terrace.tscn" id="14_ehc6p"]
+[ext_resource type="PackedScene" path="res://kit/dressing/niche_hearth.tscn" id="15_ywdvu"]
+[ext_resource type="PackedScene" path="res://kit/modules/camp/camp_bedroll.tscn" id="16_0m4a3"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_fishing_spot.tscn" id="17_ym8r4"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_pier_4m.tscn" id="18_moijl"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_pier_head.tscn" id="19_p7gp7"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_bell.tscn" id="20_15dcf"]
+[ext_resource type="Material" path="res://kit/materials/persian_wood.tres" id="21_kgtes"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_boathouse.tscn" id="22_rhrpk"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_traps.tscn" id="23_6vcf5"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_nets.tscn" id="24_wcp27"]
+[ext_resource type="Material" path="res://kit/materials/lake_water.tres" id="25_dp04v"]
+[ext_resource type="Script" path="res://scripts/world/stack_drips.gd" id="26_rlx2v"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_dock_a.tscn" id="27_yllvk"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_landing_quay.tscn" id="28_dw65d"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_window.tscn" id="29_r7kkg"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_window_dark.tscn" id="30_0iqvb"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster.tscn" id="31_n5mlu"]
+[ext_resource type="Script" path="res://scripts/world/sealed_door.gd" id="32_m57wy"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_door.tscn" id="33_g6f4m"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime_window2.tscn" id="34_lcss5"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_cornice.tscn" id="35_evc4u"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_window2.tscn" id="36_te43a"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_banai_window2.tscn" id="37_jocab"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_tile_window.tscn" id="38_wpdl3"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_plaster_window2_dark.tscn" id="39_1fm7r"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_banai_window.tscn" id="40_6brki"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime_window.tscn" id="41_frib4"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_lamp_bracket.tscn" id="42_wr6h2"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_dome_small.tscn" id="43_6o7qs"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_awning.tscn" id="44_sdedf"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_a.tscn" id="45_5sxmo"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_c.tscn" id="46_p6hrs"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/bz_fig_e.tscn" id="47_pao6s"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/qt_fig_sit.tscn" id="48_7kull"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/qt_fig_mend.tscn" id="49_fqhgb"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_pot.tscn" id="50_ksal2"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime.tscn" id="51_jykce"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime_window_dark.tscn" id="52_bsmy0"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_lime_window2_dark.tscn" id="53_q785f"]
+[ext_resource type="Script" path="res://scripts/world/light_shaft.gd" id="54_8orye"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_bed.tscn" id="55_g30n2"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_pomegranate.tscn" id="56_2y8j6"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_planter.tscn" id="57_h3gn5"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_planter_wild.tscn" id="58_g7b3c"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/garden_shrub.tscn" id="59_hl5ji"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/qt_fig_jar.tscn" id="60_2sy5s"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_rock.tscn" id="61_usfw7"]
+[ext_resource type="PackedScene" path="res://kit/modules/persian/persian_wall_rock_window_dark.tscn" id="62_lnui6"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_rubble.tscn" id="63_4qadt"]
+[ext_resource type="PackedScene" path="res://kit/modules/walls/lk_boat.tscn" id="64_mh1os"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/prop_vase_floor_broken.tscn" id="65_4af7f"]
+[ext_resource type="PackedScene" path="res://kit/modules/dressing/debris_rubble.tscn" id="66_u3tkr"]
+[ext_resource type="Script" path="res://scripts/world/lake_ferry.gd" id="67_7vgdo"]
+[ext_resource type="Script" path="res://scripts/world/lake_life.gd" id="68_g8107"]
+[ext_resource type="Script" path="res://scripts/world/atmosphere.gd" id="69_2vfcn"]
+[ext_resource type="Resource" path="res://kit/atmosphere/lake_landing.tres" id="70_x2i1q"]
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_2vfcn"]
+[sub_resource type="BoxShape3D" id="BoxShape3D_fha4y"]
 size = Vector3(4, 0.3, 8)
 
-[sub_resource type="FogMaterial" id="FogMaterial_x2i1q"]
+[sub_resource type="FogMaterial" id="FogMaterial_y7l4h"]
 density = 0.5
 albedo = Color(0.42, 0.48, 0.6, 1)
 edge_fade = 0.6
 
-[sub_resource type="FogMaterial" id="FogMaterial_fha4y"]
+[sub_resource type="FogMaterial" id="FogMaterial_b2w6n"]
 density = 0.5
 albedo = Color(0.42, 0.48, 0.6, 1)
 edge_fade = 0.6
-
-[sub_resource type="BoxMesh" id="BoxMesh_y7l4h"]
-size = Vector3(0.12, 1.74, 0.12)
-
-[sub_resource type="BoxMesh" id="BoxMesh_b2w6n"]
-size = Vector3(1.9, 1, 0.06)
 
 [sub_resource type="BoxMesh" id="BoxMesh_esam0"]
-size = Vector3(0.12, 2.2, 0.12)
+size = Vector3(0.12, 1.74, 0.12)
 
 [sub_resource type="BoxMesh" id="BoxMesh_vlxtk"]
+size = Vector3(1.9, 1, 0.06)
+
+[sub_resource type="BoxMesh" id="BoxMesh_mrbxp"]
+size = Vector3(0.12, 2.2, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_b2vi1"]
 size = Vector3(1.9, 0.62, 0.06)
 
-[sub_resource type="PlaneMesh" id="PlaneMesh_mrbxp"]
-size = Vector2(104, 110)
-
-[sub_resource type="FogMaterial" id="FogMaterial_b2vi1"]
-density = 0.085
-albedo = Color(0.5, 0.62, 0.74, 1)
-height_falloff = 0.9
-edge_fade = 0.25
-
 [sub_resource type="PlaneMesh" id="PlaneMesh_1si8q"]
-size = Vector2(74, 74)
+size = Vector2(104, 110)
 
 [sub_resource type="FogMaterial" id="FogMaterial_hwri3"]
 density = 0.085
@@ -113,131 +105,140 @@ albedo = Color(0.5, 0.62, 0.74, 1)
 height_falloff = 0.9
 edge_fade = 0.25
 
-[sub_resource type="FogMaterial" id="FogMaterial_8itko"]
-density = 0.5
-albedo = Color(0.42, 0.48, 0.6, 1)
-edge_fade = 0.6
+[sub_resource type="PlaneMesh" id="PlaneMesh_8itko"]
+size = Vector2(74, 74)
 
 [sub_resource type="FogMaterial" id="FogMaterial_2wcwc"]
-density = 0.5
-albedo = Color(0.42, 0.48, 0.6, 1)
-edge_fade = 0.6
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_v5gmh"]
-size = Vector3(13, 4, 0.6)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_mw065"]
-size = Vector3(13, 4, 0.6)
-
-[sub_resource type="BoxMesh" id="BoxMesh_ffk7w"]
-size = Vector3(0.12, 2.2, 0.12)
-
-[sub_resource type="BoxMesh" id="BoxMesh_f0ttp"]
-size = Vector3(1.9, 0.62, 0.06)
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_bylwi"]
-size = Vector2(74, 74)
-
-[sub_resource type="FogMaterial" id="FogMaterial_3xa0b"]
 density = 0.085
 albedo = Color(0.5, 0.62, 0.74, 1)
 height_falloff = 0.9
 edge_fade = 0.25
 
-[sub_resource type="FogMaterial" id="FogMaterial_4h1tu"]
+[sub_resource type="FogMaterial" id="FogMaterial_v5gmh"]
 density = 0.5
 albedo = Color(0.42, 0.48, 0.6, 1)
 edge_fade = 0.6
+
+[sub_resource type="FogMaterial" id="FogMaterial_mw065"]
+density = 0.5
+albedo = Color(0.42, 0.48, 0.6, 1)
+edge_fade = 0.6
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_ffk7w"]
+size = Vector3(13, 4, 0.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_f0ttp"]
+size = Vector3(13, 4, 0.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_bylwi"]
+size = Vector3(0.12, 2.2, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_3xa0b"]
+size = Vector3(1.9, 0.62, 0.06)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_4h1tu"]
+size = Vector2(74, 74)
 
 [sub_resource type="FogMaterial" id="FogMaterial_nvfqn"]
-density = 0.5
-albedo = Color(0.42, 0.48, 0.6, 1)
-edge_fade = 0.6
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_yts5q"]
-size = Vector3(9, 4, 0.6)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_emf6b"]
-size = Vector3(9, 4, 0.6)
-
-[sub_resource type="BoxMesh" id="BoxMesh_6183s"]
-size = Vector3(0.12, 2.2, 0.12)
-
-[sub_resource type="BoxMesh" id="BoxMesh_enkpq"]
-size = Vector3(1.9, 0.62, 0.06)
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_0hfew"]
-size = Vector2(74, 74)
-
-[sub_resource type="FogMaterial" id="FogMaterial_qtk5p"]
 density = 0.085
 albedo = Color(0.5, 0.62, 0.74, 1)
 height_falloff = 0.9
 edge_fade = 0.25
 
-[sub_resource type="FogMaterial" id="FogMaterial_5j80p"]
+[sub_resource type="FogMaterial" id="FogMaterial_yts5q"]
 density = 0.5
 albedo = Color(0.42, 0.48, 0.6, 1)
 edge_fade = 0.6
+
+[sub_resource type="FogMaterial" id="FogMaterial_emf6b"]
+density = 0.5
+albedo = Color(0.42, 0.48, 0.6, 1)
+edge_fade = 0.6
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_6183s"]
+size = Vector3(9, 4, 0.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_enkpq"]
+size = Vector3(9, 4, 0.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_0hfew"]
+size = Vector3(0.12, 2.2, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_qtk5p"]
+size = Vector3(1.9, 0.62, 0.06)
+
+[sub_resource type="PlaneMesh" id="PlaneMesh_5j80p"]
+size = Vector2(74, 74)
 
 [sub_resource type="FogMaterial" id="FogMaterial_vkj77"]
-density = 0.5
-albedo = Color(0.42, 0.48, 0.6, 1)
-edge_fade = 0.6
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_1wl3g"]
-size = Vector3(9, 4, 0.6)
-
-[sub_resource type="BoxShape3D" id="BoxShape3D_fp4v1"]
-size = Vector3(9, 4, 0.6)
-
-[sub_resource type="BoxMesh" id="BoxMesh_fkjwj"]
-size = Vector3(0.12, 2.2, 0.12)
-
-[sub_resource type="BoxMesh" id="BoxMesh_qy2su"]
-size = Vector3(1.9, 0.62, 0.06)
-
-[sub_resource type="PlaneMesh" id="PlaneMesh_jlpen"]
-size = Vector2(74, 74)
-
-[sub_resource type="FogMaterial" id="FogMaterial_54lc8"]
 density = 0.085
 albedo = Color(0.5, 0.62, 0.74, 1)
 height_falloff = 0.9
 edge_fade = 0.25
 
-[sub_resource type="FogMaterial" id="FogMaterial_ej305"]
+[sub_resource type="FogMaterial" id="FogMaterial_1wl3g"]
 density = 0.5
 albedo = Color(0.42, 0.48, 0.6, 1)
 edge_fade = 0.6
 
-[sub_resource type="FogMaterial" id="FogMaterial_cc40w"]
+[sub_resource type="FogMaterial" id="FogMaterial_fp4v1"]
 density = 0.5
 albedo = Color(0.42, 0.48, 0.6, 1)
 edge_fade = 0.6
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_fm5am"]
-size = Vector3(4, 4, 0.6)
+[sub_resource type="BoxShape3D" id="BoxShape3D_fkjwj"]
+size = Vector3(9, 4, 0.6)
 
-[sub_resource type="BoxShape3D" id="BoxShape3D_tbjmr"]
-size = Vector3(4, 4, 0.6)
+[sub_resource type="BoxShape3D" id="BoxShape3D_qy2su"]
+size = Vector3(9, 4, 0.6)
 
-[sub_resource type="BoxMesh" id="BoxMesh_f83l1"]
+[sub_resource type="BoxMesh" id="BoxMesh_jlpen"]
 size = Vector3(0.12, 2.2, 0.12)
 
-[sub_resource type="BoxMesh" id="BoxMesh_l6q2p"]
+[sub_resource type="BoxMesh" id="BoxMesh_54lc8"]
 size = Vector3(1.9, 0.62, 0.06)
 
-[node name="LakeLanding" type="Node3D" unique_id=815303090]
-script = ExtResource("1_35ukn")
+[sub_resource type="PlaneMesh" id="PlaneMesh_ej305"]
+size = Vector2(74, 74)
+
+[sub_resource type="FogMaterial" id="FogMaterial_cc40w"]
+density = 0.085
+albedo = Color(0.5, 0.62, 0.74, 1)
+height_falloff = 0.9
+edge_fade = 0.25
+
+[sub_resource type="FogMaterial" id="FogMaterial_fm5am"]
+density = 0.5
+albedo = Color(0.42, 0.48, 0.6, 1)
+edge_fade = 0.6
+
+[sub_resource type="FogMaterial" id="FogMaterial_tbjmr"]
+density = 0.5
+albedo = Color(0.42, 0.48, 0.6, 1)
+edge_fade = 0.6
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_f83l1"]
+size = Vector3(4, 4, 0.6)
+
+[sub_resource type="BoxShape3D" id="BoxShape3D_l6q2p"]
+size = Vector3(4, 4, 0.6)
+
+[sub_resource type="BoxMesh" id="BoxMesh_if2h2"]
+size = Vector3(0.12, 2.2, 0.12)
+
+[sub_resource type="BoxMesh" id="BoxMesh_cb1x5"]
+size = Vector3(1.9, 0.62, 0.06)
+
+[node name="LakeLanding" type="Node3D" unique_id=1424880369]
+script = ExtResource("1_2vbtd")
 room_id = "lake_landing"
 display_name = "Lake Landing"
 
-[node name="Passage" type="Node3D" parent="." unique_id=1284498825]
+[node name="Passage" type="Node3D" parent="." unique_id=49397252]
 
-[node name="EntryWall" type="Node3D" parent="Passage" unique_id=4878044 instance=ExtResource("2_2vbtd")]
+[node name="EntryWall" type="Node3D" parent="Passage" unique_id=4878044 instance=ExtResource("2_kxnb4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "walls"
 size_cells = Vector3i(1, 1, 0)
@@ -246,311 +247,314 @@ tags = PackedStringArray("brick", "structure", "passage")
 weight = 2.0
 source_glb = "res://assets/kit/walls/wall_arch_3m.glb"
 
-[node name="EntryDoor" type="Node3D" parent="Passage" unique_id=1269989082]
+[node name="EntryDoor" type="Area3D" parent="Passage" unique_id=132940622]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
-script = ExtResource("4_7sj3y")
+script = ExtResource("4_8y6gd")
+to = "camp"
+look = "ornate"
+to_name = "the camp"
 
-[node name="Cave_0" type="Node3D" parent="Passage" unique_id=54004223 instance=ExtResource("5_8y6gd")]
+[node name="Cave_0" type="Node3D" parent="Passage" unique_id=54004223 instance=ExtResource("5_5whbr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -0.01, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 1
 family = "walls"
 size_cells = Vector3i(1, 1, 1)
 tags = PackedStringArray("rock", "cave", "r21", "walled")
 source_glb = "res://assets/kit/walls/bh_cave_straight.glb"
 
-[node name="Cave_1" type="Node3D" parent="Passage" unique_id=2126540274 instance=ExtResource("5_8y6gd")]
+[node name="Cave_1" type="Node3D" parent="Passage" unique_id=2098082414 instance=ExtResource("5_5whbr")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -0.01, -4)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 1
 family = "walls"
 size_cells = Vector3i(1, 1, 1)
 tags = PackedStringArray("rock", "cave", "r21", "walled")
 source_glb = "res://assets/kit/walls/bh_cave_straight.glb"
 
-[node name="Mouth" type="Node3D" parent="Passage" unique_id=1678369455 instance=ExtResource("6_5whbr")]
+[node name="Mouth" type="Node3D" parent="Passage" unique_id=1678369455 instance=ExtResource("6_u1mwe")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, -0.01, -8)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "walls"
 size_cells = Vector3i(1, 1, 0)
 tags = PackedStringArray("rock", "cave", "r21")
 source_glb = "res://assets/kit/walls/bh_cave_mouth.glb"
 
-[node name="PassageFloor" type="StaticBody3D" parent="Passage" unique_id=1394298229]
+[node name="PassageFloor" type="StaticBody3D" parent="Passage" unique_id=1055341253]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.15, -4)
 collision_mask = 0
 
-[node name="@CollisionShape3D@2" type="CollisionShape3D" parent="Passage/PassageFloor" unique_id=868411003]
-shape = SubResource("BoxShape3D_2vfcn")
+[node name="@CollisionShape3D@2" type="CollisionShape3D" parent="Passage/PassageFloor" unique_id=1958835980]
+shape = SubResource("BoxShape3D_fha4y")
 
-[node name="Cavern" type="Node3D" parent="." unique_id=1817954492]
+[node name="Cavern" type="Node3D" parent="." unique_id=2107973867]
 
-[node name="Harbour" type="Node3D" parent="Cavern" unique_id=1113663118 instance=ExtResource("7_u1mwe")]
-script = ExtResource("3_kxnb4")
+[node name="Harbour" type="Node3D" parent="Cavern" unique_id=1113663118 instance=ExtResource("7_yvh3u")]
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("rock", "cavern", "r20")
 source_glb = "res://assets/kit/walls/lk_harbour.glb"
 
-[node name="LitFog" type="FogVolume" parent="Cavern" unique_id=82935371]
+[node name="LitFog" type="FogVolume" parent="Cavern" unique_id=1380708533]
 transform = Transform3D(0.7073882, 0, 0.7068252, 0, 1, 0, -0.7068252, 0, 0.7073882, 30, 1.8, -88)
 size = Vector3(34, 8, 22)
-material = SubResource("FogMaterial_x2i1q")
+material = SubResource("FogMaterial_y7l4h")
 
-[node name="DarkFog" type="FogVolume" parent="Cavern" unique_id=1387285878]
+[node name="DarkFog" type="FogVolume" parent="Cavern" unique_id=1163160250]
 transform = Transform3D(0.9393727, 0, 0.3428978, 0, 1, 0, -0.3428978, 0, 0.9393727, -40, 0.3, -60)
 size = Vector3(16, 4, 26)
-material = SubResource("FogMaterial_fha4y")
+material = SubResource("FogMaterial_b2w6n")
 
-[node name="BackWall" type="Node3D" parent="Cavern" unique_id=785748978 instance=ExtResource("8_yvh3u")]
+[node name="BackWall" type="Node3D" parent="Cavern" unique_id=785748978 instance=ExtResource("8_l4tkd")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -55, 0, -8)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("rock", "cavern", "r20")
 source_glb = "res://assets/kit/walls/lk_back_wall.glb"
 
-[node name="Quay" type="Node3D" parent="." unique_id=658298745]
+[node name="Quay" type="Node3D" parent="." unique_id=653346515]
 
-[node name="Quay" type="Node3D" parent="Quay" unique_id=458121845 instance=ExtResource("9_l4tkd")]
+[node name="Quay" type="Node3D" parent="Quay" unique_id=458121845 instance=ExtResource("9_uq1mb")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -8)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(4, 1, 2)
 tags = PackedStringArray("stone", "quay", "r20")
 source_glb = "res://assets/kit/walls/lk_quay.glb"
 
-[node name="Shelf" type="Node3D" parent="Quay" unique_id=1535935440 instance=ExtResource("10_uq1mb")]
+[node name="Shelf" type="Node3D" parent="Quay" unique_id=1535935440 instance=ExtResource("10_bh7u0")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 0, -16)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(3, 0, 1)
 tags = PackedStringArray("stone", "water", "r20")
 source_glb = "res://assets/kit/walls/lk_shelf.glb"
 
-[node name="Boardwalk_0" type="Node3D" parent="Quay" unique_id=628319774 instance=ExtResource("11_bh7u0")]
+[node name="Boardwalk_0" type="Node3D" parent="Quay" unique_id=628319774 instance=ExtResource("11_vyubv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -8)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(1, 0, 0)
 tags = PackedStringArray("wood", "pier", "r20")
 source_glb = "res://assets/kit/walls/lk_boardwalk_4m.glb"
 
-[node name="Boardwalk_1" type="Node3D" parent="Quay" unique_id=1961088569 instance=ExtResource("11_bh7u0")]
+[node name="Boardwalk_1" type="Node3D" parent="Quay" unique_id=1949540380 instance=ExtResource("11_vyubv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0, -8)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(1, 0, 0)
 tags = PackedStringArray("wood", "pier", "r20")
 source_glb = "res://assets/kit/walls/lk_boardwalk_4m.glb"
 
-[node name="Boardwalk_2" type="Node3D" parent="Quay" unique_id=373123731 instance=ExtResource("11_bh7u0")]
+[node name="Boardwalk_2" type="Node3D" parent="Quay" unique_id=1402588553 instance=ExtResource("11_vyubv")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -8)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(1, 0, 0)
 tags = PackedStringArray("wood", "pier", "r20")
 source_glb = "res://assets/kit/walls/lk_boardwalk_4m.glb"
 
-[node name="StepLanternW" type="Node3D" parent="Quay" unique_id=1483011221 instance=ExtResource("12_vyubv")]
+[node name="StepLanternW" type="Node3D" parent="Quay" unique_id=1483011221 instance=ExtResource("12_665uu")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2.75, 0, -12)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="StepLanternE" type="Node3D" parent="Quay" unique_id=1183625092 instance=ExtResource("12_vyubv")]
+[node name="StepLanternE" type="Node3D" parent="Quay" unique_id=980677706 instance=ExtResource("12_665uu")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2.75, 0, -12)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="CornerLantern" type="Node3D" parent="Quay" unique_id=1709987743 instance=ExtResource("12_vyubv")]
+[node name="CornerLantern" type="Node3D" parent="Quay" unique_id=385412812 instance=ExtResource("12_665uu")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.55, 0, -15.55)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="BoardwalkLantern" type="Node3D" parent="Quay" unique_id=452421827 instance=ExtResource("12_vyubv")]
+[node name="BoardwalkLantern" type="Node3D" parent="Quay" unique_id=1792227672 instance=ExtResource("12_665uu")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -12, 0, -7.25)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="QuayCrates" type="Node3D" parent="Quay" unique_id=1808777028 instance=ExtResource("13_665uu")]
+[node name="QuayCrates" type="Node3D" parent="Quay" unique_id=1808777028 instance=ExtResource("13_tun10")]
 transform = Transform3D(0.9553365, 0, 0.29552022, 0, 1, 0, -0.29552022, 0, 0.9553365, 4.6, 0, -9)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_crates.glb"
 
-[node name="Terrace" type="Node3D" parent="Quay" unique_id=737270528 instance=ExtResource("14_tun10")]
+[node name="Terrace" type="Node3D" parent="Quay" unique_id=737270528 instance=ExtResource("14_ehc6p")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 10, 0, -8)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("stone", "quay", "r20")
 source_glb = "res://assets/kit/walls/lk_terrace.glb"
 
-[node name="Hearth" type="Node3D" parent="Quay" unique_id=148088578 instance=ExtResource("15_ehc6p")]
+[node name="Hearth" type="Node3D" parent="Quay" unique_id=489038621 instance=ExtResource("15_ywdvu")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 12.8, 0, -11)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "dressing"
 tags = PackedStringArray("niche", "hearth", "light")
 
-[node name="Bedroll" type="Node3D" parent="Quay" unique_id=998073185 instance=ExtResource("16_ywdvu")]
+[node name="Bedroll" type="Node3D" parent="Quay" unique_id=998073185 instance=ExtResource("16_0m4a3")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 15, 0, -10.2)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "camp"
 tags = PackedStringArray("camp", "dressing")
 source_glb = "res://assets/kit/camp/camp_bedroll.glb"
 
-[node name="Bedroll2" type="Node3D" parent="Quay" unique_id=1517314801 instance=ExtResource("16_ywdvu")]
+[node name="Bedroll2" type="Node3D" parent="Quay" unique_id=1590292388 instance=ExtResource("16_0m4a3")]
 transform = Transform3D(-0.14943816, 0, 0.9887711, 0, 1, 0, -0.9887711, 0, -0.14943816, 15.1, 0, -12)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "camp"
 tags = PackedStringArray("camp", "dressing")
 source_glb = "res://assets/kit/camp/camp_bedroll.glb"
 
-[node name="TerraceCrates" type="Node3D" parent="Quay" unique_id=274671044 instance=ExtResource("13_665uu")]
+[node name="TerraceCrates" type="Node3D" parent="Quay" unique_id=2040852641 instance=ExtResource("13_tun10")]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, 10.5, 0, -8.7)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_crates.glb"
 
-[node name="TerraceFishing" type="Node3D" parent="Quay" unique_id=1951344253 groups=["fishing_spot"] instance=ExtResource("17_0m4a3")]
+[node name="TerraceFishing" type="Node3D" parent="Quay" unique_id=1951344253 groups=["fishing_spot"] instance=ExtResource("17_ym8r4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.2, 0, -14)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "fishing", "r20")
 source_glb = "res://assets/kit/walls/lk_fishing_spot.glb"
 
-[node name="SafeTerrace" type="Marker3D" parent="Quay" unique_id=611383177 groups=["lake_safe"]]
+[node name="SafeTerrace" type="Marker3D" parent="Quay" unique_id=859766734 groups=["lake_safe"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.8, 0.05, -13)
 
-[node name="Pier" type="Node3D" parent="." unique_id=828384168]
+[node name="Pier" type="Node3D" parent="." unique_id=1132162663]
 
-[node name="Pier_0" type="Node3D" parent="Pier" unique_id=808380357 instance=ExtResource("18_ym8r4")]
+[node name="Pier_0" type="Node3D" parent="Pier" unique_id=808380357 instance=ExtResource("18_moijl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -16)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(0, 0, 1)
 tags = PackedStringArray("wood", "pier", "r20")
 source_glb = "res://assets/kit/walls/lk_pier_4m.glb"
 
-[node name="Pier_1" type="Node3D" parent="Pier" unique_id=72221891 instance=ExtResource("18_ym8r4")]
+[node name="Pier_1" type="Node3D" parent="Pier" unique_id=812752499 instance=ExtResource("18_moijl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -20)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(0, 0, 1)
 tags = PackedStringArray("wood", "pier", "r20")
 source_glb = "res://assets/kit/walls/lk_pier_4m.glb"
 
-[node name="Pier_2" type="Node3D" parent="Pier" unique_id=943798552 instance=ExtResource("18_ym8r4")]
+[node name="Pier_2" type="Node3D" parent="Pier" unique_id=1237933739 instance=ExtResource("18_moijl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -24)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(0, 0, 1)
 tags = PackedStringArray("wood", "pier", "r20")
 source_glb = "res://assets/kit/walls/lk_pier_4m.glb"
 
-[node name="Pier_3" type="Node3D" parent="Pier" unique_id=1622768754 instance=ExtResource("18_ym8r4")]
+[node name="Pier_3" type="Node3D" parent="Pier" unique_id=2062866814 instance=ExtResource("18_moijl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -28)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(0, 0, 1)
 tags = PackedStringArray("wood", "pier", "r20")
 source_glb = "res://assets/kit/walls/lk_pier_4m.glb"
 
-[node name="Pier_4" type="Node3D" parent="Pier" unique_id=233918543 instance=ExtResource("18_ym8r4")]
+[node name="Pier_4" type="Node3D" parent="Pier" unique_id=2067219128 instance=ExtResource("18_moijl")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 7, 0, -32)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(0, 0, 1)
 tags = PackedStringArray("wood", "pier", "r20")
 source_glb = "res://assets/kit/walls/lk_pier_4m.glb"
 
-[node name="PierHead" type="Node3D" parent="Pier" unique_id=1244340654 instance=ExtResource("19_moijl")]
+[node name="PierHead" type="Node3D" parent="Pier" unique_id=1244340654 instance=ExtResource("19_p7gp7")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 0, -36)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(1, 0, 1)
 tags = PackedStringArray("wood", "pier", "r20")
 source_glb = "res://assets/kit/walls/lk_pier_head.glb"
 
-[node name="PierLantern_0" type="Node3D" parent="Pier" unique_id=190612310 instance=ExtResource("12_vyubv")]
+[node name="PierLantern_0" type="Node3D" parent="Pier" unique_id=1711521803 instance=ExtResource("12_665uu")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.9, 0, -20)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="PierLantern_1" type="Node3D" parent="Pier" unique_id=294179518 instance=ExtResource("12_vyubv")]
+[node name="PierLantern_1" type="Node3D" parent="Pier" unique_id=451064180 instance=ExtResource("12_665uu")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 7.1, 0, -25)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="PierLantern_2" type="Node3D" parent="Pier" unique_id=1684490984 instance=ExtResource("12_vyubv")]
+[node name="PierLantern_2" type="Node3D" parent="Pier" unique_id=1695641108 instance=ExtResource("12_665uu")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.9, 0, -30)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="PierLantern_3" type="Node3D" parent="Pier" unique_id=1141811876 instance=ExtResource("12_vyubv")]
+[node name="PierLantern_3" type="Node3D" parent="Pier" unique_id=1409609801 instance=ExtResource("12_665uu")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 7.1, 0, -34.8)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="HeadLanternW" type="Node3D" parent="Pier" unique_id=1333407435 instance=ExtResource("12_vyubv")]
+[node name="HeadLanternW" type="Node3D" parent="Pier" unique_id=1418015112 instance=ExtResource("12_665uu")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6.15, 0, -37.8)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="HeadLanternE" type="Node3D" parent="Pier" unique_id=351748641 instance=ExtResource("12_vyubv")]
+[node name="HeadLanternE" type="Node3D" parent="Pier" unique_id=335596749 instance=ExtResource("12_665uu")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.85, 0, -37.8)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="Bell" type="Node3D" parent="Pier" unique_id=925365720 groups=["lake_bell"] instance=ExtResource("20_p7gp7")]
+[node name="Bell" type="Node3D" parent="Pier" unique_id=925365720 groups=["lake_bell"] instance=ExtResource("20_15dcf")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 9.7, 0, -36.4)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("brass", "r20")
 source_glb = "res://assets/kit/walls/lk_bell.glb"
 metadata/stop = "quay"
 
-[node name="PierFishing" type="Node3D" parent="Pier" unique_id=1111626817 groups=["fishing_spot"] instance=ExtResource("17_0m4a3")]
+[node name="PierFishing" type="Node3D" parent="Pier" unique_id=1502646086 groups=["fishing_spot"] instance=ExtResource("17_ym8r4")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 7.02, 0, -28)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "fishing", "r20")
 source_glb = "res://assets/kit/walls/lk_fishing_spot.glb"
 
-[node name="FerryBoard" type="Node3D" parent="Pier" unique_id=550667785]
+[node name="FerryBoard" type="Node3D" parent="Pier" unique_id=1691262217]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6.35, 0, -37.2)
 
-[node name="Post" type="MeshInstance3D" parent="Pier/FerryBoard" unique_id=1574241664]
+[node name="Post" type="MeshInstance3D" parent="Pier/FerryBoard" unique_id=90081147]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.87, 0)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_y7l4h")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_esam0")
 
-[node name="Board" type="MeshInstance3D" parent="Pier/FerryBoard" unique_id=1569561719]
+[node name="Board" type="MeshInstance3D" parent="Pier/FerryBoard" unique_id=339571199]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.2, -0.09)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_b2w6n")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_vlxtk")
 
-[node name="Words" type="Label3D" parent="Pier/FerryBoard" unique_id=857323233]
+[node name="Words" type="Label3D" parent="Pier/FerryBoard" unique_id=1257137326]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 1.2, -0.13)
 pixel_size = 0.0045
 modulate = Color(0.93, 0.84, 0.62, 1)
@@ -559,20 +563,20 @@ outline_size = 0
 autowrap_mode = 3
 width = 400.0
 
-[node name="DarkBoard" type="Node3D" parent="Pier" unique_id=1330399235]
+[node name="DarkBoard" type="Node3D" parent="Pier" unique_id=26741553]
 transform = Transform3D(-0.65878576, 0, -0.7523306, 0, 1, 0, 0.7523306, 0, -0.65878576, -16.6, -1.7, -34.6)
 
-[node name="Post" type="MeshInstance3D" parent="Pier/DarkBoard" unique_id=1997672606]
+[node name="Post" type="MeshInstance3D" parent="Pier/DarkBoard" unique_id=1184598762]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_esam0")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_mrbxp")
 
-[node name="Board" type="MeshInstance3D" parent="Pier/DarkBoard" unique_id=675470868]
+[node name="Board" type="MeshInstance3D" parent="Pier/DarkBoard" unique_id=1967379440]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, -0.09)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_vlxtk")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_b2vi1")
 
-[node name="Words" type="Label3D" parent="Pier/DarkBoard" unique_id=574928226]
+[node name="Words" type="Label3D" parent="Pier/DarkBoard" unique_id=1754550688]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 1.85, -0.13)
 pixel_size = 0.0045
 modulate = Color(0.93, 0.84, 0.62, 1)
@@ -583,267 +587,267 @@ outline_size = 0
 autowrap_mode = 3
 width = 400.0
 
-[node name="Boathouses" type="Node3D" parent="." unique_id=788178039]
+[node name="Boathouses" type="Node3D" parent="." unique_id=383271725]
 
-[node name="Boathouse_0" type="Node3D" parent="Boathouses" unique_id=1817475863 groups=["lake_boathouse"] instance=ExtResource("22_kgtes")]
+[node name="Boathouse_0" type="Node3D" parent="Boathouses" unique_id=1817475863 groups=["lake_boathouse"] instance=ExtResource("22_rhrpk")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -18, 0, -10)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(1, 1, 2)
 tags = PackedStringArray("wood", "boathouse", "r20", "light")
 source_glb = "res://assets/kit/walls/lk_boathouse.glb"
 
-[node name="Boathouse_1" type="Node3D" parent="Boathouses" unique_id=625172465 groups=["lake_boathouse"] instance=ExtResource("22_kgtes")]
+[node name="Boathouse_1" type="Node3D" parent="Boathouses" unique_id=797696548 groups=["lake_boathouse"] instance=ExtResource("22_rhrpk")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -14, 0, -10)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(1, 1, 2)
 tags = PackedStringArray("wood", "boathouse", "r20", "light")
 source_glb = "res://assets/kit/walls/lk_boathouse.glb"
 
-[node name="Boathouse_2" type="Node3D" parent="Boathouses" unique_id=993017795 groups=["lake_boathouse"] instance=ExtResource("22_kgtes")]
+[node name="Boathouse_2" type="Node3D" parent="Boathouses" unique_id=477355132 groups=["lake_boathouse"] instance=ExtResource("22_rhrpk")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -10)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 size_cells = Vector3i(1, 1, 2)
 tags = PackedStringArray("wood", "boathouse", "r20", "light")
 source_glb = "res://assets/kit/walls/lk_boathouse.glb"
 
-[node name="RoofCrates_0" type="Node3D" parent="Boathouses" unique_id=128385559 instance=ExtResource("13_665uu")]
+[node name="RoofCrates_0" type="Node3D" parent="Boathouses" unique_id=1578162186 instance=ExtResource("13_tun10")]
 transform = Transform3D(0.9800666, 0, 0.19866933, 0, 1, 0, -0.19866933, 0, 0.9800666, -17.6, 3.04, -11)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_crates.glb"
 
-[node name="RoofTraps_0" type="Node3D" parent="Boathouses" unique_id=1073630704 instance=ExtResource("23_rhrpk")]
+[node name="RoofTraps_0" type="Node3D" parent="Boathouses" unique_id=1073630704 instance=ExtResource("23_6vcf5")]
 transform = Transform3D(0.4535961, 0, 0.8912074, 0, 1, 0, -0.8912074, 0, 0.4535961, -16.2, 3.04, -15.6)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_traps.glb"
 
-[node name="RoofNets_1" type="Node3D" parent="Boathouses" unique_id=2134699572 instance=ExtResource("24_6vcf5")]
+[node name="RoofNets_1" type="Node3D" parent="Boathouses" unique_id=2134699572 instance=ExtResource("24_wcp27")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -13, 3.04, -12)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_nets.glb"
 
-[node name="RoofCrates_1" type="Node3D" parent="Boathouses" unique_id=939017899 instance=ExtResource("13_665uu")]
+[node name="RoofCrates_1" type="Node3D" parent="Boathouses" unique_id=1415470258 instance=ExtResource("13_tun10")]
 transform = Transform3D(0.9553365, 0, -0.29552022, 0, 1, 0, 0.29552022, 0, 0.9553365, -13.5, 3.04, -16.4)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_crates.glb"
 
-[node name="RoofCrates_2" type="Node3D" parent="Boathouses" unique_id=2107408010 instance=ExtResource("13_665uu")]
+[node name="RoofCrates_2" type="Node3D" parent="Boathouses" unique_id=450495755 instance=ExtResource("13_tun10")]
 transform = Transform3D(-0.12884454, 0, 0.9916648, 0, 1, 0, -0.9916648, 0, -0.12884454, -9.4, 3.04, -13.2)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_crates.glb"
 
-[node name="RoofTraps_2" type="Node3D" parent="Boathouses" unique_id=1486581461 instance=ExtResource("23_rhrpk")]
+[node name="RoofTraps_2" type="Node3D" parent="Boathouses" unique_id=669350085 instance=ExtResource("23_6vcf5")]
 transform = Transform3D(0.8253356, 0, -0.5646425, 0, 1, 0, 0.5646425, 0, 0.8253356, -8.2, 3.04, -10.9)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_traps.glb"
 
-[node name="Water" type="Node3D" parent="." unique_id=1351434358]
+[node name="Water" type="Node3D" parent="." unique_id=1172907329]
 
-[node name="Lake" type="MeshInstance3D" parent="Water" unique_id=1205685337]
+[node name="Lake" type="MeshInstance3D" parent="Water" unique_id=1266978128]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -1.2, -49)
-material_override = ExtResource("25_wcp27")
+material_override = ExtResource("25_dp04v")
 cast_shadow = 0
-mesh = SubResource("PlaneMesh_mrbxp")
+mesh = SubResource("PlaneMesh_1si8q")
 
-[node name="Mist" type="FogVolume" parent="Water" unique_id=1157976832]
+[node name="Mist" type="FogVolume" parent="Water" unique_id=199099904]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -49)
 size = Vector3(100, 3.6, 106)
-material = SubResource("FogMaterial_b2vi1")
+material = SubResource("FogMaterial_hwri3")
 
-[node name="Drips" type="Node3D" parent="." unique_id=1627676680]
+[node name="Drips" type="Node3D" parent="." unique_id=1711942543]
 
-[node name="Drip_0" type="Node3D" parent="Drips" unique_id=395661157]
+[node name="Drip_0" type="Node3D" parent="Drips" unique_id=1322578831]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 5.6, 0, -10.2)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 7.05036153793335
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_1" type="Node3D" parent="Drips" unique_id=6660347]
+[node name="Drip_1" type="Node3D" parent="Drips" unique_id=1489049957]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.8, 0, -14.6)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 5.868938350677491
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_2" type="Node3D" parent="Drips" unique_id=489322505]
+[node name="Drip_2" type="Node3D" parent="Drips" unique_id=1116780273]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 12.6, 0, -9.4)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 6.533676528930664
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_3" type="Node3D" parent="Drips" unique_id=1529119768]
+[node name="Drip_3" type="Node3D" parent="Drips" unique_id=351725550]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1.2, 0, -9.6)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 8.146284484863282
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_4" type="Node3D" parent="Drips" unique_id=1523354019]
+[node name="Drip_4" type="Node3D" parent="Drips" unique_id=1662279961]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.781641, -1.2, -25.217562)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 5.72223916053772
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_5" type="Node3D" parent="Drips" unique_id=154234265]
+[node name="Drip_5" type="Node3D" parent="Drips" unique_id=1375562573]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 18.364376, -1.2, -25.783133)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 5.656510972976685
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_6" type="Node3D" parent="Drips" unique_id=25675867]
+[node name="Drip_6" type="Node3D" parent="Drips" unique_id=1147504682]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 19.511383, -1.2, -17.018124)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 3.9909762382507323
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_7" type="Node3D" parent="Drips" unique_id=760624168]
+[node name="Drip_7" type="Node3D" parent="Drips" unique_id=1669779289]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.086345, -1.2, -25.808899)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 7.171497964859009
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_8" type="Node3D" parent="Drips" unique_id=1807594946]
+[node name="Drip_8" type="Node3D" parent="Drips" unique_id=1863049738]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.776318, -1.2, -26.24929)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 4.416519546508789
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_9" type="Node3D" parent="Drips" unique_id=2035728369]
+[node name="Drip_9" type="Node3D" parent="Drips" unique_id=824496800]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -23.047962, -1.2, -44.11414)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 1.678743028640747
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_10" type="Node3D" parent="Drips" unique_id=1119378976]
+[node name="Drip_10" type="Node3D" parent="Drips" unique_id=301461432]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.504513, -1.2, -23.431112)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 6.5955664157867435
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_11" type="Node3D" parent="Drips" unique_id=2030944666]
+[node name="Drip_11" type="Node3D" parent="Drips" unique_id=880738958]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -16.426964, -1.2, -43.285736)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 5.667833948135376
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_12" type="Node3D" parent="Drips" unique_id=1220503577]
+[node name="Drip_12" type="Node3D" parent="Drips" unique_id=1917378891]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.1103916, -1.2, -48.991123)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 5.24883999824524
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_13" type="Node3D" parent="Drips" unique_id=1645559790]
+[node name="Drip_13" type="Node3D" parent="Drips" unique_id=1964667673]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 21.69006, -1.2, -8.790489)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 1.7409652709960937
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_14" type="Node3D" parent="Drips" unique_id=57129402]
+[node name="Drip_14" type="Node3D" parent="Drips" unique_id=1015979849]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.287613, -1.2, -11.702312)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 3.894349479675293
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_15" type="Node3D" parent="Drips" unique_id=358393264]
+[node name="Drip_15" type="Node3D" parent="Drips" unique_id=1854136790]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 20.681942, -1.2, -18.699665)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 3.3735212326049804
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Drip_16" type="Node3D" parent="Drips" unique_id=1709376116]
+[node name="Drip_16" type="Node3D" parent="Drips" unique_id=1285629528]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.4908333, -1.2, -36.443836)
-script = ExtResource("26_dp04v")
+script = ExtResource("26_rlx2v")
 drop_height = 6.965693140029908
 radius = 0.15
 drops = 2
 splashes = 4
 
-[node name="Docks" type="Node3D" parent="." unique_id=887535502]
+[node name="Docks" type="Node3D" parent="." unique_id=678827811]
 
-[node name="Dock_town" type="Node3D" parent="Docks" unique_id=1942225798]
+[node name="Dock_town" type="Node3D" parent="Docks" unique_id=782380733]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -420)
 
-[node name="Rock" type="Node3D" parent="Docks/Dock_town" unique_id=1255929366 instance=ExtResource("27_rlx2v")]
-script = ExtResource("3_kxnb4")
+[node name="Rock" type="Node3D" parent="Docks/Dock_town" unique_id=1255929366 instance=ExtResource("27_yllvk")]
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("rock", "cavern", "dock", "r20")
 source_glb = "res://assets/kit/walls/lk_dock_a.glb"
 
-[node name="Water" type="MeshInstance3D" parent="Docks/Dock_town" unique_id=1605847554]
+[node name="Water" type="MeshInstance3D" parent="Docks/Dock_town" unique_id=1454624373]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1.2, -26)
-material_override = ExtResource("25_wcp27")
+material_override = ExtResource("25_dp04v")
 cast_shadow = 0
-mesh = SubResource("PlaneMesh_1si8q")
+mesh = SubResource("PlaneMesh_8itko")
 
-[node name="Mist" type="FogVolume" parent="Docks/Dock_town" unique_id=1854197652]
+[node name="Mist" type="FogVolume" parent="Docks/Dock_town" unique_id=479295057]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -26)
 size = Vector3(72, 3.6, 72)
-material = SubResource("FogMaterial_hwri3")
-
-[node name="ChannelFog_0" type="FogVolume" parent="Docks/Dock_town" unique_id=1008507052]
-transform = Transform3D(0.3417431, 0, 0.9397934, 0, 1, 0, -0.9397934, 0, 0.3417431, -32, 1.8, -51)
-size = Vector3(22, 8, 26)
-material = SubResource("FogMaterial_8itko")
-
-[node name="ChannelFog_1" type="FogVolume" parent="Docks/Dock_town" unique_id=1799306418]
-transform = Transform3D(0.3417431, 0, -0.9397934, 0, 1, 0, 0.9397934, 0, 0.3417431, 32, 1.8, -51)
-size = Vector3(22, 8, 26)
 material = SubResource("FogMaterial_2wcwc")
 
-[node name="Quay" type="Node3D" parent="Docks/Dock_town" unique_id=1027080287 instance=ExtResource("28_yllvk")]
+[node name="ChannelFog_0" type="FogVolume" parent="Docks/Dock_town" unique_id=733682276]
+transform = Transform3D(0.3417431, 0, 0.9397934, 0, 1, 0, -0.9397934, 0, 0.3417431, -32, 1.8, -51)
+size = Vector3(22, 8, 26)
+material = SubResource("FogMaterial_v5gmh")
+
+[node name="ChannelFog_1" type="FogVolume" parent="Docks/Dock_town" unique_id=972943042]
+transform = Transform3D(0.3417431, 0, -0.9397934, 0, 1, 0, 0.9397934, 0, 0.3417431, 32, 1.8, -51)
+size = Vector3(22, 8, 26)
+material = SubResource("FogMaterial_mw065")
+
+[node name="Quay" type="Node3D" parent="Docks/Dock_town" unique_id=1027080287 instance=ExtResource("28_dw65d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("stone", "quay", "r20")
 source_glb = "res://assets/kit/walls/lk_landing_quay.glb"
 
-[node name="plaster_window_0_-14" type="Node3D" parent="Docks/Dock_town" unique_id=1812242281 instance=ExtResource("29_dw65d")]
+[node name="plaster_window_0_-14" type="Node3D" parent="Docks/Dock_town" unique_id=1812242281 instance=ExtResource("29_r7kkg")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -10, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -851,9 +855,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
 source_glb = "res://assets/kit/persian/persian_wall_plaster_window.glb"
 
-[node name="plaster_window_dark_0_-10" type="Node3D" parent="Docks/Dock_town" unique_id=317715666 instance=ExtResource("30_r7kkg")]
+[node name="plaster_window_dark_0_-10" type="Node3D" parent="Docks/Dock_town" unique_id=317715666 instance=ExtResource("30_0iqvb")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -861,9 +865,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window")
 source_glb = "res://assets/kit/persian/persian_wall_plaster_window_dark.glb"
 
-[node name="plaster_0_-6" type="Node3D" parent="Docks/Dock_town" unique_id=2142448690 instance=ExtResource("31_0iqvb")]
+[node name="plaster_0_-6" type="Node3D" parent="Docks/Dock_town" unique_id=2142448690 instance=ExtResource("31_n5mlu")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -871,9 +875,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house")
 source_glb = "res://assets/kit/persian/persian_wall_plaster.glb"
 
-[node name="Arch" type="Node3D" parent="Docks/Dock_town" unique_id=1530518025 instance=ExtResource("2_2vbtd")]
+[node name="Arch" type="Node3D" parent="Docks/Dock_town" unique_id=877762630 instance=ExtResource("2_kxnb4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "walls"
 size_cells = Vector3i(1, 1, 0)
@@ -882,13 +886,13 @@ tags = PackedStringArray("brick", "structure", "passage")
 weight = 2.0
 source_glb = "res://assets/kit/walls/wall_arch_3m.glb"
 
-[node name="Door" type="Node3D" parent="Docks/Dock_town" unique_id=2007343907]
+[node name="Door" type="Node3D" parent="Docks/Dock_town" unique_id=529359835]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
-script = ExtResource("4_7sj3y")
+script = ExtResource("32_m57wy")
 
-[node name="plaster_door_0_2" type="Node3D" parent="Docks/Dock_town" unique_id=1435608988 instance=ExtResource("32_n5mlu")]
+[node name="plaster_door_0_2" type="Node3D" parent="Docks/Dock_town" unique_id=1435608988 instance=ExtResource("33_g6f4m")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -896,9 +900,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "door")
 source_glb = "res://assets/kit/persian/persian_wall_plaster_door.glb"
 
-[node name="plaster_window_0_6" type="Node3D" parent="Docks/Dock_town" unique_id=791123145 instance=ExtResource("29_dw65d")]
+[node name="plaster_window_0_6" type="Node3D" parent="Docks/Dock_town" unique_id=288771308 instance=ExtResource("29_r7kkg")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -906,9 +910,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
 source_glb = "res://assets/kit/persian/persian_wall_plaster_window.glb"
 
-[node name="lime_window2_0_10" type="Node3D" parent="Docks/Dock_town" unique_id=594868271 instance=ExtResource("33_m57wy")]
+[node name="lime_window2_0_10" type="Node3D" parent="Docks/Dock_town" unique_id=594868271 instance=ExtResource("34_lcss5")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 14, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -916,9 +920,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
 source_glb = "res://assets/kit/persian/persian_wall_lime_window2.glb"
 
-[node name="Cornice_4_0" type="Node3D" parent="Docks/Dock_town" unique_id=1931826428 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_0" type="Node3D" parent="Docks/Dock_town" unique_id=1931826428 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -10, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -926,9 +930,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_1" type="Node3D" parent="Docks/Dock_town" unique_id=168269988 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_1" type="Node3D" parent="Docks/Dock_town" unique_id=148539900 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -936,9 +940,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_2" type="Node3D" parent="Docks/Dock_town" unique_id=1464723513 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_2" type="Node3D" parent="Docks/Dock_town" unique_id=1153071580 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -946,9 +950,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_3" type="Node3D" parent="Docks/Dock_town" unique_id=558952310 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_3" type="Node3D" parent="Docks/Dock_town" unique_id=911769724 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -956,9 +960,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_4" type="Node3D" parent="Docks/Dock_town" unique_id=1080735683 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_4" type="Node3D" parent="Docks/Dock_town" unique_id=229246653 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -966,9 +970,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_5" type="Node3D" parent="Docks/Dock_town" unique_id=1209173975 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_5" type="Node3D" parent="Docks/Dock_town" unique_id=1798860105 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -976,9 +980,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_6" type="Node3D" parent="Docks/Dock_town" unique_id=428351681 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_6" type="Node3D" parent="Docks/Dock_town" unique_id=638999624 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 14, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -986,9 +990,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="plaster_window2_4_-12" type="Node3D" parent="Docks/Dock_town" unique_id=777537336 instance=ExtResource("35_lcss5")]
+[node name="plaster_window2_4_-12" type="Node3D" parent="Docks/Dock_town" unique_id=777537336 instance=ExtResource("36_te43a")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -8, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -996,9 +1000,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
 source_glb = "res://assets/kit/persian/persian_wall_plaster_window2.glb"
 
-[node name="banai_window2_4_-8" type="Node3D" parent="Docks/Dock_town" unique_id=119018648 instance=ExtResource("36_evc4u")]
+[node name="banai_window2_4_-8" type="Node3D" parent="Docks/Dock_town" unique_id=119018648 instance=ExtResource("37_jocab")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1006,9 +1010,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
 source_glb = "res://assets/kit/persian/persian_wall_banai_window2.glb"
 
-[node name="plaster_window_4_-4" type="Node3D" parent="Docks/Dock_town" unique_id=1127871165 instance=ExtResource("29_dw65d")]
+[node name="plaster_window_4_-4" type="Node3D" parent="Docks/Dock_town" unique_id=823750278 instance=ExtResource("29_r7kkg")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1016,9 +1020,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
 source_glb = "res://assets/kit/persian/persian_wall_plaster_window.glb"
 
-[node name="tile_window_4_0" type="Node3D" parent="Docks/Dock_town" unique_id=1301970085 instance=ExtResource("37_te43a")]
+[node name="tile_window_4_0" type="Node3D" parent="Docks/Dock_town" unique_id=1301970085 instance=ExtResource("38_wpdl3")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1026,9 +1030,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
 source_glb = "res://assets/kit/persian/persian_wall_tile_window.glb"
 
-[node name="plaster_window2_dark_4_4" type="Node3D" parent="Docks/Dock_town" unique_id=886266312 instance=ExtResource("38_jocab")]
+[node name="plaster_window2_dark_4_4" type="Node3D" parent="Docks/Dock_town" unique_id=886266312 instance=ExtResource("39_1fm7r")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 8, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1036,9 +1040,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window")
 source_glb = "res://assets/kit/persian/persian_wall_plaster_window2_dark.glb"
 
-[node name="plaster_window_4_8" type="Node3D" parent="Docks/Dock_town" unique_id=768622010 instance=ExtResource("29_dw65d")]
+[node name="plaster_window_4_8" type="Node3D" parent="Docks/Dock_town" unique_id=868951219 instance=ExtResource("29_r7kkg")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 12, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1046,9 +1050,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
 source_glb = "res://assets/kit/persian/persian_wall_plaster_window.glb"
 
-[node name="Cornice_8_0" type="Node3D" parent="Docks/Dock_town" unique_id=701822875 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_0" type="Node3D" parent="Docks/Dock_town" unique_id=588509849 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -8, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1056,9 +1060,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_8_1" type="Node3D" parent="Docks/Dock_town" unique_id=619058267 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_1" type="Node3D" parent="Docks/Dock_town" unique_id=717502579 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1066,9 +1070,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_8_2" type="Node3D" parent="Docks/Dock_town" unique_id=133498363 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_2" type="Node3D" parent="Docks/Dock_town" unique_id=1246979553 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1076,9 +1080,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_8_3" type="Node3D" parent="Docks/Dock_town" unique_id=1135311006 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_3" type="Node3D" parent="Docks/Dock_town" unique_id=331354600 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1086,9 +1090,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_8_4" type="Node3D" parent="Docks/Dock_town" unique_id=274034 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_4" type="Node3D" parent="Docks/Dock_town" unique_id=958828692 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 8, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1096,9 +1100,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_8_5" type="Node3D" parent="Docks/Dock_town" unique_id=118189628 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_5" type="Node3D" parent="Docks/Dock_town" unique_id=1974617096 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 12, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1106,9 +1110,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="banai_window_8_-8" type="Node3D" parent="Docks/Dock_town" unique_id=1620570292 instance=ExtResource("39_wpdl3")]
+[node name="banai_window_8_-8" type="Node3D" parent="Docks/Dock_town" unique_id=1620570292 instance=ExtResource("40_6brki")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4, 8, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1116,9 +1120,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
 source_glb = "res://assets/kit/persian/persian_wall_banai_window.glb"
 
-[node name="plaster_window2_8_-4" type="Node3D" parent="Docks/Dock_town" unique_id=440663146 instance=ExtResource("35_lcss5")]
+[node name="plaster_window2_8_-4" type="Node3D" parent="Docks/Dock_town" unique_id=254859013 instance=ExtResource("36_te43a")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 8, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1126,9 +1130,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
 source_glb = "res://assets/kit/persian/persian_wall_plaster_window2.glb"
 
-[node name="lime_window_8_0" type="Node3D" parent="Docks/Dock_town" unique_id=827268654 instance=ExtResource("40_1fm7r")]
+[node name="lime_window_8_0" type="Node3D" parent="Docks/Dock_town" unique_id=827268654 instance=ExtResource("41_frib4")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4, 8, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1136,9 +1140,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window", "light")
 source_glb = "res://assets/kit/persian/persian_wall_lime_window.glb"
 
-[node name="plaster_8_4" type="Node3D" parent="Docks/Dock_town" unique_id=729203912 instance=ExtResource("31_0iqvb")]
+[node name="plaster_8_4" type="Node3D" parent="Docks/Dock_town" unique_id=2049546709 instance=ExtResource("31_n5mlu")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 8, 8, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1146,9 +1150,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house")
 source_glb = "res://assets/kit/persian/persian_wall_plaster.glb"
 
-[node name="Cornice_12_0" type="Node3D" parent="Docks/Dock_town" unique_id=714383406 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_12_0" type="Node3D" parent="Docks/Dock_town" unique_id=146195813 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4, 8, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1156,9 +1160,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_12_1" type="Node3D" parent="Docks/Dock_town" unique_id=1907073421 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_12_1" type="Node3D" parent="Docks/Dock_town" unique_id=1761637637 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 8, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1166,9 +1170,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_12_2" type="Node3D" parent="Docks/Dock_town" unique_id=2077186893 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_12_2" type="Node3D" parent="Docks/Dock_town" unique_id=312522238 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4, 8, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1176,9 +1180,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_12_3" type="Node3D" parent="Docks/Dock_town" unique_id=608505834 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_12_3" type="Node3D" parent="Docks/Dock_town" unique_id=1694548887 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 8, 8, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1186,52 +1190,52 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="FacadeW" type="StaticBody3D" parent="Docks/Dock_town" unique_id=395139794]
+[node name="FacadeW" type="StaticBody3D" parent="Docks/Dock_town" unique_id=829194904]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.5, 2, 0.3)
 collision_mask = 0
 
-[node name="@CollisionShape3D@3" type="CollisionShape3D" parent="Docks/Dock_town/FacadeW" unique_id=1526616518]
-shape = SubResource("BoxShape3D_v5gmh")
+[node name="@CollisionShape3D@3" type="CollisionShape3D" parent="Docks/Dock_town/FacadeW" unique_id=126151542]
+shape = SubResource("BoxShape3D_ffk7w")
 
-[node name="FacadeE" type="StaticBody3D" parent="Docks/Dock_town" unique_id=384419834]
+[node name="FacadeE" type="StaticBody3D" parent="Docks/Dock_town" unique_id=1840391540]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.5, 2, 0.3)
 collision_mask = 0
 
-[node name="@CollisionShape3D@4" type="CollisionShape3D" parent="Docks/Dock_town/FacadeE" unique_id=653354342]
-shape = SubResource("BoxShape3D_mw065")
+[node name="@CollisionShape3D@4" type="CollisionShape3D" parent="Docks/Dock_town/FacadeE" unique_id=1988919379]
+shape = SubResource("BoxShape3D_f0ttp")
 
-[node name="LanternW" type="Node3D" parent="Docks/Dock_town" unique_id=451776704 instance=ExtResource("12_vyubv")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 0, -2.2)
-script = ExtResource("3_kxnb4")
+[node name="LanternW" type="Node3D" parent="Docks/Dock_town" unique_id=1679910697 instance=ExtResource("12_665uu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.7, 0, -2.8)
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="LanternE" type="Node3D" parent="Docks/Dock_town" unique_id=1776969859 instance=ExtResource("12_vyubv")]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.4, 0, -2.2)
-script = ExtResource("3_kxnb4")
+[node name="LanternE" type="Node3D" parent="Docks/Dock_town" unique_id=1790502711 instance=ExtResource("12_665uu")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 5.7, 0, -2.8)
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="DoorLamp" type="Node3D" parent="Docks/Dock_town" unique_id=1548271543 instance=ExtResource("41_6brki")]
+[node name="DoorLamp" type="Node3D" parent="Docks/Dock_town" unique_id=1548271543 instance=ExtResource("42_wr6h2")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 3.4, -0.05)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "persian"
 tags = PackedStringArray("scenery", "persian", "lamp", "light")
 source_glb = "res://assets/kit/persian/persian_lamp_bracket.glb"
 
-[node name="Dome" type="Node3D" parent="Docks/Dock_town" unique_id=1170636182 instance=ExtResource("42_frib4")]
+[node name="Dome" type="Node3D" parent="Docks/Dock_town" unique_id=1170636182 instance=ExtResource("43_6o7qs")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2, 12, 4)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "persian"
 size_cells = Vector3i(1, 2, 1)
 tags = PackedStringArray("scenery", "persian", "monument", "dome")
 source_glb = "res://assets/kit/persian/persian_dome_small.glb"
 
-[node name="Awning" type="Node3D" parent="Docks/Dock_town" unique_id=2023910484 instance=ExtResource("43_wr6h2")]
+[node name="Awning" type="Node3D" parent="Docks/Dock_town" unique_id=2023910484 instance=ExtResource("44_sdedf")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10, 3, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1239,222 +1243,222 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "cloth")
 source_glb = "res://assets/kit/persian/persian_awning.glb"
 
-[node name="bz_fig_a" type="Node3D" parent="Docks/Dock_town" unique_id=1084547634 instance=ExtResource("44_6o7qs")]
+[node name="bz_fig_a" type="Node3D" parent="Docks/Dock_town" unique_id=1084547634 instance=ExtResource("45_5sxmo")]
 transform = Transform3D(0.921061, 0, 0.38941833, 0, 1, 0, -0.38941833, 0, 0.921061, -3, 0, -1.4)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("bazaar", "r04", "shop")
 source_glb = "res://assets/kit/walls/bz_fig_a.glb"
 
-[node name="bz_fig_c" type="Node3D" parent="Docks/Dock_town" unique_id=1199377758 instance=ExtResource("45_sdedf")]
+[node name="bz_fig_c" type="Node3D" parent="Docks/Dock_town" unique_id=1199377758 instance=ExtResource("46_p6hrs")]
 transform = Transform3D(0.8253356, 0, -0.5646425, 0, 1, 0, 0.5646425, 0, 0.8253356, -2.2, 0, -1.8)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("bazaar", "r04", "shop")
 source_glb = "res://assets/kit/walls/bz_fig_c.glb"
 
-[node name="bz_fig_e" type="Node3D" parent="Docks/Dock_town" unique_id=686691730 instance=ExtResource("46_5sxmo")]
+[node name="bz_fig_e" type="Node3D" parent="Docks/Dock_town" unique_id=686691730 instance=ExtResource("47_pao6s")]
 transform = Transform3D(-0.8568887, 0, 0.51550144, 0, 1, 0, -0.51550144, 0, -0.8568887, 3.4, 0, -1.2)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("bazaar", "r04", "shop")
 source_glb = "res://assets/kit/walls/bz_fig_e.glb"
 
-[node name="qt_fig_sit" type="Node3D" parent="Docks/Dock_town" unique_id=2102173809 instance=ExtResource("47_p6hrs")]
+[node name="qt_fig_sit" type="Node3D" parent="Docks/Dock_town" unique_id=2102173809 instance=ExtResource("48_7kull")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.3, 0, -0.6)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("quarter", "r06")
 source_glb = "res://assets/kit/walls/qt_fig_sit.glb"
 
-[node name="Crates" type="Node3D" parent="Docks/Dock_town" unique_id=1584729121 instance=ExtResource("13_665uu")]
+[node name="Crates" type="Node3D" parent="Docks/Dock_town" unique_id=1080783216 instance=ExtResource("13_tun10")]
 transform = Transform3D(0.9800666, 0, 0.19866933, 0, 1, 0, -0.19866933, 0, 0.9800666, -4.4, 0, -0.9)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_crates.glb"
 
-[node name="BoatW" type="Marker3D" parent="Docks/Dock_town" unique_id=345937264 groups=["lake_boat_slot"]]
+[node name="BoatW" type="Marker3D" parent="Docks/Dock_town" unique_id=1691338114 groups=["lake_boat_slot"]]
 transform = Transform3D(-0.09983336, 0, 0.9950042, 0, 1, 0, -0.9950042, 0, -0.09983336, -7.2, -1.2, -4.2)
 metadata/always = true
 metadata/lantern = true
 
-[node name="BoatE" type="Marker3D" parent="Docks/Dock_town" unique_id=1826639452 groups=["lake_boat_slot"]]
+[node name="BoatE" type="Marker3D" parent="Docks/Dock_town" unique_id=1711585630 groups=["lake_boat_slot"]]
 transform = Transform3D(0.14943819, 0, 0.9887711, 0, 1, 0, -0.9887711, 0, 0.14943819, 7.4, -1.2, -3.8)
 metadata/always = true
 
-[node name="Window_0" type="Marker3D" parent="Docks/Dock_town" unique_id=866953536 groups=["lake_reflect"]]
+[node name="Window_0" type="Marker3D" parent="Docks/Dock_town" unique_id=966472348 groups=["lake_reflect"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 2.2, -0.1)
 metadata/color = Color(1, 0.72, 0.42, 1)
 metadata/strength = 0.55
 
-[node name="Window_1" type="Marker3D" parent="Docks/Dock_town" unique_id=1423466165 groups=["lake_reflect"]]
+[node name="Window_1" type="Marker3D" parent="Docks/Dock_town" unique_id=1485460984 groups=["lake_reflect"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 2.2, -0.1)
 metadata/color = Color(1, 0.72, 0.42, 1)
 metadata/strength = 0.55
 
-[node name="Window_2" type="Marker3D" parent="Docks/Dock_town" unique_id=1897640093 groups=["lake_reflect"]]
+[node name="Window_2" type="Marker3D" parent="Docks/Dock_town" unique_id=1182126744 groups=["lake_reflect"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 6.2, -0.1)
 metadata/color = Color(1, 0.72, 0.42, 1)
 metadata/strength = 0.55
 
-[node name="Window_3" type="Marker3D" parent="Docks/Dock_town" unique_id=306008734 groups=["lake_reflect"]]
+[node name="Window_3" type="Marker3D" parent="Docks/Dock_town" unique_id=809534191 groups=["lake_reflect"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 6.2, -0.1)
 metadata/color = Color(1, 0.72, 0.42, 1)
 metadata/strength = 0.55
 
-[node name="Window_4" type="Marker3D" parent="Docks/Dock_town" unique_id=340203167 groups=["lake_reflect"]]
+[node name="Window_4" type="Marker3D" parent="Docks/Dock_town" unique_id=1046443113 groups=["lake_reflect"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 6.2, -0.1)
 metadata/color = Color(1, 0.72, 0.42, 1)
 metadata/strength = 0.55
 
-[node name="Window_5" type="Marker3D" parent="Docks/Dock_town" unique_id=707979681 groups=["lake_reflect"]]
+[node name="Window_5" type="Marker3D" parent="Docks/Dock_town" unique_id=63822255 groups=["lake_reflect"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6, 6.2, -0.1)
 metadata/color = Color(1, 0.72, 0.42, 1)
 metadata/strength = 0.55
 
-[node name="Window_6" type="Marker3D" parent="Docks/Dock_town" unique_id=131002207 groups=["lake_reflect"]]
+[node name="Window_6" type="Marker3D" parent="Docks/Dock_town" unique_id=1853009618 groups=["lake_reflect"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6, 10.2, -0.1)
 metadata/color = Color(1, 0.72, 0.42, 1)
 metadata/strength = 0.55
 
-[node name="Window_7" type="Marker3D" parent="Docks/Dock_town" unique_id=72228433 groups=["lake_reflect"]]
+[node name="Window_7" type="Marker3D" parent="Docks/Dock_town" unique_id=1951042000 groups=["lake_reflect"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 10.2, -0.1)
 metadata/color = Color(1, 0.72, 0.42, 1)
 metadata/strength = 0.55
 
-[node name="Window_8" type="Marker3D" parent="Docks/Dock_town" unique_id=771422046 groups=["lake_reflect"]]
+[node name="Window_8" type="Marker3D" parent="Docks/Dock_town" unique_id=116548575 groups=["lake_reflect"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 2, 10.2, -0.1)
 metadata/color = Color(1, 0.72, 0.42, 1)
 metadata/strength = 0.55
 
-[node name="Bell" type="Node3D" parent="Docks/Dock_town" unique_id=602523282 groups=["lake_bell"] instance=ExtResource("20_p7gp7")]
+[node name="Bell" type="Node3D" parent="Docks/Dock_town" unique_id=167330316 groups=["lake_bell"] instance=ExtResource("20_15dcf")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.3, 0, -1)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("brass", "r20")
 source_glb = "res://assets/kit/walls/lk_bell.glb"
 metadata/stop = ""
 metadata/style = "town"
 
-[node name="Safe" type="Marker3D" parent="Docks/Dock_town" unique_id=215322283 groups=["lake_safe"]]
+[node name="Safe" type="Marker3D" parent="Docks/Dock_town" unique_id=1325874216 groups=["lake_safe"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.85, -4.6)
 
-[node name="StripLanternW" type="Node3D" parent="Docks/Dock_town" unique_id=1517254614 instance=ExtResource("12_vyubv")]
+[node name="StripLanternW" type="Node3D" parent="Docks/Dock_town" unique_id=1344767324 instance=ExtResource("12_665uu")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -11.2, 0, -2.75)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="StripLanternE" type="Node3D" parent="Docks/Dock_town" unique_id=1384022204 instance=ExtResource("12_vyubv")]
+[node name="StripLanternE" type="Node3D" parent="Docks/Dock_town" unique_id=216540946 instance=ExtResource("12_665uu")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 11.2, 0, -2.75)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="FisherW" type="Node3D" parent="Docks/Dock_town" unique_id=1215890254 groups=["lake_seeded"]]
+[node name="FisherW" type="Node3D" parent="Docks/Dock_town" unique_id=939957322 groups=["lake_seeded"]]
 transform = Transform3D(-0.921061, 0, 0.38941836, 0, 1, 0, -0.38941836, 0, -0.921061, -8.8, 0, -1.7)
 metadata/chance = 1.0
 metadata/one_of = "town_fisher"
 
-[node name="Fisher" type="Node3D" parent="Docks/Dock_town/FisherW" unique_id=1054291389 instance=ExtResource("48_pao6s")]
-script = ExtResource("3_kxnb4")
+[node name="Fisher" type="Node3D" parent="Docks/Dock_town/FisherW" unique_id=1054291389 instance=ExtResource("49_fqhgb")]
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("quarter", "r06")
 source_glb = "res://assets/kit/walls/qt_fig_mend.glb"
 
-[node name="Nets" type="Node3D" parent="Docks/Dock_town/FisherW" unique_id=223414506 instance=ExtResource("24_6vcf5")]
+[node name="Nets" type="Node3D" parent="Docks/Dock_town/FisherW" unique_id=1746881657 instance=ExtResource("24_wcp27")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.3, 0, 0.6)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_nets.glb"
 
-[node name="Traps" type="Node3D" parent="Docks/Dock_town/FisherW" unique_id=1842664591 instance=ExtResource("23_rhrpk")]
+[node name="Traps" type="Node3D" parent="Docks/Dock_town/FisherW" unique_id=882753862 instance=ExtResource("23_6vcf5")]
 transform = Transform3D(0.4535961, 0, 0.8912074, 0, 1, 0, -0.8912074, 0, 0.4535961, -1.4, 0, 0.7)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_traps.glb"
 
-[node name="FisherE" type="Node3D" parent="Docks/Dock_town" unique_id=1438412957 groups=["lake_seeded"]]
+[node name="FisherE" type="Node3D" parent="Docks/Dock_town" unique_id=1060153043 groups=["lake_seeded"]]
 transform = Transform3D(-0.92106104, 0, -0.3894183, 0, 1, 0, 0.3894183, 0, -0.92106104, 8.6, 0, -1.7)
 metadata/chance = 1.0
 metadata/one_of = "town_fisher"
 
-[node name="Fisher" type="Node3D" parent="Docks/Dock_town/FisherE" unique_id=1356164842 instance=ExtResource("48_pao6s")]
-script = ExtResource("3_kxnb4")
+[node name="Fisher" type="Node3D" parent="Docks/Dock_town/FisherE" unique_id=1434546973 instance=ExtResource("49_fqhgb")]
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("quarter", "r06")
 source_glb = "res://assets/kit/walls/qt_fig_mend.glb"
 
-[node name="Nets" type="Node3D" parent="Docks/Dock_town/FisherE" unique_id=1130327898 instance=ExtResource("24_6vcf5")]
+[node name="Nets" type="Node3D" parent="Docks/Dock_town/FisherE" unique_id=2129729155 instance=ExtResource("24_wcp27")]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 1.3, 0, 0.6)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_nets.glb"
 
-[node name="Traps" type="Node3D" parent="Docks/Dock_town/FisherE" unique_id=772688209 instance=ExtResource("23_rhrpk")]
+[node name="Traps" type="Node3D" parent="Docks/Dock_town/FisherE" unique_id=2014313741 instance=ExtResource("23_6vcf5")]
 transform = Transform3D(0.4535961, 0, 0.8912074, 0, 1, 0, -0.8912074, 0, 0.4535961, -1.4, 0, 0.7)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_traps.glb"
 
-[node name="Pots" type="Node3D" parent="Docks/Dock_town" unique_id=98782210 groups=["lake_seeded"]]
+[node name="Pots" type="Node3D" parent="Docks/Dock_town" unique_id=1938987199 groups=["lake_seeded"]]
 transform = Transform3D(0.921061, 0, 0.38941833, 0, 1, 0, -0.38941833, 0, 0.921061, -13.5, 0, -0.9)
 metadata/chance = 0.6
 
-[node name="Pot" type="Node3D" parent="Docks/Dock_town/Pots" unique_id=1623938078 instance=ExtResource("49_7kull")]
-script = ExtResource("3_kxnb4")
+[node name="Pot" type="Node3D" parent="Docks/Dock_town/Pots" unique_id=1623938078 instance=ExtResource("50_ksal2")]
+script = ExtResource("3_7sj3y")
 family = "dressing"
 tags = PackedStringArray("earthenware", "table_prop")
 source_glb = "res://assets/kit/dressing/prop_pot.glb"
 
-[node name="Pot2" type="Node3D" parent="Docks/Dock_town/Pots" unique_id=680324222 instance=ExtResource("49_7kull")]
+[node name="Pot2" type="Node3D" parent="Docks/Dock_town/Pots" unique_id=433222256 instance=ExtResource("50_ksal2")]
 transform = Transform3D(0.5403023, 0, 0.84147096, 0, 1, 0, -0.84147096, 0, 0.5403023, 0.6, 0, 0.2)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "dressing"
 tags = PackedStringArray("earthenware", "table_prop")
 source_glb = "res://assets/kit/dressing/prop_pot.glb"
 
-[node name="Crates2" type="Node3D" parent="Docks/Dock_town" unique_id=13042371 groups=["lake_seeded"]]
+[node name="Crates2" type="Node3D" parent="Docks/Dock_town" unique_id=1009841846 groups=["lake_seeded"]]
 transform = Transform3D(0.9553365, 0, -0.29552022, 0, 1, 0, 0.29552022, 0, 0.9553365, 13, 0, -1)
 metadata/chance = 0.6
 
-[node name="Crates" type="Node3D" parent="Docks/Dock_town/Crates2" unique_id=728372233 instance=ExtResource("13_665uu")]
-script = ExtResource("3_kxnb4")
+[node name="Crates" type="Node3D" parent="Docks/Dock_town/Crates2" unique_id=1951195459 instance=ExtResource("13_tun10")]
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_crates.glb"
 
-[node name="BoatSeed_0" type="Marker3D" parent="Docks/Dock_town" unique_id=1868054907 groups=["lake_boat_slot"]]
+[node name="BoatSeed_0" type="Marker3D" parent="Docks/Dock_town" unique_id=665864100 groups=["lake_boat_slot"]]
 transform = Transform3D(-0.049979165, 0, 0.99875027, 0, 1, 0, -0.99875027, 0, -0.049979165, -12.3, -1.2, -4.1)
 metadata/pool = "town"
 metadata/most = 2
 
-[node name="BoatSeed_1" type="Marker3D" parent="Docks/Dock_town" unique_id=1765285476 groups=["lake_boat_slot"]]
+[node name="BoatSeed_1" type="Marker3D" parent="Docks/Dock_town" unique_id=2053865157 groups=["lake_boat_slot"]]
 transform = Transform3D(0.0799147, 0, 0.99680173, 0, 1, 0, -0.99680173, 0, 0.0799147, 12.3, -1.2, -4.1)
 metadata/pool = "town"
 metadata/most = 2
 
-[node name="Sign" type="Node3D" parent="Docks/Dock_town" unique_id=1186448312]
+[node name="Sign" type="Node3D" parent="Docks/Dock_town" unique_id=1837047945]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.9, 0, -2.6)
 
-[node name="Post" type="MeshInstance3D" parent="Docks/Dock_town/Sign" unique_id=1735342712]
+[node name="Post" type="MeshInstance3D" parent="Docks/Dock_town/Sign" unique_id=1250917062]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_ffk7w")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_bylwi")
 
-[node name="Board" type="MeshInstance3D" parent="Docks/Dock_town/Sign" unique_id=46730366]
+[node name="Board" type="MeshInstance3D" parent="Docks/Dock_town/Sign" unique_id=1254792247]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, -0.09)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_f0ttp")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_3xa0b")
 
-[node name="Words" type="Label3D" parent="Docks/Dock_town/Sign" unique_id=410042501]
+[node name="Words" type="Label3D" parent="Docks/Dock_town/Sign" unique_id=1596888550]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 1.85, -0.13)
 pixel_size = 0.0045
 modulate = Color(0.93, 0.84, 0.62, 1)
@@ -1463,46 +1467,46 @@ outline_size = 0
 autowrap_mode = 3
 width = 400.0
 
-[node name="Dock_garden" type="Node3D" parent="Docks" unique_id=2003391472]
+[node name="Dock_garden" type="Node3D" parent="Docks" unique_id=1932871845]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 320, 0, -420)
 
-[node name="Rock" type="Node3D" parent="Docks/Dock_garden" unique_id=436574941 instance=ExtResource("27_rlx2v")]
-script = ExtResource("3_kxnb4")
+[node name="Rock" type="Node3D" parent="Docks/Dock_garden" unique_id=562865024 instance=ExtResource("27_yllvk")]
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("rock", "cavern", "dock", "r20")
 source_glb = "res://assets/kit/walls/lk_dock_a.glb"
 
-[node name="Water" type="MeshInstance3D" parent="Docks/Dock_garden" unique_id=128694288]
+[node name="Water" type="MeshInstance3D" parent="Docks/Dock_garden" unique_id=1400778829]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1.2, -26)
-material_override = ExtResource("25_wcp27")
+material_override = ExtResource("25_dp04v")
 cast_shadow = 0
-mesh = SubResource("PlaneMesh_bylwi")
+mesh = SubResource("PlaneMesh_4h1tu")
 
-[node name="Mist" type="FogVolume" parent="Docks/Dock_garden" unique_id=169661947]
+[node name="Mist" type="FogVolume" parent="Docks/Dock_garden" unique_id=535180050]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -26)
 size = Vector3(72, 3.6, 72)
-material = SubResource("FogMaterial_3xa0b")
-
-[node name="ChannelFog_0" type="FogVolume" parent="Docks/Dock_garden" unique_id=836013178]
-transform = Transform3D(0.3417431, 0, 0.9397934, 0, 1, 0, -0.9397934, 0, 0.3417431, -32, 1.8, -51)
-size = Vector3(22, 8, 26)
-material = SubResource("FogMaterial_4h1tu")
-
-[node name="ChannelFog_1" type="FogVolume" parent="Docks/Dock_garden" unique_id=787746672]
-transform = Transform3D(0.3417431, 0, -0.9397934, 0, 1, 0, 0.9397934, 0, 0.3417431, 32, 1.8, -51)
-size = Vector3(22, 8, 26)
 material = SubResource("FogMaterial_nvfqn")
 
-[node name="Quay" type="Node3D" parent="Docks/Dock_garden" unique_id=212605168 instance=ExtResource("28_yllvk")]
+[node name="ChannelFog_0" type="FogVolume" parent="Docks/Dock_garden" unique_id=763836913]
+transform = Transform3D(0.3417431, 0, 0.9397934, 0, 1, 0, -0.9397934, 0, 0.3417431, -32, 1.8, -51)
+size = Vector3(22, 8, 26)
+material = SubResource("FogMaterial_yts5q")
+
+[node name="ChannelFog_1" type="FogVolume" parent="Docks/Dock_garden" unique_id=31008028]
+transform = Transform3D(0.3417431, 0, -0.9397934, 0, 1, 0, 0.9397934, 0, 0.3417431, 32, 1.8, -51)
+size = Vector3(22, 8, 26)
+material = SubResource("FogMaterial_emf6b")
+
+[node name="Quay" type="Node3D" parent="Docks/Dock_garden" unique_id=1970443791 instance=ExtResource("28_dw65d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("stone", "quay", "r20")
 source_glb = "res://assets/kit/walls/lk_landing_quay.glb"
 
-[node name="lime_0_-10" type="Node3D" parent="Docks/Dock_garden" unique_id=1968340017 instance=ExtResource("50_fqhgb")]
+[node name="lime_0_-10" type="Node3D" parent="Docks/Dock_garden" unique_id=1968340017 instance=ExtResource("51_jykce")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1510,9 +1514,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house")
 source_glb = "res://assets/kit/persian/persian_wall_lime.glb"
 
-[node name="lime_window_dark_0_-6" type="Node3D" parent="Docks/Dock_garden" unique_id=508410621 instance=ExtResource("51_ksal2")]
+[node name="lime_window_dark_0_-6" type="Node3D" parent="Docks/Dock_garden" unique_id=508410621 instance=ExtResource("52_bsmy0")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1520,9 +1524,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window")
 source_glb = "res://assets/kit/persian/persian_wall_lime_window_dark.glb"
 
-[node name="Arch" type="Node3D" parent="Docks/Dock_garden" unique_id=1530247983 instance=ExtResource("2_2vbtd")]
+[node name="Arch" type="Node3D" parent="Docks/Dock_garden" unique_id=550080637 instance=ExtResource("2_kxnb4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "walls"
 size_cells = Vector3i(1, 1, 0)
@@ -1531,13 +1535,13 @@ tags = PackedStringArray("brick", "structure", "passage")
 weight = 2.0
 source_glb = "res://assets/kit/walls/wall_arch_3m.glb"
 
-[node name="Door" type="Node3D" parent="Docks/Dock_garden" unique_id=1228996894]
+[node name="Door" type="Node3D" parent="Docks/Dock_garden" unique_id=1002981235]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
-script = ExtResource("4_7sj3y")
+script = ExtResource("32_m57wy")
 
-[node name="lime_window_dark_0_2" type="Node3D" parent="Docks/Dock_garden" unique_id=741996230 instance=ExtResource("51_ksal2")]
+[node name="lime_window_dark_0_2" type="Node3D" parent="Docks/Dock_garden" unique_id=738752567 instance=ExtResource("52_bsmy0")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1545,9 +1549,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window")
 source_glb = "res://assets/kit/persian/persian_wall_lime_window_dark.glb"
 
-[node name="lime_0_6" type="Node3D" parent="Docks/Dock_garden" unique_id=1245095348 instance=ExtResource("50_fqhgb")]
+[node name="lime_0_6" type="Node3D" parent="Docks/Dock_garden" unique_id=1568347616 instance=ExtResource("51_jykce")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1555,9 +1559,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house")
 source_glb = "res://assets/kit/persian/persian_wall_lime.glb"
 
-[node name="Cornice_4_0" type="Node3D" parent="Docks/Dock_garden" unique_id=1280246547 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_0" type="Node3D" parent="Docks/Dock_garden" unique_id=473650083 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1565,9 +1569,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_1" type="Node3D" parent="Docks/Dock_garden" unique_id=361050041 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_1" type="Node3D" parent="Docks/Dock_garden" unique_id=1752192643 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1575,9 +1579,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_2" type="Node3D" parent="Docks/Dock_garden" unique_id=1722330414 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_2" type="Node3D" parent="Docks/Dock_garden" unique_id=849027766 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1585,9 +1589,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_3" type="Node3D" parent="Docks/Dock_garden" unique_id=143576617 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_3" type="Node3D" parent="Docks/Dock_garden" unique_id=1104467394 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1595,9 +1599,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_4" type="Node3D" parent="Docks/Dock_garden" unique_id=384770588 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_4" type="Node3D" parent="Docks/Dock_garden" unique_id=1787417187 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1605,9 +1609,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="lime_window2_dark_4_-8" type="Node3D" parent="Docks/Dock_garden" unique_id=52374699 instance=ExtResource("52_jykce")]
+[node name="lime_window2_dark_4_-8" type="Node3D" parent="Docks/Dock_garden" unique_id=52374699 instance=ExtResource("53_q785f")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1615,9 +1619,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window")
 source_glb = "res://assets/kit/persian/persian_wall_lime_window2_dark.glb"
 
-[node name="lime_4_-4" type="Node3D" parent="Docks/Dock_garden" unique_id=291883053 instance=ExtResource("50_fqhgb")]
+[node name="lime_4_-4" type="Node3D" parent="Docks/Dock_garden" unique_id=1249036294 instance=ExtResource("51_jykce")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1625,9 +1629,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house")
 source_glb = "res://assets/kit/persian/persian_wall_lime.glb"
 
-[node name="lime_4_0" type="Node3D" parent="Docks/Dock_garden" unique_id=1157656587 instance=ExtResource("50_fqhgb")]
+[node name="lime_4_0" type="Node3D" parent="Docks/Dock_garden" unique_id=1503985195 instance=ExtResource("51_jykce")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1635,9 +1639,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house")
 source_glb = "res://assets/kit/persian/persian_wall_lime.glb"
 
-[node name="lime_window2_dark_4_4" type="Node3D" parent="Docks/Dock_garden" unique_id=1409513816 instance=ExtResource("52_jykce")]
+[node name="lime_window2_dark_4_4" type="Node3D" parent="Docks/Dock_garden" unique_id=1758276544 instance=ExtResource("53_q785f")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 8, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1645,9 +1649,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "house", "window")
 source_glb = "res://assets/kit/persian/persian_wall_lime_window2_dark.glb"
 
-[node name="Cornice_8_0" type="Node3D" parent="Docks/Dock_garden" unique_id=1085728261 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_0" type="Node3D" parent="Docks/Dock_garden" unique_id=2020952651 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -4, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1655,9 +1659,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_8_1" type="Node3D" parent="Docks/Dock_garden" unique_id=899067165 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_1" type="Node3D" parent="Docks/Dock_garden" unique_id=1239542917 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1665,9 +1669,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_8_2" type="Node3D" parent="Docks/Dock_garden" unique_id=1413657690 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_2" type="Node3D" parent="Docks/Dock_garden" unique_id=1560912238 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1675,9 +1679,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_8_3" type="Node3D" parent="Docks/Dock_garden" unique_id=1508774489 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_3" type="Node3D" parent="Docks/Dock_garden" unique_id=413170555 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 8, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1685,196 +1689,196 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="FacadeW" type="StaticBody3D" parent="Docks/Dock_garden" unique_id=1181720208]
+[node name="FacadeW" type="StaticBody3D" parent="Docks/Dock_garden" unique_id=1905007225]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 2, 0.3)
 collision_mask = 0
 
-[node name="@CollisionShape3D@5" type="CollisionShape3D" parent="Docks/Dock_garden/FacadeW" unique_id=48960597]
-shape = SubResource("BoxShape3D_yts5q")
+[node name="@CollisionShape3D@5" type="CollisionShape3D" parent="Docks/Dock_garden/FacadeW" unique_id=1116297962]
+shape = SubResource("BoxShape3D_6183s")
 
-[node name="FacadeE" type="StaticBody3D" parent="Docks/Dock_garden" unique_id=1062158834]
+[node name="FacadeE" type="StaticBody3D" parent="Docks/Dock_garden" unique_id=1741545788]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 2, 0.3)
 collision_mask = 0
 
-[node name="@CollisionShape3D@6" type="CollisionShape3D" parent="Docks/Dock_garden/FacadeE" unique_id=902313853]
-shape = SubResource("BoxShape3D_emf6b")
+[node name="@CollisionShape3D@6" type="CollisionShape3D" parent="Docks/Dock_garden/FacadeE" unique_id=1847492253]
+shape = SubResource("BoxShape3D_enkpq")
 
-[node name="Daylight" type="Node3D" parent="Docks/Dock_garden" unique_id=186251958]
+[node name="Daylight" type="Node3D" parent="Docks/Dock_garden" unique_id=1600176732]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -1, 0, -1.5)
-script = ExtResource("53_bsmy0")
+script = ExtResource("54_8orye")
 height = 18.0
 radius = 6.0
 energy = 14.0
 haze = 0.07
 
-[node name="BedW" type="Node3D" parent="Docks/Dock_garden" unique_id=1185140258 instance=ExtResource("54_q785f")]
+[node name="BedW" type="Node3D" parent="Docks/Dock_garden" unique_id=1185140258 instance=ExtResource("55_g30n2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -3.4, 0, -1.3)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
 tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
 source_glb = "res://assets/kit/persian/persian_bed.glb"
 
-[node name="BedE" type="Node3D" parent="Docks/Dock_garden" unique_id=2105833679 instance=ExtResource("54_q785f")]
+[node name="BedE" type="Node3D" parent="Docks/Dock_garden" unique_id=856481506 instance=ExtResource("55_g30n2")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 3.4, 0, -1.3)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
 tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
 source_glb = "res://assets/kit/persian/persian_bed.glb"
 
-[node name="TreeW" type="Node3D" parent="Docks/Dock_garden" unique_id=929135769 instance=ExtResource("55_8orye")]
+[node name="TreeW" type="Node3D" parent="Docks/Dock_garden" unique_id=929135769 instance=ExtResource("56_2y8j6")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.3, 0, -0.5)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "persian"
 size_cells = Vector3i(0, 1, 0)
 tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
 source_glb = "res://assets/kit/persian/persian_pomegranate.glb"
 
-[node name="TreeE" type="Node3D" parent="Docks/Dock_garden" unique_id=314701842 instance=ExtResource("55_8orye")]
+[node name="TreeE" type="Node3D" parent="Docks/Dock_garden" unique_id=1426497733 instance=ExtResource("56_2y8j6")]
 transform = Transform3D(0.26749888, 0, 0.9635582, 0, 1, 0, -0.9635582, 0, 0.26749888, 4.6, 0, -0.6)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "persian"
 size_cells = Vector3i(0, 1, 0)
 tags = PackedStringArray("scenery", "persian", "garden", "plant", "lit")
 source_glb = "res://assets/kit/persian/persian_pomegranate.glb"
 
-[node name="DoorLamp" type="Node3D" parent="Docks/Dock_garden" unique_id=1910033693 instance=ExtResource("41_6brki")]
+[node name="DoorLamp" type="Node3D" parent="Docks/Dock_garden" unique_id=2024857589 instance=ExtResource("42_wr6h2")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2.6, 3, -0.05)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "persian"
 tags = PackedStringArray("scenery", "persian", "lamp", "light")
 source_glb = "res://assets/kit/persian/persian_lamp_bracket.glb"
 
-[node name="Boat" type="Marker3D" parent="Docks/Dock_garden" unique_id=1546143426 groups=["lake_boat_slot"]]
+[node name="Boat" type="Marker3D" parent="Docks/Dock_garden" unique_id=411742677 groups=["lake_boat_slot"]]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -7, -1.2, -3.6)
 metadata/always = true
 
-[node name="Bell" type="Node3D" parent="Docks/Dock_garden" unique_id=619783741 groups=["lake_bell"] instance=ExtResource("20_p7gp7")]
+[node name="Bell" type="Node3D" parent="Docks/Dock_garden" unique_id=1532461528 groups=["lake_bell"] instance=ExtResource("20_15dcf")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.3, 0, -1)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("brass", "r20")
 source_glb = "res://assets/kit/walls/lk_bell.glb"
 metadata/stop = ""
 metadata/style = "garden"
 
-[node name="Safe" type="Marker3D" parent="Docks/Dock_garden" unique_id=970373299 groups=["lake_safe"]]
+[node name="Safe" type="Marker3D" parent="Docks/Dock_garden" unique_id=1292164937 groups=["lake_safe"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.85, -4.6)
 
-[node name="StripLanternW" type="Node3D" parent="Docks/Dock_garden" unique_id=1968251756 instance=ExtResource("12_vyubv")]
+[node name="StripLanternW" type="Node3D" parent="Docks/Dock_garden" unique_id=1574098580 instance=ExtResource("12_665uu")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -11.2, 0, -2.75)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="StripLanternE" type="Node3D" parent="Docks/Dock_garden" unique_id=896599171 instance=ExtResource("12_vyubv")]
+[node name="StripLanternE" type="Node3D" parent="Docks/Dock_garden" unique_id=87001777 instance=ExtResource("12_665uu")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 11.2, 0, -2.75)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="BedW2" type="Node3D" parent="Docks/Dock_garden" unique_id=399724609 groups=["lake_seeded"]]
+[node name="BedW2" type="Node3D" parent="Docks/Dock_garden" unique_id=1264203180 groups=["lake_seeded"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -8.4, 0, -1.2)
 metadata/chance = 0.65
 
-[node name="Bed" type="Node3D" parent="Docks/Dock_garden/BedW2" unique_id=256119765 instance=ExtResource("56_g30n2")]
-script = ExtResource("3_kxnb4")
+[node name="Bed" type="Node3D" parent="Docks/Dock_garden/BedW2" unique_id=256119765 instance=ExtResource("57_h3gn5")]
+script = ExtResource("3_7sj3y")
 family = "dressing"
 size_cells = Vector3i(1, 0, 1)
 tags = PackedStringArray("plant", "garden", "pot")
 source_glb = "res://assets/kit/dressing/garden_planter.glb"
 
-[node name="BedW3" type="Node3D" parent="Docks/Dock_garden" unique_id=1271308040 groups=["lake_seeded"]]
+[node name="BedW3" type="Node3D" parent="Docks/Dock_garden" unique_id=1132897744 groups=["lake_seeded"]]
 transform = Transform3D(0.9950042, 0, 0.09983342, 0, 1, 0, -0.09983342, 0, 0.9950042, -12.6, 0, -1.3)
 metadata/chance = 0.65
 
-[node name="Bed" type="Node3D" parent="Docks/Dock_garden/BedW3" unique_id=1717515628 instance=ExtResource("57_2y8j6")]
-script = ExtResource("3_kxnb4")
+[node name="Bed" type="Node3D" parent="Docks/Dock_garden/BedW3" unique_id=1717515628 instance=ExtResource("58_g7b3c")]
+script = ExtResource("3_7sj3y")
 family = "dressing"
 size_cells = Vector3i(1, 0, 1)
 tags = PackedStringArray("plant", "garden", "pot", "wild")
 source_glb = "res://assets/kit/dressing/garden_planter_wild.glb"
 
-[node name="ShrubE" type="Node3D" parent="Docks/Dock_garden" unique_id=1744145349 groups=["lake_seeded"]]
+[node name="ShrubE" type="Node3D" parent="Docks/Dock_garden" unique_id=1820798324 groups=["lake_seeded"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8.6, 0, -1)
 metadata/chance = 0.65
 
-[node name="Bed" type="Node3D" parent="Docks/Dock_garden/ShrubE" unique_id=579920942 instance=ExtResource("58_h3gn5")]
-script = ExtResource("3_kxnb4")
+[node name="Bed" type="Node3D" parent="Docks/Dock_garden/ShrubE" unique_id=579920942 instance=ExtResource("59_hl5ji")]
+script = ExtResource("3_7sj3y")
 family = "dressing"
 size_cells = Vector3i(1, 0, 1)
 tags = PackedStringArray("plant", "garden")
 source_glb = "res://assets/kit/dressing/garden_shrub.glb"
 
-[node name="BedE2" type="Node3D" parent="Docks/Dock_garden" unique_id=1351663851 groups=["lake_seeded"]]
+[node name="BedE2" type="Node3D" parent="Docks/Dock_garden" unique_id=462811272 groups=["lake_seeded"]]
 transform = Transform3D(0.9950042, 0, -0.09983342, 0, 1, 0, 0.09983342, 0, 0.9950042, 12.4, 0, -1.2)
 metadata/chance = 0.65
 
-[node name="Bed" type="Node3D" parent="Docks/Dock_garden/BedE2" unique_id=1933379739 instance=ExtResource("56_g30n2")]
-script = ExtResource("3_kxnb4")
+[node name="Bed" type="Node3D" parent="Docks/Dock_garden/BedE2" unique_id=1646038989 instance=ExtResource("57_h3gn5")]
+script = ExtResource("3_7sj3y")
 family = "dressing"
 size_cells = Vector3i(1, 0, 1)
 tags = PackedStringArray("plant", "garden", "pot")
 source_glb = "res://assets/kit/dressing/garden_planter.glb"
 
-[node name="ShrubW" type="Node3D" parent="Docks/Dock_garden" unique_id=703115841 groups=["lake_seeded"]]
+[node name="ShrubW" type="Node3D" parent="Docks/Dock_garden" unique_id=2050165082 groups=["lake_seeded"]]
 transform = Transform3D(0.7648422, 0, 0.64421767, 0, 1, 0, -0.64421767, 0, 0.7648422, -15.8, 0, -1)
 metadata/chance = 0.65
 
-[node name="Bed" type="Node3D" parent="Docks/Dock_garden/ShrubW" unique_id=1585128462 instance=ExtResource("58_h3gn5")]
-script = ExtResource("3_kxnb4")
+[node name="Bed" type="Node3D" parent="Docks/Dock_garden/ShrubW" unique_id=975761355 instance=ExtResource("59_hl5ji")]
+script = ExtResource("3_7sj3y")
 family = "dressing"
 size_cells = Vector3i(1, 0, 1)
 tags = PackedStringArray("plant", "garden")
 source_glb = "res://assets/kit/dressing/garden_shrub.glb"
 
-[node name="Gardener" type="Node3D" parent="Docks/Dock_garden" unique_id=1762039059 groups=["lake_seeded"]]
+[node name="Gardener" type="Node3D" parent="Docks/Dock_garden" unique_id=399916056 groups=["lake_seeded"]]
 transform = Transform3D(-0.8775826, 0, 0.47942546, 0, 1, 0, -0.47942546, 0, -0.8775826, -6.6, 0, -1.9)
 metadata/chance = 0.5
 
-[node name="Figure" type="Node3D" parent="Docks/Dock_garden/Gardener" unique_id=935998267 instance=ExtResource("59_g7b3c")]
-script = ExtResource("3_kxnb4")
+[node name="Figure" type="Node3D" parent="Docks/Dock_garden/Gardener" unique_id=935998267 instance=ExtResource("60_2sy5s")]
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("quarter", "r06")
 source_glb = "res://assets/kit/walls/qt_fig_jar.glb"
 
-[node name="Line" type="Node3D" parent="Docks/Dock_garden" unique_id=2012023540 groups=["lake_seeded"]]
+[node name="Line" type="Node3D" parent="Docks/Dock_garden" unique_id=1749792988 groups=["lake_seeded"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -9.6, 0, -2.55)
 metadata/chance = 0.5
 
-[node name="Fishing" type="Node3D" parent="Docks/Dock_garden/Line" unique_id=864003555 groups=["fishing_spot"] instance=ExtResource("17_0m4a3")]
-script = ExtResource("3_kxnb4")
+[node name="Fishing" type="Node3D" parent="Docks/Dock_garden/Line" unique_id=2060016835 groups=["fishing_spot"] instance=ExtResource("17_ym8r4")]
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "fishing", "r20")
 source_glb = "res://assets/kit/walls/lk_fishing_spot.glb"
 
-[node name="BoatSeed_0" type="Marker3D" parent="Docks/Dock_garden" unique_id=2119763162 groups=["lake_boat_slot"]]
+[node name="BoatSeed_0" type="Marker3D" parent="Docks/Dock_garden" unique_id=1381245750 groups=["lake_boat_slot"]]
 transform = Transform3D(0.0998334, 0, 0.9950042, 0, 1, 0, -0.9950042, 0, 0.0998334, 7.2, -1.2, -4.1)
 metadata/pool = "garden"
 metadata/most = 1
 
-[node name="BoatSeed_1" type="Marker3D" parent="Docks/Dock_garden" unique_id=1524247891 groups=["lake_boat_slot"]]
+[node name="BoatSeed_1" type="Marker3D" parent="Docks/Dock_garden" unique_id=735940013 groups=["lake_boat_slot"]]
 transform = Transform3D(-0.09983336, 0, 0.9950042, 0, 1, 0, -0.9950042, 0, -0.09983336, 12.3, -1.2, -4.1)
 metadata/pool = "garden"
 metadata/most = 1
 
-[node name="Sign" type="Node3D" parent="Docks/Dock_garden" unique_id=369373264]
+[node name="Sign" type="Node3D" parent="Docks/Dock_garden" unique_id=1749211166]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.9, 0, -2.6)
 
-[node name="Post" type="MeshInstance3D" parent="Docks/Dock_garden/Sign" unique_id=171304884]
+[node name="Post" type="MeshInstance3D" parent="Docks/Dock_garden/Sign" unique_id=1219021195]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_6183s")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_0hfew")
 
-[node name="Board" type="MeshInstance3D" parent="Docks/Dock_garden/Sign" unique_id=1132351788]
+[node name="Board" type="MeshInstance3D" parent="Docks/Dock_garden/Sign" unique_id=1840500514]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, -0.09)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_enkpq")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_qtk5p")
 
-[node name="Words" type="Label3D" parent="Docks/Dock_garden/Sign" unique_id=1325949342]
+[node name="Words" type="Label3D" parent="Docks/Dock_garden/Sign" unique_id=244819144]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 1.85, -0.13)
 pixel_size = 0.0045
 modulate = Color(0.93, 0.84, 0.62, 1)
@@ -1883,46 +1887,46 @@ outline_size = 0
 autowrap_mode = 3
 width = 400.0
 
-[node name="Dock_ruin" type="Node3D" parent="Docks" unique_id=1621222896]
+[node name="Dock_ruin" type="Node3D" parent="Docks" unique_id=1841785263]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -320, 0, -420)
 
-[node name="Rock" type="Node3D" parent="Docks/Dock_ruin" unique_id=646223347 instance=ExtResource("27_rlx2v")]
-script = ExtResource("3_kxnb4")
+[node name="Rock" type="Node3D" parent="Docks/Dock_ruin" unique_id=1247303511 instance=ExtResource("27_yllvk")]
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("rock", "cavern", "dock", "r20")
 source_glb = "res://assets/kit/walls/lk_dock_a.glb"
 
-[node name="Water" type="MeshInstance3D" parent="Docks/Dock_ruin" unique_id=621107500]
+[node name="Water" type="MeshInstance3D" parent="Docks/Dock_ruin" unique_id=1479199551]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1.2, -26)
-material_override = ExtResource("25_wcp27")
+material_override = ExtResource("25_dp04v")
 cast_shadow = 0
-mesh = SubResource("PlaneMesh_0hfew")
+mesh = SubResource("PlaneMesh_5j80p")
 
-[node name="Mist" type="FogVolume" parent="Docks/Dock_ruin" unique_id=232981461]
+[node name="Mist" type="FogVolume" parent="Docks/Dock_ruin" unique_id=863868285]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -26)
 size = Vector3(72, 3.6, 72)
-material = SubResource("FogMaterial_qtk5p")
-
-[node name="ChannelFog_0" type="FogVolume" parent="Docks/Dock_ruin" unique_id=113620606]
-transform = Transform3D(0.3417431, 0, 0.9397934, 0, 1, 0, -0.9397934, 0, 0.3417431, -32, 1.8, -51)
-size = Vector3(22, 8, 26)
-material = SubResource("FogMaterial_5j80p")
-
-[node name="ChannelFog_1" type="FogVolume" parent="Docks/Dock_ruin" unique_id=1031334566]
-transform = Transform3D(0.3417431, 0, -0.9397934, 0, 1, 0, 0.9397934, 0, 0.3417431, 32, 1.8, -51)
-size = Vector3(22, 8, 26)
 material = SubResource("FogMaterial_vkj77")
 
-[node name="Quay" type="Node3D" parent="Docks/Dock_ruin" unique_id=727254028 instance=ExtResource("28_yllvk")]
+[node name="ChannelFog_0" type="FogVolume" parent="Docks/Dock_ruin" unique_id=1635421583]
+transform = Transform3D(0.3417431, 0, 0.9397934, 0, 1, 0, -0.9397934, 0, 0.3417431, -32, 1.8, -51)
+size = Vector3(22, 8, 26)
+material = SubResource("FogMaterial_1wl3g")
+
+[node name="ChannelFog_1" type="FogVolume" parent="Docks/Dock_ruin" unique_id=1282027662]
+transform = Transform3D(0.3417431, 0, -0.9397934, 0, 1, 0, 0.9397934, 0, 0.3417431, 32, 1.8, -51)
+size = Vector3(22, 8, 26)
+material = SubResource("FogMaterial_fp4v1")
+
+[node name="Quay" type="Node3D" parent="Docks/Dock_ruin" unique_id=154292244 instance=ExtResource("28_dw65d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("stone", "quay", "r20")
 source_glb = "res://assets/kit/walls/lk_landing_quay.glb"
 
-[node name="rock_0_-10" type="Node3D" parent="Docks/Dock_ruin" unique_id=153723142 instance=ExtResource("60_hl5ji")]
+[node name="rock_0_-10" type="Node3D" parent="Docks/Dock_ruin" unique_id=153723142 instance=ExtResource("61_usfw7")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1930,9 +1934,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "carved")
 source_glb = "res://assets/kit/persian/persian_wall_rock.glb"
 
-[node name="rock_window_dark_0_-6" type="Node3D" parent="Docks/Dock_ruin" unique_id=661269455 instance=ExtResource("61_2sy5s")]
+[node name="rock_window_dark_0_-6" type="Node3D" parent="Docks/Dock_ruin" unique_id=661269455 instance=ExtResource("62_lnui6")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1940,9 +1944,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "carved", "window")
 source_glb = "res://assets/kit/persian/persian_wall_rock_window_dark.glb"
 
-[node name="Arch" type="Node3D" parent="Docks/Dock_ruin" unique_id=2017571459 instance=ExtResource("2_2vbtd")]
+[node name="Arch" type="Node3D" parent="Docks/Dock_ruin" unique_id=18986485 instance=ExtResource("2_kxnb4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "walls"
 size_cells = Vector3i(1, 1, 0)
@@ -1951,13 +1955,13 @@ tags = PackedStringArray("brick", "structure", "passage")
 weight = 2.0
 source_glb = "res://assets/kit/walls/wall_arch_3m.glb"
 
-[node name="Door" type="Node3D" parent="Docks/Dock_ruin" unique_id=1206493955]
+[node name="Door" type="Node3D" parent="Docks/Dock_ruin" unique_id=1421127655]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
-script = ExtResource("4_7sj3y")
+script = ExtResource("32_m57wy")
 
-[node name="rock_window_dark_0_2" type="Node3D" parent="Docks/Dock_ruin" unique_id=833388089 instance=ExtResource("61_2sy5s")]
+[node name="rock_window_dark_0_2" type="Node3D" parent="Docks/Dock_ruin" unique_id=453371262 instance=ExtResource("62_lnui6")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1965,9 +1969,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "carved", "window")
 source_glb = "res://assets/kit/persian/persian_wall_rock_window_dark.glb"
 
-[node name="rock_0_6" type="Node3D" parent="Docks/Dock_ruin" unique_id=1180732114 instance=ExtResource("60_hl5ji")]
+[node name="rock_0_6" type="Node3D" parent="Docks/Dock_ruin" unique_id=259536364 instance=ExtResource("61_usfw7")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -1975,9 +1979,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "carved")
 source_glb = "res://assets/kit/persian/persian_wall_rock.glb"
 
-[node name="Cornice_4_0" type="Node3D" parent="Docks/Dock_ruin" unique_id=1292033538 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_0" type="Node3D" parent="Docks/Dock_ruin" unique_id=121719454 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1985,9 +1989,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_1" type="Node3D" parent="Docks/Dock_ruin" unique_id=1719872741 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_1" type="Node3D" parent="Docks/Dock_ruin" unique_id=1103481937 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -1995,9 +1999,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_2" type="Node3D" parent="Docks/Dock_ruin" unique_id=1890097178 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_2" type="Node3D" parent="Docks/Dock_ruin" unique_id=1903642693 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -2005,9 +2009,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_3" type="Node3D" parent="Docks/Dock_ruin" unique_id=1013410404 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_3" type="Node3D" parent="Docks/Dock_ruin" unique_id=1936137130 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -2015,9 +2019,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_4" type="Node3D" parent="Docks/Dock_ruin" unique_id=1017490818 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_4" type="Node3D" parent="Docks/Dock_ruin" unique_id=548406289 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 10, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -2025,9 +2029,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="rock_window_dark_4_-6" type="Node3D" parent="Docks/Dock_ruin" unique_id=1475908071 instance=ExtResource("61_2sy5s")]
+[node name="rock_window_dark_4_-6" type="Node3D" parent="Docks/Dock_ruin" unique_id=943591642 instance=ExtResource("62_lnui6")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -2035,9 +2039,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "carved", "window")
 source_glb = "res://assets/kit/persian/persian_wall_rock_window_dark.glb"
 
-[node name="rock_4_2" type="Node3D" parent="Docks/Dock_ruin" unique_id=233404606 instance=ExtResource("60_hl5ji")]
+[node name="rock_4_2" type="Node3D" parent="Docks/Dock_ruin" unique_id=480002625 instance=ExtResource("61_usfw7")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -2045,9 +2049,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "carved")
 source_glb = "res://assets/kit/persian/persian_wall_rock.glb"
 
-[node name="Cornice_8_0" type="Node3D" parent="Docks/Dock_ruin" unique_id=1833728550 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_0" type="Node3D" parent="Docks/Dock_ruin" unique_id=2010470814 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -2055,9 +2059,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_8_2" type="Node3D" parent="Docks/Dock_ruin" unique_id=436409965 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_8_2" type="Node3D" parent="Docks/Dock_ruin" unique_id=1877013185 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 4, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -2065,120 +2069,120 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="FacadeW" type="StaticBody3D" parent="Docks/Dock_ruin" unique_id=351557455]
+[node name="FacadeW" type="StaticBody3D" parent="Docks/Dock_ruin" unique_id=1339835895]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -6.5, 2, 0.3)
 collision_mask = 0
 
-[node name="@CollisionShape3D@7" type="CollisionShape3D" parent="Docks/Dock_ruin/FacadeW" unique_id=281325635]
-shape = SubResource("BoxShape3D_1wl3g")
+[node name="@CollisionShape3D@7" type="CollisionShape3D" parent="Docks/Dock_ruin/FacadeW" unique_id=1231644151]
+shape = SubResource("BoxShape3D_fkjwj")
 
-[node name="FacadeE" type="StaticBody3D" parent="Docks/Dock_ruin" unique_id=653605497]
+[node name="FacadeE" type="StaticBody3D" parent="Docks/Dock_ruin" unique_id=681763112]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.5, 2, 0.3)
 collision_mask = 0
 
-[node name="@CollisionShape3D@8" type="CollisionShape3D" parent="Docks/Dock_ruin/FacadeE" unique_id=2096677018]
-shape = SubResource("BoxShape3D_fp4v1")
+[node name="@CollisionShape3D@8" type="CollisionShape3D" parent="Docks/Dock_ruin/FacadeE" unique_id=534279338]
+shape = SubResource("BoxShape3D_qy2su")
 
-[node name="Lantern" type="Node3D" parent="Docks/Dock_ruin" unique_id=84269526 instance=ExtResource("12_vyubv")]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 3.9, 0, -2)
-script = ExtResource("3_kxnb4")
+[node name="Lantern" type="Node3D" parent="Docks/Dock_ruin" unique_id=623289484 instance=ExtResource("12_665uu")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 5.7, 0, -2.8)
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="Rubble" type="Node3D" parent="Docks/Dock_ruin" unique_id=1791191987 instance=ExtResource("62_usfw7")]
+[node name="Rubble" type="Node3D" parent="Docks/Dock_ruin" unique_id=1791191987 instance=ExtResource("63_4qadt")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0, 0.3)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_rubble.glb"
 
-[node name="Fishing" type="Node3D" parent="Docks/Dock_ruin" unique_id=428403372 groups=["fishing_spot"] instance=ExtResource("17_0m4a3")]
-transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, -5, 0, -1.2)
-script = ExtResource("3_kxnb4")
+[node name="Fishing" type="Node3D" parent="Docks/Dock_ruin" unique_id=623051422 groups=["fishing_spot"] instance=ExtResource("17_ym8r4")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 13.5, 0, -2.6)
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "fishing", "r20")
 source_glb = "res://assets/kit/walls/lk_fishing_spot.glb"
 
-[node name="Bell" type="Node3D" parent="Docks/Dock_ruin" unique_id=1019418789 groups=["lake_bell"] instance=ExtResource("20_p7gp7")]
+[node name="Bell" type="Node3D" parent="Docks/Dock_ruin" unique_id=86818745 groups=["lake_bell"] instance=ExtResource("20_15dcf")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.3, 0, -1)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("brass", "r20")
 source_glb = "res://assets/kit/walls/lk_bell.glb"
 metadata/stop = ""
 metadata/style = "ruin"
 
-[node name="Safe" type="Marker3D" parent="Docks/Dock_ruin" unique_id=8825575 groups=["lake_safe"]]
+[node name="Safe" type="Marker3D" parent="Docks/Dock_ruin" unique_id=109523908 groups=["lake_safe"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.85, -4.6)
 
-[node name="SunkW" type="Node3D" parent="Docks/Dock_ruin" unique_id=1035114783 groups=["lake_seeded"]]
+[node name="SunkW" type="Node3D" parent="Docks/Dock_ruin" unique_id=1371944492 groups=["lake_seeded"]]
 transform = Transform3D(0.3623577, 0, 0.9320391, 0, 1, 0, -0.9320391, 0, 0.3623577, -8.4, 0, -5)
 metadata/chance = 1.0
 metadata/one_of = "ruin_sunk"
 
-[node name="Boat" type="Node3D" parent="Docks/Dock_ruin/SunkW" unique_id=125347767 instance=ExtResource("63_lnui6")]
+[node name="Boat" type="Node3D" parent="Docks/Dock_ruin/SunkW" unique_id=125347767 instance=ExtResource("64_mh1os")]
 transform = Transform3D(0.89879405, -0.43837115, 0, 0.42534965, 0.872096, -0.2419219, 0.10605158, 0.21743797, 0.9702957, 0, -1.55, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("wood", "boat", "r20")
 source_glb = "res://assets/kit/walls/lk_boat.glb"
 metadata/sunk = true
 
-[node name="SunkE" type="Node3D" parent="Docks/Dock_ruin" unique_id=1832678451 groups=["lake_seeded"]]
+[node name="SunkE" type="Node3D" parent="Docks/Dock_ruin" unique_id=1793795914 groups=["lake_seeded"]]
 transform = Transform3D(-0.32328954, 0, -0.9463001, 0, 1, 0, 0.9463001, 0, -0.32328954, 8.8, 0, -5.4)
 metadata/chance = 1.0
 metadata/one_of = "ruin_sunk"
 
-[node name="Boat" type="Node3D" parent="Docks/Dock_ruin/SunkE" unique_id=360973328 instance=ExtResource("63_lnui6")]
+[node name="Boat" type="Node3D" parent="Docks/Dock_ruin/SunkE" unique_id=838128805 instance=ExtResource("64_mh1os")]
 transform = Transform3D(0.89879405, -0.43837115, 0, 0.42534965, 0.872096, -0.2419219, 0.10605158, 0.21743797, 0.9702957, 0, -1.55, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("wood", "boat", "r20")
 source_glb = "res://assets/kit/walls/lk_boat.glb"
 metadata/sunk = true
 
-[node name="Jars" type="Node3D" parent="Docks/Dock_ruin" unique_id=310448039 groups=["lake_seeded"]]
+[node name="Jars" type="Node3D" parent="Docks/Dock_ruin" unique_id=456673487 groups=["lake_seeded"]]
 transform = Transform3D(0.8253356, 0, 0.5646425, 0, 1, 0, -0.5646425, 0, 0.8253356, 6.4, 0, -1)
 metadata/chance = 0.7
 
-[node name="Jar" type="Node3D" parent="Docks/Dock_ruin/Jars" unique_id=1793101193 instance=ExtResource("64_4qadt")]
-script = ExtResource("3_kxnb4")
+[node name="Jar" type="Node3D" parent="Docks/Dock_ruin/Jars" unique_id=1793101193 instance=ExtResource("65_4af7f")]
+script = ExtResource("3_7sj3y")
 family = "dressing"
 tags = PackedStringArray("earthenware", "shards")
 source_glb = "res://assets/kit/dressing/prop_vase_floor_broken.glb"
 
-[node name="Jar2" type="Node3D" parent="Docks/Dock_ruin/Jars" unique_id=268439689 instance=ExtResource("64_4qadt")]
+[node name="Jar2" type="Node3D" parent="Docks/Dock_ruin/Jars" unique_id=1422242715 instance=ExtResource("65_4af7f")]
 transform = Transform3D(-0.41614684, 0, 0.9092974, 0, 1, 0, -0.9092974, 0, -0.41614684, 0.7, 0, 0.3)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "dressing"
 tags = PackedStringArray("earthenware", "shards")
 source_glb = "res://assets/kit/dressing/prop_vase_floor_broken.glb"
 
-[node name="Fallen" type="Node3D" parent="Docks/Dock_ruin" unique_id=2088475637 groups=["lake_seeded"]]
+[node name="Fallen" type="Node3D" parent="Docks/Dock_ruin" unique_id=1985370823 groups=["lake_seeded"]]
 transform = Transform3D(0.62161, 0, 0.7833269, 0, 1, 0, -0.7833269, 0, 0.62161, 8.6, 0, -1.6)
 metadata/chance = 0.7
 
-[node name="Rubble" type="Node3D" parent="Docks/Dock_ruin/Fallen" unique_id=909075006 instance=ExtResource("65_mh1os")]
-script = ExtResource("3_kxnb4")
+[node name="Rubble" type="Node3D" parent="Docks/Dock_ruin/Fallen" unique_id=909075006 instance=ExtResource("66_u3tkr")]
+script = ExtResource("3_7sj3y")
 family = "dressing"
 tags = PackedStringArray("stone", "debris", "seam")
 source_glb = "res://assets/kit/dressing/debris_rubble.glb"
 
-[node name="Sign" type="Node3D" parent="Docks/Dock_ruin" unique_id=396148366]
+[node name="Sign" type="Node3D" parent="Docks/Dock_ruin" unique_id=653513642]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.9, 0, -2.6)
 
-[node name="Post" type="MeshInstance3D" parent="Docks/Dock_ruin/Sign" unique_id=665241861]
+[node name="Post" type="MeshInstance3D" parent="Docks/Dock_ruin/Sign" unique_id=2134345340]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_fkjwj")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_jlpen")
 
-[node name="Board" type="MeshInstance3D" parent="Docks/Dock_ruin/Sign" unique_id=270311231]
+[node name="Board" type="MeshInstance3D" parent="Docks/Dock_ruin/Sign" unique_id=446027987]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, -0.09)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_qy2su")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_54lc8")
 
-[node name="Words" type="Label3D" parent="Docks/Dock_ruin/Sign" unique_id=1336978604]
+[node name="Words" type="Label3D" parent="Docks/Dock_ruin/Sign" unique_id=371679677]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 1.85, -0.13)
 pixel_size = 0.0045
 modulate = Color(0.93, 0.84, 0.62, 1)
@@ -2187,46 +2191,46 @@ outline_size = 0
 autowrap_mode = 3
 width = 400.0
 
-[node name="Dock_default" type="Node3D" parent="Docks" unique_id=337799474]
+[node name="Dock_default" type="Node3D" parent="Docks" unique_id=86695993]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0, -760)
 
-[node name="Rock" type="Node3D" parent="Docks/Dock_default" unique_id=66239225 instance=ExtResource("27_rlx2v")]
-script = ExtResource("3_kxnb4")
+[node name="Rock" type="Node3D" parent="Docks/Dock_default" unique_id=99442453 instance=ExtResource("27_yllvk")]
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("rock", "cavern", "dock", "r20")
 source_glb = "res://assets/kit/walls/lk_dock_a.glb"
 
-[node name="Water" type="MeshInstance3D" parent="Docks/Dock_default" unique_id=1080107160]
+[node name="Water" type="MeshInstance3D" parent="Docks/Dock_default" unique_id=551283634]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, -1.2, -26)
-material_override = ExtResource("25_wcp27")
+material_override = ExtResource("25_dp04v")
 cast_shadow = 0
-mesh = SubResource("PlaneMesh_jlpen")
+mesh = SubResource("PlaneMesh_ej305")
 
-[node name="Mist" type="FogVolume" parent="Docks/Dock_default" unique_id=1338132559]
+[node name="Mist" type="FogVolume" parent="Docks/Dock_default" unique_id=1658308606]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -10, 0, -26)
 size = Vector3(72, 3.6, 72)
-material = SubResource("FogMaterial_54lc8")
-
-[node name="ChannelFog_0" type="FogVolume" parent="Docks/Dock_default" unique_id=1253458688]
-transform = Transform3D(0.3417431, 0, 0.9397934, 0, 1, 0, -0.9397934, 0, 0.3417431, -32, 1.8, -51)
-size = Vector3(22, 8, 26)
-material = SubResource("FogMaterial_ej305")
-
-[node name="ChannelFog_1" type="FogVolume" parent="Docks/Dock_default" unique_id=845080320]
-transform = Transform3D(0.3417431, 0, -0.9397934, 0, 1, 0, 0.9397934, 0, 0.3417431, 32, 1.8, -51)
-size = Vector3(22, 8, 26)
 material = SubResource("FogMaterial_cc40w")
 
-[node name="Quay" type="Node3D" parent="Docks/Dock_default" unique_id=789798533 instance=ExtResource("28_yllvk")]
+[node name="ChannelFog_0" type="FogVolume" parent="Docks/Dock_default" unique_id=1591412223]
+transform = Transform3D(0.3417431, 0, 0.9397934, 0, 1, 0, -0.9397934, 0, 0.3417431, -32, 1.8, -51)
+size = Vector3(22, 8, 26)
+material = SubResource("FogMaterial_fm5am")
+
+[node name="ChannelFog_1" type="FogVolume" parent="Docks/Dock_default" unique_id=2091206206]
+transform = Transform3D(0.3417431, 0, -0.9397934, 0, 1, 0, 0.9397934, 0, 0.3417431, 32, 1.8, -51)
+size = Vector3(22, 8, 26)
+material = SubResource("FogMaterial_tbjmr")
+
+[node name="Quay" type="Node3D" parent="Docks/Dock_default" unique_id=416145140 instance=ExtResource("28_dw65d")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("stone", "quay", "r20")
 source_glb = "res://assets/kit/walls/lk_landing_quay.glb"
 
-[node name="rock_0_-6" type="Node3D" parent="Docks/Dock_default" unique_id=2017118326 instance=ExtResource("60_hl5ji")]
+[node name="rock_0_-6" type="Node3D" parent="Docks/Dock_default" unique_id=669558817 instance=ExtResource("61_usfw7")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -2234,9 +2238,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "carved")
 source_glb = "res://assets/kit/persian/persian_wall_rock.glb"
 
-[node name="Arch" type="Node3D" parent="Docks/Dock_default" unique_id=967850588 instance=ExtResource("2_2vbtd")]
+[node name="Arch" type="Node3D" parent="Docks/Dock_default" unique_id=994391271 instance=ExtResource("2_kxnb4")]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "walls"
 size_cells = Vector3i(1, 1, 0)
@@ -2245,13 +2249,13 @@ tags = PackedStringArray("brick", "structure", "passage")
 weight = 2.0
 source_glb = "res://assets/kit/walls/wall_arch_3m.glb"
 
-[node name="Door" type="Node3D" parent="Docks/Dock_default" unique_id=98585186]
+[node name="Door" type="Node3D" parent="Docks/Dock_default" unique_id=701802813]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 0, 0)
-script = ExtResource("4_7sj3y")
+script = ExtResource("32_m57wy")
 
-[node name="rock_0_2" type="Node3D" parent="Docks/Dock_default" unique_id=41031825 instance=ExtResource("60_hl5ji")]
+[node name="rock_0_2" type="Node3D" parent="Docks/Dock_default" unique_id=1008443681 instance=ExtResource("61_usfw7")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 1, 0)
@@ -2259,9 +2263,9 @@ edge = "solid"
 tags = PackedStringArray("scenery", "persian", "wall", "carved")
 source_glb = "res://assets/kit/persian/persian_wall_rock.glb"
 
-[node name="Cornice_4_0" type="Node3D" parent="Docks/Dock_default" unique_id=404925905 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_0" type="Node3D" parent="Docks/Dock_default" unique_id=1213038204 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, -2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -2269,9 +2273,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_1" type="Node3D" parent="Docks/Dock_default" unique_id=1398686068 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_1" type="Node3D" parent="Docks/Dock_default" unique_id=1120543099 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 2, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -2279,9 +2283,9 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="Cornice_4_2" type="Node3D" parent="Docks/Dock_default" unique_id=1640453336 instance=ExtResource("34_g6f4m")]
+[node name="Cornice_4_2" type="Node3D" parent="Docks/Dock_default" unique_id=1046794565 instance=ExtResource("35_evc4u")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 6, 0, 0)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 shape = 0
 family = "persian"
 size_cells = Vector3i(1, 0, 0)
@@ -2289,112 +2293,112 @@ edge = "none"
 tags = PackedStringArray("scenery", "persian", "house", "trim")
 source_glb = "res://assets/kit/persian/persian_cornice.glb"
 
-[node name="FacadeW" type="StaticBody3D" parent="Docks/Dock_default" unique_id=1305415125]
+[node name="FacadeW" type="StaticBody3D" parent="Docks/Dock_default" unique_id=1705053971]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, 2, 0.3)
 collision_mask = 0
 
-[node name="@CollisionShape3D@9" type="CollisionShape3D" parent="Docks/Dock_default/FacadeW" unique_id=960683167]
-shape = SubResource("BoxShape3D_fm5am")
+[node name="@CollisionShape3D@9" type="CollisionShape3D" parent="Docks/Dock_default/FacadeW" unique_id=1794933656]
+shape = SubResource("BoxShape3D_f83l1")
 
-[node name="FacadeE" type="StaticBody3D" parent="Docks/Dock_default" unique_id=460778003]
+[node name="FacadeE" type="StaticBody3D" parent="Docks/Dock_default" unique_id=131231299]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 4, 2, 0.3)
 collision_mask = 0
 
-[node name="@CollisionShape3D@10" type="CollisionShape3D" parent="Docks/Dock_default/FacadeE" unique_id=89538619]
-shape = SubResource("BoxShape3D_tbjmr")
+[node name="@CollisionShape3D@10" type="CollisionShape3D" parent="Docks/Dock_default/FacadeE" unique_id=79831875]
+shape = SubResource("BoxShape3D_l6q2p")
 
-[node name="LanternW" type="Node3D" parent="Docks/Dock_default" unique_id=1973478071 instance=ExtResource("12_vyubv")]
-transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4.4, 0, -2.2)
-script = ExtResource("3_kxnb4")
+[node name="LanternW" type="Node3D" parent="Docks/Dock_default" unique_id=931777786 instance=ExtResource("12_665uu")]
+transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.7, 0, -2.8)
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="LanternE" type="Node3D" parent="Docks/Dock_default" unique_id=2067299381 instance=ExtResource("12_vyubv")]
-transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.4, 0, -2.2)
-script = ExtResource("3_kxnb4")
+[node name="LanternE" type="Node3D" parent="Docks/Dock_default" unique_id=569418001 instance=ExtResource("12_665uu")]
+transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 5.7, 0, -2.8)
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="Crates" type="Node3D" parent="Docks/Dock_default" unique_id=1869435784 instance=ExtResource("13_665uu")]
+[node name="Crates" type="Node3D" parent="Docks/Dock_default" unique_id=734556159 instance=ExtResource("13_tun10")]
 transform = Transform3D(0.9800666, 0, 0.19866933, 0, 1, 0, -0.19866933, 0, 0.9800666, -4.2, 0, -0.9)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_crates.glb"
 
-[node name="Traps" type="Node3D" parent="Docks/Dock_default" unique_id=788035302 instance=ExtResource("23_rhrpk")]
+[node name="Traps" type="Node3D" parent="Docks/Dock_default" unique_id=743898621 instance=ExtResource("23_6vcf5")]
 transform = Transform3D(0.7648422, 0, 0.64421767, 0, 1, 0, -0.64421767, 0, 0.7648422, 6.5, 0, -1.5)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("dressing", "r20")
 source_glb = "res://assets/kit/walls/lk_traps.glb"
 
-[node name="Boat" type="Marker3D" parent="Docks/Dock_default" unique_id=1362815041 groups=["lake_boat_slot"]]
+[node name="Boat" type="Marker3D" parent="Docks/Dock_default" unique_id=1667369534 groups=["lake_boat_slot"]]
 transform = Transform3D(0.0998334, 0, 0.9950042, 0, 1, 0, -0.9950042, 0, 0.0998334, 7.2, -1.2, -4)
 metadata/always = true
 
-[node name="Bell" type="Node3D" parent="Docks/Dock_default" unique_id=1649382467 groups=["lake_bell"] instance=ExtResource("20_p7gp7")]
+[node name="Bell" type="Node3D" parent="Docks/Dock_default" unique_id=1628309416 groups=["lake_bell"] instance=ExtResource("20_15dcf")]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 4.3, 0, -1)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("brass", "r20")
 source_glb = "res://assets/kit/walls/lk_bell.glb"
 metadata/stop = ""
 metadata/style = "default"
 
-[node name="Safe" type="Marker3D" parent="Docks/Dock_default" unique_id=891068946 groups=["lake_safe"]]
+[node name="Safe" type="Marker3D" parent="Docks/Dock_default" unique_id=526162685 groups=["lake_safe"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, -0.85, -4.6)
 
-[node name="StripLanternW" type="Node3D" parent="Docks/Dock_default" unique_id=50410458 instance=ExtResource("12_vyubv")]
+[node name="StripLanternW" type="Node3D" parent="Docks/Dock_default" unique_id=505595010 instance=ExtResource("12_665uu")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, -11.2, 0, -2.75)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="StripLanternE" type="Node3D" parent="Docks/Dock_default" unique_id=215971296 instance=ExtResource("12_vyubv")]
+[node name="StripLanternE" type="Node3D" parent="Docks/Dock_default" unique_id=2034857842 instance=ExtResource("12_665uu")]
 transform = Transform3D(-4.371139e-08, 0, -1, 0, 1, 0, 1, 0, -4.371139e-08, 11.2, 0, -2.75)
-script = ExtResource("3_kxnb4")
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("light", "lantern", "r20")
 source_glb = "res://assets/kit/walls/lk_lantern_post.glb"
 
-[node name="Sitter" type="Node3D" parent="Docks/Dock_default" unique_id=541425608 groups=["lake_seeded"]]
+[node name="Sitter" type="Node3D" parent="Docks/Dock_default" unique_id=937275830 groups=["lake_seeded"]]
 transform = Transform3D(-0.95533645, 0, -0.29552025, 0, 1, 0, 0.29552025, 0, -0.95533645, -9, 0, -1.3)
 metadata/chance = 0.5
 
-[node name="Figure" type="Node3D" parent="Docks/Dock_default/Sitter" unique_id=583674681 instance=ExtResource("47_p6hrs")]
-script = ExtResource("3_kxnb4")
+[node name="Figure" type="Node3D" parent="Docks/Dock_default/Sitter" unique_id=681049702 instance=ExtResource("48_7kull")]
+script = ExtResource("3_7sj3y")
 family = "walls"
 tags = PackedStringArray("quarter", "r06")
 source_glb = "res://assets/kit/walls/qt_fig_sit.glb"
 
-[node name="BoatSeed_0" type="Marker3D" parent="Docks/Dock_default" unique_id=1883799204 groups=["lake_boat_slot"]]
+[node name="BoatSeed_0" type="Marker3D" parent="Docks/Dock_default" unique_id=1252628047 groups=["lake_boat_slot"]]
 transform = Transform3D(-0.09983336, 0, 0.9950042, 0, 1, 0, -0.9950042, 0, -0.09983336, -7.2, -1.2, -4.1)
 metadata/pool = "default"
 metadata/most = 1
 
-[node name="BoatSeed_1" type="Marker3D" parent="Docks/Dock_default" unique_id=323822117 groups=["lake_boat_slot"]]
+[node name="BoatSeed_1" type="Marker3D" parent="Docks/Dock_default" unique_id=1837488101 groups=["lake_boat_slot"]]
 transform = Transform3D(-4.371139e-08, 0, 1, 0, 1, 0, -1, 0, -4.371139e-08, 12.3, -1.2, -4.1)
 metadata/pool = "default"
 metadata/most = 1
 
-[node name="Sign" type="Node3D" parent="Docks/Dock_default" unique_id=980001025]
+[node name="Sign" type="Node3D" parent="Docks/Dock_default" unique_id=83426300]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -5.9, 0, -2.6)
 
-[node name="Post" type="MeshInstance3D" parent="Docks/Dock_default/Sign" unique_id=650164614]
+[node name="Post" type="MeshInstance3D" parent="Docks/Dock_default/Sign" unique_id=242316452]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.1, 0)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_f83l1")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_if2h2")
 
-[node name="Board" type="MeshInstance3D" parent="Docks/Dock_default/Sign" unique_id=771797949]
+[node name="Board" type="MeshInstance3D" parent="Docks/Dock_default/Sign" unique_id=1440489758]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 1.85, -0.09)
-material_override = ExtResource("21_15dcf")
-mesh = SubResource("BoxMesh_l6q2p")
+material_override = ExtResource("21_kgtes")
+mesh = SubResource("BoxMesh_cb1x5")
 
-[node name="Words" type="Label3D" parent="Docks/Dock_default/Sign" unique_id=1539001288]
+[node name="Words" type="Label3D" parent="Docks/Dock_default/Sign" unique_id=1550605522]
 transform = Transform3D(-1, 0, -8.742278e-08, 0, 1, 0, 8.742278e-08, 0, -1, 0, 1.85, -0.13)
 pixel_size = 0.0045
 modulate = Color(0.93, 0.84, 0.62, 1)
@@ -2403,79 +2407,79 @@ outline_size = 0
 autowrap_mode = 3
 width = 400.0
 
-[node name="Markers" type="Node3D" parent="." unique_id=421792740]
+[node name="Markers" type="Node3D" parent="." unique_id=1143744328]
 
-[node name="BoatSlot_0" type="Marker3D" parent="Markers" unique_id=950208188 groups=["lake_boat_slot"]]
+[node name="BoatSlot_0" type="Marker3D" parent="Markers" unique_id=986703510 groups=["lake_boat_slot"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 6.05, -1.2, -21.5)
 metadata/lantern = false
 metadata/inside = false
 
-[node name="BoatSlot_1" type="Marker3D" parent="Markers" unique_id=1957306838 groups=["lake_boat_slot"]]
+[node name="BoatSlot_1" type="Marker3D" parent="Markers" unique_id=929755899 groups=["lake_boat_slot"]]
 transform = Transform3D(0.99875027, 0, 0.04997917, 0, 1, 0, -0.04997917, 0, 0.99875027, 6.05, -1.2, -28.5)
 metadata/lantern = true
 metadata/inside = false
 
-[node name="BoatSlot_2" type="Marker3D" parent="Markers" unique_id=671817066 groups=["lake_boat_slot"]]
+[node name="BoatSlot_2" type="Marker3D" parent="Markers" unique_id=1074609425 groups=["lake_boat_slot"]]
 transform = Transform3D(0.9992001, 0, -0.039989334, 0, 1, 0, 0.039989334, 0, 0.9992001, 6.05, -1.2, -33.4)
 metadata/lantern = false
 metadata/inside = false
 
-[node name="BoatSlot_3" type="Marker3D" parent="Markers" unique_id=560859204 groups=["lake_boat_slot"]]
+[node name="BoatSlot_3" type="Marker3D" parent="Markers" unique_id=1501620929 groups=["lake_boat_slot"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 9.95, -1.2, -24)
 metadata/lantern = true
 metadata/inside = false
 
-[node name="BoatSlot_4" type="Marker3D" parent="Markers" unique_id=943218399 groups=["lake_boat_slot"]]
+[node name="BoatSlot_4" type="Marker3D" parent="Markers" unique_id=158748559 groups=["lake_boat_slot"]]
 transform = Transform3D(0.99820054, 0, 0.059964005, 0, 1, 0, -0.059964005, 0, 0.99820054, 9.95, -1.2, -31.6)
 metadata/lantern = false
 metadata/inside = false
 
-[node name="BoatSlot_5" type="Marker3D" parent="Markers" unique_id=2109750339 groups=["lake_boat_slot"]]
+[node name="BoatSlot_5" type="Marker3D" parent="Markers" unique_id=485145691 groups=["lake_boat_slot"]]
 transform = Transform3D(-0.09983336, 0, 0.9950042, 0, 1, 0, -0.9950042, 0, -0.09983336, -12.4, -1.2, -21.2)
 metadata/lantern = true
 metadata/inside = false
 
-[node name="BoatSlot_6" type="Marker3D" parent="Markers" unique_id=1804891811 groups=["lake_boat_slot"]]
+[node name="BoatSlot_6" type="Marker3D" parent="Markers" unique_id=1819271201 groups=["lake_boat_slot"]]
 transform = Transform3D(0.9800666, 0, -0.19866933, 0, 1, 0, 0.19866933, 0, 0.9800666, -3.6, -1.2, -21.8)
 metadata/lantern = true
 metadata/inside = false
 
-[node name="BoatSlot_7" type="Marker3D" parent="Markers" unique_id=1148774616 groups=["lake_boat_slot"]]
+[node name="BoatSlot_7" type="Marker3D" parent="Markers" unique_id=1128549874 groups=["lake_boat_slot"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -15.45, -1.2, -14.6)
 metadata/lantern = false
 metadata/inside = true
 
-[node name="BoatSlot_8" type="Marker3D" parent="Markers" unique_id=2097692550 groups=["lake_boat_slot"]]
+[node name="BoatSlot_8" type="Marker3D" parent="Markers" unique_id=1028742219 groups=["lake_boat_slot"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -11.45, -1.2, -14.6)
 metadata/lantern = false
 metadata/inside = true
 
-[node name="BoatSlot_9" type="Marker3D" parent="Markers" unique_id=1022566885 groups=["lake_boat_slot"]]
+[node name="BoatSlot_9" type="Marker3D" parent="Markers" unique_id=178589043 groups=["lake_boat_slot"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -7.45, -1.2, -14.6)
 metadata/lantern = false
 metadata/inside = true
 
-[node name="SafeSteps" type="Marker3D" parent="Markers" unique_id=467035073 groups=["lake_safe"]]
+[node name="SafeSteps" type="Marker3D" parent="Markers" unique_id=1606202480 groups=["lake_safe"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -11)
 
-[node name="SafeShelf" type="Marker3D" parent="Markers" unique_id=498942983 groups=["lake_safe"]]
+[node name="SafeShelf" type="Marker3D" parent="Markers" unique_id=552532439 groups=["lake_safe"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -4, -1.6, -16.5)
 
-[node name="SafeStage" type="Marker3D" parent="Markers" unique_id=1152894468 groups=["lake_safe"]]
+[node name="SafeStage" type="Marker3D" parent="Markers" unique_id=1978055493 groups=["lake_safe"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 8, -0.85, -39.6)
 
-[node name="SafeBoardwalk" type="Marker3D" parent="Markers" unique_id=961436321 groups=["lake_safe"]]
+[node name="SafeBoardwalk" type="Marker3D" parent="Markers" unique_id=833105031 groups=["lake_safe"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, -12, 0.05, -8.6)
 
-[node name="Ferry" type="Node3D" parent="." unique_id=2068840025]
-script = ExtResource("66_4af7f")
+[node name="Ferry" type="Node3D" parent="." unique_id=1143561905]
+script = ExtResource("67_7vgdo")
 
-[node name="Life" type="Node3D" parent="." unique_id=274296031]
-script = ExtResource("67_u3tkr")
+[node name="Life" type="Node3D" parent="." unique_id=238104773]
+script = ExtResource("68_g8107")
 
-[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=1106759371 groups=["player_spawn"]]
+[node name="PlayerSpawn" type="Marker3D" parent="." unique_id=1613136757 groups=["player_spawn"]]
 transform = Transform3D(1, 0, 0, 0, 1, 0, 0, 0, 1, 0, 0.05, -2.5)
 
-[node name="Atmosphere" type="Node" parent="." unique_id=856657924]
-script = ExtResource("68_7vgdo")
-profile = ExtResource("69_g8107")
+[node name="Atmosphere" type="Node" parent="." unique_id=645277029]
+script = ExtResource("69_2vfcn")
+profile = ExtResource("70_x2i1q")

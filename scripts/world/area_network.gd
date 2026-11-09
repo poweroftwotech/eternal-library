@@ -96,15 +96,35 @@ static func plan(p: AreaPlan, net: GorgeNetwork) -> void:
 	var ledge_cache: Dictionary = {}
 	var best: Dictionary = {}
 	var dead: Dictionary = {}      # main spans whose trees came up short
-	for t: int in TRIES:
+	# The try that won last time for these inputs, replayed (MEMO_PATH): a
+	# world can take dozens of tries (20 s) to reach every door, and the camp
+	# planned the Gorge again each time you came back to it.
+	var key: String = _memo_key(p, net, fixed, want, bridge)
+	var memo: Dictionary = _memo_get(key)
+	if not memo.is_empty():
+		var was_dead: Dictionary = {}
+		for e: Variant in memo["dead"]:
+			was_dead[int(e)] = true
+		var g: Dictionary = _tree(p, net, by_conn, main_id, fixed, fixed_open, want, bridge, int(memo["t"]), ledge_cache, was_dead)
+		if (g["ledges"] as Array).size() == int(memo["ledges"]) and _doors_missing(net, g["ledges"]) == int(memo["missing"]):
+			best = g
+			p.stats["network_memo"] = true
+	var best_t: int = -1
+	var best_dead: Array = []
+	for t: int in (TRIES if best.is_empty() else 0):
+		var dead_before: Array = dead.keys()
 		var g: Dictionary = _tree(p, net, by_conn, main_id, fixed, fixed_open, want, bridge, t, ledge_cache, dead)
 		if best.is_empty() or _score(net, g) > _score(net, best):
 			best = g
+			best_t = t
+			best_dead = dead_before
 		if (g["ledges"] as Array).size() < net.ledges.x and not (g["links"] as Array).is_empty():
 			dead[g["links"][0]["entry"]] = true      # the next tries leave the Overlook another way
 		var held: bool = _doors_missing(net, best["ledges"]) == 0
 		if held and ((best["ledges"] as Array).size() >= want or (t >= ENOUGH_TRIES and (best["ledges"] as Array).size() >= net.ledges.x)):
 			break
+	if best_t >= 0:
+		_memo_put(key, {"t": best_t, "dead": best_dead, "ledges": (best["ledges"] as Array).size(), "missing": _doors_missing(net, best["ledges"])})
 	p.stats["ledges_wanted"] = want
 	if _doors_missing(net, best["ledges"]) > 0:
 		p.errors.append("network: no tree reaches every door (%d missing)" % _doors_missing(net, best["ledges"]))
@@ -112,6 +132,54 @@ static func plan(p: AreaPlan, net: GorgeNetwork) -> void:
 		p.errors.append("network: the main span finds no ledge on the %s cliff" % net.main_cliff)
 		return
 	_commit(p, net, best["ledges"], best["links"])
+
+
+## Where the winning tries are kept, across runs: {key: {t, dead, ledges, missing}}.
+const MEMO_PATH: String = "user://gorge_network_memo.json"
+const MEMO_MOST: int = 64
+static var _memo: Dictionary = {}
+static var _memo_read: bool = false
+static var _memo_lock := Mutex.new()
+
+
+## What a plan's tries depend on: the seeds, the recipe, the doors, the rooms
+## planned already (their boxes) and the links' table.
+static func _memo_key(p: AreaPlan, net: GorgeNetwork, fixed: Array[AABB], want: int, bridge: bool) -> String:
+	var doors: PackedStringArray = []
+	for s: FrontageSlot in net.frontage.slots:
+		if s != null and s.door != "":
+			doors.append("%s=%s" % [s.id, s.door])
+	doors.sort()
+	var boxes: PackedStringArray = []
+	for b: AABB in fixed:
+		boxes.append(str(b.position.snapped(Vector3.ONE * 0.01)) + str(b.size.snapped(Vector3.ONE * 0.01)))
+	return "%s|%d|%d|%d|%d|%s|%d|%s|%d" % [p.area_id, p.area_seed, p.world_seed, p.recipe_version, want, bridge, net.links.entries.size(),
+		",".join(doors), hash(",".join(boxes))]
+
+
+static func _memo_get(key: String) -> Dictionary:
+	_memo_lock.lock()
+	if not _memo_read:
+		_memo_read = true
+		var d: Variant = JSON.parse_string(FileAccess.get_file_as_string(MEMO_PATH)) if FileAccess.file_exists(MEMO_PATH) else null
+		if d is Dictionary:
+			_memo = d
+	var out: Dictionary = (_memo.get(key, {}) as Dictionary).duplicate()
+	_memo_lock.unlock()
+	return out
+
+
+static func _memo_put(key: String, entry: Dictionary) -> void:
+	_memo_lock.lock()
+	_memo.erase(key)
+	while _memo.size() >= MEMO_MOST:
+		_memo.erase(_memo.keys()[0])     # the oldest first
+	_memo[key] = entry
+	var f: FileAccess = FileAccess.open(MEMO_PATH, FileAccess.WRITE)
+	if f != null:
+		f.store_string(JSON.stringify(_memo))
+		f.close()
+	_memo_lock.unlock()
 
 
 ## One tree, its links' order shuffled by try `t`: {ledges: [{slot, first,

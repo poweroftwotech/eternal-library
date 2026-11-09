@@ -72,7 +72,7 @@ const CARD_MAT: Material = preload("res://kit/materials/gorge_window.tres")
 ## Set once opened: the travel is under way.
 var crossed: bool = false
 ## What the door says it opens onto (the place's name); "" = `to`.
-var to_name: String = ""
+@export var to_name: String = ""
 
 
 func _ready() -> void:

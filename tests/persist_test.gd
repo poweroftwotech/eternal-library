@@ -32,6 +32,8 @@ extends SceneTree
 ##           the Gorge, past the camp's doorway sill.
 ## camp_door: the camp's back door with the Sanctum behind it (door travel):
 ##           open it, arrive in the Sanctum, open its entrance back to the camp.
+## lake_door: the camp's back door to the Lake Landing (phase 18 step 5): open
+##           it, arrive in the harbour's passage, open its door back to the camp.
 
 var main_script: GDScript = load("res://scripts/main.gd")
 const STACK_GALLERY: String = "res://rooms/test/reading_room_r02.tscn"
@@ -79,6 +81,8 @@ func run() -> void:
 		main_script.room_override = "camp"
 	elif mode == "door_save" or mode == "mid_save":
 		main_script.room_override = "area:gorge"
+	if mode == "lake_door":
+		main_script.room_override = "camp"
 	if mode.begins_with("mid_"):
 		# Doors travel (door travel, 2026-11-01); the passage between places
 		# streamed into one world (SeamlessPlaces) is kept for a hub other than
@@ -158,6 +162,8 @@ func run() -> void:
 			await corridor_load_mode()
 		"camp_door":
 			await camp_door_mode()
+		"lake_door":
+			await lake_door_mode()
 	finish(mode, true)
 
 
@@ -1168,3 +1174,30 @@ func open_facing(at: Transform3D, place: String) -> bool:
 	for _i: int in 12:
 		await physics_frame
 	return true
+
+
+func lake_door_mode() -> void:
+	check(game.world is CampRoom, "the game starts in the camp")
+	var door: Threshold = game.world.get_node_or_null("Threshold_lake") if game.world is CampRoom else null
+	check(door != null and door.look == "ornate" and door.to == "lake", "the camp's back door is an ornate door to the Lake Landing")
+	if door == null:
+		return
+	if not await open_facing(door.global_transform, "the Lake Landing"):
+		return
+	check(game.place_id() == "lake" and game.world.get_node_or_null("Ferry") != null, "opening it travels to the Lake Landing (%s)" % game.place_id())
+	var spawn: Node3D = game.world.get_node_or_null("PlayerSpawn") as Node3D
+	check(spawn != null and game.player.global_position.distance_to(spawn.global_position) < 1.0,
+		"arrived at the passage's spawn (%s, spawn %s)" % [game.player.global_position, spawn.global_position if spawn != null else Vector3.ZERO])
+	var entry: Threshold = game.world.find_child("EntryDoor", true, false) as Threshold
+	check(entry != null and entry.to == "camp" and entry.look == "ornate", "the passage's door is an ornate door to the camp (%s)" % [entry.to if entry != null else "none"])
+	if entry == null:
+		return
+	if not await open_facing(entry.global_transform, "the camp"):
+		return
+	check(game.world is CampRoom, "opening it travels back to the camp (%s)" % game.world)
+	var home: Threshold = game.world.get_node_or_null("Threshold_lake") if game.world is CampRoom else null
+	if home == null:
+		return
+	var want: Vector3 = home.global_transform * Vector3(0, .1, Area.ARRIVE_IN)
+	check(game.player.global_position.distance_to(want) < .3 and (-game.player.global_basis.z).dot(home.global_basis.z) > .95,
+		"just inside the camp's back door, facing in (%s, want %s)" % [game.player.global_position, want])

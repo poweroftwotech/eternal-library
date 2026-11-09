@@ -82,11 +82,12 @@ func _ready() -> void:
 	add_to_group("choice_handler")
 	if _ws() != null:
 		LakeLayout.world_seed = int(_ws().call("world_seed"))
-	_build()
 	var saved: Dictionary = _ws().data.get("lake", {}) if _ws() != null else {}
 	var stop: String = str(saved.get("ferry_at", "quay"))
 	at = stop if stop in LakeLayout.stops() else "quay"
-	body.global_transform = dock_pose(at)
+	# The barge is built at its dock: built at the origin, its first step
+	# swept it across the harbour, shoving whoever stood in the passage.
+	_build()
 	if _ws() != null:
 		_ws().saving.connect(_on_saving)
 	for bell: Node in get_tree().get_nodes_in_group("lake_bell"):
@@ -131,6 +132,7 @@ func _build() -> void:
 	body.sync_to_physics = true
 	body.collision_layer = 1
 	body.collision_mask = 0
+	body.transform = global_transform.affine_inverse() * dock_pose(at)
 	add_child(body)
 	visual = (load("res://kit/modules/walls/lk_ferry.tscn") as PackedScene).instantiate() as Node3D
 	visual.name = "Boat"

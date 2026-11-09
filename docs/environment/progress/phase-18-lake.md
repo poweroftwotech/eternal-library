@@ -340,3 +340,45 @@ Steps 1 and 2 were committed together (32a4552). The user asked to go on.
 - **Found while taking pictures:** the facade's top cornice was placed one storey too high on every dock and landing, so it floated about 3.5 m above the wall. It now sits on the wall.
 - **Pictures:** `previews/phase18_step4/` (seeds 1 and 5: each dock wide, both strips, a glow ledge). Headless gate clean.
 - **Look approved 2026-11-08 ("looks good").** Tests: ride 37/37, save 2/2, load 5/5 (separate processes), elsewhere 5/5. The harbour's own life (fisher, boats, hearth, fishing spots) is unchanged from the walks you approved. Route audit and frame gate come in step 5.
+- **Committed 2af0dd5** (2026-11-09).
+
+## Step 5: live and tested (2026-11-09, walked, committed: phase 18 complete)
+
+- **The harbour is behind the camp's back door** (your call, 2026-11-09: first built behind a Gorge door at bank 2's right cliff, then moved). The stratum plan has a new place, `lake` ("the Lake Landing", `rooms/lake/landing.tscn`), linked to the camp's back door (`SNAP_exit_front`). The Gorge keeps its four doors and its committed version (14).
+  - Opening the camp's back door loads the harbour. You arrive at the passage's spawn. The passage's ornate door takes you back just inside the camp's back door. It leads wherever the plan says the lake is reached from (`LakeLife._entry_door`).
+  - `main.cross` and `place_id` now handle a scene place of its own, not only areas and the camp (`StratumPlan.scenes()` / `scene_place()`).
+  - The docks' doors stay sealed (Q3).
+- **Found by the door test: the barge shoved you on arrival.** The barge was built at the origin and placed at its dock a moment later. On its first physics step it swept across the harbour and pushed anyone standing in the passage 1.2 m aside. It is now built already at its dock (`LakeFerry._build`).
+- **On the map** (`tools/map_trace.gd -- lake`, `gen/map/lake_*`):
+  - The lake is a traced place like the Gorge and the camp. Walkways are in ink, and open water has a pale blue wash edged where it meets rock, so the cavern's shape shows.
+  - Each dock is seeded for the trace (they lie across water from the rest).
+  - The ferry lines are dotted from the harbour's channel out to each dock's channel, drawn once you have seen both ends.
+  - Each dock is named by where its ferry goes (this world's dock styles).
+  - The camp was re-traced with its back door to the lake. Pictures: `previews/p11_step2/map_lake_near.png`, `map_lake_far.png`.
+- **Found by the trace: a 25 cm slot.** The landing quay's edge stones (x ±5..±5.25) had no collision, so the floor had a slot down to the lake bed between the landing quay and the strips. You stepped over it, but routes and the map trace could not. Landing quay rev 5: the edges collide.
+- **On the Strata Board:** the Lake Landing is listed by name, as behind the camp's back door, with a note (its docks and destinations, the ferry lines, sealed dock doors). The from-above view lists it with the camp's back door. No maps are flagged out of date.
+- **Found by the route audit: the ways onto the strips were blocked.** The landing quays' corner lanterns and crates came from before the side strips existed. Together they left about a 0.6 m squeeze onto the strips, and the player capsule needs 0.7 m. On docks only:
+  - the corner lantern posts now stand at the strips' water edge (x ±5.7, z -2.8);
+  - the ruin dock's fishing stool moved onto its east strip.
+  - Harbour landings are unchanged.
+- **Tests:**
+  - **Door both ways** (`persist_test.gd -- lake_door`, from the camp): 10/10.
+  - **Route** (`r20_ferry_test.gd -- route`, real controller): passage, quay, boardwalk, terrace, pier; at every dock, the stage up to the landing quay and both strips to their ends. The ruin's west strip is walked to 5.9 m only, because a rubble heap fills it past that by design. 22/22 in world seeds 1, 2, 3, 5, 8, 13 and 21.
+  - **Ride:** 37/37. **Save and load** (separate processes): 2/2 and 5/5.
+  - **Map:** `map_trace_test.gd -- lake_save` 11/11, then `-- lake_load` in a new process 5/5.
+  - **Frame gate** (`tests/r20_frame_gate.gd`, Medium 1080p): the harbour on foot, a ferry ride to every stop, and each dock's strips on foot, 212k frames judged. GPU 0.62 ms mean, 1.08 worst; frame 1.24 ms mean, 6.46 worst; at most 464 draw calls, 206 k triangles, 2 shadowed lights and 22 lights in reach. **PASS.**
+  - **Old failures, not from this step:** `map_stratum_test` and part of `map_trace_test` (the Gorge's doors to the Lower Stacks and the library wing) fail because those places left the stratum in the themed-areas rework.
+  - **`gorge_network_test`** (run while the lake had a Gorge door; the Gorge is now back as committed):
+    - The test read the scenery's clearing count before the clearing had finished over its frames. With a fifth door that showed up as a failure in 10 worlds. The test now waits for it, and the clearing passes.
+    - Still failing, as at the last commit: "4-6 ledges". The Gorge has planned 8-10 since its doors grew, and the test's expectation dates from phase 6.
+
+### The Gorge slow to come back after the lake (your report, 2026-11-09)
+
+Back in the camp from the lake, the Gorge took about 15 s to appear and froze the game when it did. Measured on the last commit too: the lake didn't cause it. It is how the camp builds the Gorge next door after every load. Two causes:
+- **The wait: planning the Gorge.** The camp plans the Gorge on a worker thread each time it loads. Finding a ledge network that reaches all four doors can take dozens of tries (world 1: 36 tries, 20-30 s). `AreaNetwork` now remembers the winning try for each world and door layout, in memory and in `user://gorge_network_memo.json`. Later loads replay that one try (0.4 s) and check it gives the same tree; any change of seed, recipe, doors or links searches again. Planned 4 worlds both ways: the same plan, room for room. A world's very first plan still searches.
+- **The freezes: door names.** Each door ledge asked `StratumPlan.place_name` what its door leads to. That loaded the destination's whole recipe with all its rooms on the main thread, 0.7-1.3 s a door, every time. Four door ledges gave four freezes. `StratumPlan.recipe_name` now reads the name from the recipe file's text (1 ms) and keeps it.
+- **Measured** (camp, 1600x900; before → after):
+  - fresh start: Gorge in 36 s → 8 s;
+  - back from the lake: 28 s → 2.9 s;
+  - frames over 50 ms while it builds: 4-5 → 0;
+  - slowest build step: 950 ms → 5 ms.

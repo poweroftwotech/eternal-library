@@ -720,7 +720,8 @@ func _recipe_note_text() -> String:
 	var place: Dictionary = _place(area_id)
 	match str(place.get("kind", "")):
 		"baked":
-			return "%s is one baked scene from kit pieces. It has no recipe and no seed: it's the same in every world." % str(place.get("name", area_id))
+			var baked: String = "%s is one baked scene from kit pieces. It has no recipe and no seed: it's the same in every world." % str(place.get("name", area_id))
+			return baked + (" " + str(place["note"]) if str(place.get("note", "")) != "" else "")
 		"scenery":
 			return "%s: baked scenery and the Overlook, both fixed, and a network of ledges and spans the world seed picks. Its ledges and spans get their own board in a later phase; you can still walk any seed here." % str(place.get("name", area_id))
 	if not recipes.has(area_id):

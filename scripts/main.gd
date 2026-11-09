@@ -233,12 +233,22 @@ func travel(path: String) -> void:
 ## Through a threshold (phase-6-design.md 5.7.6) into area `to`, or "camp":
 ## you arrive at its door back to where you were (an area's id, or "camp").
 func cross(to: String) -> void:
-	var from: String = (world as Area).recipe.id if world is Area else ("camp" if world is CampRoom else "")
-	if from == "" or not (to == "camp" or _exists(AREA_PREFIX + to)):
+	var from: String = place_id()
+	var scene: String = str(StratumPlan.current().scenes().get(to, ""))     # a place that is its own scene (the Lake Landing)
+	if from == "" or not (to == "camp" or scene != "" or _exists(AREA_PREFIX + to)):
 		return
 	ws().data["arrive"] = {"from": from}
 	Area.seed_override = -1     # each area plans from its own seed
-	travel(AREA_PREFIX + to if to != "camp" else "camp")
+	travel(scene if scene != "" else (AREA_PREFIX + to if to != "camp" else "camp"))
+
+## The stratum place you are in: an area's id, "camp", a scene place's id
+## ("lake"), or "" (a test room).
+func place_id() -> String:
+	if world is Area:
+		return (world as Area).recipe.id
+	if world is CampRoom:
+		return "camp"
+	return StratumPlan.current().scene_place(scene_path)
 
 ## The camp's door to `to` (an area id), or null.
 func _door_to(to: String) -> Threshold:

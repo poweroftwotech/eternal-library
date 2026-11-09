@@ -424,8 +424,11 @@ static func stratum() -> Dictionary:
 		var id: String = str(p["id"])
 		var path: String = str(p["path"])
 		if path.get_extension() != "tres":
-			places.append({"id": id, "name": CAMP_NAME if id == "camp" else id, "kind": "baked", "recipe": path,
-				"y0": SeamlessPlaces.CAMP_BOUNDS.position.y, "y1": SeamlessPlaces.CAMP_BOUNDS.end.y})
+			# The camp, or a place of its own behind a Gorge door (the Lake Landing).
+			var shown: String = CAMP_NAME if id == "camp" else sp.place_name(id)
+			places.append({"id": id, "name": shown.substr(0, 1).to_upper() + shown.substr(1), "kind": "baked", "recipe": path,
+				"y0": SeamlessPlaces.CAMP_BOUNDS.position.y, "y1": SeamlessPlaces.CAMP_BOUNDS.end.y,
+				"door": sp.door_slot(id) if id != "camp" else "", "note": _place_note(id)})
 			continue
 		var recipe: AreaRecipe = _load_recipe(path, false)
 		if recipe == null:
@@ -445,6 +448,18 @@ static func stratum() -> Dictionary:
 	door_places.append({"id": StratumPlan.CAMP_BACK_DOOR, "camp": true, "bank": 0, "cliff": "", "storey": 0, "width": 0, "area": sp.camp_back_area()})
 	return {"places": places, "links": sp.triples(), "door_places": door_places, "default_area": WORLD_STATE.DEFAULT_AREA,
 		"spare": spare_recipes(sp), "mtime": _mtime(stratum_path), "path": stratum_path, "map": map_state(sp)}
+
+
+## What the board says of a baked place beyond its being baked: the Lake
+## Landing's docks and the ferry lines between them (phase 18).
+static func _place_note(id: String) -> String:
+	if id != "lake":
+		return ""
+	var names: PackedStringArray = []
+	for stop: String in LakeLayout.stops():
+		if stop != "quay":
+			names.append(LakeLayout.stop_name(stop))
+	return "Its harbour and a dock for each place the ferry goes (gen/lake/ferry_table.tres), joined by ferry lines through the fog: %s. Doors from the docks stay sealed; it is reached by the camp's back door (moved in the stratum plan file)." % ", ".join(names)
 
 
 ## The traced maps (MapTrace) that no longer match their place: [{place, why}].
@@ -751,6 +766,14 @@ static func layout(world_seed: int) -> Dictionary:
 			placed[id] = [ip, frame]     # only places streamed into one world must not share space
 		var door: Vector3 = SeamlessPlaces._door_xf(gp, id).origin
 		areas.append({"id": id, "name": recipe.display_name, "quads": _quads(ip, frame), "door": [door.x, door.z], "error": ""})
+	for id: String in sp.scenes():     # a place of its own: no floors here (a dot at its Gorge door)
+		if sp.door_slot(id) == StratumPlan.CAMP_BACK_DOOR:
+			var named: String = sp.place_name(id)
+			areas.append({"id": id, "name": named.substr(0, 1).to_upper() + named.substr(1), "quads": [], "error": "", "camp": true})
+		elif sp.door_link(id).get("a", "") == "gorge" and not gp.threshold(id).is_empty():
+			var door: Vector3 = SeamlessPlaces._door_xf(gp, id).origin
+			var shown: String = sp.place_name(id)
+			areas.append({"id": id, "name": shown.substr(0, 1).to_upper() + shown.substr(1), "quads": [], "door": [door.x, door.z], "error": ""})
 	var overlaps: Array = []
 	var ids: Array = placed.keys()
 	for i: int in ids.size():

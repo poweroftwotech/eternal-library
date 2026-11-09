@@ -13,9 +13,9 @@ extends Resource
 const TILE: float = 8.0
 ## The built files each traced place comes from (a folder: every file in it).
 const SOURCES: Dictionary = {"gorge": ["res://rooms/gorge/overlook.tscn", "res://rooms/baked/gorge.tscn", "res://rooms/baked/gorge"],
-	"camp": ["res://rooms/camp/camp.tscn"]}
+	"camp": ["res://rooms/camp/camp.tscn"], "lake": ["res://rooms/lake/landing.tscn"]}
 
-## The place ("gorge", "camp").
+## The place ("gorge", "camp", "lake").
 @export var place: String = ""
 ## Metres (x, z) of the corner of sample (0, 0), and metres a sample.
 @export var origin: Vector2 = Vector2.ZERO
@@ -35,6 +35,11 @@ var height: PackedFloat32Array = PackedFloat32Array()
 ## What it was traced from (stamp_of): when that no longer matches, the map is
 ## out of date and the Strata Board offers to trace it again.
 @export var source_stamp: String = ""
+## The ferry lines across the lake (phase 18 step 5): {a: Vector2, b: Vector2}
+## (x, z), from the harbour's channel into the fog to a dock's; `style`, the
+## dock's; drawn dotted once the map has the tiles at `at_a` (the pier's
+## stage) and `at_b` (the dock) both.
+@export var lines: Array[Dictionary] = []
 
 
 func sample_of(m: Vector2) -> Vector2i:

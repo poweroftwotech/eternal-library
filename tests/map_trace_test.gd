@@ -12,6 +12,11 @@ extends SceneTree
 ## load: a new process resumes in the Gorge: the same tiles; the map draws
 ##       them. Run without --headless it also saves captures of the open map
 ##       (the Gorge, the camp) to previews/p11_step2/.
+## lake_save, lake_load (phase 18 step 5): the Lake Landing, a place of its own:
+##       start in its passage, stand on the pier's stage and on the town
+##       dock; the map draws the town dock's ferry line and its name, not the
+##       docks never seen; a new process resumes there with the same tiles
+##       (and, not headless, a capture of the open map).
 
 const EXPECT: String = "user://test/map_trace_expect.json"
 const CAPTURES: String = "res://previews/p11_step2/"
@@ -39,6 +44,8 @@ func run() -> void:
 	ws = root.get_node_or_null("WorldState")
 	if mode == "save":
 		main_script.room_override = "camp"
+	elif mode == "lake_save":
+		main_script.room_override = "res://rooms/lake/landing.tscn"
 	game = (load("res://main.tscn") as PackedScene).instantiate()
 	root.add_child(game)
 	current_scene = game
@@ -53,6 +60,10 @@ func run() -> void:
 		await physics_frame
 	if mode == "save":
 		await save_mode()
+	elif mode == "lake_save":
+		await lake_save_mode()
+	elif mode == "lake_load":
+		await lake_load_mode()
 	else:
 		await load_mode()
 	finish(mode)
@@ -188,3 +199,63 @@ func wait(s: float) -> void:
 	var stop_ms: int = Time.get_ticks_msec() + int(s * 1000.0)
 	while Time.get_ticks_msec() < stop_ms:
 		await physics_frame
+
+
+const LAKE_EXPECT: String = "user://test/map_lake_expect.json"
+
+
+func lake_save_mode() -> void:
+	var t: MapTrace = game.map.trace_of("lake")
+	check(t != null and t.lines.size() == LakeLayout.STYLES.size(), "the lake is traced, a ferry line to each dock (%d)" % (t.lines.size() if t != null else -1))
+	if t == null:
+		return
+	await wait(0.6)
+	check(game.map.here_id == "lake", "the map knows you're at the lake (%s)" % game.map.here_id)
+	await go(Vector2(LakeLayout.PIER_STAGE.x, LakeLayout.PIER_STAGE.z + 1.4))
+	var town: Vector3 = LakeLayout.dock_frame("town") * Vector3(10.0, 0.0, -1.5)
+	await go(Vector2(town.x, town.z))
+	game.map.open()
+	await process_frame
+	var c: MapCanvas = game.map.canvas
+	check(game.map.is_open() and game.map.shown_id == "lake" and c.trace == t, "M opens the map on the lake, drawn from its trace")
+	check(game.map._place_title("lake") == "The Lake Landing", "it is called the Lake Landing (%s)" % game.map._place_title("lake"))
+	check(not c.you.is_empty(), "you are on it")
+	for l: Dictionary in t.lines:
+		var known: bool = c._knows(l["at_a"]) and c._knows(l["at_b"])
+		check(known == (str(l["style"]) == "town"), "the ferry line to the %s dock is %s" % [l["style"], "drawn" if known else "not drawn"])
+	var named: Array = c.trace_names.filter(func(n: Dictionary) -> bool: return c._knows(n["at"]))
+	check(named.size() == 1, "one dock is named on the map (%s)" % [named])
+	check(c.door_labels.has("EntryDoor"), "the passage's door is on the map (%s)" % [c.door_labels])
+	game.map.close()
+	var f := FileAccess.open(LAKE_EXPECT, FileAccess.WRITE)
+	f.store_string(JSON.stringify({"lake": ws.call("map_known", "lake")["walked"]}))
+	f.close()
+
+
+func lake_load_mode() -> void:
+	var expect: Dictionary = JSON.parse_string(FileAccess.get_file_as_string(LAKE_EXPECT))
+	await wait(0.6)
+	check(game.map.here_id == "lake", "a new process resumes at the lake (%s)" % game.map.here_id)
+	var t: MapTrace = game.map.trace_of("lake")
+	var got: Array = (ws.call("map_traced", "lake", t.stamp(), "") as Dictionary)["walked"].duplicate()
+	var want: Array = (expect["lake"] as Array).map(func(v: Variant) -> int: return int(v))
+	got.sort()
+	want.sort()
+	check(got == want, "lake: the same %d tiles walked (%d)" % [want.size(), got.size()])
+	game.map.open()
+	await process_frame
+	var c: MapCanvas = game.map.canvas
+	check(game.map.is_open() and game.map.shown_id == "lake" and not c.walked.is_empty(), "the map opens on the lake and draws it")
+	if DisplayServer.get_name() != "headless":
+		DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path(CAPTURES))
+		for zoom: float in [2.0, 0.5]:
+			c.zoom = zoom
+			c.centre = Vector2(LakeLayout.PIER_STAGE.x, LakeLayout.PIER_STAGE.z) if zoom > 1.0 else Vector2(0, -230)
+			c.queue_redraw()
+			for _i: int in 100:
+				await process_frame
+			var path: String = CAPTURES + "map_lake_%s.png" % ("near" if zoom > 1.0 else "far")
+			var err: Error = root.get_viewport().get_texture().get_image().save_png(ProjectSettings.globalize_path(path))
+			check(err == OK, "saved the capture %s" % path)
+			print("map_trace_test: capture ", ProjectSettings.globalize_path(path))
+	game.map.close()

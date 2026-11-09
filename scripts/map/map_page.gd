@@ -28,9 +28,9 @@ const ZOOM_MAX: float = 12.0
 ## WALK_REVEAL m of where you walk in ink, and those within its SIGHT_REVEAL
 ## m in pencil (the Gorge is open: you see far down it; the camp has walls).
 const WALK_REVEAL: float = 14.0
-const SIGHT_REVEAL: Dictionary = {"gorge": 40.0}
+const SIGHT_REVEAL: Dictionary = {"gorge": 40.0, "lake": 40.0}
 ## Its pixels a metre when you open it: a 0.5 m sample to whole pixels.
-const TRACE_ZOOM: Dictionary = {"gorge": 2.0, "camp": 4.0}
+const TRACE_ZOOM: Dictionary = {"gorge": 2.0, "camp": 4.0, "lake": 2.0}
 ## The whole stratum (step 3): what shown_id says when it's on the sheet,
 ## its pixels a metre when it opens, and how far it zooms out.
 const STRATUM: String = "*stratum"
@@ -271,6 +271,8 @@ func _traced_here() -> Array:
 		id = (game.world as Area).recipe.id
 	elif game.world is CampRoom:
 		id = "camp"
+	else:
+		id = game.place_id()     # a place of its own (the Lake Landing)
 	if id == "" or trace_of(id) == null or not is_instance_valid(game.world):
 		return []
 	return [id, game.world]
@@ -288,7 +290,12 @@ func trace_of(id: String) -> MapTrace:
 
 
 func _traced_name(place: Node3D) -> String:
-	return (place as Area).recipe.display_name if place is Area else "The camp"
+	if place is Area:
+		return (place as Area).recipe.display_name
+	if place is CampRoom:
+		return "The camp"
+	var shown: String = StratumPlan.current().place_name(game.place_id())
+	return shown.substr(0, 1).to_upper() + shown.substr(1)
 
 
 ## The area you are standing in (the place loaded, or one SeamlessPlaces streams in).
@@ -338,12 +345,12 @@ func layer_of(id: String) -> Dictionary:
 	var known: Dictionary = ws().map_known(id) if id != "" else {}
 	var rooms: Array[MapCanvas.Sketch] = []
 	var layer: Dictionary = {"id": id, "name": _place_title(id), "rooms": rooms, "entered": {}, "seen": {}, "storey": int(known.get("floor", 0)),
-		"trace": null, "ink": null, "pencil": null, "walked": {}, "sighted": {}, "door_labels": {}, "marks": marks_of(id)}
+		"trace": null, "ink": null, "pencil": null, "walked": {}, "sighted": {}, "door_labels": {}, "marks": marks_of(id), "names": []}
 	var t: MapTrace = trace_of(id) if id != "" else null
 	if t != null:
 		var same: bool = str(known.get("trace", "")) == t.stamp()     # a re-trace tiles differently
 		layer.merge({"trace": t, "ink": _ink[id], "pencil": _pencil[id], "walked": _set_of_ints(known.get("walked", []) if same else []),
-			"sighted": _set_of_ints(known.get("sighted", []) if same else []), "door_labels": _trace_door_labels(id, t)}, true)
+			"sighted": _set_of_ints(known.get("sighted", []) if same else []), "door_labels": _trace_door_labels(id, t), "names": _trace_names(id)}, true)
 	elif id != "":
 		var sketches: Dictionary = known.get("rooms", {})
 		for slot: String in sketches:
@@ -440,6 +447,14 @@ func stratum_frames() -> Dictionary:
 	return frames
 
 
+## Where a traced place's door `d` leads: the camp's and a place of its
+## own's say so themselves; an area's lead where the stratum plan links them.
+func trace_target(id: String, d: Dictionary) -> String:
+	if id == "camp" or str(d["raw"]) == "camp" or StratumPlan.current().scenes().has(id):
+		return str(d["to"])
+	return StratumPlan.current().door_target(id, str(d["raw"]))
+
+
 ## Place `id`'s door to place `to` in its frame, as a 2D frame (x, z; its y
 ## axis is the 3D +Z, into the room), or null if the map doesn't know it.
 func door_xf(id: String, to: String) -> Variant:
@@ -447,7 +462,7 @@ func door_xf(id: String, to: String) -> Variant:
 	var t: MapTrace = trace_of(id)
 	if t != null:
 		for d: Dictionary in t.doors:
-			var target: String = str(d["to"]) if id == "camp" or str(d["raw"]) == "camp" else stratum.door_target(id, str(d["raw"]))
+			var target: String = trace_target(id, d)
 			if str(d["kind"]) == "threshold" and target == to:
 				return xf_2d(d["at"], d["out"])
 		return null
@@ -690,15 +705,36 @@ func _door_labels(id: String) -> Dictionary:
 	return out
 
 
+## Names written on a traced place: the Lake Landing's docks, each by where
+## its ferry goes (LakeLayout: the dock styled for it in this world).
+func _trace_names(id: String) -> Array:
+	var out: Array = []
+	if id != "lake":
+		return out
+	LakeLayout.world_seed = ws().world_seed()
+	var by_style: Dictionary = {}
+	for stop: String in LakeLayout.stops():
+		if stop != "quay":
+			var style: String = LakeLayout.style_of(stop)
+			by_style[style] = (by_style.get(style, []) as Array) + [MapPage._capital(LakeLayout.stop_name(stop))]
+	for style: String in by_style:
+		var o: Vector3 = LakeLayout.dock_frame(style) * Vector3(0, 0, 8)     # behind the house front, clear of the strip
+		out.append({"at": Vector2(o.x, o.z), "text": " / ".join(PackedStringArray(by_style[style]))})
+	return out
+
+
+static func _capital(s: String) -> String:
+	return s.substr(0, 1).to_upper() + s.substr(1)
+
+
 ## What each door out of traced place `id` says (keyed by its connector's
 ## `to`): an area's doors lead where the stratum plan links them now.
 func _trace_door_labels(id: String, t: MapTrace) -> Dictionary:
 	var out: Dictionary = {}
-	var stratum: StratumPlan = StratumPlan.current()
 	for d: Dictionary in t.doors:
 		if str(d["kind"]) != "threshold":
 			continue
-		var target: String = str(d["to"]) if id == "camp" or str(d["raw"]) == "camp" else stratum.door_target(id, str(d["raw"]))
+		var target: String = trace_target(id, d)
 		out[str(d["raw"])] = _door_says(target)
 	return out
 

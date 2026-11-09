@@ -1,12 +1,12 @@
 extends SceneTree
-## Traces where you can walk in the Gorge or the camp for the map (phase 11
+## Traces where you can walk in the Gorge, the camp or the lake for the map (phase 11
 ## step 2, Q6), from the built place: loads the game there (on its own, no
 ## seamless neighbour), waits until every piece is in, then casts rays down
 ## each column of a 0.5 m grid. A floor is a surface facing up with 1.7 m of
 ## headroom; the floors kept are those reachable from where you stand and
 ## from its doors, by steps of at most MAX_STEP (stairs are ramps to the
 ## player), so roofs and ledges you can't get to are left out.
-##   godot --path . --script res://tools/map_trace.gd -- gorge|camp --no-seamless
+##   godot --path . --script res://tools/map_trace.gd -- gorge|camp|lake --no-seamless
 ## Writes gen/map/<place>_trace.tres, gen/map/<place>_ink.png and _pencil.png
 ## (what the map draws), and previews/p11_step2/<place>_trace.png: floors
 ## kept by height, floors left out in red. Run --import afterwards.
@@ -25,6 +25,9 @@ const INK := Color("2a2017")
 const PENCIL := Color("6f6350")
 ## A drop of more than this between neighbouring floors is drawn as an edge (a terrace).
 const EDGE_DROP: float = 1.2
+## The lake (phase 18): floors under the water are open water, washed blue,
+## edged in ink where they meet rock.
+const WATER_WASH := Color(0.24, 0.36, 0.44, 0.2)
 
 var game: Node
 
@@ -37,7 +40,8 @@ func run() -> void:
 	var args: PackedStringArray = OS.get_cmdline_user_args()
 	var place: String = args[0] if args.size() > 0 else "gorge"
 	var main_script: GDScript = load("res://scripts/main.gd")
-	main_script.room_override = "camp" if place == "camp" else "area:" + place
+	var scene: String = str(StratumPlan.current().scenes().get(place, ""))
+	main_script.room_override = "camp" if place == "camp" else scene if scene != "" else "area:" + place
 	game = (load("res://main.tscn") as PackedScene).instantiate()
 	root.add_child(game)
 	current_scene = game
@@ -56,6 +60,13 @@ func run() -> void:
 	if place == "gorge":     # the way back to the camp is the corridor out of the Overlook's loggia, no door
 		var mid: float = (SeamlessPlaces.CORRIDOR_X.x + SeamlessPlaces.CORRIDOR_X.y) * 0.5
 		trace.doors.append({"at": Vector2(mid, SeamlessPlaces.GORGE_END_Z), "out": Vector2(0, 1), "kind": "threshold", "raw": "camp", "to": "camp"})
+	if place == "lake":     # the ferry lines: the harbour's channel into the fog to each dock's
+		var from: Vector3 = LakeLayout.channel("quay")[LakeLayout.channel("quay").size() - 1]
+		for style: String in LakeLayout.STYLES:
+			var f: Transform3D = LakeLayout.dock_frame(style)
+			var end: Vector3 = f * (((LakeLayout.DOCK_CHANNELS[0] as Array).back() as Vector3 + (LakeLayout.DOCK_CHANNELS[1] as Array).back() as Vector3) * 0.5)
+			trace.lines.append({"a": Vector2(from.x, from.z), "b": Vector2(end.x, end.z), "style": style,
+				"at_a": Vector2(LakeLayout.PIER_STAGE.x, LakeLayout.PIER_STAGE.z), "at_b": Vector2(f.origin.x, f.origin.z)})
 	write(trace, cols)
 	quit()
 
@@ -102,6 +113,9 @@ func seed_points(world: Node3D, place: String) -> Array[Vector3]:
 				if str(k["cap"]) == "threshold":
 					var xf: Transform3D = k["xf"]
 					out.append(xf.origin + xf.basis.z * 1.0 + Vector3.UP * 0.5)     # 1 m back in from the door
+	for n: Node in world.get_tree().get_nodes_in_group("lake_safe"):     # the lake's docks: across water from the rest
+		if world.is_ancestor_of(n):
+			out.append(world.to_local((n as Node3D).global_position) + Vector3.UP * 0.3)
 	for t: Node in world.find_children("*", "Threshold", true, false):
 		var xf: Transform3D = world.global_transform.affine_inverse() * (t as Node3D).global_transform
 		out.append(xf.origin + xf.basis.z * 1.0 + Vector3.UP * 0.5)
@@ -238,11 +252,30 @@ func write(trace: MapTrace, cols: Dictionary) -> void:
 		if not is_nan(h):
 			lo = minf(lo, h)
 			hi = maxf(hi, h)
+	var wet := PackedByteArray()     # per sample: open water (the lake bed under it)
+	wet.resize(size.x * size.y)
+	if trace.place == "lake":
+		for s: int in wet.size():
+			var col: Array = cols["floors"][s]
+			if is_nan(trace.height[s]) and not col.is_empty() and (col.max() as float) < LakeLayout.WATER:
+				wet[s] = 1
 	var kept: int = 0
 	for j: int in size.y:
 		for i: int in size.x:
 			var h: float = trace.height[j * size.x + i]
 			if is_nan(h):
+				if wet[j * size.x + i] == 1:
+					var shore: bool = false
+					for d: Vector2i in [Vector2i(1, 0), Vector2i(-1, 0), Vector2i(0, 1), Vector2i(0, -1)]:
+						var n := Vector2i(i, j) + d
+						var ns: int = n.y * size.x + n.x
+						if n.x >= 0 and n.y >= 0 and n.x < size.x and n.y < size.y and wet[ns] == 0 and not trace.has_floor(n):
+							shore = true
+					ink.set_pixel(i, j, INK if shore else WATER_WASH)
+					if shore and (i + j) % 2 == 0:
+						pencil.set_pixel(i, j, PENCIL)
+					preview.set_pixel(i, j, Color(0.2, 0.3, 0.45))
+					continue
 				if not (cols["floors"][j * size.x + i] as Array).is_empty():
 					preview.set_pixel(i, j, Color(0.6, 0.15, 0.12))     # a floor you can't reach
 				continue
@@ -264,7 +297,7 @@ func write(trace: MapTrace, cols: Dictionary) -> void:
 	trace.tiles.resize(tn.x * tn.y)
 	for j: int in size.y:
 		for i: int in size.x:
-			if not is_nan(trace.height[j * size.x + i]):
+			if not is_nan(trace.height[j * size.x + i]) or wet[j * size.x + i] == 1:
 				trace.tiles[(j / k) * tn.x + i / k] = 1
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://gen/map"))
 	DirAccess.make_dir_recursive_absolute(ProjectSettings.globalize_path("res://previews/p11_step2"))
