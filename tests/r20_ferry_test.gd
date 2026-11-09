@@ -11,6 +11,9 @@ extends SceneTree
 ## save: board at the quay, ask for the Mahaleh, quit through the game's own
 ##       save-and-quit halfway across.
 ## load: a new process resumes on the quay's stage (Q9) with the ferry at the quay.
+## elsewhere: a save left the ferry at another stop than yours (the user's world,
+##       step 3 ride): once you are placed it waits where you are, at the quay
+##       and at a dock.
 
 const SCENE: String = "res://rooms/lake/landing.tscn"
 
@@ -58,9 +61,33 @@ func run() -> void:
 			await ride_mode()
 		"save":
 			await save_mode()
+		"elsewhere":
+			await elsewhere_mode()
 		_:
 			await load_mode()
 	finish(mode)
+
+
+# ------------------------------------------------------------------ elsewhere
+
+func elsewhere_mode() -> void:
+	for pair: Array in [["gardens", "quay", Vector3(0, 0, -9.5)], ["quay", "gardens", Vector3.ZERO]]:
+		var lies: String = pair[0]
+		var want: String = pair[1]
+		var spot: Vector3 = pair[2]
+		if want != "quay":
+			var d: Array = LakeLayout.stop_dock(want)
+			spot = (d[0] as Vector3) - (d[1] as Vector3) * 5.0
+		ferry.at = lies
+		ferry.body.global_transform = ferry.dock_pose(lies)
+		ferry.set("_met", false)
+		game.player.teleport(spot, 0.0)
+		for _i: int in 60:
+			await physics_frame
+		check(ferry.at == want, "ferry left at %s, you at %s: it waits for you there (at %s)" % [lies, want, ferry.at])
+		var d2: Array = LakeLayout.stop_dock(want)
+		var gap: float = Vector2(ferry.body.global_position.x - (d2[0] as Vector3).x, ferry.body.global_position.z - (d2[0] as Vector3).z).length()
+		check(gap < 8.0, "  and its barge lies off that stage (%.1f m)" % gap)
 
 
 # ------------------------------------------------------------------ ride
@@ -76,7 +103,8 @@ func ride_mode() -> void:
 	ok = await walk([Vector3(-5, 0, -8.6), Vector3(5.5, 0, -12.5), Vector3(8, 0, -17), Vector3(8, 0, -35.2),
 		Vector3(8, -0.9, -40.2)], "back to the pier head") and ok
 	# Every trip, standing in the middle of the deck.
-	var order: Array[String] = ["mahaleh", "quay"]     # revised phase step 2: one dock, through the fog
+	# Step 3: every dock, dock to dock (each a different style here), then home.
+	var order: Array[String] = ["mahaleh", "gardens", "forgotten", "quay"]
 	for stop: String in order:
 		await board()
 		check(ferry.aboard(), "aboard at %s before asking for %s" % [ferry.at, stop])
@@ -84,6 +112,7 @@ func ride_mode() -> void:
 		ferry.ask(stop)
 		var r: Dictionary = await ride_until_docked(90.0)
 		check(ferry.at == stop, "%s -> %s: the ferry arrived (at %s, phase %d)" % [from, stop, ferry.at, ferry.phase])
+		check(int(r["wrong_place"]) == 0, "%s -> %s: after the fog the place you are in is shown (%d frames as %s)" % [from, stop, r["wrong_place"], ferry.place])
 		check(int(r["off_deck"]) == 0, "%s -> %s: stayed on the deck (%d frames off, worst %.2f m)" % [from, stop, r["off_deck"], r["worst"]])
 		check(ferry.aboard(), "%s -> %s: still aboard on arrival" % [from, stop])
 		print("  %s -> %s: %.1f s, %d frames, worst drift %.2f m" % [from, stop, r["time"], r["frames"], r["worst"]])
@@ -100,11 +129,12 @@ func ride_mode() -> void:
 		far_boat_clear()
 	check(nearest_boat > 4.0, "the ferry never sails through the lantern boat (nearest %.1f m)" % nearest_boat)
 	# A bell at the Mahaleh calls the empty ferry from the quay.
-	var bell: Node = null
-	for b: Node in game.world.find_children("*", "", true, false):
-		if b.has_meta("stop") and str(b.get_meta("stop")) == "mahaleh":
-			bell = b
-	check(bell != null, "the Mahaleh landing has a bell")
+	var rings: Dictionary = ferry.get("_rings")
+	var style: String = LakeLayout.style_of("mahaleh")
+	check(rings.has(style), "the Mahaleh dock (%s) has a bell" % style)
+	if rings.has(style):
+		ferry.dress("mahaleh")
+		check(str(rings[style].get("stop")) == "mahaleh", "its bell calls for the Mahaleh")
 	ferry.ring("mahaleh")
 	var rr: Dictionary = await ride_until_docked(90.0)
 	check(ferry.at == "mahaleh", "the bell brought the ferry to the Mahaleh (at %s)" % ferry.at)
@@ -142,6 +172,7 @@ func board() -> void:
 
 
 func ride_until_docked(limit: float) -> Dictionary:
+	var wrong_place: int = 0
 	var t: float = 0.0
 	var frames: int = 0
 	var off: int = 0
@@ -157,13 +188,16 @@ func ride_until_docked(limit: float) -> Dictionary:
 			# Walk 1's rock stacks and hanging rock stay out of the ferry's way:
 			# nothing solid in the barge's box (hull to awning) out on the water.
 			var far: Node3D = game.world.get_node_or_null("Life/FarBoat") as Node3D
-			if far != null:
+			if far != null and far.visible:
 				nearest_boat = minf(nearest_boat, Vector2(far.global_position.x - ferry.body.global_position.x, far.global_position.z - ferry.body.global_position.z).length())
 			if frames % 6 == 0 and ferry.phase == LakeFerry.Phase.CRUISE and ferry._s > 6.0 \
 					and ferry._curve.get_baked_length() - ferry._s > 14.0:
 				var hit: String = in_the_way(ferry.body.global_transform)
 				if hit != "":
 					rock_hits.append("%s -> %s at %s: %s" % [ferry.at, ferry.to, ferry.body.global_position, hit])
+			if ferry.carrying and ferry._leg == 1 and ferry.phase != LakeFerry.Phase.FOG \
+					and ferry.place != LakeLayout.place_of(ferry.body.global_position):
+				wrong_place += 1     # ride 3: the pier stayed dark coming home
 			if ferry.carrying:
 				var local: Vector3 = ferry.body.global_transform.affine_inverse() * game.player.global_position
 				worst = maxf(worst, Vector2(local.x - start_local.x, local.z - start_local.z).length())
@@ -173,17 +207,17 @@ func ride_until_docked(limit: float) -> Dictionary:
 					off += 1
 		elif started:
 			break
-	return {"time": t, "frames": frames, "off_deck": off, "worst": worst}
+	return {"time": t, "frames": frames, "off_deck": off, "worst": worst, "wrong_place": wrong_place}
 
 
 ## What solid thing (not the barge or the player) is inside a barge-sized box
 ## at `xform` (on the water), or "".
-func in_the_way(xform: Transform3D) -> String:
+func in_the_way(xform: Transform3D, size: Vector3 = Vector3(3.6, 3.6, 8.6)) -> String:
 	var box := BoxShape3D.new()
-	box.size = Vector3(3.6, 3.6, 8.6)
+	box.size = size
 	var q := PhysicsShapeQueryParameters3D.new()
 	q.shape = box
-	q.transform = Transform3D(xform.basis, Vector3(xform.origin.x, LakeLayout.WATER + 1.9, xform.origin.z))
+	q.transform = Transform3D(xform.basis, Vector3(xform.origin.x, LakeLayout.WATER + 0.1 + size.y * 0.5, xform.origin.z))
 	q.collision_mask = 1
 	q.exclude = [ferry.body.get_rid(), (game.player as CollisionObject3D).get_rid()]
 	var hits: Array[Dictionary] = game.player.get_world_3d().direct_space_state.intersect_shape(q, 4)
@@ -197,18 +231,26 @@ func in_the_way(xform: Transform3D) -> String:
 ## The far lantern boat's whole crossing (LakeLife._far_ferry) is clear water too.
 func far_boat_clear() -> void:
 	var life: Node = game.world.get_node("Life")
-	var curve: Curve3D = life.get("_far_curve")
-	var length: float = curve.get_baked_length()
 	var bad: PackedStringArray = []
-	var s: float = 8.0
-	while s < length - 8.0:
-		var p: Vector3 = curve.sample_baked(s)
-		var dir: Vector3 = curve.sample_baked(s + 1.0) - p
-		var hit: String = in_the_way(Transform3D(Basis(Vector3.UP, atan2(-dir.x, -dir.z)), p))
-		if hit != "":
-			bad.append("%.0f m: %s" % [s, hit])
-		s += 2.0
-	check(bad.is_empty(), "the far lantern boat's water is clear (%s)" % ", ".join(bad.slice(0, 3)))
+	var places: Array[String] = ["quay"]
+	for st: String in LakeLayout.STYLES:
+		places.append(st)
+	for place: String in places:
+		life.call("_lantern_route", place)
+		var curve: Curve3D = life.get("_far_curve")
+		var length: float = curve.get_baked_length()
+		var s: float = 8.0
+		while s < length - 8.0:
+			var p: Vector3 = curve.sample_baked(s)
+			var dir: Vector3 = curve.sample_baked(s + 1.0) - p
+			var hit: String = in_the_way(Transform3D(Basis(Vector3.UP, atan2(-dir.x, -dir.z)), p), Vector3(2.0, 2.6, 4.8))     # the small boat and its rower
+			if hit != "":
+				bad.append("%s %.0f m: %s" % [place, s, hit])
+			s += 2.0
+	life.call("_lantern_route", str(ferry.place))
+	check(bad.is_empty(), "the far lantern boat's water is clear (%d: %s)" % [bad.size(), ", ".join(bad.slice(0, 3))])
+	for b: String in bad:
+		print("    lantern: ", b.get_slice(":", 0))
 
 
 ## Walks the player through `points` (the real controller, "forward" held).

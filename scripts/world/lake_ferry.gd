@@ -69,12 +69,19 @@ var _leg: int = 0
 var _hold: float = 0.0
 var _fog: FogVolume
 var _place_check: float = 0.0
+## Each dock style's bell (LakeFerry.Bell), to point at the destination it serves.
+var _rings: Dictionary = {}
 ## You were aboard when it left (for the save, and for the trip's line).
 var carrying: bool = false
+## Once you are placed (after a load or a door), the ferry waits where you are:
+## the dock doors are sealed, so you can only be at the quay or a dock.
+var _met: bool = false
 
 
 func _ready() -> void:
 	add_to_group("choice_handler")
+	if _ws() != null:
+		LakeLayout.world_seed = int(_ws().call("world_seed"))
 	_build()
 	var saved: Dictionary = _ws().data.get("lake", {}) if _ws() != null else {}
 	var stop: String = str(saved.get("ferry_at", "quay"))
@@ -85,7 +92,37 @@ func _ready() -> void:
 	for bell: Node in get_tree().get_nodes_in_group("lake_bell"):
 		if owner != null and owner.is_ancestor_of(bell):
 			_bell_body(bell as Node3D)
+	# Each dock dressed for the destination it serves (a dock is a look: R1);
+	# the pier head's board names them all.
+	var names: PackedStringArray = []
+	for dest: String in LakeLayout.stops():
+		if dest != "quay":
+			dress(dest)
+			names.append(LakeLayout.stop_name(dest))
+	_words(owner.get_node_or_null("Pier/FerryBoard") if owner != null else null,
+		"The ferry\n" + ("\n".join(names) if not names.is_empty() else "(no crossings)"))
 	set_place("quay")
+
+
+## Dresses the dock styled for `dest` for it: its board names it, its bell
+## calls the ferry to it. Done under the fog when two destinations share a style.
+func dress(dest: String) -> void:
+	var style: String = LakeLayout.style_of(dest)
+	if _rings.has(style):
+		(_rings[style] as Bell).stop = dest
+	var dock: Node = owner.get_node_or_null("Docks/Dock_" + style) if owner != null else null
+	if dock != null:
+		_words(dock.get_node_or_null("Sign"), _title(LakeLayout.stop_name(dest)))
+
+
+static func _title(name_: String) -> String:
+	return name_.substr(0, 1).to_upper() + name_.substr(1)
+
+
+func _words(board: Node, text: String) -> void:
+	var label: Label3D = board.get_node_or_null("Words") as Label3D if board != null else null
+	if label != null:
+		label.text = text
 
 
 func _build() -> void:
@@ -108,8 +145,8 @@ func _build() -> void:
 	_shape(Vector3(2.9, DECK + 0.3, 7.7), Vector3(0.0, (DECK - 0.3) / 2.0, 0.0))
 	for s: float in [-1.0, 1.0]:
 		_shape(Vector3(0.12, 1.0, 6.7), Vector3(1.42 * s, DECK + 0.5, 0.52))
-		var taper := _shape(Vector3(0.12, 1.0, 1.32), Vector3(1.18 * s, DECK + 0.5, -3.38))
-		taper.rotation.y = -atan2(0.47, 1.2) * s
+		var taper := _shape(Vector3(0.12, 1.0, 1.32), Vector3(1.1 * s, DECK + 0.5, -3.375))     # along the bow taper (ride 2: was mirrored)
+		taper.rotation.y = atan2(0.64, 1.15) * s
 		_shape(Vector3(0.5, 0.38, 4.4), Vector3(1.0 * s, DECK + 0.19, 0.6))     # benches
 	_shape(Vector3(2.9, 1.0, 0.12), Vector3(0.0, DECK + 0.5, 3.85))           # the stern rail
 	_shape(Vector3(0.7, 1.7, 0.6), Vector3(0.35, DECK + 0.85, 3.0))          # the ferryman
@@ -157,6 +194,8 @@ func _bell_body(bell: Node3D) -> void:
 	b.name = "Ring"
 	b.ferry = self
 	b.stop = str(bell.get_meta("stop", "quay"))
+	if bell.has_meta("style"):
+		_rings[str(bell.get_meta("style"))] = b
 	b.collision_layer = 2
 	b.collision_mask = 0
 	b.position = Vector3(0.45, 1.6, 0.0)
@@ -254,6 +293,9 @@ func ask(stop: String) -> void:
 
 ## A bell rung at `stop`: the ferry comes to it, empty.
 func ring(stop: String) -> void:
+	if not stop in LakeLayout.stops():
+		_say("The bell's note goes out into the fog. Nothing answers.")
+		return
 	if stop == at and not moving():
 		_say("The ferry is here.")
 		return
@@ -317,8 +359,10 @@ static func _smooth_curve(pts: PackedVector3Array, first_dir: Vector3 = Vector3.
 ## Under the fog: the barge, and you if you are on it, moved from the end of
 ## this channel to the end of the other's, as you stood (R3).
 func _cross() -> void:
+	if to != "quay":
+		dress(to)     # the arrival dock, re-dressed for this destination under the fog
 	var from_pose: Transform3D = body.global_transform
-	var ch: PackedVector3Array = LakeLayout.channel(to)
+	var ch: PackedVector3Array = LakeLayout.channel(to, LakeLayout.ENTER)     # in by the other mouth (R1c)
 	var n: int = ch.size()
 	var heading: Vector3 = (ch[n - 2] - ch[n - 1]).normalized()
 	var to_pose := Transform3D(Basis(Vector3.UP, _yaw_of(heading)), ch[n - 1])
@@ -334,7 +378,7 @@ func _cross() -> void:
 			p.call("teleport", move * p.global_position, p.global_rotation.y + yaw_turn, cam.rotation.x if cam != null else 0.0)
 		else:
 			p.global_position = move * p.global_position
-		set_place(to)
+		set_place("quay" if to == "quay" else LakeLayout.style_of(to))     # ride 3: the quay is no dock style (the pier stayed dark)
 	# In along the other channel to the stage's approach run, then the stage.
 	var d: Array = LakeLayout.stop_dock(to)
 	var dock_b: Vector3 = Vector3((d[0] as Vector3).x, LakeLayout.WATER, (d[0] as Vector3).z)
@@ -363,6 +407,9 @@ func _physics_process(delta: float) -> void:
 		var p: Node3D = _player()
 		if p != null and not (moving() and carrying):
 			set_place(LakeLayout.place_of(p.global_position))
+			if not _met:
+				_met = true
+				_wait_for_you(place)
 	match phase:
 		Phase.DOCKED:
 			if wanted != "":
@@ -469,6 +516,18 @@ func _on_saving() -> void:
 		pose["yaw"] = _yaw_of(-(d[1] as Vector3))     # facing up the steps
 		pose["flying"] = false
 		ws.data["player"] = pose
+
+
+## Puts the docked ferry at the stop of `p` (the quay or a dock style) if it
+## lies anywhere else.
+func _wait_for_you(p: String) -> void:
+	if moving():
+		return
+	var stop: String = "quay" if p == "quay" else (str((_rings[p] as Bell).stop) if _rings.has(p) else "")
+	if stop == "" or stop == at or not stop in LakeLayout.stops():
+		return
+	at = stop
+	body.global_transform = dock_pose(at)
 
 
 func _ws() -> Node:

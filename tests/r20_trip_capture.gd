@@ -61,7 +61,7 @@ func run() -> void:
 			await shot(str(moments[k][0]))
 			k += 1
 	# The dock from its stage, and from out on its water (flying).
-	var f: Transform3D = LakeLayout.dock_frame("mahaleh")
+	var f: Transform3D = LakeLayout.dock_frame(LakeLayout.style_of("mahaleh"))
 	game.player.teleport(f * Vector3(-1.5, -0.85, -5.3), f.basis.get_euler().y + PI + 0.1, 0.32)
 	for _i: int in 40:
 		await physics_frame

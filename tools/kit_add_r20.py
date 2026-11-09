@@ -27,10 +27,10 @@ Modules placed by the builder:
   lk_boardwalk_4m  timber walk along the back wall to the boathouses.
   lk_boathouse   4 x 8 m shed on piles over the water: a walkway, a slip,
                  a window and a hanging lamp (LIGHT_lake_lamp).
-  lk_lantern_post  a post with an arm and a hanging oil lantern (LIGHT_lake_lantern).
+  lk_lantern_post  a carved post, a scrolled arm and a pierced brass lantern (LIGHT_lake_lantern).
   lk_bell        a post with a bell, to call the ferry.
   lk_boat        a rowing boat (origin at the waterline).
-  lk_ferry       the ferry: a railed barge with two lanterns and an awning.
+  lk_ferry       the ferry: a Persian lantern barge, carved posts, an arched canopy.
   lk_ferryman    a robed figure with a pole.
   lk_nets, lk_traps, lk_crates   the fisher's things.
   lk_landing_quay  a far landing's quay: deck, steps, stage (10 x 6 m).
@@ -808,10 +808,10 @@ def quay(r):
     bollards(r, "lk_quay", [(1.4, 7.55), (10.6, 7.55), (15.6, 6.0), (15.6, 2.0)])
 
 
-def bollards(r, name, spots):
+def bollards(r, name, spots, z=0.0):
     def build(bm):
         for (x, y) in spots:
-            add_lathe(bm, [(0.13, 0.0), (0.13, 0.42), (0.17, 0.48), (0.17, 0.55), (0.0, 0.58)], x, y, segs=8)
+            add_lathe(bm, [(0.13, z), (0.13, z + 0.42), (0.17, z + 0.48), (0.17, z + 0.55), (0.0, z + 0.58)], x, y, segs=8)
     solid(name + "__bollards-col", r, [IRON], build)
 
 
@@ -881,7 +881,7 @@ def pier_head(r):
     solid("lk_pier_head__frame", r, [PWOOD], frame)
     solid("lk_pier_head__piles-col", r, [PWOOD], lambda bm: piles(bm, [(0.17, 0.25), (3.83, 0.25), (0.17, 1.9), (3.83, 1.9)], top=0.0))
     solid("lk_pier_head__stage_piles-col", r, [PWOOD], lambda bm: piles(bm, [(0.17, 3.6), (3.83, 3.6)], top=STAGE + 0.5))
-    bollards(r, "lk_pier_head", [(0.35, 4.75), (3.65, 4.75)])
+    bollards(r, "lk_pier_head", [(0.35, 4.75), (3.65, 4.75)], z=STAGE)     # on the stage (ride 3: they floated at deck height)
 
 
 def boardwalk(r):
@@ -961,30 +961,78 @@ def boathouse(r):
     solid("lk_boathouse__net", r, ["net_cord"], net, recalc=False)
 
 
+LANTERN_TOP = 0.5     # a lantern's hanging ring above its centre
+
+
 def lantern(bm_frame, bm_glass, x, y, z):
-    """A hanging oil lantern centred at (x, y, z)."""
-    add_box(bm_frame, x - 0.12, x + 0.12, y - 0.12, y + 0.12, z - 0.2, z - 0.16)
-    add_box(bm_frame, x - 0.12, x + 0.12, y - 0.12, y + 0.12, z + 0.14, z + 0.18)
-    for (dx, dy) in ((-0.11, -0.11), (0.11, -0.11), (0.11, 0.11), (-0.11, 0.11)):
-        add_box(bm_frame, x + dx - 0.015, x + dx + 0.015, y + dy - 0.015, y + dy + 0.015, z - 0.16, z + 0.14)
-    add_lathe(bm_frame, [(0.13, z + 0.18), (0.05, z + 0.3), (0.02, z + 0.36), (0.0, z + 0.38)], x, y, segs=6)
-    add_box(bm_glass, x - 0.09, x + 0.09, y - 0.09, y + 0.09, z - 0.16, z + 0.14)
+    """A pierced brass lantern (fanous) centred at (x, y, z) (step 3 ride 1:
+    "these lamp posts need a better look"): an eight-sided body 0.3 m tall
+    whose panels are a brass lattice (two diagonals and a band, so the glow
+    shows through in diamonds), an onion cap with a finial and a hanging
+    ring, a cone under it ending in a drop. Frame in brass, glow inside."""
+    n, R = 8, 0.13
+    h0, h1 = z - 0.15, z + 0.15
+    rib = [(x + R * math.cos(2 * math.pi * (k + 0.5) / n), y + R * math.sin(2 * math.pi * (k + 0.5) / n)) for k in range(n)]
+    for (cx, cy) in rib:
+        add_tube(bm_frame, [(cx, cy, h0), (cx, cy, h1)], 0.014, segs=4)
+    for k in range(n):
+        (ax, ay), (bx, by) = rib[k], rib[(k + 1) % n]
+        add_tube(bm_frame, [(ax, ay, h0), (bx, by, h1)], 0.007, segs=4)          # the lattice: an X ...
+        add_tube(bm_frame, [(ax, ay, h1), (bx, by, h0)], 0.007, segs=4)
+        add_tube(bm_frame, [(ax, ay, z), (bx, by, z)], 0.008, segs=4)            # ... and a band
+    # Collars, the onion cap with its finial and ring, the cone and its drop.
+    add_lathe(bm_frame, [(0.0, h1 - 0.01), (R + 0.025, h1 - 0.01), (R + 0.025, h1 + 0.03), (0.0, h1 + 0.03)], x, y, segs=n)
+    add_lathe(bm_frame, [(0.0, h0 - 0.03), (R + 0.025, h0 - 0.03), (R + 0.025, h0 + 0.01), (0.0, h0 + 0.01)], x, y, segs=n)
+    add_lathe(bm_frame, [(0.0, h1 + 0.03), (0.15, h1 + 0.06), (0.13, h1 + 0.13), (0.07, h1 + 0.2), (0.025, h1 + 0.25),
+                         (0.04, h1 + 0.28), (0.012, h1 + 0.31), (0.0, h1 + 0.33)], x, y, segs=n)
+    add_tube(bm_frame, [(x, y, z + LANTERN_TOP - 0.06), (x, y, z + LANTERN_TOP)], 0.006, segs=4)
+    add_lathe(bm_frame, [(0.0, h0 - 0.03), (0.1, h0 - 0.06), (0.03, h0 - 0.12), (0.02, h0 - 0.13), (0.035, h0 - 0.16),
+                         (0.0, h0 - 0.19)], x, y, segs=n)
+    add_lathe(bm_glass, [(0.0, h0), (0.105, h0), (0.105, h1), (0.0, h1)], x, y, segs=n)
+
+
+def scroll(bm, x0, z0, x1, z1, curl=0.07, y=0.0, r=0.016):
+    """A wrought-iron scroll bracket: a sweep from (x0, z0) up to (x1, z1) in the
+    XZ plane at Y `y`, ending in a small curl."""
+    pts = []
+    for k in range(9):
+        t = k / 8.0
+        pts.append((x0 + (x1 - x0) * t, y, z0 + (z1 - z0) * math.sin(t * math.pi / 2.0)))
+    cx, cz = x1 - curl, z1 - curl
+    for k in range(1, 8):
+        a = math.pi / 2.0 - k * math.pi / 4.0 * 1.5
+        pts.append((cx + curl * math.cos(a) * (1.0 - k / 16.0), y, cz + curl * math.sin(a) * (1.0 - k / 16.0)))
+    add_tube(bm, pts, r, segs=4)
 
 
 def lantern_post(r):
-    """A post 2.7 m high, its arm to +X with the lantern hanging 0.55 m out."""
-    solid("lk_lantern_post__post-col", r, [PWOOD], lambda bm: add_box(bm, -0.08, 0.08, -0.08, 0.08, 0.0, 2.75))
+    """A carved post with a turned cap, its scrolled iron arm to +X and a
+    pierced brass lantern hanging 0.55 m out on a short chain (centre 2.2 m,
+    as before: the lights and the pier's spacing stay)."""
+    def post(bm):
+        add_box(bm, -0.16, 0.16, -0.16, 0.16, 0.0, 0.22)                      # the foot
+        add_box(bm, -0.12, 0.12, -0.12, 0.12, 0.22, 0.32)
+        add_box(bm, -0.075, 0.075, -0.075, 0.075, 0.32, 2.98)                  # the shaft
+        add_box(bm, -0.1, 0.1, -0.1, 0.1, 2.98, 3.04)                          # the capital
+    solid("lk_lantern_post__post-col", r, [PWOOD], post)
+
+    def carving(bm):
+        for zc in (0.55, 1.6, 2.7):                                            # turned rings up the shaft
+            add_lathe(bm, [(0.0, zc - 0.04), (0.095, zc - 0.04), (0.11, zc), (0.095, zc + 0.04), (0.0, zc + 0.04)], segs=8)
+        add_lathe(bm, [(0.0, 3.04), (0.09, 3.06), (0.07, 3.14), (0.03, 3.2), (0.045, 3.24), (0.0, 3.3)], segs=8)     # the finial
+    solid("lk_lantern_post__carving", r, ["brass"], carving)
 
     def arm(bm):
-        add_box(bm, -0.05, 0.7, -0.04, 0.04, 2.55, 2.65)
-        add_obox(bm, (0.2, 0.0, 2.38), (0.05, 0.05, 0.5), (0.0, math.radians(-45), 0.0))
-        add_box(bm, 0.54, 0.56, -0.01, 0.01, 2.4, 2.55)
+        add_box(bm, 0.07, 0.68, -0.025, 0.025, 2.86, 2.9)                     # the arm
+        scroll(bm, 0.08, 2.35, 0.5, 2.85)                                      # its brace
+        add_lathe(bm, [(0.0, 2.84), (0.03, 2.84), (0.03, 2.92), (0.0, 2.92)], 0.6, 0.0, segs=6)    # the hook's boss
+        add_tube(bm, [(0.6, 0.0, 2.84), (0.6, 0.0, 2.2 + LANTERN_TOP)], 0.008, segs=4)               # the chain
     solid("lk_lantern_post__arm", r, [IRON], arm)
     fb, gb = bmesh.new(), bmesh.new()
-    lantern(fb, gb, 0.55, 0.0, 2.2)
-    mesh_object("lk_lantern_post__lantern", fb, [IRON], r)
+    lantern(fb, gb, 0.6, 0.0, 2.2)
+    mesh_object("lk_lantern_post__lantern", fb, ["brass"], r)
     mesh_object("lk_lantern_post__glass", gb, ["emit_lantern"], r)
-    marker("LIGHT_lake_lantern__post", r, (0.55, 0.0, 2.2))
+    marker("LIGHT_lake_lantern__post", r, (0.6, 0.0, 2.2))
 
 
 def bell(r):
@@ -1048,29 +1096,87 @@ def boat(r):
     solid("lk_boat__floor-colonly", r, [WOOD], lambda bm: add_box(bm, -0.45, 0.45, -1.6, 1.6, -0.4, -0.17))
 
 
+def arch_z(x, edge=2.15, ridge=3.0, half=1.3):
+    """The canopy's pointed arch: its height over |x| (edge at the sides, ridge in the middle)."""
+    u = min(1.0, abs(x) / half)
+    return edge + (ridge - edge) * (1.0 - u ** 1.5)
+
+
+def sweep_board(bm, a, b, z0, h0, h1, t=0.05):
+    """A bulwark board from plan point a to b, its foot at z0, its top rising
+    from h0 at a to h1 at b, `t` thick (centred on the line)."""
+    ax, ay = a
+    bx, by = b
+    dx, dy = bx - ax, by - ay
+    n = math.hypot(dx, dy)
+    nx, ny = -dy / n * t / 2.0, dx / n * t / 2.0
+    q = [(ax - nx, ay - ny), (bx - nx, by - ny), (bx + nx, by + ny), (ax + nx, ay + ny)]
+    tops = [h0, h1, h1, h0]
+    lo = [bm.verts.new((x, y, z0)) for (x, y) in q]
+    hi = [bm.verts.new((x, y, tops[k])) for k, (x, y) in enumerate(q)]
+    bm.faces.new(list(reversed(lo)))
+    bm.faces.new(hi)
+    for k in range(4):
+        j = (k + 1) % 4
+        bm.faces.new((lo[k], lo[j], hi[j], hi[k]))
+
+
+STERN_POST = [(0.0, -4.02, -0.25), (0.0, -4.12, 0.5), (0.0, -4.2, 1.2), (0.0, -4.25, 1.9), (0.0, -4.22, 2.4),
+              (0.0, -4.12, 2.72), (0.0, -3.95, 2.88), (0.0, -3.75, 2.9), (0.0, -3.6, 2.82), (0.0, -3.53, 2.7),
+              (0.0, -3.58, 2.6), (0.0, -3.66, 2.62)]
+
+
 def ferry(r):
-    """The ferry: 8 m long, 3 m wide, bow at +Y (Godot -Z), its waterline at
-    the origin, the deck at 0.3. Railed on the sides and the stern, open at
-    the bow (1.4 m), lanterns at the bow and the stern, an awning amidships.
+    """The ferry, a Persian lantern barge (step 3 ride 1: "the ferry needs to
+    be redesigned"): 8 m long, 3 m wide, bow at +Y (Godot -Z), its waterline
+    at the origin, the deck at 0.3. A painted tile band under a carved
+    gunwale, bulwarks sweeping up to two carved bow posts that hang brass
+    lanterns over the water (the 1.4 m boarding gap between them stays
+    open), turned balusters, kilim cushions on the benches and a kilim on
+    the deck, an arched canopy of striped cloth with brass tassels and two
+    lanterns under its ridge, and a tall stern post curling forward with a
+    lantern hanging from its curl. Two lights: the starboard bow lantern
+    and the forward canopy lantern; the others glow only.
     No collision: LakeFerry gives it its own (it moves)."""
     out = [(-1.5, -3.6), (-1.35, -4.0), (1.35, -4.0), (1.5, -3.6), (1.5, 2.8), (1.0, 4.0), (-1.0, 4.0), (-1.5, 2.8)]
+
+    def grown(k):
+        return [(x * (1.0 + k / 1.5), y * (1.0 + k / 4.0)) for (x, y) in out]
     solid("lk_ferry__hull", r, [WOOD], lambda bm: add_plan_prism(bm, out, -0.45, 0.22))
+    solid("lk_ferry__band", r, ["persian_tile"], lambda bm: add_plan_prism(bm, grown(0.018), 0.0, 0.17))
+    solid("lk_ferry__trim", r, [PWOOD], lambda bm: (add_plan_prism(bm, grown(0.04), -0.1, 0.0),       # the rub strake
+                                                    add_plan_prism(bm, grown(0.05), 0.17, 0.27)))     # the gunwale cap
     solid("lk_ferry__deck", r, [PWOOD], lambda bm: planks(bm, -1.38, 1.38, -3.85, 3.85, 0.3, across=True, width=0.3))
+    solid("lk_ferry__rug", r, ["cushion_kilim"], lambda bm: add_box(bm, -0.55, 0.55, -2.5, 1.3, 0.3, 0.315))
+
+    top = 1.25
+    bow = 0.78       # the bow posts' X (the boarding gap between them is 1.4 m)
 
     def rails(bm):
-        top = 1.25
         for s in (-1, 1):
             x = 1.42 * s
-            for y in (-3.8, -2.6, -1.4, -0.2, 1.0, 2.2):
-                add_box(bm, x - 0.05, x + 0.05, y - 0.05, y + 0.05, 0.22, top)
             add_box(bm, x - 0.06, x + 0.06, -3.85, 2.8, top - 0.08, top)
             add_box(bm, x - 0.04, x + 0.04, -3.85, 2.8, 0.7, 0.76)
-            add_obox(bm, ((1.42 + 0.95) / 2 * s, 3.4, top - 0.04), (0.08, math.hypot(0.47, 1.2), 0.08),
-                     (0.0, 0.0, -math.atan2(0.47, 1.2) * s))
-            add_box(bm, 0.7 * s - 0.05, 0.7 * s + 0.05, 3.85, 3.95, 0.22, top)
+            ln = math.hypot(1.42 - bow, 3.95 - 2.8)
+            rot = (0.0, 0.0, math.atan2(1.42 - bow, 3.95 - 2.8) * s)      # along the bow taper, inward
+            mid = ((1.42 + bow) / 2 * s, (2.8 + 3.95) / 2)
+            add_obox(bm, (mid[0], mid[1], top - 0.04), (0.1, ln, 0.08), rot)
+            add_obox(bm, (mid[0], mid[1], 0.73), (0.07, ln, 0.06), rot)
+            sweep_board(bm, (1.45 * s, 2.8), ((bow + 0.03) * s, 3.95), 0.2, 0.5, 0.95, t=0.05)   # the bulwark sweeping up
         add_box(bm, -1.42, 1.42, -3.9, -3.8, top - 0.08, top)
         add_box(bm, -1.42, 1.42, -3.9, -3.8, 0.7, 0.76)
     solid("lk_ferry__rails", r, [PWOOD], rails)
+
+    def balusters(bm):
+        spots = [(0.7, -3.85), (-0.7, -3.85), (0.0, -3.85)]
+        for s in (-1, 1):
+            spots += [(1.42 * s, -3.8 + 0.6 * k) for k in range(12)]
+        for (x, y) in spots:
+            add_lathe(bm, [(0.0, 0.22), (0.045, 0.22), (0.045, 0.3), (0.03, 0.36), (0.05, 0.48), (0.03, 0.62),
+                           (0.04, 0.7), (0.0, 0.7)], x, y, segs=6)
+            add_lathe(bm, [(0.0, 0.76), (0.035, 0.76), (0.026, 0.86), (0.045, 1.0), (0.026, 1.12), (0.035, 1.17),
+                           (0.0, 1.17)], x, y, segs=6)
+    solid("lk_ferry__balusters", r, [PWOOD], balusters)
 
     def benches(bm):
         for s in (-1, 1):
@@ -1079,28 +1185,89 @@ def ferry(r):
                 add_box(bm, 1.0 * s - 0.2, 1.0 * s + 0.2, y - 0.04, y + 0.04, 0.3, 0.6)
     solid("lk_ferry__benches", r, [PWOOD], benches)
 
-    def awning_posts(bm):
-        for x in (-1.3, 1.3):
-            for y in (-1.6, 1.4):
-                add_box(bm, x - 0.05, x + 0.05, y - 0.05, y + 0.05, 1.25, 2.4)
-    solid("lk_ferry__awning_posts", r, [PWOOD], awning_posts)
-    solid("lk_ferry__awning", r, ["persian_awning"], lambda bm: add_box(bm, -1.45, 1.45, -1.8, 1.6, 2.4, 2.46))
-    fb, gb, pb = bmesh.new(), bmesh.new(), bmesh.new()
-    for (x, y, s) in ((1.25, 3.0, -1), (-1.25, -3.55, 1)):
-        add_box(pb, x - 0.06, x + 0.06, y - 0.06, y + 0.06, 0.22, 2.75)
-        add_box(pb, x - 0.03, x + 0.03 + 0.55 * 0, y - 0.03, y + 0.03, 2.6, 2.66)
-        add_box(fb, min(x, x + 0.5 * s) - 0.02, max(x, x + 0.5 * s) + 0.02, y - 0.025, y + 0.025, 2.6, 2.66)
-        lantern(fb, gb, x + 0.5 * s, y, 2.25)
-    mesh_object("lk_ferry__lantern_posts", pb, [PWOOD], r)
-    mesh_object("lk_ferry__lanterns", fb, [IRON], r)
-    mesh_object("lk_ferry__glass", gb, ["emit_lantern"], r)
-    marker("LIGHT_lake_lantern__bow", r, (0.75, 3.0, 2.25))
-    marker("LIGHT_lake_lantern__stern", r, (-0.75, -3.55, 2.25))
+    def cushions(bm):
+        for s in (-1, 1):
+            for (y0, y1) in ((-2.75, -1.3), (-1.2, 0.15), (0.25, 1.55)):
+                add_box(bm, 1.0 * s - 0.22, 1.0 * s + 0.22, y0, y1, 0.68, 0.76)
+            add_box(bm, 1.22 * s - 0.05, 1.22 * s + 0.05, -2.7, 1.5, 0.76, 1.1)        # bolsters against the rail
+    solid("lk_ferry__cushions", r, ["cushion_kilim"], cushions)
 
-    def gear(bm):
-        add_lathe(bm, [(0.3, 0.3), (0.32, 0.38), (0.2, 0.42), (0.0, 0.42)], -0.9, -3.3, segs=10)     # a coil of rope
-        add_box(bm, 0.5, 1.1, -3.6, -3.1, 0.3, 0.7)                                                  # a chest
-    solid("lk_ferry__gear", r, ["net_cord"], gear)
+    # The canopy: posts, three pointed arched ribs and a ridge, the striped cloth.
+    ribs = (-1.6, -0.1, 1.4)
+    xs = [-1.3 + 2.6 * k / 16 for k in range(17)]
+
+    def frame(bm):
+        for y in ribs:
+            for s in (-1, 1):
+                add_lathe(bm, [(0.0, top), (0.05, top), (0.04, 1.4), (0.055, 1.5), (0.04, 1.6), (0.04, 2.1),
+                               (0.06, 2.15), (0.0, 2.17)], 1.3 * s, y, segs=6)
+            add_tube(bm, [(x, y, arch_z(x) - 0.02) for x in xs], 0.04, segs=6)
+        add_tube(bm, [(0.0, ribs[0] - 0.25, arch_z(0.0) - 0.03), (0.0, ribs[-1] + 0.25, arch_z(0.0) - 0.03)], 0.035, segs=6)
+    solid("lk_ferry__canopy_frame", r, [PWOOD], frame)
+
+    def cloth(bm):
+        y0, y1, th = ribs[0] - 0.3, ribs[-1] + 0.3, 0.025
+        o0 = [bm.verts.new((x, y0, arch_z(x) + 0.03)) for x in xs]
+        o1 = [bm.verts.new((x, y1, arch_z(x) + 0.03)) for x in xs]
+        i0 = [bm.verts.new((x, y0, arch_z(x) + 0.03 - th)) for x in xs]
+        i1 = [bm.verts.new((x, y1, arch_z(x) + 0.03 - th)) for x in xs]
+        for k in range(len(xs) - 1):
+            bm.faces.new((o0[k], o0[k + 1], o1[k + 1], o1[k]))
+            bm.faces.new((i0[k], i1[k], i1[k + 1], i0[k + 1]))
+            bm.faces.new((o0[k], i0[k], i0[k + 1], o0[k + 1]))
+            bm.faces.new((o1[k], o1[k + 1], i1[k + 1], i1[k]))
+        bm.faces.new((o0[0], o1[0], i1[0], i0[0]))
+        bm.faces.new((o0[-1], i0[-1], i1[-1], o1[-1]))
+        for s in (-1, 1):                                                            # the valances
+            add_box(bm, 1.33 * s - 0.012, 1.33 * s + 0.012, y0, y1, 1.98, 2.18)
+    solid("lk_ferry__canopy", r, ["persian_awning"], cloth)
+
+    def tassels(bm):
+        for s in (-1, 1):
+            y = ribs[0] - 0.25
+            while y < ribs[-1] + 0.3:
+                add_lathe(bm, [(0.0, 1.91), (0.012, 1.925), (0.009, 1.965), (0.0, 1.98)], 1.33 * s, y, segs=5)
+                y += 0.18
+    solid("lk_ferry__tassels", r, ["brass"], tassels)
+
+    def posts(bm):
+        for s in (-1, 1):
+            add_lathe(bm, [(0.0, 0.2), (0.085, 0.2), (0.085, 0.32), (0.06, 0.4), (0.06, 1.0), (0.08, 1.06),
+                           (0.06, 1.12), (0.06, 1.95), (0.08, 2.02), (0.06, 2.08), (0.06, 2.3), (0.0, 2.3)],
+                      bow * s, 3.95, segs=8)
+        n = len(STERN_POST)
+        add_tube(bm, STERN_POST, [0.11 - 0.075 * k / (n - 1) for k in range(n)], segs=8)
+    solid("lk_ferry__posts", r, [PWOOD], posts)
+
+    fb, gb, lb, ib = bmesh.new(), bmesh.new(), bmesh.new(), bmesh.new()
+    for s in (-1, 1):
+        add_lathe(fb, [(0.0, 2.3), (0.08, 2.32), (0.065, 2.4), (0.03, 2.47), (0.04, 2.51), (0.0, 2.58)], bow * s, 3.95, segs=8)
+        for zc in (1.06, 2.02):
+            add_lathe(fb, [(0.0, zc - 0.03), (0.088, zc - 0.03), (0.088, zc + 0.03), (0.0, zc + 0.03)], bow * s, 3.95, segs=8)
+        hx = (bow + 0.5) * s                                  # the lantern hangs out over the water
+        add_box(ib, min(bow * s, hx) - 0.02, max(bow * s, hx) + 0.02, 3.93, 3.97, 2.13, 2.17)
+        moved(ib, lambda bm: scroll(bm, bow + 0.06, 1.72, bow + 0.42, 2.13, curl=0.06, y=3.95, r=0.014),
+              Matrix.Scale(s, 4, (1.0, 0.0, 0.0)))        # its brace (mirrored to port)
+        add_tube(ib, [(hx, 3.95, 2.13), (hx, 3.95, 1.64 + LANTERN_TOP)], 0.008, segs=4)
+        lantern(fb, gb if s > 0 else lb, hx, 3.95, 1.64)
+    for y in (-0.85, 0.65):                                  # two lanterns under the ridge
+        add_tube(ib, [(0.0, y, arch_z(0.0) - 0.06), (0.0, y, 2.47 + LANTERN_TOP)], 0.008, segs=4)
+        lantern(fb, gb if y > 0 else lb, 0.0, y, 2.47)
+    add_tube(ib, [(0.0, -3.53, 2.66), (0.0, -3.53, 2.08 + LANTERN_TOP)], 0.008, segs=4)   # one from the stern post's curl
+    lantern(fb, lb, 0.0, -3.53, 2.08)
+    mesh_object("lk_ferry__brass", fb, ["brass"], r)
+    mesh_object("lk_ferry__irons", ib, [IRON], r)
+    mesh_object("lk_ferry__glass", gb, ["emit_lantern"], r)
+    mesh_object("lk_ferry__glow", lb, ["emit_lantern"], r)
+    marker("LIGHT_lake_lantern__bow", r, (bow + 0.5, 3.95, 1.64))
+    marker("LIGHT_lake_canopy__fore", r, (0.0, 0.65, 2.47))
+
+    solid("lk_ferry__gear", r, ["net_cord"], lambda bm: add_lathe(bm, [(0.3, 0.3), (0.32, 0.38), (0.2, 0.42), (0.0, 0.42)],
+                                                                  -0.9, -3.3, segs=10))     # a coil of rope
+    solid("lk_ferry__chest", r, [PWOOD], lambda bm: add_box(bm, 0.5, 1.1, -3.6, -3.1, 0.3, 0.68))
+    solid("lk_ferry__chest_bands", r, ["brass"], lambda bm: (add_box(bm, 0.48, 1.12, -3.62, -3.08, 0.66, 0.71),
+                                                            add_box(bm, 0.62, 0.68, -3.62, -3.08, 0.3, 0.71),
+                                                            add_box(bm, 0.92, 0.98, -3.62, -3.08, 0.3, 0.71)))
 
 
 def person(r, name, hip, lean, hands, low=False, robe="gorge_cloth", hood="persian_awning"):
@@ -1130,7 +1297,7 @@ def person(r, name, hip, lean, hands, low=False, robe="gorge_cloth", hood="persi
 
 def ferryman(r):
     """Standing at the stern with his pole, looking ahead."""
-    person(r, "lk_ferryman", 0.92, 0.06, [(0.12, -0.3, 1.18), (0.16, -0.26, 0.86)], robe="quarter_cloth", hood="gorge_cloth")
+    person(r, "lk_ferryman", 0.92, 0.06, [(0.12, -0.3, 1.18), (0.16, -0.26, 0.86)], robe="gorge_cloth", hood="persian_awning")     # ride 1: quarter_cloth is a cut-out shader needing UVs, the robe vanished
     solid("lk_ferryman__pole", r, [PWOOD], lambda bm: add_obox(bm, (0.15, -0.32, 1.3), (0.05, 0.05, 4.6), (math.radians(-12), math.radians(8), 0.0)))
 
 
@@ -1235,7 +1402,7 @@ def landing_quay(r):
     solid("lk_landing_quay__paving-col", r, [PAVE], lambda bm: add_box(bm, 0.0, 10.0, -0.5, 2.5, -0.08, 0.0))
     solid("lk_landing_quay__edge", r, ["persian_rock_dressed"], lambda bm: (add_box(bm, -0.25, 0.0, -0.5, 6.0, BED, 0.0),
                                                                           add_box(bm, 10.0, 10.25, -0.5, 6.0, BED, 0.0)))
-    bollards(r, "lk_landing_quay", [(0.6, 5.6), (9.4, 5.6)])
+    bollards(r, "lk_landing_quay", [(0.6, 5.6), (9.4, 5.6)], z=STAGE)
 
 
 def rubble(r):
@@ -1661,9 +1828,15 @@ def harbour(r):
 # and 4 m high toward the ends) and comes down low over the water round it.
 # build_lake.gd places it far from the harbour; LakeLayout.DOCKS has its frame.
 
+# Step 3 (brief R1c): two channel mouths, west (the ferry leaves by it) and
+# east (it comes in by it), so a trip between two docks of one style never
+# comes back out where it went in.
 D_CH = [(0.0, -16.0), (-1.0, -27.0), (-7.0, -38.0), (-19.0, -47.0), (-34.0, -52.0)]
+D_CH2 = [(x * -1.0, z) for (x, z) in D_CH]
 D_FERRY = [(0.0, -6.0), (0.0, -16.0)] + D_CH[1:]
-D_GLOW = [(-15.5, -15.0, "violet"), (15.0, -16.0, "amber"), (4.2, -28.0, "teal"), (-10.3, -46.1, "teal")]
+D_FERRY2 = [(0.0, -6.0), (0.0, -16.0)] + D_CH2[1:]
+D_GLOW = [(-15.5, -15.0, "violet"), (15.0, -14.5, "amber"), (-10.3, -46.1, "teal"),
+          (10.3, -46.1, "lime")]
 D_STRIP = (-18.5, 18.5, -9.0, 3.0)
 
 
@@ -1671,7 +1844,7 @@ def dock_inside(x, z):
     dx, dz = x / 19.0, (z + 13.0) / 11.0
     s_main = (1.0 - math.hypot(dx, dz)) * 12.0 + 2.5 * h_noise(x, z, 0.06, 53.0) + 1.2 * h_noise(x, z, 0.17, 58.0)
     s_back = min(x + 18.5, 18.5 - x, 7.0 - z, z + 9.0) + 0.8 * h_noise(x, z, 0.15, 55.0)
-    d, _t = poly_dist(x, z, D_CH)
+    d = min(poly_dist(x, z, D_CH)[0], poly_dist(x, z, D_CH2)[0])
     s_ch = 6.0 - d + 1.0 * h_noise(x, z, 0.2, 62.0)
     s = smax(smax(s_main, s_back), s_ch)
     h = 1.2 + 5.2 * (1.0 - math.exp(-s / 3.2)) if s >= 0.0 else 1.2 + 3.2 * s
@@ -1680,7 +1853,7 @@ def dock_inside(x, z):
 
 def dock_clear(x, z):
     need = 6.2 - 0.9 * max(0.0, rect_out(x, z, D_STRIP) - 1.0)          # the strip, quay and stage
-    d, _t = poly_dist(x, z, D_FERRY)
+    d = min(poly_dist(x, z, D_FERRY)[0], poly_dist(x, z, D_FERRY2)[0])
     need = max(need, 4.8 - 0.9 * max(0.0, d - 5.0))                     # the ferry's water and channel
     ax = abs(x)
     if ax < 17.5 and z > -9.0:
@@ -1697,14 +1870,14 @@ def dock_clear(x, z):
 
 def _dock_dark(c):
     """Teal caps only down the channel, past its first bend."""
-    d, t = poly_dist(c.x, -c.y, D_CH)
+    d, t = min(poly_dist(c.x, -c.y, D_CH), poly_dist(c.x, -c.y, D_CH2))
     return not (d < 9.0 and t > 0.3)
 
 
 DOCK_P = {
-    "prefix": "lk_dock_a", "bounds": (-46.0, 26.0, 9.0, -62.0), "sample": (-44.0, 24.0, -60.0, 6.0),
+    "prefix": "lk_dock_a", "bounds": (-46.0, 46.0, 9.0, -62.0), "sample": (-44.0, 44.0, -60.0, 6.0),
     "skip": lambda x, z: abs(x) < 20.0 and z > -20.0,
-    "ferry_path": D_FERRY, "ferry": D_FERRY, "glow": D_GLOW,
+    "ferry_path": D_FERRY + D_FERRY2[::-1], "ferry": D_FERRY + D_FERRY2[::-1], "glow": D_GLOW,
     "dark": [(900.0, 900.0), (901.0, 901.0)], "pier": (-3.0, 3.0, -16.0, -6.0), "quay": D_STRIP,
     "boulders": 18, "mites": 10, "curtains": 60, "big": 24, "colonies": 9, "dark_place": _dock_dark,
 }
@@ -1764,13 +1937,18 @@ AT_ORIGIN = {"M_lk_cavern", "M_lk_bed", "M_lk_headland", "M_lk_harbour", "M_lk_d
 
 # Script-made modules remade in place at a new revision (kit_blender.rebuild).
 # (module, rev): rebuilt when the .blend has an older rev.
-REBUILD = [("M_lk_quay", 4), ("M_lk_pier_head", 3), ("M_lk_landing_quay", 3),
+REBUILD = [("M_lk_quay", 4), ("M_lk_pier_head", 4), ("M_lk_landing_quay", 4),
            ("M_lk_cavern", 3), ("M_lk_bed", 2), ("M_lk_headland", 3), ("M_lk_back_wall", 6),
-           ("M_lk_harbour", 7), ("M_lk_boathouse", 3)]
+           ("M_lk_harbour", 7), ("M_lk_boathouse", 3), ("M_lk_dock_a", 3),
+           ("M_lk_ferry", 4), ("M_lk_ferryman", 2), ("M_lk_lantern_post", 2)]
+# ferry: rev 3 (rev 4 a softer canopy light, finer tassels), lantern post: rev 2 (step 3 ride 2) a Persian lantern barge; pierced brass lanterns on carved posts.
+# pier head, landing quay: rev 4 (step 3 ride 3) bollards down on the stage.
+# ferry, ferryman: rev 2 (step 3 ride 1) bow taper rails turned inward; a robe that draws.
 # quay, pier head, landing quay: rev 2 steps walked on hidden ramps, rev 3 ramps flush with the deck edge.
 # quay: rev 4 (walk 2) paving stops short of the steps' coping. back wall: rev 5 (walk 2) swells, ledges, lean.
 # cavern, bed, headland, back wall: rev 2 (walk 1) an organic cavern, formations, glowing caps, grottos.
 # boathouse: rev 2 (walk 4) flat store roof, no gables; rev 3 (walk 5) open window, no pane.
+# dock a: rev 2 (step 3) a second channel mouth, east; rev 3 no ledge between the mouths (in the ferry's way).
 # harbour: rev 2 a lower roof (5-7 m) in sharp-stepped sheets, caps only in the channels; rev 3 pockets over the clearance; rev 4 far-shore lantern plinths; rev 7 (walk 3) relief above the clearance; rev 5 (walk 2) soft clearance, plain roof undersides, big stalactites, stalagmites, coloured glow ledges, hanging strands.
 
 

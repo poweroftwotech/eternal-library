@@ -256,3 +256,73 @@ The user approved the harbour's look ("pier area looks really good now") and ask
 - **Not yet:**
   - the other docks, the ferry table and the lantern boat (step 3);
   - the old far landings' dressing for the Gardens and Forgotten City (step 3).
+
+## Revised step 3: every dock (2026-11-08)
+
+Steps 1 and 2 were committed together (32a4552). The user asked to go on.
+
+- **Docks by style (R1b):**
+  - `LakeLayout.STYLES` has four dock styles: town (0, 0, -420), garden (320, 0, -420), ruin (-320, 0, -420) and default (0, 0, -760).
+  - Each is an `lk_dock_a` chamber holding the dressing of the landing that used to serve its theme: the Mahaleh house front, the Gardens' light shaft and planters, the Forgotten City's rubble, and a plain arch for the default style.
+  - `style_of(dest)` picks a style by the destination's theme. Ties are broken by world seed. A destination with no matching theme uses the default.
+- **The ferry table (R5):**
+  - `scripts/world/lake_ferry_table.gd` defines the table, and `gen/lake/ferry_table.tres` holds it: the Mahaleh (town), the Gardens (garden) and the Forgotten City (ruin), all open.
+  - The ferryman offers what the table says. The pier head has a low board listing them.
+- **Two channel mouths (R1c):**
+  - `lk_dock_a` rev 2 added an east mouth. Rev 3 removed the rock ledge between the two mouths, which was in the ferry's way.
+  - The ferry leaves a dock by the west mouth and comes in by the east one.
+  - Under the fog the arrival dock is re-dressed for where you are going: its board (`Sign`) and its bell.
+  - A trip from one dock to another dock of the same style therefore never comes back out where it went in.
+- **Bells:** each dock's bell calls the empty ferry out of the fog to that dock's current destination.
+- **The flooded channel** has a board in the water: "Flooded. No passage."
+- **The lantern boat:**
+  - A small boat, a seated rower and a lantern, crossing whichever place you are in once every 2 minutes and taking 75 s.
+  - In the harbour it comes in down the west side of the lit channel and goes on into the dark flooded one, its lantern dimming. The ferry's harbour channel now keeps east of the middle to leave it room.
+  - At a dock it comes in along the east channel's outer bank, crosses just past the berth's run, and goes out along the west bank.
+  - It lies still while the ferry is near, unless it is on the ferry's line; then it rows on, quicker, out of the way.
+- **Tests:**
+  - `tests/r20_ferry_test.gd` ride covers quay → the Mahaleh → the Gardens → the Forgotten City → quay, then the Mahaleh dock's bell: 33 checks, 0 failures.
+    - Drift on the deck was at most 0.22 m, and no rock was in the ferry's way.
+    - The lantern boat's whole route through the harbour and all four dock styles is clear of rock, checked with a small-boat box (2 × 2.6 × 4.8 m).
+    - The ferry never came within 4 m of the lantern boat.
+  - save and load, in separate processes: 0 failures.
+  - The first ride found a dock boulder in the ferry's way (the ledge, now gone) and a lantern route through harbour boulders. Both are fixed.
+- **Pictures:** `previews/phase18_step3/` (`tests/r20_docks_capture.gd`) show:
+  - the pier board, the flooded board and the lantern boat in the harbour;
+  - for each destination, the deck on arrival, the dock front, the dock from its water, its board, and the lantern boat.
+  - GPU 0.5–0.8 ms, at most 160 draw calls.
+- **Found while taking pictures:** the dock boards were built at the harbour's origin and facing the house. They now stand in their docks and read from the water.
+- **Caveat:** at a dock the lantern boat crosses about 18 m from the stage, so its lantern is only a small light that far off.
+- **Not yet (step 4):** life and dressing checks across the docks, and the default style's own look.
+
+### Step 3 ride, report 1 (2026-11-08): "where is the ferry?"
+
+- **Cause:** an older save had left the ferry at a dock, so when you came into the harbour it wasn't at the pier head.
+- **Fix:** once you are placed (after a load or arriving through a door), the docked ferry waits where you are: at the quay, or at the dock you're standing in (`LakeFerry._wait_for_you`). The dock doors are sealed, so you can only be in one of those places.
+- **Test:** `r20_ferry_test.gd -- elsewhere` passes 5 checks. Ride, save and load still pass.
+
+### Step 3 ride, report 2 (5 reports, 2026-11-08)
+
+- **Floating rocks at the Forgotten City dock:** the rubble now lies on the dock's strip (`build_lake.gd`).
+- **A rail sticking out at the bow:** the taper rails were mirrored. They now run inward in the model, and the ferry's collision (`LakeFerry._build`) matches.
+- **The ferryman had no body:** his robe used a cut-out cloth shader that needs UVs, so it drew nothing. It is now a plain cloth.
+- **"The ferry needs to be redesigned"** (you chose the Persian lantern barge). `lk_ferry` rev 4 keeps the hull, deck and boarding gap, and adds:
+  - a tile band and carved trim on the hull;
+  - bulwarks sweeping up to two carved bow posts, each hanging a brass lantern over the water;
+  - turned balusters, kilim cushions and bolsters, and a kilim on the deck;
+  - an arched striped canopy with valances, brass tassels and two lanterns under its ridge;
+  - a tall stern post curling forward, with a lantern hanging from the curl.
+  - Two lights: the starboard bow lantern, and a softer forward canopy light (`lake_canopy` profile). The other lanterns glow only.
+- **"These lamp posts need a better look"** (you chose the pierced brass lanterns). `lk_lantern_post` rev 2 is a carved post with turned brass rings and finial, a scrolled iron arm, and an eight-sided pierced brass lantern (fanous). The lantern is the same one used on the ferry.
+- **Pictures:** `previews/phase18_ride2/`. Headless gate clean. Ride and save tests still to run, once the look is agreed.
+
+### Step 3 ride, report 3 (2 reports, 2026-11-08)
+
+- **"What are these floating cylinders?"** These were the iron bollards at the pier head's stage, and at every landing quay's stage too. They were built at deck height, 0.9 m above the stage. `bollards()` now takes a base height, and the stages pass `STAGE` (pier head and landing quay rev 4).
+- **"The pier is dark coming back from the Mahaleh until the boat lands."** Under the fog, the ferry showed the arrival place as the destination's dock style. The quay has no dock style, so it showed the default dock and hid the harbour until the ferry docked. It now shows the harbour when crossing to the quay, and no longer re-dresses the default dock's board and bell for "the quay".
+- **Test:** each ride now also checks that, after the fog, the place shown is the one the ferry is in. Results:
+  - ride: 37 checks, 0 failures;
+  - save and load (separate processes): 2/2 and 5/5;
+  - elsewhere: 5/5;
+  - headless gate clean.
+- **Picture:** `previews/phase18_ride3/`.

@@ -309,65 +309,111 @@ func _place(parent: Node, path: String, node_name: String, xform: Transform3D) -
 	return n
 
 
-## A small boat with a lantern and someone standing in it, crossing far out
-## between the Mahaleh landing and the Forgotten City's, resting at each end.
+## The lantern boat (step 3, the brief's motion line): a small boat, a rower
+## and a lantern, coming out of one channel's fog and rowing across into
+## another, in whichever place you are in. In the harbour it comes in from
+## the ferry's channel and goes on into the dark flooded one, its lantern
+## dimming as the roof comes down; at a dock it comes in by the east mouth
+## and goes out by the west. A crossing every two minutes; between them it is
+## away in the fog. It lies still while the ferry is near (rowing on if it is
+## on the ferry's line).
+const LANTERN_PERIOD: float = 120.0
+const LANTERN_ROW: float = 75.0
+## Its way through a dock, in the dock's frame: in by the east channel, along
+## its outer bank, across the chamber just past the berth's run (the one place
+## it crosses the ferry's line), out along the west channel's outer bank.
+const LANTERN_DOCK_WAY: Array[Vector3] = [Vector3(29.0, 0.0, -46.0), Vector3(21.0, 0.0, -45.0), Vector3(11.5, 0.0, -36.5),
+	Vector3(5.5, 0.0, -26.5), Vector3(0.0, 0.0, -23.0), Vector3(-5.5, 0.0, -26.5), Vector3(-8.5, 0.0, -34.5),
+	Vector3(-18.5, 0.0, -42.0), Vector3(-29.0, 0.0, -46.0)]
+## In the harbour: in down the west side of the ferry's channel (the ferry keeps
+## east of its middle), across the water south of the pier head, into the dark channel.
+const LANTERN_HARBOUR_WAY: Array[Vector3] = [Vector3(15.0, 0.0, -82.0), Vector3(11.0, 0.0, -74.0), Vector3(8.0, 0.0, -66.0),
+	Vector3(5.3, 0.0, -58.0), Vector3(3.0, 0.0, -52.0), Vector3(-3.0, 0.0, -47.0), Vector3(-5.0, 0.0, -41.0),
+	Vector3(-11.0, 0.0, -38.5), Vector3(-20.0, 0.0, -39.0), Vector3(-25.0, 0.0, -41.0),
+	Vector3(-31.0, 0.0, -46.5)]     # north of the violet ledge's rocks, into the dark channel under its low roof
+var _far_place: String = ""
+var _far_round: int = -1
+
+
 func _far_ferry() -> void:
-	# Revised phase: the far landings became docks out of sight; the lantern
-	# boat between channels comes back in step 3.
-	if not LakeLayout.FERRY_RUNS or not LakeLayout.DOCKS.has("forgotten"):
+	if not LakeLayout.FERRY_RUNS:
 		return
-	var a: Transform3D = LakeLayout.landing_frame("mahaleh")
-	var b: Transform3D = LakeLayout.landing_frame("forgotten")
-	var pa: Vector3 = a.origin + a.basis.x * 12.0 - a.basis.z * 7.0
-	var pb: Vector3 = b.origin - b.basis.x * 11.0 - b.basis.z * 7.0
-	pa.y = LakeLayout.WATER
-	pb.y = LakeLayout.WATER
-	_far_curve = Curve3D.new()
-	_far_curve.bake_interval = 1.0
-	_far_curve.add_point(pa, Vector3.ZERO, -a.basis.z * 25.0)
-	_far_curve.add_point(pb, -b.basis.z * 25.0, Vector3.ZERO)
 	_far_boat = (load(BOAT) as PackedScene).instantiate() as Node3D
 	_far_boat.name = "FarBoat"
 	add_child(_far_boat)
-	var who: Node3D = (load("res://kit/modules/walls/qt_fig_stand.tscn") as PackedScene).instantiate() as Node3D
-	who.position = Vector3(0.0, -0.15, 1.2)
-	who.rotation.y = PI
+	var who: Node3D = (load("res://kit/modules/walls/qt_fig_sit.tscn") as PackedScene).instantiate() as Node3D
+	who.position = Vector3(0.0, -0.2, 0.6)
 	_far_boat.add_child(who)
 	WorldProp.localize_materials(_far_boat)
 	_far_light = _boat_lantern(_far_boat, Vector3(0.0, 0.0, -1.7))
 	_far_light.omni_range = 6.0
 	_far_light.light_energy = 1.2
+	_far_boat.visible = false
+	_lantern_route("quay")
+
+
+## The lantern boat's way through `place` ("quay" or a dock style).
+func _lantern_route(place: String) -> void:
+	_far_place = place
+	var pts: Array[Vector3] = []
+	if place == "quay":
+		pts = LANTERN_HARBOUR_WAY
+	else:
+		var f: Transform3D = LakeLayout.dock_frame(place)
+		for p: Vector3 in LANTERN_DOCK_WAY:
+			pts.append(f * p)
+	_far_curve = Curve3D.new()
+	_far_curve.bake_interval = 1.0
+	for i: int in pts.size():
+		var a: Vector3 = pts[maxi(i - 1, 0)]
+		var b: Vector3 = pts[mini(i + 1, pts.size() - 1)]
+		var hd: Vector3 = (b - a) * 0.2
+		_far_curve.add_point(Vector3(pts[i].x, LakeLayout.WATER, pts[i].z), -hd, hd)
 
 
 func _far_tick(delta: float) -> void:
-	# It lies still while the ferry is near, so the two never sail through each other.
+	var ferry_node: Node = owner.get_node_or_null("Ferry") if owner != null else null
 	var ferry: Node3D = (owner.get_node_or_null("Ferry/Barge") if owner != null else null) as Node3D
-	if ferry == null or ferry.global_position.distance_to(_far_boat.global_position) > 15.0:
-		_far_clock += delta
-	# A crossing every 3 minutes: 70 s out, rest, 70 s back, rest.
-	var period: float = 180.0
-	var t: float = fmod(_far_clock + float(seed_value % 60), period)
-	var k: float
-	var back: bool = false
-	if t < 70.0:
-		k = smoothstep(0.0, 1.0, t / 70.0)
-	elif t < 90.0:
-		k = 1.0
-	elif t < 160.0:
-		k = 1.0 - smoothstep(0.0, 1.0, (t - 90.0) / 70.0)
-		back = true
-	else:
-		k = 0.0
+	# It lies still while the ferry is near, unless it is on the ferry's line:
+	# then it rows on, quicker, out of the way.
+	var pace: float = 1.0
+	if ferry != null and _far_boat.visible and ferry.global_position.distance_to(_far_boat.global_position) <= 14.0:
+		pace = 0.0
+		var line: Curve3D = ferry_node.get("_curve") as Curve3D if bool(ferry_node.call("moving")) else null
+		if line != null and line.get_baked_length() > 0.0:
+			var on: Vector3 = line.get_closest_point(_far_boat.global_position)
+			if Vector2(on.x - _far_boat.global_position.x, on.z - _far_boat.global_position.z).length() < 6.0:
+				pace = 2.0
+	_far_clock += delta * pace
+	var clock: float = _far_clock + float(seed_value % 60)
+	var round_: int = int(clock / LANTERN_PERIOD)
+	var t: float = fmod(clock, LANTERN_PERIOD)
+	# A new crossing goes through the place you are in now.
+	var here: String = str(ferry_node.get("place")) if ferry_node != null else "quay"
+	if round_ != _far_round or (here != _far_place and t >= LANTERN_ROW):
+		_far_round = round_
+		if here != "" and here != _far_place:
+			_lantern_route(here)
+	if t >= LANTERN_ROW or here != _far_place:
+		_far_boat.visible = false
+		_far_light.visible = false
+		return
+	_far_boat.visible = true
+	var k: float = smoothstep(0.0, 1.0, t / LANTERN_ROW) * 0.8 + 0.2 * t / LANTERN_ROW
 	var length: float = _far_curve.get_baked_length()
 	var s: float = k * length
 	var pos: Vector3 = _far_curve.sample_baked(s)
-	var ahead: Vector3 = _far_curve.sample_baked(clampf(s + (-2.0 if back else 2.0), 0.0, length))
+	var ahead: Vector3 = _far_curve.sample_baked(minf(s + 2.0, length))
 	var dir: Vector3 = ahead - pos
 	var yaw: float = _far_boat.rotation.y
 	if dir.length() > 0.05:
 		yaw = atan2(-dir.x, -dir.z)
 	_far_boat.transform = Transform3D(Basis(Vector3.UP, yaw) * Basis(Vector3.BACK, 0.02 * sin(_t * 0.9)),
 		pos + Vector3(0.0, FREEBOARD + 0.03 * sin(_t * 1.1), 0.0))
+	# Into the dark channel the rower turns the lantern down.
+	var dim: float = 1.0 - smoothstep(length - 14.0, length - 2.0, s) if _far_place == "quay" else 1.0
+	_far_light.visible = dim > 0.02
+	_far_light.light_energy = 1.2 * dim
 
 
 # ------------------------------------------------------------------ reflections

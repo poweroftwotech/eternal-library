@@ -1,6 +1,6 @@
 # Approval brief: the Lake Landing (R20), phase 18, revised
 
-[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **revised 2026-11-08 after walk 1 and APPROVED as recommended 2026-11-08 (with your R1: all docks in one scene, chosen by the destination's theme).** Step 1 (the harbour) walked 6 times, look approved 2026-11-08. Step 2 (one trip through the fog, the Mahaleh dock) built 2026-11-08, waiting for your ride. The first version was approved 2026-11-08 (Q3: landing doors sealed) and steps 1-4 were built to it; this revision replaces the one great cavern with small dock chambers joined by fog channels (your idea) ·
+[Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **revised 2026-11-08 after walk 1 and APPROVED as recommended 2026-11-08 (with your R1: all docks in one scene, chosen by the destination's theme).** Step 1 (the harbour) walked 6 times, look approved 2026-11-08. Steps 1+2 committed 32a4552. Step 3 (every dock, the ferry table, two mouths per dock, bells, the lantern boat, a lantern-barge ferry) ridden three times and committed 2026-11-08. Step 4 (life and dressing) in progress. The first version was approved 2026-11-08 (Q3: landing doors sealed) and steps 1-4 were built to it; this revision replaces the one great cavern with small dock chambers joined by fog channels (your idea) ·
 Room type: [R20](../../design/room-atlas.html#R20) in the room atlas ·
 How a room gets its feel: [room character](room-character.md) ·
 Reference pictures: `design/reference images/caves/` (Ali-Sadr cave, Hamadan)

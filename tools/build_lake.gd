@@ -36,8 +36,8 @@ func _init() -> void:
 	_drips()
 	# Revised phase step 2: the docks, far off in the same scene, reached
 	# through the fog (step 2: the Mahaleh's; the rest in step 3).
-	for id: String in LakeLayout.DOCKS:
-		_dock(id)
+	for style: String in LakeLayout.STYLES:
+		_dock(style)
 	_markers()
 	_parent = _room
 	var ferry := LakeFerry.new()
@@ -220,6 +220,11 @@ func _pier() -> void:
 	bell.add_to_group("lake_bell", true)
 	bell.set_meta("stop", "quay")
 	_fishing("PierFishing", _at(7.02, 0.0, -28.0, PI / 2.0))
+	# Step 3 (the brief's story line): the ferry's board at the pier head (its
+	# words, where the ferry goes, from the ferry table: LakeFerry), and the
+	# dark channel's, out of the water at its half-flooded mouth.
+	_board("FerryBoard", _at(6.35, 0.0, -37.2, PI), "", 1.0, 40, 0.7)     # four names: a low notice board under the pier-head lamp
+	_board("DarkBoard", _at(-16.6, W - 0.5, -34.6, -2.29), "Flooded.\nNo passage.")
 
 
 ## Three boathouses on piles off the boardwalk (X -18..-6, Z -10..-18), their
@@ -340,6 +345,10 @@ const FACADES: Dictionary = {
 	"dark": [
 		[0.0, -6.0, ["persian_wall_rock", "persian_wall_rock_door_dark", "persian_wall_rock"]],
 	],
+	# Step 3: the plain cave dock's door in a short dressed wall.
+	"default": [
+		[0.0, -6.0, ["persian_wall_rock", "arch", "persian_wall_rock"]],
+	],
 }
 
 
@@ -372,22 +381,72 @@ func _dock(id: String) -> void:
 	fm.edge_fade = 0.25
 	mist.material = fm
 	_add(mist)
-	# The fog filling the channel past its bend, as the harbour's.
-	var last: Vector3 = LakeLayout.DOCK_CHANNEL[-1]
-	var prev: Vector3 = LakeLayout.DOCK_CHANNEL[-2]
-	_channel_fog("ChannelFog", Vector3(last.x + 2.0, W + 3.0, last.z), Vector3(22.0, 8.0, 26.0), atan2(-(last - prev).x, -(last - prev).z))
+	# The fog filling each channel past its bend, as the harbour's.
+	for m: int in 2:
+		var ch: Array = LakeLayout.DOCK_CHANNELS[m]
+		var last: Vector3 = ch[-1]
+		var prev: Vector3 = ch[-2]
+		_channel_fog("ChannelFog_%d" % m, Vector3(last.x + 2.0 * signf(last.x), W + 3.0, last.z), Vector3(22.0, 8.0, 26.0), atan2(-(last - prev).x, -(last - prev).z))
 	_parent = root
-	_landing(id, root)
+	_landing(str(LakeLayout.STYLES[id][3]), root, true)
+	# The painted board naming the destination this dock serves (LakeFerry.dress
+	# sets its words), on a post at the stage's west corner, read from the water.
+	_parent = root
+	_board("Sign", Transform3D(Basis(), Vector3(-5.9, 0.0, -2.6)), "")
+	_parent = _room
 
 
-func _landing(id: String, root: Node3D) -> void:
+## A painted board on a post, its words (Label3D) toward -Z of `xform`.
+func _board(node_name: String, xform: Transform3D, words: String, tall: float = 0.62, font: int = 56, low: float = 1.54) -> Node3D:
+	var root := Node3D.new()
+	root.name = node_name
+	root.transform = xform
+	_add(root)
+	var wood: Material = load("res://kit/materials/persian_wood.tres")
+	var post := MeshInstance3D.new()
+	post.name = "Post"
+	var pm := BoxMesh.new()
+	pm.size = Vector3(0.12, low + 0.04 + tall, 0.12)
+	post.mesh = pm
+	post.position = Vector3(0.0, (low + 0.04 + tall) * 0.5, 0.0)
+	post.material_override = wood
+	root.add_child(post)
+	post.owner = _room
+	var board := MeshInstance3D.new()
+	board.name = "Board"
+	var bm := BoxMesh.new()
+	bm.size = Vector3(1.9, tall, 0.06)
+	board.mesh = bm
+	board.position = Vector3(0.0, low + tall * 0.5, -0.09)
+	board.material_override = wood
+	root.add_child(board)
+	board.owner = _room
+	var label := Label3D.new()
+	label.name = "Words"
+	label.text = words
+	label.font_size = font
+	label.outline_size = 0
+	label.pixel_size = 0.0045
+	label.modulate = Color(0.93, 0.84, 0.62)
+	label.width = 1.8 / 0.0045
+	label.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
+	label.horizontal_alignment = HORIZONTAL_ALIGNMENT_CENTER
+	# Label3D reads from its +Z side: turned to read from the water (-Z).
+	label.transform = Transform3D(Basis(Vector3.UP, PI), Vector3(0.0, low + tall * 0.5, -0.13))
+	root.add_child(label)
+	label.owner = _room
+	return root
+
+
+func _landing(id: String, root: Node3D, dock: bool = false) -> void:
 	var f: Transform3D = root.transform
 	_parent = root
-	var stop: bool = bool(LakeLayout.LANDINGS[id][3])
+	var stop: bool = dock or bool(LakeLayout.LANDINGS[id][3])
 	var sunk: float = 0.0 if stop else -0.7
 	_put(K + "lk_landing_quay.tscn", "Quay", Transform3D(Basis(Vector3.RIGHT, deg_to_rad(2.5) if not stop else 0.0), Vector3(-5.0, sunk, 0.0)))
 	var turned := Basis(Vector3.UP, PI)
-	if LakeLayout.GROTTOS.has(id):
+	var grotto: bool = not dock and LakeLayout.GROTTOS.has(id)
+	if grotto:
 		# Walk 1: the door stands at the back of a natural grotto cut into the
 		# cavern wall (lk_cavern: its rock walls and floor collide).
 		var gy: float = float(LakeLayout.GROTTOS[id])
@@ -397,7 +456,7 @@ func _landing(id: String, root: Node3D) -> void:
 		gdoor.name = "Door"
 		gdoor.transform = Transform3D(turned, Vector3(0.0, gy, back))
 		_add(gdoor)
-	for storey: Array in ([] if LakeLayout.GROTTOS.has(id) else FACADES[id]):
+	for storey: Array in ([] if grotto else FACADES[id]):
 		var y: float = storey[0]
 		var u: float = storey[1]
 		for piece: String in storey[2]:
@@ -419,8 +478,8 @@ func _landing(id: String, root: Node3D) -> void:
 				_put(P + "persian_cornice.tscn", "Cornice_%d_%d" % [int(top), k], Transform3D(turned, Vector3(u0 + 4.0 * k + 4.0, top, 0.0)))
 	# The facade stops you where its walls are (they are scenery): the ground
 	# storey either side of the door.
-	var half: float = float(LakeLayout.LANDINGS[id][1])
-	if not LakeLayout.GROTTOS.has(id):
+	var half: float = float(LakeLayout.LANDINGS[id][1]) if LakeLayout.LANDINGS.has(id) else 6.0
+	if not grotto:
 		_box_body("FacadeW", Vector3(half - 2.0, 4.0, 0.6), Transform3D(Basis.IDENTITY, Vector3(-(half + 2.0) / 2.0, 2.0 + sunk, 0.3)))
 		_box_body("FacadeE", Vector3(half - 2.0, 4.0, 0.6), Transform3D(Basis.IDENTITY, Vector3((half + 2.0) / 2.0, 2.0 + sunk, 0.3)))
 	match id:
@@ -442,10 +501,18 @@ func _landing(id: String, root: Node3D) -> void:
 			var shaft := LightShaft.new()
 			shaft.name = "Daylight"
 			# The crack is in the lake's frame; the landing's root is turned.
-			shaft.transform = Transform3D(Basis.IDENTITY, f.affine_inverse() * LakeLayout.CRACK)
-			shaft.height = LakeLayout.CRACK.y + 0.5
-			shaft.radius = 9.0
-			shaft.energy = 14.0
+			if dock:
+				# Step 3: a thin fall of daylight from a crack high in the alcove
+				# over the garden front.
+				shaft.transform = Transform3D(Basis.IDENTITY, Vector3(-1.0, 0.0, -1.5))
+				shaft.height = 18.0
+				shaft.radius = 4.5
+				shaft.energy = 9.0
+			else:
+				shaft.transform = Transform3D(Basis.IDENTITY, f.affine_inverse() * LakeLayout.CRACK)
+				shaft.height = LakeLayout.CRACK.y + 0.5
+				shaft.radius = 9.0
+				shaft.energy = 14.0
 			shaft.haze = 0.07
 			_add(shaft)
 			_put(P + "persian_bed.tscn", "BedW", _at(-3.4, 0.0, -1.3))
@@ -453,12 +520,23 @@ func _landing(id: String, root: Node3D) -> void:
 			_put(P + "persian_pomegranate.tscn", "TreeW", _at(-4.3, 0.0, -0.5))
 			_put(P + "persian_pomegranate.tscn", "TreeE", _at(4.6, 0.0, -0.6, 1.3))
 			# A lamp by the door at the grotto's back, so its mouth reads from the water.
-			_put(P + "persian_lamp_bracket.tscn", "DoorLamp", Transform3D(turned, Vector3(2.6, 3.0, LakeLayout.GROTTO_BACK - 0.3)))
+			_put(P + "persian_lamp_bracket.tscn", "DoorLamp", Transform3D(turned, Vector3(2.6, 3.0, -0.05 if dock else LakeLayout.GROTTO_BACK - 0.3)))
 			_marker("Boat", "lake_boat_slot", _at(-7.0, W, -3.6, PI / 2.0), {"always": true})
+		"default":
+			# Step 3: the plain cave dock, for a destination no style suits.
+			_put(K + "lk_lantern_post.tscn", "LanternW", _at(-4.4, 0.0, -2.2))
+			_put(K + "lk_lantern_post.tscn", "LanternE", _at(4.4, 0.0, -2.2, PI))
+			_put(K + "lk_crates.tscn", "Crates", _at(-4.2, 0.0, -0.9, 0.2))
+			_put(K + "lk_traps.tscn", "Traps", _at(6.5, 0.0, -1.5, 0.7))
+			_marker("Boat", "lake_boat_slot", _at(7.2, W, -4.0, PI / 2.0 - 0.1), {"always": true})
 		"forgotten":
 			_put(K + "lk_lantern_post.tscn", "Lantern", _at(3.9, 0.0, -2.0, PI))
-			_put(K + "lk_rubble.tscn", "Rubble", _at(-5.0, 0.0, -2.5, 0.2))
-			_put(K + "lk_rubble.tscn", "RubbleIn", _at(-0.5, 0.0, 6.5, -0.4))
+			# Ride 1 of step 3: the heap lay over the steps and stage (it was placed
+			# for the old sunk landing); on the dock it lies on the strip west of the
+			# quay, on its own level, and nothing stands behind the house front.
+			_put(K + "lk_rubble.tscn", "Rubble", _at(-12.0, 0.0, 0.3, 0.0) if dock else _at(-5.0, 0.0, -2.5, 0.2))
+			if not dock:
+				_put(K + "lk_rubble.tscn", "RubbleIn", _at(-0.5, 0.0, 6.5, -0.4))
 			_fishing("Fishing", _at(-5.0, 0.0, -1.2, PI / 2.0))
 		"dark":
 			_put(K + "lk_rubble.tscn", "Rubble", _at(-3.0, sunk, -2.8, 0.5))
@@ -468,7 +546,9 @@ func _landing(id: String, root: Node3D) -> void:
 	if stop:
 		var bell: Node3D = _put(K + "lk_bell.tscn", "Bell", _at(4.3, 0.0, -1.0, PI))
 		bell.add_to_group("lake_bell", true)
-		bell.set_meta("stop", id)
+		bell.set_meta("stop", "quay" if not dock else "")
+		if dock:
+			bell.set_meta("style", String(root.name).trim_prefix("Dock_"))
 		_marker("Safe", "lake_safe", _at(0.0, LakeLayout.STAGE + 0.05, -4.6))
 	_parent = _room
 

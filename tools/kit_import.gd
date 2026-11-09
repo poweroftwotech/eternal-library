@@ -79,6 +79,8 @@ const LIGHT_PROFILES: Dictionary = {
 	# ferry, the one family of light there; and a boathouse's hanging lamp,
 	# seen through its window and door.
 	"lake_lantern": {"color": Color(1.0, 0.7, 0.36), "energy": 2.2, "range": 10.0, "attenuation": 1.25, "shadow": false},
+	# the ferry's canopy lantern (ride 2): half a post lantern, the cloth is half a metre away
+	"lake_canopy": {"color": Color(1.0, 0.7, 0.36), "energy": 1.0, "range": 8.0, "attenuation": 1.4, "shadow": false},
 	"lake_lamp": {"color": Color(1.0, 0.66, 0.34), "energy": 1.1, "range": 5.0, "attenuation": 1.5, "shadow": false},
 	# the lake's glowing caps (walk 1): a faint teal wash on the rock round a big patch
 	"lake_glow": {"color": Color(0.3, 0.92, 0.84), "energy": 2.6, "range": 16.0, "attenuation": 1.4, "shadow": false},

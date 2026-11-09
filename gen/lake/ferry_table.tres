@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="LakeFerryTable" load_steps=2 format=3]
+
+[ext_resource type="Script" path="res://scripts/world/lake_ferry_table.gd" id="1_table"]
+
+[resource]
+script = ExtResource("1_table")
+destinations = Array[Dictionary]([{
+"id": "mahaleh",
+"name": "the Mahaleh",
+"open": true,
+"theme": "town"
+}, {
+"id": "gardens",
+"name": "the Gardens",
+"open": true,
+"theme": "garden"
+}, {
+"id": "forgotten",
+"name": "the Forgotten City",
+"open": true,
+"theme": "ruin"
+}])
