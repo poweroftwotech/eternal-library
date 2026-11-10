@@ -185,3 +185,221 @@ up to two in an abandoned one (`kept_groups`). The live-swarm limit is
 - Worst scan frame 7.9 ms (Mahaleh), as before.
 
 Pictures of where bats and glowworms land now: `previews/phase19_step2/h3/`.
+
+Step 2 committed 54bf2ea (2026-11-09).
+
+## Step 3: the cat (started 2026-11-09)
+
+**Part 1: the model, standing still (waiting for your look).** As the brief
+says, the cat is shown posed before it walks.
+
+- **The path for animated models** (the brief's main risk): a Blender
+  script, `tools/creature_cat.py`, builds `art_src/creatures/cat.blend`
+  (mesh, skeleton, weights, coat mask, animations) and exports
+  `actors/models/cat.glb`. Godot's kit import script leaves files outside
+  `assets/kit/` alone, so the skeleton and animations come through as they
+  are: 22 bones, 7 animations (idle, walk, sit, sleep, wash loop; look and
+  startle once; Godot loops the "-loop" ones). People can use the same path.
+- **The cat:** low-poly, about 50 cm long and 25 cm at the shoulder, 424
+  faces, one draw call. Its texture is a 128 px mask painted at 96 texels/m
+  (stripes, pale fur, eyes, nose), kept lossless, so one model wears many
+  coats: grey, ginger, brown tabby, cream, black, white and grey
+  (`CatBody.COATS`, `shaders/creature_cat.gdshader`). Its eyes keep a faint
+  shine in the dark; they light nothing.
+- **`CatBody`** (`scripts/actors/cat_body.gd`) plays the animations, smooth
+  or stepped like a sprite (`set_stepped(fps)`), for Q5 once it walks.
+- **`tests/cat_capture.gd`** puts six cats in front of the camp's spawn,
+  one per pose and coat, and shoots the row, each cat close from the side
+  and the front, and four frames of the walk.
+
+Fixed in the first passes: eyes were pale stripes (now small almond eyes
+with slit pupils), leg tops stuck out of the body, too many leg bands, the
+tail stuck out stiffly.
+
+Next, after your look: the cat walks the walked lanes and uses rest spots
+(Q6), looks at you, startles if you run at it; one at the camp, a few in
+the Mahaleh; smooth or stepped (Q5); the navigation mesh measurement.
+
+Pictures: `previews/phase19_step3/c/`.
+
+### Step 3, look 1: "looks like a cricket at some angles" (2026-11-09)
+
+What made it insect-like, and what changed in `tools/creature_cat.py`:
+
+- **Legs bolted on outside a thin body.** The leg tops stuck out past the
+  body's sides as little pyramids, and the legs were long thin sticks. The
+  body is now deeper and lower (belly 11 cm off the floor, not 16), the legs
+  are shorter and thicker and start inside the body.
+- **Hind legs folded like a jumping insect's.** They are now a broad flat
+  haunch on the body's side down to a hock, with the foot upright under it.
+- **Ears like feelers.** They were thin edge-on from the front. They are
+  now broad triangles turned forward and a little outward.
+- **Small head on a long raised neck.** The head is rounder with a shorter
+  muzzle, carried lower on a short thick neck.
+- **Sitting:** the spine now bends (it was one straight slope), the rump is
+  on the floor and the hind feet lie flat beside the front paws.
+
+`tests/cat_capture.gd` also takes each pose from standing height (as the
+player sees it) and from behind. Pictures: `previews/phase19_step3/d/`.
+Still weak: the sleeping pose (not re-posed for the new body) and the face.
+
+### Step 3, look 2: the face (2026-11-09)
+
+"Looks better, but the face needs work: nose, whiskers, eyes; not cute."
+
+- **Head:** a little bigger, with a near-flat front and a small muzzle set
+  low on it (it was a cone ending in a square snout).
+- **Eyes:** big and round, wide-set and low: a dark upper lid, a wide
+  pupil, one white glint. They are flat panels on the face, 7 by 6 texels,
+  because anything drawn on the tapering head tube came out sheared.
+- **Nose and mouth:** a small pink nose at the muzzle's tip with a dark
+  mouth line under it; pale muzzle and cheeks.
+- **Whiskers:** three thin pale slivers a side.
+- The head is painted at twice the coat's texel density and the eyes a
+  little finer still; the rest of the cat stays at 96 texels a metre. The
+  mask grew to 256 px. The ginger cat's eyes are now green.
+
+`tests/cat_capture.gd` adds face close-ups (`face_<n>.png`, `face_<n>_q.png`).
+Pictures: `previews/phase19_step3/e/`.
+
+### Step 3, look 3: "the face is too flat" (2026-11-09)
+
+The face now has depth: it slopes back from a short muzzle that stands
+about 3 cm proud of it, set low, with the nose at its tip and the whiskers
+on its sides. Brow to nose tip is about 4.5 cm (it was 2). Pictures:
+`previews/phase19_step3/f/`.
+
+### Step 3, look 4: "still doesn't look like a cat" (2026-11-09)
+
+The user sent four low-poly cats as examples. What they share and ours
+lacked: a wide head with a flat face that looks forward, both eyes on that
+face, a small muzzle low on it, and big ears on the head's top corners. Ours
+was a tube along the neck's line, so the eyes sat on its sloping sides.
+
+The head is rebuilt (`loft()` in `tools/creature_cat.py`): a wide skull with
+broad cheeks and a flat top, a flat forward face, a small muzzle block with
+the pink nose on its tip, big ears on the top corners. The eyes are 9 by 8
+fine texels with a dark rim, a wide pupil and a glint. The lower face is
+pale. Pictures: `previews/phase19_step3/g/`.
+
+### Step 3, look 5: expression, muzzle, profile (2026-11-09)
+
+- **Expression:** almond eyes (10 by 6 fine texels) with a slit pupil and a
+  glint, tilted up a little at the outer corner; the round rimmed eyes
+  looked startled.
+- **Muzzle:** two small pads side by side with a chin under them, a flat
+  pink nose between the pads' tops and a dark line down from it (it was one
+  round bump).
+- **Profile:** the face is two halves meeting on a ridge down its middle,
+  each turned outward about 25 degrees, so an eye shows from the side.
+
+`tests/cat_capture.gd` adds a profile close-up (`face_<n>_s.png`). Pictures:
+`previews/phase19_step3/h/`.
+
+### Step 3, look 6: the eyes (2026-11-09)
+
+The eyes are redrawn at 12 by 8 fine texels and about a third larger. The
+slant (rising to the outer corner) is now drawn in the pixels, mirrored for
+the other eye, where before the whole panel was turned and its pixel edges
+came out jagged. Each has a dark rim, heavier on top, a round pupil and a
+glint. Pictures: `previews/phase19_step3/i/`.
+
+### Step 3, part 2: the cat walks (2026-11-09)
+
+The look was approved ("Looks good") after look 6. Then:
+
+**The model.** The sleeping pose is redone for the new body: lying on its
+belly, legs folded under, chin down, tail brought round. The eyes shut when
+it sleeps, and it blinks (the eye mask has codes for the shut line; the
+shader takes an `eyes_shut` setting per cat).
+
+**What a cat does** (`scripts/actors/cat_band.gd`, one per room, ticked by
+Fauna like the fish):
+
+- Rests somewhere: asleep, sitting, washing, or sitting by still water
+  watching it. Then strolls to somewhere else and rests again.
+- Looks at you within 6 m: its head and neck turn to follow you
+  (`CatBody`, after the animation has posed them).
+- Gets up and strolls off if you all but step on it (0.75 m).
+- Startles (a crouch and hop) and trots away if you run at it within 3.2 m.
+- Has no collision: you never bump into it (Q7).
+
+**Where it walks** (`scripts/actors/lane_graph.gd`, Q6). A graph of points
+for each room, built a slice a frame:
+
+| The room has | The cat walks |
+|---|---|
+| Walked lanes (the lines that polish the floor: halls, galleries, reading rooms) | Those lanes, as points 0.5 m apart, joined where lanes cross |
+| No lanes but floor cells (**the Domicile Quarter and the bazaar: their grammars make no walked lanes**) | A 1 m grid of floor points over its cells, each kept only on the cell's own floor with 0.3 m clear round it, joined where the way between two is clear |
+| Neither (the camp) | A few points round each rest spot where the floor is clear |
+
+Rest spots are rugs, carpets, cushions, bedrolls, benches and a takht (by
+node name), on a part of their top nothing stands on; a raised one is
+reached by a hop from the floor beside it. Cats live in the biggest
+joined-up part of the graph, so in a quarter that is the alleys and courts,
+not a room behind a shut door (closed doors stop them). Where that part
+has fewer than three soft spots, corners and dead ends are rest spots too.
+A place beside each still water is where they watch the fish.
+
+**Where cats are** (`actors/defs/cat.tres`): by conditions, like the rest. A
+lived-in room gets one cat for every five soft things in it, up to three;
+the camp gets one. Never in the lake, the cistern, the ossuary, the fungus
+terraces, the bridge hall or the chasm spans. The area's Animals % scales
+it. Counts on this world seed: camp 1, Mahaleh 5 (one in each quarter, one
+in a bazaar), the Grand Study 8 (3 in the Grand Hall, 2 in the Garden Court,
+one each in a reading room and two galleries), the Gardens 1. The first
+setting (one per three soft things, up to four) gave the Grand Study 15.
+
+**Smooth or stepped (Q5).** In the game, **K** steps every cat through
+smooth, 12 poses a second and 8 poses a second. Their walking stays smooth;
+only the pose is held.
+
+**Cost.** Worst frame of the scans 2.5 ms headless (2.6 before cats), 7.6 ms
+in the Mahaleh on screen (as step 2); ticking 0.1 ms, worst 0.4 ms. A
+quarter's graph is about 460 points and takes 27 ms in all, spread at 1 ms a
+frame. One draw call a cat, no shadow.
+
+**The navigation mesh measurement (Q6)**, `tests/navmesh_measure.gd`,
+headless on this machine, three Mahaleh rooms:
+
+| Room | Walker | Read the shapes (main thread) | Bake (can be threaded) | Size |
+|---|---|---|---|---|
+| Bridge Hall, 2,900 m2 | person | 2.0 ms | 9 ms | 299 polygons, 9 KB |
+| | cat | 2.3 ms | 38 ms | 705 polygons, 19 KB |
+| Bazaar, 4,600 m2 | person | 1.9 ms | 11 ms | 460 polygons, 12 KB |
+| | cat | 1.8 ms | 26 ms | 1,013 polygons, 27 KB |
+| Domicile Quarter, 6,000 m2 | person | 4.0 ms | 15 ms | 367 polygons, 10 KB |
+| | cat | 4.2 ms | 41 ms | 676 polygons, 19 KB |
+
+So for people a mesh per room looks affordable: 2 to 4 ms on the main
+thread when a room arrives, the rest on a thread. Not checked: what the
+meshes look like (whether they cover roofs and table tops), and props and
+doors that move.
+
+**Found on the way.** In the places joined without a loading screen (the
+camp, the Gorge) the floors and walls are on collision layer 9, not 1.
+`LaneGraph` looks on both. `HabitatScan` (steps 1 and 2) looks only on
+layer 1, so at the camp its water soundings and roof scan hit nothing; not
+changed here.
+
+**Tests.** `tests/cat_walk_capture.gd` (counts, and pictures of each cat
+resting, strolling, looking at you, run at); `--count` works headless.
+Pictures: `previews/phase19_step3/walk/` and `j/` (poses). No route or
+frame-gate tests yet (step 5).
+
+**Not done.** The camp's cat following you a few steps; cats on the
+bazaar's food stalls by name; the save (step 5).
+
+### Step 3, walk 1 (3 reports, 2026-11-09)
+
+- **"The cat looking sideways and walking doesn't look right"** (camp and
+  quarter): it now looks at you only while it rests. Walking, its head
+  stays forward.
+- **"Cat can be a bit bigger":** drawn 1.3 times the model (about 65 cm),
+  with its walking and trotting speeds raised to match its longer stride.
+
+### Step 3 approved; Q5 decided (2026-11-09)
+
+After walk 1's fixes the cat is right, and **Q5 is decided: smooth motion**
+(the user tried 12 and 8 poses a second with K). The K key and the stepping
+code are removed. Step 3 is not committed yet.

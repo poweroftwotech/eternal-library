@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CreatureDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/creature_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+habitat = "lane"
+build = "rigged"
+rooms = PackedStringArray("*")
+not_rooms = PackedStringArray("lake", "R10", "R11", "R15", "R17", "R20", "R21")
+state = "kept"
+area_each = 5.0
+group_size = Vector2i(0, 3)
+startle_radius = 3.2
+id = &"cat"
+display_name = "Cat"
+local_name = "Gorbe"
+atlas_id = "C07"
+length_m = 0.65
+length_spread = Vector2(0.9, 1.08)
+speed = Vector2(0.5, 2.3)
+palette = PackedColorArray(0.55, 0.56, 0.57, 1, 0.85, 0.55, 0.26, 1, 0.92, 0.91, 0.88, 1)

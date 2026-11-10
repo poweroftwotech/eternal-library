@@ -3,8 +3,8 @@ extends ActorDef
 ## An animal (phase 19): where it lives and how many, read by Fauna. One file
 ## per animal in actors/defs/.
 
-## "water" (step 1), "flame" (round a burning flame) or "dark_roof" (step 2);
-## later "lane", "wall".
+## "water" (step 1), "flame" (round a burning flame), "dark_roof" (step 2) or
+## "lane" (step 3: the walked lanes and rest spots of a room); later "wall".
 @export var habitat: String = "water"
 ## "swarm", "simple" or "rigged" (the atlas's build tiers).
 @export var build: String = "simple"
@@ -46,6 +46,7 @@ extends ActorDef
 ## How far under the surface it swims (m): nearest and furthest.
 @export var swim_depth: Vector2 = Vector2(0.06, 0.4)
 ## Simple: one animal per this many m2, between group_size x and y.
+## Lane (cats): one per this many soft places to lie, between group_size x and y.
 ## Swarm: one school per this many m2 (at least one), up to max_groups, each
 ## of group_size x to y.
 @export var area_each: float = 2.5
@@ -93,6 +94,11 @@ func scaled(amount: float) -> CreatureDef:
 			return d
 	elif habitat == "water" and build == "simple":
 		d.area_each = area_each / maxf(amount, 0.01)
+	elif habitat == "lane":
+		# Cats: fewer soft places to lie for each one, and more at most.
+		d.area_each = area_each / maxf(amount, 0.01)
+		d.group_size = Vector2i(group_size.x, maxi(1, roundi(group_size.y * amount)))
+		return d
 	d.group_size = Vector2i(maxi(1, roundi(group_size.x * m)), maxi(1, roundi(group_size.y * m)))
 	d.room_cap = maxi(1, roundi(room_cap * m))
 	return d

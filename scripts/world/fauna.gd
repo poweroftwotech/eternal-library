@@ -23,7 +23,7 @@ extends Node3D
 ## MAX_THINKING simple animals and MAX_SWARMS swarms are awake at once.
 
 const DEFS: Array[String] = ["res://actors/defs/goldfish.tres", "res://actors/defs/cave_barb.tres",
-	"res://actors/defs/candle_moth.tres", "res://actors/defs/glowworm.tres", "res://actors/defs/bat.tres"]
+	"res://actors/defs/candle_moth.tres", "res://actors/defs/glowworm.tres", "res://actors/defs/bat.tres", "res://actors/defs/cat.tres"]
 const BUDGET_MS: float = 1.0
 const SLEEP_DISTANCE: float = 30.0
 ## Per view: at most this many simple animals and swarms awake (the nearest;
@@ -86,6 +86,8 @@ func _ready() -> void:
 		if d.habitat == "water":
 			FishBody.mesh(d)
 			FishBody.material(d)
+		elif d.habitat == "lane":
+			CatBody.material()
 		else:
 			AirBody.material(d)
 	AirBody.moth_mesh()
@@ -108,7 +110,7 @@ func _on_room_loaded(slot: String) -> void:
 		return
 	var state: String = str(pr.grammar.get_meta("state", "")) if pr.grammar != null else ""
 	var cells: Array = pr.floor_cells.keys() + pr.blocked_cells.keys()
-	_queue(slot, room, pr.room_type, state, cells, pr.no_animals)
+	_queue(slot, room, pr.room_type, state, cells, pr.no_animals, pr.floor_cells.keys())
 
 
 func _on_room_unloaded(slot: String) -> void:
@@ -135,11 +137,11 @@ static func lives_in(d: CreatureDef, type: String, state: String, kept_out: Pack
 	return true
 
 
-func _queue(slot: String, node: Node3D, type: String, state: String, cells: Array, kept_out: PackedStringArray = []) -> void:
+func _queue(slot: String, node: Node3D, type: String, state: String, cells: Array, kept_out: PackedStringArray = [], floor_cells: Array = []) -> void:
 	if node == null or not defs.any(func(d: CreatureDef) -> bool: return lives_in(d, type, state, kept_out)):
 		return
 	_on_room_unloaded(slot)
-	_jobs.append({"slot": slot, "node": node, "type": type, "state": state, "cells": cells, "out": kept_out, "wait": SETTLE_FRAMES,
+	_jobs.append({"slot": slot, "node": node, "type": type, "state": state, "cells": cells, "floor": floor_cells, "out": kept_out, "wait": SETTLE_FRAMES,
 		"bodies": null, "at": 0, "lights": null, "roofs": null})
 
 
@@ -172,6 +174,15 @@ func _process(delta: float) -> void:
 	var near: Array = []     # [distance, group, swarm]
 	for slot: String in groups:
 		for g: Node in groups[slot]:
+			var band := g as CatBand
+			if band != null and is_instance_valid(band):
+				animals += band.count()
+				thinking += band.count()
+				if band.bounds.grow(SLEEP_DISTANCE).has_point(eye):
+					near.append([_distance(band.bounds, eye), band, false])
+				else:
+					_show(band, false)
+				continue
 			var mmi := g as MultiMeshInstance3D
 			if mmi == null or not is_instance_valid(mmi) or mmi.multimesh == null:
 				continue
@@ -186,15 +197,15 @@ func _process(delta: float) -> void:
 			if box.grow(SLEEP_DISTANCE).has_point(eye):
 				near.append([_distance(box, eye), mmi, swarm])
 			else:
-				mmi.visible = false
+					_show(mmi, false)
 	near.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
 	var n_think: int = 0
 	var n_swarm: int = 0
 	for e: Array in near:
-		var mmi: MultiMeshInstance3D = e[1]
-		var n: int = mmi.multimesh.instance_count
+		var g: Node3D = e[1]
+		var n: int = (g as CatBand).count() if g is CatBand else (g as MultiMeshInstance3D).multimesh.instance_count
 		var ok: bool = (n_swarm < MAX_SWARMS) if e[2] else (n_think + n <= MAX_THINKING)
-		mmi.visible = ok
+		_show(g, ok)
 		if not ok:
 			continue
 		if e[2]:
@@ -202,7 +213,7 @@ func _process(delta: float) -> void:
 		else:
 			n_think += n
 		awake += n
-		mmi.call("tick", delta, feet, moving)
+		g.call("tick", delta, feet, moving)
 	var ms: float = (Time.get_ticks_usec() - t0) / 1000.0
 	stats["tick_ms"] = ms
 	stats["worst_tick_ms"] = maxf(float(stats["worst_tick_ms"]), ms)
@@ -213,7 +224,7 @@ func _process(delta: float) -> void:
 
 
 static func _is_swarm(g: Node) -> bool:
-	return not g is FishPool
+	return not (g is FishPool or g is CatBand)
 
 
 ## A group's box (global): its water's, or its own.
@@ -263,6 +274,12 @@ func _work() -> void:
 		if j["lights"] == null:
 			j["lights"] = HabitatScan.lights(node) if (_needs(j, "flame") or _needs(j, "dark_roof")) else {"flames": [], "glows": []}
 			continue
+		# 2b. The walked lanes and rest spots.
+		if not j.has("graph"):
+			j["graph"] = LaneGraph.begin(node, bodies, j["floor"], area.global_transform if area != null else Transform3D.IDENTITY) if _needs(j, "lane") else null
+			continue
+		if j["graph"] != null and not (j["graph"] as LaneGraph).step(space, deadline):
+			break
 		# 3. The roofs.
 		if j["roofs"] == null:
 			if not _needs(j, "dark_roof"):
@@ -347,6 +364,10 @@ func _populate(j: Dictionary) -> void:
 					_fill_bats(d, j, rng, space, out)
 				else:
 					_fill_glowworms(d, j, rng, space, out)
+			"lane":
+				var rng := RandomNumberGenerator.new()
+				rng.seed = hash([world_seed, key, str(d.id)])
+				_fill_cats(d, j, rng, out)
 	groups[slot] = out
 
 
@@ -479,6 +500,29 @@ func _fill_glowworms(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, 
 	out.append(colony)
 
 
+## Cats: one for every few soft places to lie in a lived-in room with ways to
+## walk; one alone in a place that is all one room (the camp).
+func _fill_cats(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, out: Array) -> void:
+	var g: LaneGraph = j.get("graph") as LaneGraph
+	if g == null or g.home.size() < 2 or g.soft_found == 0:
+		return
+	var n: int = 1 if area == null else clampi(roundi(g.soft_found / d.area_each), d.group_size.x, d.group_size.y)
+	n = mini(n, MAX_LIVE_THINKING - int(stats["thinking"]) - _count(out, false))
+	if n <= 0:
+		return
+	var band := CatBand.new()
+	add_child(band)
+	band.setup(d, g, n, rng.randi())
+	out.append(band)
+
+
+## Shown and awake, or hidden and still (a band's cats stop animating too).
+static func _show(g: Node3D, on: bool) -> void:
+	g.visible = on
+	if g is CatBand:
+		g.process_mode = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED
+
+
 ## Bats: a few roosts on dark roofs high enough to hang from, apart.
 func _fill_bats(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, space: PhysicsDirectSpaceState3D, out: Array) -> void:
 	var dark: Array[Dictionary] = _dark_roofs(d, j)
@@ -527,7 +571,7 @@ static func _count(gs: Array, swarm: bool) -> int:
 	var n: int = 0
 	for g: Node in gs:
 		if is_instance_valid(g) and _is_swarm(g) == swarm:
-			n += 1 if swarm else (g as MultiMeshInstance3D).multimesh.instance_count
+			n += 1 if swarm else ((g as CatBand).count() if g is CatBand else (g as MultiMeshInstance3D).multimesh.instance_count)
 	return n
 
 

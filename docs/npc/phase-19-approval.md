@@ -2,7 +2,7 @@
 
 [Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **APPROVED
 as recommended 2026-11-09 (Q1-Q12, the twenty animals, and the order of phases
-20 and 21). Step 1 (fish in the water) committed 8b9d4d1; step 2 (moths, glowworms, bats) look approved 2026-11-09, uncommitted.** ·
+20 and 21). Step 1 (fish in the water) committed 8b9d4d1; step 2 (moths, glowworms, bats) committed 54bf2ea; step 3 (the cat) walked and approved 2026-11-09 (Q5: smooth motion), uncommitted.** ·
 The animals: [creature atlas](../../design/creature-atlas.html) ·
 The technical side, and what in today's code has to change:
 [phase 19 design](phase-19-design.md)
@@ -68,7 +68,7 @@ at step 5, as you asked for earlier phases.
 | **Q2** | The three legends (Kar fish, Shadhavar, Huma) | **Keep them: rare, far off, one at a time, never dangerous.** The Simurgh, divs and the like wait for the monster tier | Real animals only for now |
 | **Q3** | Which animals each area is known by | **As in the atlas's "Who lives where" table** | Change any row |
 | **Q4** | Do animals react to you in this phase? | **Yes, but only by moving:** scatter, look, walk off, hide. Nothing hurts you and you can't hurt them | Fully unaware of you: less work, but they read as decoration |
-| **Q5** | How animals move | **Smooth motion, pixel textures,** following the art direction's rule "lighting is modern, texels are retro". At step 3 I show the cat both ways (smooth, and stepped like a sprite) and you pick | Decide now for stepped |
+| **Q5** | How animals move (**decided 2026-11-09 after trying both on the cat: smooth**) | **Smooth motion, pixel textures,** following the art direction's rule "lighting is modern, texels are retro". At step 3 I show the cat both ways (smooth, and stepped like a sprite) and you pick | Decide now for stepped |
 | **Q6** | How walking animals find their way | **Along the walked lanes each room already has** (the same lines that polish the floors), plus marked spots to sit and sleep. Cheap, and it never walks them into furniture. At step 3 I also measure a full navigation mesh in one room, so the people phase starts with numbers | Navigation meshes for every room now: more natural wandering, but an unmeasured cost every time a room loads, and several areas are already at their frame limit |
 | **Q7** | Can you walk through animals? | **Small ones step aside and you never bump them; large ones (dog, goat, otter on land, Shadhavar) are solid** | Everything solid: cats in a narrow lane could block you |
 | **Q8** | What the save keeps | **How plentiful each animal is in each area, and the one-off animals (the camp's cat). Not each animal's position:** they are placed again from the world seed when a room loads | Every animal's position: a much bigger save for little gain while they are passive |
