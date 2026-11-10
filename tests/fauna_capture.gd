@@ -118,7 +118,7 @@ func _shoot(game: Node, f: Fauna, slot: String, stem: String, close: bool) -> vo
 			kinds.append(str(g.get("def").id))
 	print("  %s: %d groups %s, %s" % [stem.get_file(), gs.size(), kinds, f.stats])
 	for gi: int in gs.size():
-		var g: MultiMeshInstance3D = gs[gi]
+		var g: MultiMeshInstance3D = gs[gi] as MultiMeshInstance3D     # (not the cats: tests/cat_walk_capture.gd)
 		if not is_instance_valid(g):
 			continue
 		var kind: String = str(g.get("def").id)
@@ -132,6 +132,10 @@ func _shoot(game: Node, f: Fauna, slot: String, stem: String, close: bool) -> vo
 			await _shoot_fish(game, f, g, path, close)
 		elif g is BatRoost:
 			await _shoot_bats(game, f, g as BatRoost, path)
+		elif g is RatPack:
+			await _shoot_rats(game, f, g as RatPack, path)
+		elif g is GeckoWall:
+			await _shoot_geckos(game, f, g as GeckoWall, path)
 		elif g is GlowColony:
 			await _shoot_air(game, f, g, path, Vector3(0, -2.2, 0), 2.2, 60.0)
 		else:
@@ -228,3 +232,79 @@ func _centre(g: MultiMeshInstance3D) -> Vector3:
 	if g is FishSchool:
 		return g.global_position
 	return g.global_transform * g.multimesh.get_instance_transform(0).origin     # one fish, not the middle of the pool (the fountain)
+
+
+## Rats: a rat out on its run, close, taking no notice of you; then as it
+## bolts (_bolt).
+func _shoot_rats(game: Node, f: Fauna, g: RatPack, path: String) -> void:
+	g.tame = true
+	var cam: Camera3D = game.player.camera
+	var at: Vector3 = g.focus
+	var n: Vector3 = g.runs[0]["normal"]
+	game.player.teleport(at + n * 2.0)
+	for _i: int in 600:
+		await process_frame
+		var out: bool = false
+		for i: int in g.rats.size():
+			if int(g.rats[i]["state"]) != RatPack.IN:
+				var run: Dictionary = g.runs[int(g.rats[i]["run"])]
+				at = (run["a"] as Vector3).lerp(run["b"], float(g.rats[i]["s"]) / float(g.rats[i]["length"]))
+				n = run["normal"]
+				out = true
+				break
+		if out and _i > 60:
+			break
+	var eye: Vector3 = at + n * 0.9 + n.cross(Vector3.UP) * 0.5 + Vector3(0, 0.45, 0)
+	game.player.teleport(eye - Vector3(0, 1.62, 0))
+	for k: int in 2:
+		cam.global_position = eye
+		cam.look_at(at + Vector3(0, 0.05, 0), Vector3.UP)
+		cam.fov = 50.0
+		for _i: int in (3 if k == 0 else 12):
+			await process_frame
+			cam.global_position = eye
+			cam.look_at(at + Vector3(0, 0.05, 0), Vector3.UP)
+		await RenderingServer.frame_post_draw
+		root.get_viewport().get_texture().get_image().save_png(path + ("" if k == 0 else "_bolt") + ".png")
+		g.tame = false
+	var hole: Vector3 = g.runs[0]["a"]
+	g.tame = true
+	game.player.teleport(hole + g.runs[0]["normal"] * 9.0)
+	var hn: Vector3 = g.runs[0]["normal"]
+	for _i: int in 20:
+		await process_frame
+		cam.global_position = hole + hn * 1.3 + hn.cross(Vector3.UP) * 0.4 + Vector3(0, 0.6, 0)
+		cam.look_at(hole + Vector3(0, 0.05, 0), Vector3.UP)
+	await RenderingServer.frame_post_draw
+	root.get_viewport().get_texture().get_image().save_png(path + "_hole.png")
+	print("    %s: %d rats on %d runs (%s m) -> %s.png" % [g.name, g.rats.size(), g.runs.size(), ", ".join(g.runs.map(func(r: Dictionary) -> String: return "%.1f" % (r["a"] as Vector3).distance_to(r["b"]))), path])
+	cam.position = Vector3(0, 1.62, 0)
+	cam.fov = 75.0
+
+
+## Geckos: one on its wall by the lamp, close; then run up out of reach (_up).
+func _shoot_geckos(game: Node, f: Fauna, g: GeckoWall, path: String) -> void:
+	g.tame = true
+	var cam: Camera3D = game.player.camera
+	for o: Dictionary in g.geckos:
+		o["at"] = o["home"]
+		o["state"] = GeckoWall.CLING
+		o["timer"] = 30.0
+	var gecko: Dictionary = g.geckos[0]
+	g._place(0, 0.0)
+	var n: Vector3 = gecko["normal"]
+	var at: Vector3 = gecko["home"]
+	var eye: Vector3 = at + n * 0.55 + (gecko["side"] as Vector3) * 0.2 + Vector3(0, -0.05, 0)
+	game.player.teleport(eye - Vector3(0, 1.62, 0))
+	for k: int in 2:
+		for _i: int in (30 if k == 0 else 70):
+			await process_frame
+			cam.global_position = eye if k == 0 else eye + n * 0.9
+			cam.look_at(at + Vector3(0, 0.0 if k == 0 else float(gecko["up"]) * 0.5, 0), Vector3.UP)
+			cam.fov = 45.0 if k == 0 else 70.0
+		await RenderingServer.frame_post_draw
+		root.get_viewport().get_texture().get_image().save_png(path + ("" if k == 0 else "_up") + ".png")
+		g.tame = false
+	print("    %s: %d geckos, the first can climb %.1f m and is %.3f m proud -> %s.png" % [g.name, g.geckos.size(), float(gecko["up"]), float(gecko["proud"]), path])
+	cam.position = Vector3(0, 1.62, 0)
+	cam.fov = 75.0

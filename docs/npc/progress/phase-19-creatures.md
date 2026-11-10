@@ -403,3 +403,67 @@ bazaar's food stalls by name; the save (step 5).
 After walk 1's fixes the cat is right, and **Q5 is decided: smooth motion**
 (the user tried 12 and 8 poses a second with K). The K key and the stepping
 code are removed. Step 3 is not committed yet.
+
+**Step 3 committed efb770a (2026-11-09).**
+
+## Step 4: rats and geckos (built 2026-11-09, for your look)
+
+Both are small models made in code (`scripts/actors/ground_body.gd`), lit
+like the world, drawn by one shader (`shaders/creature_crawler.gdshader`)
+that moves their legs and tails. One draw call for a room's rats, one for
+its geckos. No skeleton: at 12 to 20 cm the shader's leg swing is enough.
+
+**Rats** (`scripts/actors/rat_pack.gd`, `actors/defs/rat.tres`). In every
+forgotten (abandoned) room, 3 to 10 rats share up to three runs. A run is a
+stretch along the foot of a wall, 3 to 12 m, found by looking out from the
+room's floor cells for a wall and following it while there is floor, the
+wall goes on and nothing is in the way. A small dark hole is drawn on the
+wall at each end. A rat comes out of a hole, scurries along, stops to sniff,
+sometimes turns back, and goes in at the other end. Within 5 m of you it
+bolts for the nearer hole, and none comes out while you are within 7 m.
+
+**Wall geckos** (`scripts/actors/gecko_wall.gd`, `actors/defs/gecko.tres`).
+One to three on the wall beside about three in ten burning lamps, anywhere:
+the wall must be within 1.5 m of the flame, flat for half a metre each way
+and open in front. A gecko clings, now and then darts a hand's width and
+freezes. Within 2.4 m of you it runs up the wall (up to 2.4 m) and comes
+down five seconds after you have gone 4.5 m off. When its lamp is put out
+it disappears; it is back when the lamp is lit.
+
+**Not built:** geckos darting at moths in particular (their darts are
+random), rats gnawing books, and holes as a kit piece (they are drawn by
+the pack, not placed in the room's data).
+
+**Counts and cost.** Rats in every Forgotten City room (5 to 9 each);
+geckos in the Grand Hall, the Mahaleh's entrance, bazaars and quarters.
+The area's Animals % and the per-room checkboxes apply to both. Pictures:
+`previews/phase19_step4/`. `tests/fauna_capture.gd` shoots both
+(`--only=rat,gecko`).
+
+### Step 4, look 1 (2026-11-09)
+
+"Rats are too thin and small; I couldn't find any geckos; rats run and
+vanish even where there is no hole."
+
+- **Rats:** half as long again (30 cm and a tail) and much fatter: an
+  eight-sided body with a round back and full flanks (it was a thin
+  four-sided spindle).
+- **Geckos couldn't be found because most were hidden.** They were put on
+  the wall's collision, and what you see of a wall (plaster, tile bands,
+  hangings, shelf fronts) often stands a few cm in front of it, so they
+  were inside the wall; others were at the back of shelves behind jars.
+  Now each gecko is put on the surface you see (`GeckoWall.proud_at` looks
+  at the triangles of the meshes near it), and a place is refused when
+  nothing is seen there or something stands within 0.7 m in front of it.
+  They are also commoner (6 lamps in 10), bigger (20 cm), let you come to
+  1.5 m, and climb only 1.5 m so they stay in sight.
+- **Rat holes** had the same fault (drawn on the collision, inside the
+  wall): now on the seen surface, and bigger (22 cm).
+- At most 64 thinking animals awake per view (was 40): rooms with fish,
+  cats, rats and geckos together passed 40, and the furthest group was
+  hidden.
+
+Cost: reading a room's meshes for this raised the worst scan frame to 4 to
+8 ms headless (was 2.5); to be sliced at step 5.
+
+**Step 4 look approved ("Looks good", 2026-11-09).** Not committed yet.

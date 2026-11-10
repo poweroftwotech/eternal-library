@@ -23,15 +23,16 @@ extends Node3D
 ## MAX_THINKING simple animals and MAX_SWARMS swarms are awake at once.
 
 const DEFS: Array[String] = ["res://actors/defs/goldfish.tres", "res://actors/defs/cave_barb.tres",
-	"res://actors/defs/candle_moth.tres", "res://actors/defs/glowworm.tres", "res://actors/defs/bat.tres", "res://actors/defs/cat.tres"]
+	"res://actors/defs/candle_moth.tres", "res://actors/defs/glowworm.tres", "res://actors/defs/bat.tres", "res://actors/defs/cat.tres",
+	"res://actors/defs/rat.tres", "res://actors/defs/gecko.tres"]
 const BUDGET_MS: float = 1.0
 const SLEEP_DISTANCE: float = 30.0
 ## Per view: at most this many simple animals and swarms awake (the nearest;
 ## the rest are hidden and still).
-const MAX_THINKING: int = 40
+const MAX_THINKING: int = 64
 const MAX_SWARMS: int = 8
 ## Live in the place at once (rooms near you, awake or not).
-const MAX_LIVE_THINKING: int = 80
+const MAX_LIVE_THINKING: int = 120
 const MAX_LIVE_SWARMS: int = 40
 ## Physics frames to wait after a room arrives, so its collision is in the space.
 const SETTLE_FRAMES: int = 2
@@ -86,6 +87,8 @@ func _ready() -> void:
 		if d.habitat == "water":
 			FishBody.mesh(d)
 			FishBody.material(d)
+		elif d.habitat == "wall_foot" or d.habitat == "wall_lamp":
+			GroundBody.material(d)
 		elif d.habitat == "lane":
 			CatBody.material()
 		else:
@@ -93,6 +96,10 @@ func _ready() -> void:
 	AirBody.moth_mesh()
 	AirBody.bat_mesh()
 	AirBody.worm_mesh()
+	GroundBody.rat_mesh()
+	GroundBody.gecko_mesh()
+	GroundBody.hole_mesh()
+	GroundBody.hole_material()
 	if area != null:
 		if area.streamer != null:
 			area.streamer.room_loaded.connect(_on_room_loaded)
@@ -224,7 +231,7 @@ func _process(delta: float) -> void:
 
 
 static func _is_swarm(g: Node) -> bool:
-	return not (g is FishPool or g is CatBand)
+	return not (g is FishPool or g is CatBand or g is RatPack or g is GeckoWall)
 
 
 ## A group's box (global): its water's, or its own.
@@ -272,7 +279,7 @@ func _work() -> void:
 			continue
 		# 2. The lights.
 		if j["lights"] == null:
-			j["lights"] = HabitatScan.lights(node) if (_needs(j, "flame") or _needs(j, "dark_roof")) else {"flames": [], "glows": []}
+			j["lights"] = HabitatScan.lights(node) if (_needs(j, "flame") or _needs(j, "dark_roof") or _needs(j, "wall_lamp")) else {"flames": [], "glows": []}
 			continue
 		# 2b. The walked lanes and rest spots.
 		if not j.has("graph"):
@@ -368,6 +375,14 @@ func _populate(j: Dictionary) -> void:
 				var rng := RandomNumberGenerator.new()
 				rng.seed = hash([world_seed, key, str(d.id)])
 				_fill_cats(d, j, rng, out)
+			"wall_foot":
+				var rng := RandomNumberGenerator.new()
+				rng.seed = hash([world_seed, key, str(d.id)])
+				_fill_rats(d, j, rng, space, out)
+			"wall_lamp":
+				var rng := RandomNumberGenerator.new()
+				rng.seed = hash([world_seed, key, str(d.id)])
+				_fill_geckos(d, j, rng, space, out)
 	groups[slot] = out
 
 
@@ -514,6 +529,51 @@ func _fill_cats(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, out: 
 	add_child(band)
 	band.setup(d, g, n, rng.randi())
 	out.append(band)
+
+
+## The room's meshes and their boxes, read once (geckos and rat holes sit on
+## what you see of a wall, not on its collision).
+func _boxes(j: Dictionary) -> Array:
+	if not j.has("boxes"):
+		j["boxes"] = GeckoWall.boxes_of(j["node"])
+	return j["boxes"]
+
+
+## Rats: a few runs along the foot of walls in a forgotten room, a hole at
+## each end, the room's rats shared among them.
+func _fill_rats(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, space: PhysicsDirectSpaceState3D, out: Array) -> void:
+	var cells: Array = j["floor"]
+	if area == null or cells.is_empty():
+		return
+	var runs: Array[Dictionary] = RatPack.find_runs(space, cells, area.global_transform, rng, d.max_groups)
+	var n: int = mini(rng.randi_range(d.group_size.x, d.group_size.y), MAX_LIVE_THINKING - int(stats["thinking"]) - _count(out, false))
+	if runs.is_empty() or n <= 0:
+		return
+	var pack := RatPack.new()
+	add_child(pack)
+	pack.setup(d, runs, n, rng.randi(), _boxes(j))
+	out.append(pack)
+
+
+## Geckos: on the wall beside some of the room's burning lamps.
+func _fill_geckos(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, space: PhysicsDirectSpaceState3D, out: Array) -> void:
+	var sites: Array[Dictionary] = []
+	for f: Dictionary in MothSwarm._seeded_order((j["lights"] as Dictionary)["flames"], rng):
+		if rng.randf() >= d.flame_share or sites.size() * d.group_size.y >= d.room_cap:
+			continue
+		var site: Variant = GeckoWall.find_site(space, f)
+		if site != null:
+			(site as Dictionary)["meshes"] = GeckoWall.near(_boxes(j), (site as Dictionary)["at"], 2.0)
+			sites.append(site)
+	if sites.is_empty() or int(stats["thinking"]) + _count(out, false) >= MAX_LIVE_THINKING:
+		return
+	var wall := GeckoWall.new()
+	add_child(wall)
+	wall.setup(d, sites, space, rng.randi())
+	if wall.multimesh == null:
+		wall.queue_free()
+		return
+	out.append(wall)
 
 
 ## Shown and awake, or hidden and still (a band's cats stop animating too).

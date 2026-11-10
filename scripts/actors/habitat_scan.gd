@@ -245,7 +245,7 @@ static func lights(root: Node) -> Dictionary:
 			continue
 		var kind: String = str(l.get_meta("light_profile", ""))
 		var c: Color = l.light_color
-		var entry: Dictionary = {"at": l.global_position, "colour": c}
+		var entry: Dictionary = {"at": l.global_position, "colour": c, "node": l}
 		if FLAME_PROFILES.has(kind):
 			flames.append(entry)
 		elif GLOW_PROFILES.has(kind):

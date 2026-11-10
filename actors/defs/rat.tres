@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CreatureDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/creature_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+habitat = "wall_foot"
+build = "simple"
+rooms = PackedStringArray("*")
+state = "abandoned"
+any_abandoned = true
+group_size = Vector2i(3, 10)
+max_groups = 3
+startle_radius = 5.0
+self_glow = 0.12
+id = &"rat"
+display_name = "Rat"
+local_name = "Mush"
+atlas_id = "C08"
+length_m = 0.3
+length_spread = Vector2(0.8, 1.2)
+speed = Vector2(1.1, 4.2)
+palette = PackedColorArray(0.36, 0.32, 0.28, 1, 0.2, 0.17, 0.15, 1, 0.79, 0.655, 0.6, 1)

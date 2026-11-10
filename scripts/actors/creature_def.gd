@@ -4,7 +4,9 @@ extends ActorDef
 ## per animal in actors/defs/.
 
 ## "water" (step 1), "flame" (round a burning flame), "dark_roof" (step 2) or
-## "lane" (step 3: the walked lanes and rest spots of a room); later "wall".
+## "lane" (step 3: the walked lanes and rest spots of a room), "wall_foot" (step
+## 4: along the foot of walls, rats) or "wall_lamp" (the wall by a burning lamp,
+## geckos).
 @export var habitat: String = "water"
 ## "swarm", "simple" or "rigged" (the atlas's build tiers).
 @export var build: String = "simple"
@@ -86,7 +88,7 @@ func scaled(amount: float) -> CreatureDef:
 		return self
 	var d: CreatureDef = duplicate() as CreatureDef
 	var m: float = amount
-	if habitat == "flame":
+	if habitat == "flame" or habitat == "wall_lamp":
 		d.flame_share = clampf(flame_share * amount, 0.0, 1.0)
 		d.loose_count = roundi(loose_count * amount)
 		m = maxf(1.0, flame_share * amount)     # past every flame: more round each
