@@ -82,6 +82,9 @@ class Room:
 	var depth: int = 0
 	## Its room type (RoomTypes: R02 …; "" if unknown).
 	var room_type: String = ""
+	## Animal kinds kept out of this room (the board's Animals checkboxes,
+	## tweaks["no_animals"]; Fauna).
+	var no_animals: PackedStringArray = []
 
 	func children_count() -> int:
 		var n: int = 0

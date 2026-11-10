@@ -136,6 +136,7 @@ static func _place_slot(p: AreaPlan, recipe: AreaRecipe, s: AreaSlot, keep: Dict
 		if why != "":
 			p.errors.append("%s (seed %d) on %s %s: %s" % [s.slot_id, seed_value, s.parent, conn, why])
 	r.pinned = s.pinned
+	r.no_animals = PackedStringArray(s.tweaks.get("no_animals", []))
 	for name: StringName in s.thresholds:
 		if r.connectors.has(name) and str(r.connectors[name]["joined"]) == "":
 			r.connectors[name]["cap"] = "threshold"
@@ -304,6 +305,7 @@ static func _grow(p: AreaPlan, recipe: AreaRecipe) -> void:
 				gs["too_short" if why.begins_with("only") else "boxed_in"] += 1
 				continue
 			r.pinned = g.pinned
+			r.no_animals = PackedStringArray(g.tweaks.get("no_animals", []))
 			p.add_room(r)
 			p.join(r, parent_room, conn)
 			if not p.compute_sight()["violations"].is_empty():     # every door: a new room can extend a line its own door's fan misses

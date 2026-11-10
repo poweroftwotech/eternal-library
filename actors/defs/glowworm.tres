@@ -1,0 +1,24 @@
+[gd_resource type="Resource" script_class="CreatureDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/creature_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+habitat = "dark_roof"
+build = "swarm"
+rooms = PackedStringArray("*")
+state = "any"
+min_height = 2.2
+glow_gap = 3.0
+rock_only = true
+group_size = Vector2i(80, 200)
+max_groups = 4
+room_cap = 600
+glow_colour = Color(0.4, 0.85, 1, 1)
+id = &"glowworm"
+display_name = "Glowworm"
+local_name = "Kerm-e shab-tab"
+atlas_id = "C18"
+length_m = 0.01
+length_spread = Vector2(1, 1)
+speed = Vector2(0, 0)

@@ -3,14 +3,43 @@ extends ActorDef
 ## An animal (phase 19): where it lives and how many, read by Fauna. One file
 ## per animal in actors/defs/.
 
-## "water" (step 1); later "flame", "dark_roof", "lane", "wall".
+## "water" (step 1), "flame" (round a burning flame) or "dark_roof" (step 2);
+## later "lane", "wall".
 @export var habitat: String = "water"
 ## "swarm", "simple" or "rigged" (the atlas's build tiers).
 @export var build: String = "simple"
-## Room types it lives in (RoomTypes: R07 …), and places by id ("camp", "lake").
+## Room types it lives in (RoomTypes: R07 …), and places by id ("camp",
+## "lake"); "*": anywhere its habitat is (water, a flame, a dark roof), which
+## is what every kind uses now.
 @export var rooms: PackedStringArray = PackedStringArray()
+## Room types and places it never lives in, whatever the habitat. One room
+## alone: the Strata Board's Animals checkboxes (AreaPlan.Room.no_animals).
+@export var not_rooms: PackedStringArray = PackedStringArray()
 ## "kept", "abandoned" or "any": the room's State (RoomGrammar.ABANDONED).
 @export var state: String = "kept"
+## Also in every abandoned room, whatever its type (bats: nobody comes here).
+@export var any_abandoned: bool = false
+## Rooms where it also wanders loose over the floor, not tied to a flame (the
+## Garden Court's moths over the beds), and how many there.
+@export var loose_rooms: PackedStringArray = PackedStringArray()
+@export var loose_count: int = 0
+## Flames: the share of burning flames that have any (the rest have none).
+@export_range(0.0, 1.0, 0.01) var flame_share: float = 1.0
+## Dark roofs: at least this high over the floor (m), and keeping this far from
+## a glowing fungus (m; 0: doesn't mind).
+@export var min_height: float = 2.2
+@export var glow_gap: float = 0.0
+## In a lived-in (kept) room at most this many groups; -1: max_groups (bats
+## crowd into abandoned rooms, one roost where people still are).
+@export var kept_groups: int = -1
+## Dark roofs: no flame, window or daylight within this far (m).
+@export var dark_radius: float = 5.0
+## Only on natural rock, not a built vault (glowworms).
+@export var rock_only: bool = false
+## Most animals in one room (swarms of the air).
+@export var room_cap: int = 200
+## Its glow when the room has no fungus to take a colour from.
+@export var glow_colour: Color = Color(0.4, 0.85, 1.0)
 ## Water: at least this deep where it swims (m), over at least min_area m2.
 @export var min_depth: float = 0.12
 @export var min_area: float = 1.0
@@ -45,3 +74,25 @@ extends ActorDef
 @export var blind: bool = false
 ## Pale patches on some patterns (the goldfish's white).
 @export_range(0.0, 1.0, 0.01) var patchiness: float = 0.0
+
+
+## This kind with `amount` times as many (an area's Animals setting,
+## AreaRecipe.fauna): moths at more or fewer flames (then more round each
+## once every flame has some), more or fewer in each school, pool, colony
+## and roost. 1: itself.
+func scaled(amount: float) -> CreatureDef:
+	if is_equal_approx(amount, 1.0):
+		return self
+	var d: CreatureDef = duplicate() as CreatureDef
+	var m: float = amount
+	if habitat == "flame":
+		d.flame_share = clampf(flame_share * amount, 0.0, 1.0)
+		d.loose_count = roundi(loose_count * amount)
+		m = maxf(1.0, flame_share * amount)     # past every flame: more round each
+		if m == 1.0:
+			return d
+	elif habitat == "water" and build == "simple":
+		d.area_each = area_each / maxf(amount, 0.01)
+	d.group_size = Vector2i(maxi(1, roundi(group_size.x * m)), maxi(1, roundi(group_size.y * m)))
+	d.room_cap = maxi(1, roundi(room_cap * m))
+	return d

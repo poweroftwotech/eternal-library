@@ -6,7 +6,8 @@
 script = ExtResource("1_def")
 habitat = "water"
 build = "simple"
-rooms = PackedStringArray("camp", "R03", "R04", "R06", "R07")
+rooms = PackedStringArray("*")
+not_rooms = PackedStringArray("R09", "R10", "R11", "R15", "R21", "lake")
 state = "kept"
 min_depth = 0.12
 min_area = 1.0

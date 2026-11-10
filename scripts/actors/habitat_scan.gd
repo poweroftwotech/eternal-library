@@ -37,6 +37,18 @@ const SHAPE_CORNERS: int = 256
 ## there, you couldn't see them (m above the surface).
 const COVER: float = 2.2
 
+## Step 2, the air. Light profiles (tools/kit_import.gd) that are a flame,
+## and those that are a natural glow (fungi). Lights with no profile (the camp,
+## lights a room's Life adds) are judged by colour.
+const FLAME_PROFILES: PackedStringArray = ["lantern", "brazier", "chandelier", "cluster", "desk", "lamp_dim", "redfire", "sconce", "torch",
+	"candle", "candle_one", "ossuary_shrine", "ossuary_candle", "ossuary_lantern", "lake_lantern", "lake_canopy", "lake_lamp"]
+const GLOW_PROFILES: PackedStringArray = ["fungus", "glowcap", "violet", "lake_glow", "ossuary_glow"]
+## A roof is dark with no flame this close (m): about a bay.
+const DARK_RADIUS: float = 5.0
+## How far up a roof is looked for (m), and how low one may be.
+const ROOF_REACH: float = 16.0
+const ROOF_LOW: float = 2.0
+
 
 ## Finding the water in slices: begin(), step() until true, finish().
 class WaterScan:
@@ -218,6 +230,142 @@ static func _sound_point(space: PhysicsDirectSpaceState3D, q: PhysicsRayQueryPar
 		if not space.intersect_ray(q).is_empty():
 			return null
 	return floor_y
+
+
+## The lights under `root` that are burning flames ({at, colour}) and natural
+## glows ({at, colour}), global. A lamp put out (LampState "dark") is no flame;
+## a lamp only switched off by the light budget still is.
+static func lights(root: Node) -> Dictionary:
+	var flames: Array[Dictionary] = []
+	var glows: Array[Dictionary] = []
+	var others: Array[Dictionary] = []
+	for n: Node in root.find_children("*", "Light3D", true, false):
+		var l := n as Light3D
+		if l == null or l is DirectionalLight3D or str(l.get_meta("lamp_state", "lit")) == "dark":
+			continue
+		var kind: String = str(l.get_meta("light_profile", ""))
+		var c: Color = l.light_color
+		var entry: Dictionary = {"at": l.global_position, "colour": c}
+		if FLAME_PROFILES.has(kind):
+			flames.append(entry)
+		elif GLOW_PROFILES.has(kind):
+			glows.append(entry)
+		elif kind == "" and l is OmniLight3D and not l.has_meta("light_far"):
+			if c.r > 0.85 and c.b < 0.6 and (l as OmniLight3D).omni_range < 12.0:
+				flames.append(entry)
+			elif c.g > c.r + 0.15 or c.b > c.r + 0.15:
+				glows.append(entry)
+			else:
+				others.append(entry)
+		else:
+			others.append(entry)     # daylight, window and shaft lights: not dark, no moths
+	return {"flames": flames, "glows": glows, "others": others}
+
+
+## Roofs over a room, found in slices: points to look up from, and what was
+## found ({at: the roof, floor: y under it, height}).
+class RoofScan:
+	extends RefCounted
+	var starts: PackedVector3Array = PackedVector3Array()
+	## How many of `starts` (the first ones) stand on a floor to be found; the
+	## rest are on water, whose surface is their floor.
+	var on_floor: int = 0
+	var roofs: Array[Dictionary] = []
+	var next: int = 0
+	## Collider id -> whether it is natural rock (is_rock), asked once each.
+	var rock: Dictionary = {}
+
+
+## Looks up from the scan's points until `deadline_usec`. True once done. A
+## point first finds its floor (down from a little over it), then the first
+## thing over the floor facing down within ROOF_REACH.
+static func roof_step(scan: RoofScan, space: PhysicsDirectSpaceState3D, deadline_usec: int) -> bool:
+	var q := PhysicsRayQueryParameters3D.new()
+	q.collision_mask = WORLD_MASK
+	while scan.next < scan.starts.size():
+		var p: Vector3 = scan.starts[scan.next]
+		var on_water: bool = scan.next >= scan.on_floor
+		scan.next += 1
+		var floor_y: float = p.y
+		if not on_water:
+			q.hit_back_faces = false
+			q.from = p + Vector3(0, 1.0, 0)
+			q.to = p - Vector3(0, 3.0, 0)
+			var down: Dictionary = space.intersect_ray(q)
+			if not down.is_empty():
+				floor_y = (down["position"] as Vector3).y
+		q.hit_back_faces = true
+		q.from = Vector3(p.x, floor_y + 1.2, p.z)
+		q.to = Vector3(p.x, floor_y + ROOF_REACH, p.z)
+		var up: Dictionary = space.intersect_ray(q)
+		if not up.is_empty() and (up["normal"] as Vector3).y < -0.3:
+			var at: Vector3 = up["position"]
+			if at.y - floor_y >= ROOF_LOW:
+				var id: int = int(up["collider_id"])
+				if not scan.rock.has(id):
+					scan.rock[id] = is_rock(up["collider"])
+				scan.roofs.append({"at": at, "floor": floor_y, "height": at.y - floor_y, "rock": scan.rock[id]})
+		if Time.get_ticks_usec() >= deadline_usec:
+			break
+	return scan.next >= scan.starts.size()
+
+
+## Materials of natural rock (a cave's roof), not built stone.
+const ROCK_MATERIALS: PackedStringArray = ["cave_rock", "camp_cave", "limestone_roof", "gorge_limestone", "flowstone"]
+
+
+## Whether a collider is natural rock: the mesh it belongs to (it, its
+## parents, or their meshes) is drawn with a rock material.
+static func is_rock(collider: Object) -> bool:
+	var n := collider as Node
+	for up: int in 3:
+		if n == null:
+			return false
+		var meshes: Array[Node] = [n]
+		if up == 0:
+			meshes.append_array(n.get_children())
+		for m: Node in meshes:
+			var mi := m as MeshInstance3D
+			if mi == null or mi.mesh == null:
+				continue
+			for s: int in mi.mesh.get_surface_count():
+				var mat: Material = mi.get_active_material(s)
+				if mat != null and _rock_name(mat.resource_path + " " + mat.resource_name):
+					return true
+		n = n.get_parent()
+	return false
+
+
+static func _rock_name(text: String) -> bool:
+	for r: String in ROCK_MATERIALS:
+		if text.contains(r):
+			return true
+	return false
+
+
+## The roof right over `p` (global) within `reach` m, or null.
+static func roof_over(space: PhysicsDirectSpaceState3D, p: Vector3, reach: float = 3.0) -> Variant:
+	var q := PhysicsRayQueryParameters3D.create(p, p + Vector3(0, reach, 0), WORLD_MASK)
+	q.hit_back_faces = true
+	var hit: Dictionary = space.intersect_ray(q)
+	if hit.is_empty() or (hit["normal"] as Vector3).y > -0.3:
+		return null
+	return hit["position"]
+
+
+## Whether a roof point is dark: no flame or other light (daylight, windows)
+## within `radius` (DARK_RADIUS by default) and no glow within `glow_gap`
+## (glowworms keep away from fungi; bats don't mind them).
+static func is_dark(at: Vector3, lights: Dictionary, glow_gap: float, radius: float = DARK_RADIUS) -> bool:
+	for key: String in ["flames", "others"]:
+		for f: Dictionary in lights.get(key, []):
+			if (f["at"] as Vector3).distance_to(at) < radius:
+				return false
+	var glows: Array = lights.get("glows", [])
+	for g: Dictionary in glows:
+		if (g["at"] as Vector3).distance_to(at) < glow_gap:
+			return false
+	return true
 
 
 ## Whether a fish at `a` can swim straight to `b` (global, both under water).

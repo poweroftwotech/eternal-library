@@ -10,15 +10,20 @@ extends Node3D
 ## node, not of their room, so a room taken apart in slices never takes a
 ## half-built animal with it.
 ##
+## A room's job, a slice a frame: find its still water and sound it (fish),
+## read its lights (flames for moths; flames and fungi make a roof light),
+## look up for its roofs (glowworms and bats on the dark ones), then fill it.
+##
 ## Everything is seeded by the world seed, the room's key and the kind: a room
 ## shows the same animals on every visit and in every process. Nothing is
 ## saved yet (phase 19 Q8: step 5 adds how plentiful each kind is).
 ##
-## Costs (phase 19 Q12): sounding the water runs in BUDGET_MS a frame; animals
-## further than SLEEP_DISTANCE from the camera aren't ticked (or drawn); at
-## most MAX_THINKING simple animals and MAX_SWARMS swarms live at once.
+## Costs (phase 19 Q12): the scans run in BUDGET_MS a frame; animals further
+## than SLEEP_DISTANCE from the camera aren't ticked (or drawn); at most
+## MAX_THINKING simple animals and MAX_SWARMS swarms are awake at once.
 
-const DEFS: Array[String] = ["res://actors/defs/goldfish.tres", "res://actors/defs/cave_barb.tres"]
+const DEFS: Array[String] = ["res://actors/defs/goldfish.tres", "res://actors/defs/cave_barb.tres",
+	"res://actors/defs/candle_moth.tres", "res://actors/defs/glowworm.tres", "res://actors/defs/bat.tres"]
 const BUDGET_MS: float = 1.0
 const SLEEP_DISTANCE: float = 30.0
 ## Per view: at most this many simple animals and swarms awake (the nearest;
@@ -27,11 +32,17 @@ const MAX_THINKING: int = 40
 const MAX_SWARMS: int = 8
 ## Live in the place at once (rooms near you, awake or not).
 const MAX_LIVE_THINKING: int = 80
-const MAX_LIVE_SWARMS: int = 16
+const MAX_LIVE_SWARMS: int = 40
 ## Physics frames to wait after a room arrives, so its collision is in the space.
 const SETTLE_FRAMES: int = 2
 ## The place's Fauna is in this group (the F3 panel finds it there).
 const GROUP: StringName = &"fauna"
+## Roof scan: points looked up from, at most, per room.
+const MAX_ROOF_STARTS: int = 600
+## Bats: a roost needs this much roof over the floor (m), and roosts keep this
+## far apart (m); glowworm colonies likewise.
+const ROOST_APART: float = 8.0
+const COLONY_APART: float = 6.0
 
 ## The place id when the whole scene is one room ("camp", "lake").
 var place_id: String = ""
@@ -39,7 +50,8 @@ var area: Area
 var defs: Array[CreatureDef] = []
 ## Room slot -> [groups].
 var groups: Dictionary = {}
-## Slots waiting: {slot, node, type, state, bodies, at, wait}.
+## Slots waiting: {slot, node, type, state, cells, wait, bodies, at, scan,
+## lights, roofs}.
 var _jobs: Array[Dictionary] = []
 ## Last tick's cost and counts, for the F3 panel and the gates.
 var stats: Dictionary = {"tick_ms": 0.0, "worst_tick_ms": 0.0, "scan_ms": 0.0, "worst_scan_ms": 0.0, "thinking": 0, "swarms": 0, "awake": 0, "animals": 0}
@@ -59,12 +71,26 @@ func _ready() -> void:
 	add_to_group(GROUP)
 	for p: String in DEFS:
 		var d: CreatureDef = load(p) as CreatureDef
-		if d != null:
-			defs.append(d)
-			# Built now, while the place loads: the first build of a fish's
-			# material costs tens of ms (its shader), a hitch if left to the room.
+		if d == null:
+			continue
+		# The area's Animals setting: how many of this kind here.
+		var amount: float = 1.0
+		if area != null and area.recipe != null:
+			amount = float(area.recipe.fauna.get(str(d.id), 1.0))
+		if amount <= 0.0:
+			continue
+		d = d.scaled(amount)
+		defs.append(d)
+		# Built now, while the place loads: the first build of an animal's
+		# material costs tens of ms (its shader), a hitch if left to the room.
+		if d.habitat == "water":
 			FishBody.mesh(d)
 			FishBody.material(d)
+		else:
+			AirBody.material(d)
+	AirBody.moth_mesh()
+	AirBody.bat_mesh()
+	AirBody.worm_mesh()
 	if area != null:
 		if area.streamer != null:
 			area.streamer.room_loaded.connect(_on_room_loaded)
@@ -72,7 +98,7 @@ func _ready() -> void:
 		for slot: String in area.rooms:
 			_on_room_loaded(slot)
 	else:
-		_queue("", get_parent() as Node3D, place_id, "")
+		_queue("", get_parent() as Node3D, place_id, "", [])
 
 
 func _on_room_loaded(slot: String) -> void:
@@ -81,7 +107,8 @@ func _on_room_loaded(slot: String) -> void:
 	if room == null or pr == null:
 		return
 	var state: String = str(pr.grammar.get_meta("state", "")) if pr.grammar != null else ""
-	_queue(slot, room, pr.room_type, state)
+	var cells: Array = pr.floor_cells.keys() + pr.blocked_cells.keys()
+	_queue(slot, room, pr.room_type, state, cells, pr.no_animals)
 
 
 func _on_room_unloaded(slot: String) -> void:
@@ -92,11 +119,35 @@ func _on_room_unloaded(slot: String) -> void:
 	groups.erase(slot)
 
 
-func _queue(slot: String, node: Node3D, type: String, state: String) -> void:
-	if node == null or not defs.any(func(d: CreatureDef) -> bool: return d.rooms.has(type)):
+## Whether kind `d` lives in a room of `type` in `state`.
+static func lives_in(d: CreatureDef, type: String, state: String, kept_out: PackedStringArray = []) -> bool:
+	if d.not_rooms.has(type) or kept_out.has(str(d.id)):
+		return false
+	var abandoned: bool = state == RoomGrammar.ABANDONED
+	if d.any_abandoned and abandoned:
+		return true
+	if not (d.rooms.has(type) or d.rooms.has("*") or d.loose_rooms.has(type)):
+		return false
+	if d.state == "kept" and abandoned and d.build != "simple":
+		return false     # (a kept pool's lone survivor is the simple kind's)
+	if d.state == "abandoned" and not abandoned:
+		return false
+	return true
+
+
+func _queue(slot: String, node: Node3D, type: String, state: String, cells: Array, kept_out: PackedStringArray = []) -> void:
+	if node == null or not defs.any(func(d: CreatureDef) -> bool: return lives_in(d, type, state, kept_out)):
 		return
 	_on_room_unloaded(slot)
-	_jobs.append({"slot": slot, "node": node, "type": type, "state": state, "bodies": null, "at": 0, "wait": SETTLE_FRAMES})
+	_jobs.append({"slot": slot, "node": node, "type": type, "state": state, "cells": cells, "out": kept_out, "wait": SETTLE_FRAMES,
+		"bodies": null, "at": 0, "lights": null, "roofs": null})
+
+
+func _needs(j: Dictionary, habitat: String) -> bool:
+	for d: CreatureDef in defs:
+		if d.habitat == habitat and lives_in(d, str(j["type"]), str(j["state"]), j["out"]):
+			return true
+	return false
 
 
 func _physics_process(_delta: float) -> void:
@@ -122,17 +173,18 @@ func _process(delta: float) -> void:
 	for slot: String in groups:
 		for g: Node in groups[slot]:
 			var mmi := g as MultiMeshInstance3D
-			if mmi == null or not is_instance_valid(mmi):
+			if mmi == null or not is_instance_valid(mmi) or mmi.multimesh == null:
 				continue
 			var n: int = mmi.multimesh.instance_count
+			var swarm: bool = _is_swarm(g)
 			animals += n
-			if g is FishSchool:
+			if swarm:
 				swarms += 1
 			else:
 				thinking += n
-			var b: WaterBody = g.get("body")
-			if b != null and b.bounds.grow(SLEEP_DISTANCE).has_point(eye):
-				near.append([mmi.global_position.distance_to(eye), mmi, g is FishSchool])
+			var box: AABB = _bounds(g)
+			if box.grow(SLEEP_DISTANCE).has_point(eye):
+				near.append([_distance(box, eye), mmi, swarm])
 			else:
 				mmi.visible = false
 	near.sort_custom(func(a: Array, b: Array) -> bool: return a[0] < b[0])
@@ -160,8 +212,22 @@ func _process(delta: float) -> void:
 	stats["animals"] = animals
 
 
-## Finds and sounds the water of waiting rooms within BUDGET_MS, and fills
-## each room once its water is known.
+static func _is_swarm(g: Node) -> bool:
+	return not g is FishPool
+
+
+## A group's box (global): its water's, or its own.
+static func _bounds(g: Node) -> AABB:
+	var b: WaterBody = g.get("body") as WaterBody
+	return b.bounds if b != null else g.get("bounds")
+
+
+static func _distance(box: AABB, p: Vector3) -> float:
+	return p.distance_to(Vector3(clampf(p.x, box.position.x, box.end.x), clampf(p.y, box.position.y, box.end.y), clampf(p.z, box.position.z, box.end.z)))
+
+
+## Works through waiting rooms within BUDGET_MS, and fills each room once
+## what it needs is known.
 func _work() -> void:
 	if _jobs.is_empty():
 		return
@@ -172,10 +238,15 @@ func _work() -> void:
 		if int(j["wait"]) > 0:
 			break
 		var node: Node3D = j["node"]
-		if not is_instance_valid(node):
+		if not is_instance_valid(node) or not node.is_inside_tree():
 			_jobs.pop_front()
 			continue
+		var space: PhysicsDirectSpaceState3D = node.get_world_3d().direct_space_state
+		# 1. The water.
 		if j["bodies"] == null:
+			if not _needs(j, "water"):
+				j["bodies"] = []
+				continue
 			if j.get("scan") == null:
 				j["scan"] = HabitatScan.begin(node)
 			if not HabitatScan.step(j["scan"], deadline):
@@ -183,16 +254,66 @@ func _work() -> void:
 			j["bodies"] = HabitatScan.finish(j["scan"])
 			continue
 		var bodies: Array = j["bodies"]
-		var space: PhysicsDirectSpaceState3D = node.get_world_3d().direct_space_state
-		while int(j["at"]) < bodies.size() and Time.get_ticks_usec() < deadline:
-			if HabitatScan.sound(bodies[int(j["at"])], space, deadline):
-				j["at"] = int(j["at"]) + 1
-		if int(j["at"]) >= bodies.size():
-			_jobs.pop_front()
-			_populate(j)
+		if int(j["at"]) < bodies.size():
+			while int(j["at"]) < bodies.size() and Time.get_ticks_usec() < deadline:
+				if HabitatScan.sound(bodies[int(j["at"])], space, deadline):
+					j["at"] = int(j["at"]) + 1
+			continue
+		# 2. The lights.
+		if j["lights"] == null:
+			j["lights"] = HabitatScan.lights(node) if (_needs(j, "flame") or _needs(j, "dark_roof")) else {"flames": [], "glows": []}
+			continue
+		# 3. The roofs.
+		if j["roofs"] == null:
+			if not _needs(j, "dark_roof"):
+				j["roofs"] = HabitatScan.RoofScan.new()
+				continue
+			j["roofs"] = _roof_starts(j)
+		var roofs: HabitatScan.RoofScan = j["roofs"]
+		if not HabitatScan.roof_step(roofs, space, deadline):
+			break
+		_jobs.pop_front()
+		_populate(j)
 	var ms: float = (Time.get_ticks_usec() - t0) / 1000.0
 	stats["scan_ms"] = ms
 	stats["worst_scan_ms"] = maxf(float(stats.get("worst_scan_ms", 0.0)), ms)
+
+
+## Where to look up from: four points in each of the room's cells (an area
+## room), and over its water (every place; the lake has nothing else).
+func _roof_starts(j: Dictionary) -> HabitatScan.RoofScan:
+	var floors := PackedVector3Array()
+	var waters := PackedVector3Array()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([str(j["slot"]), str(j["type"]), "roofs"])
+	if area != null:
+		for c: Vector3i in j["cells"]:
+			var centre: Vector3 = area.global_transform * CellGrid.cell_centre(c)
+			for k: int in 4:
+				var off := Vector3((k % 2) * 2.0 - 1.0, 0.0, float(k >> 1) * 2.0 - 1.0) * CellGrid.BAY * 0.25
+				off += Vector3(rng.randf_range(-0.5, 0.5), 0.0, rng.randf_range(-0.5, 0.5))
+				floors.append(centre + area.global_transform.basis * off + Vector3(0, 0.5, 0))
+	for b: WaterBody in j["bodies"]:
+		var step: int = maxi(1, b.samples.size() >> 7)
+		for i: int in range(0, b.samples.size(), step):
+			var s: Vector3 = b.samples[i]
+			waters.append(Vector3(s.x, b.surface, s.z))
+	var total: int = floors.size() + waters.size()
+	var scan := HabitatScan.RoofScan.new()
+	scan.starts = _thin(floors, floori(float(MAX_ROOF_STARTS * floors.size()) / maxi(total, 1)))
+	scan.on_floor = scan.starts.size()
+	scan.starts.append_array(_thin(waters, floori(float(MAX_ROOF_STARTS * waters.size()) / maxi(total, 1))))
+	return scan
+
+
+static func _thin(points: PackedVector3Array, most: int) -> PackedVector3Array:
+	if points.size() <= most:
+		return points
+	var out := PackedVector3Array()
+	var step: float = float(points.size()) / maxi(most, 1)
+	for i: int in most:
+		out.append(points[int(i * step)])
+	return out
 
 
 func _populate(j: Dictionary) -> void:
@@ -202,56 +323,210 @@ func _populate(j: Dictionary) -> void:
 	var out: Array = groups.get(slot, [])
 	var ws: Node = get_node_or_null("/root/WorldState")
 	var world_seed: int = int(ws.call("world_seed")) if ws != null else 1
+	var type: String = str(j["type"])
+	var abandoned: bool = str(j["state"]) == RoomGrammar.ABANDONED
 	var bodies: Array = j["bodies"]
-	for bi: int in bodies.size():
-		var b: WaterBody = bodies[bi]
-		for d: CreatureDef in defs:
-			if d.habitat != "water" or not d.rooms.has(str(j["type"])):
-				continue
-			var abandoned: bool = str(j["state"]) == RoomGrammar.ABANDONED
-			var places: int = b.deep_samples(d.min_depth).size()
-			if places < 4 or b.area() < d.min_area:
-				continue
-			var rng := RandomNumberGenerator.new()
-			rng.seed = hash([world_seed, key, bi, str(d.id)])
-			if d.build == "swarm":
-				if d.state == "kept" and abandoned:
-					continue
-				var schools: int = clampi(1 + int(b.area() / d.area_each), 1, d.max_groups)
-				for s: int in schools:
-					if int(stats["swarms"]) + _count(out, true) >= MAX_LIVE_SWARMS:
-						break
-					var n: int = rng.randi_range(d.group_size.x, d.group_size.y)
-					var start: Vector3 = b.deep_samples(d.min_depth)[rng.randi() % places]
-					var school := FishSchool.new()
-					add_child(school)
-					school.setup(d, b, n, rng.randi(), start)
-					out.append(school)
-			else:
-				var survivor: bool = false
-				var n: int = clampi(roundi(b.area() / d.area_each), d.group_size.x, d.group_size.y)
-				if abandoned:
-					if d.state != "kept" or rng.randf() >= d.survivor_chance:
-						continue
-					survivor = true
-					n = 1
-				elif d.state == "abandoned":
-					continue
-				n = mini(n, MAX_LIVE_THINKING - int(stats["thinking"]) - _count(out, false))
-				if n <= 0:
-					continue
-				var pool := FishPool.new()
-				add_child(pool)
-				pool.setup(d, b, n, rng.randi(), survivor)
-				pool.flow = _flow_of(b)
-				out.append(pool)
+	var space: PhysicsDirectSpaceState3D = node.get_world_3d().direct_space_state
+	for d: CreatureDef in defs:
+		if not lives_in(d, type, str(j["state"]), j["out"]):
+			continue
+		match d.habitat:
+			"water":
+				for bi: int in bodies.size():
+					var rng := RandomNumberGenerator.new()
+					rng.seed = hash([world_seed, key, bi, str(d.id)])
+					_fill_water(d, bodies[bi], rng, abandoned, out)
+			"flame":
+				var rng := RandomNumberGenerator.new()
+				rng.seed = hash([world_seed, key, str(d.id)])
+				_fill_flames(d, j, rng, abandoned, out)
+			"dark_roof":
+				var rng := RandomNumberGenerator.new()
+				rng.seed = hash([world_seed, key, str(d.id)])
+				if d.id == "bat":
+					_fill_bats(d, j, rng, space, out)
+				else:
+					_fill_glowworms(d, j, rng, space, out)
 	groups[slot] = out
+
+
+func _fill_water(d: CreatureDef, b: WaterBody, rng: RandomNumberGenerator, abandoned: bool, out: Array) -> void:
+	var places: int = b.deep_samples(d.min_depth).size()
+	if places < 4 or b.area() < d.min_area:
+		return
+	if d.build == "swarm":
+		var schools: int = clampi(1 + int(b.area() / d.area_each), 1, d.max_groups)
+		for s: int in schools:
+			if int(stats["swarms"]) + _count(out, true) >= MAX_LIVE_SWARMS:
+				break
+			var n: int = rng.randi_range(d.group_size.x, d.group_size.y)
+			var start: Vector3 = b.deep_samples(d.min_depth)[rng.randi() % places]
+			var school := FishSchool.new()
+			add_child(school)
+			school.setup(d, b, n, rng.randi(), start)
+			out.append(school)
+		return
+	var survivor: bool = false
+	var n: int = clampi(roundi(b.area() / d.area_each), d.group_size.x, d.group_size.y)
+	if abandoned:
+		if d.state != "kept" or rng.randf() >= d.survivor_chance:
+			return
+		survivor = true
+		n = 1
+	elif d.state == "abandoned":
+		return
+	n = mini(n, MAX_LIVE_THINKING - int(stats["thinking"]) - _count(out, false))
+	if n <= 0:
+		return
+	var pool := FishPool.new()
+	add_child(pool)
+	pool.setup(d, b, n, rng.randi(), survivor)
+	pool.flow = _flow_of(b)
+	out.append(pool)
+
+
+## Moths: a few at each burning flame; loose over the floor in its loose rooms.
+func _fill_flames(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, abandoned: bool, out: Array) -> void:
+	var flames: Array = (j["lights"] as Dictionary)["flames"]
+	var loose := PackedVector3Array()
+	if d.loose_rooms.has(str(j["type"])) and area != null and not (j["cells"] as Array).is_empty():
+		# Over the middle of the room (the court), not its corridors: the half
+		# of its cells nearest their mean.
+		var cells: Array = (j["cells"] as Array).duplicate()
+		var mean := Vector3.ZERO
+		for c: Vector3i in cells:
+			mean += CellGrid.cell_centre(c)
+		mean /= cells.size()
+		cells.sort_custom(func(a: Vector3i, b: Vector3i) -> bool: return CellGrid.cell_centre(a).distance_to(mean) < CellGrid.cell_centre(b).distance_to(mean))
+		cells = cells.slice(0, maxi(1, cells.size() >> 1))
+		for k: int in d.loose_count:
+			var c: Vector3i = cells[rng.randi() % cells.size()]
+			loose.append(area.global_transform * CellGrid.cell_centre(c))
+	if (flames.is_empty() and loose.is_empty()) or int(stats["swarms"]) + _count(out, true) >= MAX_LIVE_SWARMS:
+		return
+	var swarm := MothSwarm.new()
+	add_child(swarm)
+	swarm.setup(d, flames, loose, rng, abandoned)
+	if swarm.multimesh == null:
+		swarm.queue_free()
+		return
+	out.append(swarm)
+
+
+## The dark roofs a kind will take: high enough, no flame near, far enough
+## from fungi.
+func _dark_roofs(d: CreatureDef, j: Dictionary) -> Array[Dictionary]:
+	var lights: Dictionary = j["lights"]
+	var found: Array[Dictionary] = []
+	for r: Dictionary in (j["roofs"] as HabitatScan.RoofScan).roofs:
+		if d.rock_only and not bool(r.get("rock", false)):
+			continue
+		if float(r["height"]) >= d.min_height and HabitatScan.is_dark(r["at"], lights, d.glow_gap, d.dark_radius):
+			found.append(r)
+	return found
+
+
+## Up to `count` roof points from `roofs`, each at least `apart` m from the others.
+static func _spread(roofs: Array[Dictionary], count: int, apart: float, rng: RandomNumberGenerator) -> Array[Dictionary]:
+	var picked: Array[Dictionary] = []
+	var order: Array = MothSwarm._seeded_order(roofs, rng)
+	for r: Dictionary in order:
+		if picked.size() >= count:
+			break
+		var ok: bool = true
+		for p: Dictionary in picked:
+			if (p["at"] as Vector3).distance_to(r["at"]) < apart:
+				ok = false
+				break
+		if ok:
+			picked.append(r)
+	return picked
+
+
+## Glowworms: colonies round a few dark roof points, each worm on the roof
+## right over its place, all of the room's in one colony object.
+func _fill_glowworms(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, space: PhysicsDirectSpaceState3D, out: Array) -> void:
+	var dark: Array[Dictionary] = _dark_roofs(d, j)
+	if dark.size() < 4 or int(stats["swarms"]) + _count(out, true) >= MAX_LIVE_SWARMS:
+		return
+	var centres: Array[Dictionary] = _spread(dark, d.max_groups, COLONY_APART, rng)
+	var worms: Array = []
+	for c: Dictionary in centres:
+		var n: int = rng.randi_range(d.group_size.x, d.group_size.y)
+		var near: Array = dark.filter(func(r: Dictionary) -> bool: return (r["at"] as Vector3).distance_to(c["at"]) < 6.0)
+		for k: int in n:
+			if worms.size() >= d.room_cap:
+				break
+			var base: Dictionary = near[rng.randi() % near.size()]
+			var p: Vector3 = (base["at"] as Vector3) + Vector3(rng.randf_range(-2.0, 2.0), -0.6, rng.randf_range(-2.0, 2.0))
+			var roof: Variant = HabitatScan.roof_over(space, p, 1.5)
+			if roof == null:
+				continue
+			worms.append({"at": roof as Vector3, "length": rng.randf_range(0.04, 0.3)})
+	if worms.size() < 4:
+		return
+	var colour: Color = d.glow_colour
+	var glows: Array = (j["lights"] as Dictionary)["glows"]
+	var best: float = INF
+	for g: Dictionary in glows:
+		var dist: float = (g["at"] as Vector3).distance_to(centres[0]["at"])
+		if dist < best:
+			best = dist
+			colour = g["colour"]
+	var colony := GlowColony.new()
+	add_child(colony)
+	colony.setup(d, worms, colour, rng)
+	out.append(colony)
+
+
+## Bats: a few roosts on dark roofs high enough to hang from, apart.
+func _fill_bats(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, space: PhysicsDirectSpaceState3D, out: Array) -> void:
+	var dark: Array[Dictionary] = _dark_roofs(d, j)
+	if dark.is_empty():
+		return
+	var roosts: int = d.max_groups
+	if d.kept_groups >= 0 and str(j["state"]) != RoomGrammar.ABANDONED:
+		roosts = mini(roosts, d.kept_groups)
+	for c: Dictionary in _spread(dark, roosts, ROOST_APART, rng):
+		if int(stats["swarms"]) + _count(out, true) >= MAX_LIVE_SWARMS:
+			break
+		var at: Vector3 = c["at"]
+		var spots: Array[Vector3] = []
+		var n: int = rng.randi_range(d.group_size.x, d.group_size.y)
+		for k: int in n * 2:
+			if spots.size() >= n:
+				break
+			var p: Vector3 = at + Vector3(rng.randf_range(-0.8, 0.8), -0.5, rng.randf_range(-0.8, 0.8))
+			var roof: Variant = HabitatScan.roof_over(space, p, 1.2)
+			if roof != null:
+				spots.append(roof as Vector3)
+		if spots.size() < 3:
+			continue
+		var roost := BatRoost.new()
+		add_child(roost)
+		roost.setup(d, at, spots, _open_ways(space, at - Vector3(0, 1.0, 0)), rng)
+		out.append(roost)
+
+
+## The open ways from `p`, eight directions level with it: [{dir, reach}].
+static func _open_ways(space: PhysicsDirectSpaceState3D, p: Vector3) -> Array:
+	var ways: Array = []
+	var q := PhysicsRayQueryParameters3D.new()
+	q.collision_mask = HabitatScan.WORLD_MASK
+	q.hit_back_faces = true
+	for k: int in 8:
+		var dir := Vector3(cos(k * TAU / 8.0), 0, sin(k * TAU / 8.0))
+		q.from = p
+		q.to = p + dir * 20.0
+		var hit: Dictionary = space.intersect_ray(q)
+		ways.append({"dir": dir, "reach": 20.0 if hit.is_empty() else p.distance_to(hit["position"])})
+	return ways
 
 
 static func _count(gs: Array, swarm: bool) -> int:
 	var n: int = 0
 	for g: Node in gs:
-		if is_instance_valid(g) and (g is FishSchool) == swarm:
+		if is_instance_valid(g) and _is_swarm(g) == swarm:
 			n += 1 if swarm else (g as MultiMeshInstance3D).multimesh.instance_count
 	return n
 

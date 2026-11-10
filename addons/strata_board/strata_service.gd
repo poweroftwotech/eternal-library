@@ -157,6 +157,9 @@ static func build(desc: Dictionary) -> AreaRecipe:
 			s.pinned_choice = int(d.get("pinned_choice", -1)) if choices.size() > 1 else -1
 			s.grammar = null
 			s.rules = null
+			# A baked room has no grammar settings, only which animals it keeps out.
+			var dt: Dictionary = d.get("tweaks", {})
+			s.tweaks = {"no_animals": dt["no_animals"]} if dt.has("no_animals") else {}
 		else:
 			var g: RoomGrammar = load(str(d.get("grammar", ""))) as RoomGrammar
 			if was == null or was.grammar != g:
@@ -202,6 +205,7 @@ static func build(desc: Dictionary) -> AreaRecipe:
 	r.max_sight_depth = int(desc.get("max_sight_depth", base.max_sight_depth))
 	r.fall_limit = float(desc.get("fall_limit", base.fall_limit))
 	r.open_sight = bool(desc.get("open_sight", base.open_sight))
+	r.fauna = (desc.get("fauna", base.fauna) as Dictionary).duplicate()
 	if desc.has("atmosphere"):
 		var atmos: String = str(desc["atmosphere"])
 		r.atmosphere = load(atmos) as AtmosphereProfile if ResourceLoader.exists(atmos) else null
@@ -822,7 +826,7 @@ static func describe(recipe: AreaRecipe) -> Dictionary:
 		"mtime": _mtime(recipe.resource_path), "version": recipe.version, "room_count": [recipe.room_count.x, recipe.room_count.y], "max_dead_ends": recipe.max_dead_ends,
 		"max_sight_depth": recipe.max_sight_depth, "envelope": [env.position.x, env.position.y, env.position.z, env.size.x, env.size.y, env.size.z],
 		"open_sight": recipe.open_sight, "network": recipe.network != null, "slots": [], "grow": [],
-		"atmosphere": recipe.atmosphere.resource_path if recipe.atmosphere != null else "", "fall_limit": recipe.fall_limit}
+		"atmosphere": recipe.atmosphere.resource_path if recipe.atmosphere != null else "", "fall_limit": recipe.fall_limit, "fauna": recipe.fauna.duplicate()}
 	for s: AreaSlot in recipe.slots:
 		if s == null:
 			continue

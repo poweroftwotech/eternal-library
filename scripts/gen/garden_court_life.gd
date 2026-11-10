@@ -56,10 +56,8 @@ func _build() -> void:
 	if not is_inside_tree():
 		return
 	add_child(_drift(false, wild))
-	await get_tree().process_frame
-	if not is_inside_tree():
-		return
-	add_child(_drift(true, wild))
+	# The moths over the beds are real now (phase 19 step 2: Fauna's candle
+	# moths, loose in the Garden Court).
 	if wild:
 		return
 	for k: int in 2:
@@ -189,5 +187,5 @@ static func _material(moths: bool, wild: bool) -> StandardMaterial3D:
 ## The emitters' kinds, tiny, for PipelineWarm (their particle and draw
 ## shaders compile while the place settles).
 static func warm() -> Array[GPUParticles3D]:
-	var out: Array[GPUParticles3D] = [_drift(false, false, 2), _drift(true, false, 2), _drift(false, true, 2)]
+	var out: Array[GPUParticles3D] = [_drift(false, false, 2), _drift(false, true, 2)]
 	return out

@@ -1776,6 +1776,37 @@ func _area_form() -> void:
 	_form.add_child(_row("Fall limit", _spin(int(rc.get("fall_limit", -8.0)), -500, 0, func(v: int) -> void: set_area_field("fall_limit", float(v)))))
 	_form.add_child(_row("", _toggle("Open cavern (every room sees every other)", bool(rc.get("open_sight", false)), func(on: bool) -> void: set_area_field("open_sight", on))))
 	_form.add_child(_note("Rooms: the area's minimum and maximum. A rule never grows past its own maximum (Q4), so a seed whose rules fall short of the minimum is invalid. Dead ends: plain-walled ends allowed. Sightline: how many rooms deep you may see through doorways. Space: where rooms may be built, in metres from the entrance. Fall limit: below this height a falling player is put back."))
+	_animals_form(rc)
+
+
+## How many of each animal live in the area (AreaRecipe.fauna), as a share of
+## the kind's own numbers: 100% as its def says, 0% none.
+func _animals_form(rc: Dictionary) -> void:
+	_form.add_child(_label("ANIMALS", 11, MUTED))
+	var amounts: Dictionary = rc.get("fauna", {})
+	for path: String in Fauna.DEFS:
+		var d: CreatureDef = load(path) as CreatureDef
+		if d == null:
+			continue
+		var id: String = str(d.id)
+		var s := SpinBox.new()
+		s.min_value = 0
+		s.max_value = 500
+		s.step = 5
+		s.suffix = "%"
+		s.value = roundf(float(amounts.get(id, 1.0)) * 100.0)
+		s.custom_minimum_size.x = 90 * ui_scale
+		s.value_changed.connect(func(x: float) -> void:
+			var f: Dictionary = (recipes[area_id].get("fauna", {}) as Dictionary).duplicate()
+			if is_equal_approx(x, 100.0):
+				f.erase(id)
+			else:
+				f[id] = x / 100.0
+			set_area_field("fauna", f))
+		var row := _row(d.display_name, s)
+		row.tooltip_text = "How many %s live in this area: 100%% as the animal's own settings say, 0%% none, 200%% twice as many." % d.display_name.to_lower()
+		_form.add_child(row)
+	_form.add_child(_note("Animals: 100% is the animal's own numbers (actors/defs). Candle moths: the share of flames that have any (more past every flame: more round each). Others: how many in each school, colony or roost. Places that aren't areas (the camp, the lake) keep 100%."))
 
 
 func _slot_form(s: Dictionary) -> void:
@@ -1824,6 +1855,7 @@ func _slot_form(s: Dictionary) -> void:
 			_form.add_child(_note("This one is a baked room, built once, so it has no settings of its own. Pick Generated in Made from to get them."))
 	else:
 		_tweaks_form(s, func() -> Dictionary: return _slot(id))
+	_room_animals_form(s, func() -> Dictionary: return _slot(id))
 	if not root:
 		var parent := OptionButton.new()
 		var below: Dictionary = _descendants(id)
@@ -1958,6 +1990,7 @@ func _grow_form(g: Dictionary) -> void:
 		set_grow_field(prefix, "grammar", c["path"]))
 	_form.add_child(_row("Type", type))
 	_tweaks_form(g, func() -> Dictionary: return _grow_rule(prefix))
+	_room_animals_form(g, func() -> Dictionary: return _grow_rule(prefix))
 	_form.add_child(_row("Count", _range(g["count"], 0, 20, func(v: Array) -> void: set_grow_field(prefix, "count", v))))
 	var depth := _row("Min depth", _spin(int(g.get("min_depth", 0)), 0, 30, func(v: int) -> void: set_grow_field(prefix, "min_depth", v)))
 	depth.tooltip_text = "Only on doors at least this many doorways in from the entrance (0: anywhere)."
@@ -2035,6 +2068,31 @@ func _tweaks_form(owner: Dictionary, holder: Callable) -> void:
 		row.tooltip_text = str(f["tip"])
 		control.tooltip_text = str(f["tip"])
 		_form.add_child(row)
+
+
+## Which animals may live in this room (or these rooms): all ticked by
+## default; unticked kinds go in tweaks["no_animals"] (AreaPlan.Room
+## .no_animals). Where each lives in the room is still up to its habitat.
+func _room_animals_form(owner: Dictionary, holder: Callable) -> void:
+	_form.add_child(_label("Animals in this room" if owner.has("slot_id") else "Animals in these rooms", 11, MUTED))
+	var out: Array = (owner.get("tweaks", {}) as Dictionary).get("no_animals", [])
+	var grid := GridContainer.new()
+	grid.columns = 2
+	for path: String in Fauna.DEFS:
+		var d: CreatureDef = load(path) as CreatureDef
+		if d == null:
+			continue
+		var id: String = str(d.id)
+		var box := _toggle(d.display_name, not out.has(id), func(on: bool) -> void:
+			var o: Dictionary = holder.call()
+			var now: Array = ((o.get("tweaks", {}) as Dictionary).get("no_animals", []) as Array).duplicate()
+			now.erase(id)
+			if not on:
+				now.append(id)
+			set_tweak(o, "no_animals", now if not now.is_empty() else ""))
+		box.tooltip_text = "Untick to keep %s out of this room. Ticked, they live wherever the room suits them." % d.display_name.to_lower()
+		grid.add_child(box)
+	_form.add_child(grid)
 
 
 ## One of a room's or rule's own settings; "" goes back to the grammar's.

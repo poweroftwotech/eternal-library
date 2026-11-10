@@ -2,7 +2,7 @@
 
 [Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **APPROVED
 as recommended 2026-11-09 (Q1-Q12, the twenty animals, and the order of phases
-20 and 21). Nothing is built yet; step 1 (fish in the water) is next.** ·
+20 and 21). Step 1 (fish in the water) committed 8b9d4d1; step 2 (moths, glowworms, bats) look approved 2026-11-09, uncommitted.** ·
 The animals: [creature atlas](../../design/creature-atlas.html) ·
 The technical side, and what in today's code has to change:
 [phase 19 design](phase-19-design.md)

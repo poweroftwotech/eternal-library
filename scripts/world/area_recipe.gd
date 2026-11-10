@@ -37,6 +37,10 @@ extends Resource
 ## Every room sees every other (an open cavern: no walls between them),
 ## so no sightline limit applies and every room's lights may burn.
 @export var open_sight: bool = false
+## How many of each animal live here (phase 19): kind id (candle_moth …) ->
+## amount, 1 as the kind's own def says, 0 none, 2 twice as many. A kind
+## not listed is 1. Edited on the Strata Board (Animals).
+@export var fauna: Dictionary = {}
 
 
 func slot(slot_id: String) -> AreaSlot:

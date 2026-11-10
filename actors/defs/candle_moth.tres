@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CreatureDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/creature_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+habitat = "flame"
+build = "swarm"
+rooms = PackedStringArray("*")
+state = "any"
+loose_rooms = PackedStringArray("R07")
+loose_count = 14
+flame_share = 0.25
+group_size = Vector2i(3, 8)
+room_cap = 160
+id = &"candle_moth"
+display_name = "Candle moth"
+local_name = "Parvane"
+atlas_id = "C17"
+length_m = 0.035
+length_spread = Vector2(0.8, 1.25)
+speed = Vector2(1.6, 3.4)
+palette = PackedColorArray(0.88, 0.82, 0.7, 1, 0.55, 0.45, 0.32, 1)
