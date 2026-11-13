@@ -247,9 +247,8 @@ func _shoot_rats(game: Node, f: Fauna, g: RatPack, path: String) -> void:
 		var out: bool = false
 		for i: int in g.rats.size():
 			if int(g.rats[i]["state"]) != RatPack.IN:
-				var run: Dictionary = g.runs[int(g.rats[i]["run"])]
-				at = (run["a"] as Vector3).lerp(run["b"], float(g.rats[i]["s"]) / float(g.rats[i]["length"]))
-				n = run["normal"]
+				at = g.where(g.rats[i])
+				n = g.runs[int(g.rats[i]["run"])]["normal"]
 				out = true
 				break
 		if out and _i > 60:

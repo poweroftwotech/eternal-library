@@ -5,13 +5,16 @@
 [resource]
 script = ExtResource("1_def")
 habitat = "wall_lamp"
-build = "simple"
 rooms = PackedStringArray("*")
+not_rooms = PackedStringArray()
 state = "any"
+loose_rooms = PackedStringArray()
 flame_share = 0.6
-group_size = Vector2i(1, 3)
 room_cap = 18
+group_size = Vector2i(1, 3)
 startle_radius = 1.5
+safe_radius = 4.5
+climb = 1.0
 id = &"gecko"
 display_name = "Wall gecko"
 local_name = "Marmulak"

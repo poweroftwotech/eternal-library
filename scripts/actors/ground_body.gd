@@ -131,6 +131,8 @@ static func hole_mesh() -> ArrayMesh:
 ## pale) and how much it shows in the dark by itself.
 static func material(def: CreatureDef) -> ShaderMaterial:
 	if _materials.has(def.id):
+		(_materials[def.id] as ShaderMaterial).set_shader_parameter("self_glow", def.self_glow)     # (the zoo's panel may have changed it)
+		(_materials[def.id] as ShaderMaterial).set_shader_parameter("wing_share", def.roam)
 		return _materials[def.id]
 	var m := ShaderMaterial.new()
 	m.shader = SHADER

@@ -72,10 +72,17 @@ func _init() -> void:
 	mesh.cast_shadow = GeometryInstance3D.SHADOW_CASTING_SETTING_OFF     # phase 19 Q12: small animals cast none
 	_head = skeleton.find_bone("head")
 	_neck = skeleton.find_bone("neck")
+	# Its shadow on the floor under it.
+	var blob: MultiMeshInstance3D = BlobShadow.many(1)
+	BlobShadow.place(blob, 0, Vector3(0, 0.012, 0.03), Vector3.UP, Vector3.FORWARD, Vector2(0.6, 0.95))
+	blob.custom_aabb = AABB(Vector3(-0.6, -0.1, -0.6), Vector3(1.2, 0.2, 1.2))
+	add_child(blob)
 	_turn = _Turn.new()
 	_turn.body = self
 	skeleton.add_child(_turn)
 	set_coat(0)
+
+
 
 
 static func material() -> ShaderMaterial:

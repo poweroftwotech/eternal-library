@@ -4,11 +4,11 @@
 
 [resource]
 script = ExtResource("1_def")
-habitat = "water"
 build = "swarm"
 rooms = PackedStringArray("*")
-not_rooms = PackedStringArray("camp", "R01", "R03", "R04", "R05", "R06", "R07", "R08")
+not_rooms = PackedStringArray("camp", "R01", "R03", "R04", "R05", "R06", "R07", "R08", "scenery")
 state = "any"
+loose_rooms = PackedStringArray()
 min_depth = 0.2
 min_area = 6.0
 swim_depth = Vector2(0.12, 0.45)
@@ -20,13 +20,13 @@ feels_water_only = true
 self_glow = 0.12
 girth = Vector2(0.2, 0.2)
 patterns = 3
+clarity = 0.5
 blind = true
-clarity = 0.55
 id = &"cave_barb"
 display_name = "Blind cave barb"
 local_name = "Mahi-ye kur-e ghar"
 atlas_id = "C02"
-length_m = 0.075
-length_spread = Vector2(0.8, 1.2)
-speed = Vector2(0.08, 0.45)
+length_m = 0.14999999495533328
+length_spread = Vector2(0.6666666, 1.3333334)
+speed = Vector2(0.5, 1)
 palette = PackedColorArray(0.914, 0.788, 0.761, 1, 0.78, 0.604, 0.596, 1, 0.957, 0.925, 0.902, 1)

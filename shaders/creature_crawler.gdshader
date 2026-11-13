@@ -3,10 +3,10 @@ shader_type spatial;
 // the wall gecko, and the rat's hole. Models from GroundBody: a corner's
 // COLOR.r is its colour (0 body, 0.5 pale, 1 dark), COLOR.g what moves it (0
 // the body, 0.5 a leg, 1 the tail), COLOR.b which pair a leg steps with; UV.y
-// is how far along the animal it is. MultiMesh custom data: x how fast it is
-// going (0 still, 1 flat out), y its phase (0..1), z its shade (0..1).
-// Lit like the world; `self_glow` lifts it a little in the dark (it lights
-// nothing).
+// is how far along the animal it is; COLOR.a 0 marks an eye. MultiMesh custom
+// data: x how fast it is going (0 still, 1 flat out), y its phase (0..1), z
+// its shade (0..1). Lit like the world; `self_glow` lifts it a little in the
+// dark (it lights nothing). Its shadow is BlobShadow's.
 render_mode cull_disabled, shadows_disabled;
 
 uniform vec3 body_colour : source_color = vec3(0.4, 0.35, 0.3);

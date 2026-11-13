@@ -38,6 +38,8 @@ const MAX_LIVE_SWARMS: int = 40
 const SETTLE_FRAMES: int = 2
 ## The place's Fauna is in this group (the F3 panel finds it there).
 const GROUP: StringName = &"fauna"
+## The slot (and room type) an area's scenery is scanned under.
+const SCENERY: String = "scenery"
 ## Roof scan: points looked up from, at most, per room.
 const MAX_ROOF_STARTS: int = 600
 ## Bats: a roost needs this much roof over the floor (m), and roosts keep this
@@ -58,6 +60,12 @@ var groups: Dictionary = {}
 ## Slots waiting: {slot, node, type, state, cells, wait, bodies, at, scan,
 ## lights, roofs}.
 var _jobs: Array[Dictionary] = []
+## What each live room's scan found (slot -> its finished job: bodies,
+## lights, roofs, graph, notes), and a count that goes up when it changes.
+var found: Dictionary = {}
+var found_version: int = 0
+## The overlay (F4, or --fauna-overlay): where animals can live and why not.
+var overlay: FaunaOverlay
 ## Last tick's cost and counts, for the F3 panel and the gates.
 var stats: Dictionary = {"tick_ms": 0.0, "worst_tick_ms": 0.0, "scan_ms": 0.0, "worst_scan_ms": 0.0, "thinking": 0, "swarms": 0, "awake": 0, "animals": 0}
 
@@ -75,6 +83,24 @@ static func attach(world: Node3D, id: String = "") -> Fauna:
 func _ready() -> void:
 	add_to_group(GROUP)
 	place = str(area.recipe.id) if area != null and area.recipe != null else place_id
+	_load_defs()
+	if OS.get_cmdline_user_args().has("--fauna-overlay"):
+		show_overlay.call_deferred(true)
+	AirBody.moth_mesh()
+	AirBody.bat_mesh()
+	AirBody.worm_mesh()
+	GroundBody.rat_mesh()
+	GroundBody.gecko_mesh()
+	GroundBody.hole_mesh()
+	GroundBody.hole_material()
+	_queue_all()
+
+
+## The kinds that live here and how many of each: the animals' own files,
+## the area's Animals setting, this world's levels, and `amounts` (the zoo's
+## panel: kind -> times the usual number).
+func _load_defs() -> void:
+	defs.clear()
 	var found: Array[CreatureDef] = []
 	var kinds: PackedStringArray = []
 	for p: String in ([] if OS.get_cmdline_user_args().has("--no-animals") else DEFS):     # --no-animals: a gate's baseline
@@ -84,13 +110,17 @@ func _ready() -> void:
 			kinds.append(str(d.id))
 	# How plentiful each kind is here in this world (FaunaTable: the save's,
 	# drawn from the world seed on the first visit).
-	levels = FaunaTable.levels(get_node_or_null("/root/WorldState"), place, kinds)
+	if place == "zoo":
+		for kind: String in kinds:
+			levels[kind] = "common"     # the usual number of each; nothing of the zoo is saved
+	else:
+		levels = FaunaTable.levels(get_node_or_null("/root/WorldState"), place, kinds)
 	for d: CreatureDef in found:
 		# The area's Animals setting: how many of this kind here at most.
 		var amount: float = 1.0
 		if area != null and area.recipe != null:
 			amount = float(area.recipe.fauna.get(str(d.id), 1.0))
-		amount *= FaunaTable.amount(str(levels[str(d.id)]))
+		amount *= FaunaTable.amount(str(levels[str(d.id)])) * float(amounts.get(str(d.id), 1.0))
 		if amount <= 0.0:
 			continue
 		d = d.scaled(amount)
@@ -106,21 +136,40 @@ func _ready() -> void:
 			CatBody.material()
 		else:
 			AirBody.material(d)
-	AirBody.moth_mesh()
-	AirBody.bat_mesh()
-	AirBody.worm_mesh()
-	GroundBody.rat_mesh()
-	GroundBody.gecko_mesh()
-	GroundBody.hole_mesh()
-	GroundBody.hole_material()
+
+
+## Every room of the place, queued to be scanned and filled.
+func _queue_all() -> void:
 	if area != null:
 		if area.streamer != null:
 			area.streamer.room_loaded.connect(_on_room_loaded)
 			area.streamer.room_unloaded.connect(_on_room_unloaded)
+		# The area's scenery (the Gorge's banks and their pools): its still
+		# water only, as a room of its own, once it is built.
+		if area.recipe != null and area.recipe.scenery != null:
+			if area.get_node_or_null("Scenery") != null:
+				_queue_scenery()
+			else:
+				area.built.connect(_queue_scenery, CONNECT_ONE_SHOT)
 		for slot: String in area.rooms:
 			_on_room_loaded(slot)
 	else:
-		_queue("", get_parent() as Node3D, place_id, "", [])
+		# A place that is all one room (the camp, the lake), or one that gives
+		# its own pens (the zoo: ZooRoom.fauna_pens), each a room to itself.
+		var parent: Node = get_parent()
+		if parent.has_method("fauna_pens"):
+			for pen: Dictionary in parent.call("fauna_pens"):
+				_queue(str(pen["slot"]), pen["node"], str(pen["type"]), str(pen["state"]), pen["cells"], PackedStringArray(), pen["cells"])
+		else:
+			_queue("", parent as Node3D, place_id, "", [])
+
+
+## The frame the room cells are in: the area's, or the place's root.
+func _frame() -> Transform3D:
+	if area != null:
+		return area.global_transform
+	var parent := get_parent() as Node3D
+	return parent.global_transform if parent != null else Transform3D.IDENTITY
 
 
 func _on_room_loaded(slot: String) -> void:
@@ -139,6 +188,8 @@ func _on_room_unloaded(slot: String) -> void:
 		if is_instance_valid(g):
 			g.queue_free()
 	groups.erase(slot)
+	if found.erase(slot):
+		found_version += 1
 
 
 ## Whether kind `d` lives in a room of `type` in `state`.
@@ -184,7 +235,7 @@ func _process(delta: float) -> void:
 	var player: Node3D = get_tree().get_first_node_in_group("player") as Node3D
 	if player == null and cam != null:
 		player = cam.get_parent() as Node3D
-	var feet: Vector3 = player.global_position if player != null else Vector3(0, -10000, 0)
+	var feet: Vector3 = player.global_position if player != null and not ignore_player else Vector3(0, -10000, 0)
 	var moving: float = (player as CharacterBody3D).velocity.length() if player is CharacterBody3D else 0.0
 	var eye: Vector3 = cam.global_position if cam != null else feet
 	var awake: int = 0
@@ -296,7 +347,7 @@ func _work() -> void:
 			continue
 		# 2b. The walked lanes and rest spots.
 		if not j.has("graph"):
-			j["graph"] = LaneGraph.begin(node, bodies, j["floor"], area.global_transform if area != null else Transform3D.IDENTITY) if _needs(j, "lane") else null
+			j["graph"] = LaneGraph.begin(node, bodies, j["floor"], _frame()) if _needs(j, "lane") else null
 			continue
 		if j["graph"] != null and not (j["graph"] as LaneGraph).step(space, deadline):
 			break
@@ -336,6 +387,8 @@ func _work() -> void:
 			_populate(j, defs[fill])
 			continue
 		_jobs.pop_front()
+		found[str(j["slot"])] = j     # kept for the overlay (FaunaOverlay)
+		found_version += 1
 	var ms: float = (Time.get_ticks_usec() - t0) / 1000.0
 	stats["scan_ms"] = ms
 	stats["worst_scan_ms"] = maxf(float(stats.get("worst_scan_ms", 0.0)), ms)
@@ -348,13 +401,13 @@ func _roof_starts(j: Dictionary) -> HabitatScan.RoofScan:
 	var waters := PackedVector3Array()
 	var rng := RandomNumberGenerator.new()
 	rng.seed = hash([str(j["slot"]), str(j["type"]), "roofs"])
-	if area != null:
+	if true:
 		for c: Vector3i in j["cells"]:
-			var centre: Vector3 = area.global_transform * CellGrid.cell_centre(c)
+			var centre: Vector3 = _frame() * CellGrid.cell_centre(c)
 			for k: int in 4:
 				var off := Vector3((k % 2) * 2.0 - 1.0, 0.0, float(k >> 1) * 2.0 - 1.0) * CellGrid.BAY * 0.25
 				off += Vector3(rng.randf_range(-0.5, 0.5), 0.0, rng.randf_range(-0.5, 0.5))
-				floors.append(centre + area.global_transform.basis * off + Vector3(0, 0.5, 0))
+				floors.append(centre + _frame().basis * off + Vector3(0, 0.5, 0))
 	for b: WaterBody in j["bodies"]:
 		var step: int = maxi(1, b.samples.size() >> 7)
 		for i: int in range(0, b.samples.size(), step):
@@ -381,10 +434,10 @@ static func _thin(points: PackedVector3Array, most: int) -> PackedVector3Array:
 func _populate(j: Dictionary, d: CreatureDef) -> void:
 	var slot: String = j["slot"]
 	var node: Node3D = j["node"]
-	var key: String = (node as RoomTemplate).room_key() if node is RoomTemplate else str(j["type"])
+	var key: String = (node as RoomTemplate).room_key() if node is RoomTemplate else (str(j["slot"]) if str(j["slot"]) != "" else str(j["type"]))
 	var out: Array = groups.get(slot, [])
 	var ws: Node = get_node_or_null("/root/WorldState")
-	var world_seed: int = int(ws.call("world_seed")) if ws != null else 1
+	var world_seed: int = (int(ws.call("world_seed")) if ws != null else 1) + seed_bump
 	var type: String = str(j["type"])
 	var abandoned: bool = str(j["state"]) == RoomGrammar.ABANDONED
 	var bodies: Array = j["bodies"]
@@ -463,7 +516,7 @@ func _fill_water(d: CreatureDef, b: WaterBody, rng: RandomNumberGenerator, aband
 func _fill_flames(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, abandoned: bool, out: Array) -> void:
 	var flames: Array = (j["lights"] as Dictionary)["flames"]
 	var loose := PackedVector3Array()
-	if d.loose_rooms.has(str(j["type"])) and area != null and not (j["cells"] as Array).is_empty():
+	if d.loose_rooms.has(str(j["type"])) and not (j["cells"] as Array).is_empty():
 		# Over the middle of the room (the court), not its corridors: the half
 		# of its cells nearest their mean.
 		var cells: Array = (j["cells"] as Array).duplicate()
@@ -475,7 +528,7 @@ func _fill_flames(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, aba
 		cells = cells.slice(0, maxi(1, cells.size() >> 1))
 		for k: int in d.loose_count:
 			var c: Vector3i = cells[rng.randi() % cells.size()]
-			loose.append(area.global_transform * CellGrid.cell_centre(c))
+			loose.append(_frame() * CellGrid.cell_centre(c))
 	if (flames.is_empty() and loose.is_empty()) or int(stats["swarms"]) + _count(out, true) >= MAX_LIVE_SWARMS:
 		return
 	var swarm := MothSwarm.new()
@@ -559,14 +612,15 @@ func _fill_cats(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, out: 
 	var g: LaneGraph = j.get("graph") as LaneGraph
 	if g == null or g.home.size() < 2 or g.soft_found == 0:
 		return
-	var n: int = 1 if area == null else clampi(roundi(g.soft_found / d.area_each), d.group_size.x, d.group_size.y)
+	var alone: bool = area == null and str(j["slot"]) == ""     # a place that is all one room (the camp): its one cat
+	var n: int = 1 if alone else clampi(roundi(g.soft_found / d.area_each), d.group_size.x, d.group_size.y)
 	n = mini(n, MAX_LIVE_THINKING - int(stats["thinking"]) - _count(out, false))
 	if n <= 0:
 		return
 	var band := CatBand.new()
 	add_child(band)
 	var coats: Array[int] = []
-	if area == null:
+	if alone:
 		# A one-off animal: the same cat on every visit, kept in the save.
 		var ws: Node = get_node_or_null("/root/WorldState")
 		var one: Dictionary = ws.call("fauna_one", place, "cat") if ws != null else {}
@@ -592,9 +646,9 @@ func _boxes(j: Dictionary) -> Array:
 ## each end, the room's rats shared among them.
 func _fill_rats(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, space: PhysicsDirectSpaceState3D, out: Array) -> void:
 	var cells: Array = j["floor"]
-	if area == null or cells.is_empty():
+	if cells.is_empty():
 		return
-	var runs: Array[Dictionary] = RatPack.find_runs(space, cells, area.global_transform, rng, d.max_groups)
+	var runs: Array[Dictionary] = RatPack.find_runs(space, cells, _frame(), rng, d.max_groups)
 	var n: int = mini(rng.randi_range(d.group_size.x, d.group_size.y), MAX_LIVE_THINKING - int(stats["thinking"]) - _count(out, false))
 	if runs.is_empty() or n <= 0:
 		return
@@ -607,13 +661,22 @@ func _fill_rats(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, space
 ## Geckos: on the wall beside some of the room's burning lamps.
 func _fill_geckos(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, space: PhysicsDirectSpaceState3D, out: Array) -> void:
 	var sites: Array[Dictionary] = []
+	var notes: Array = j.get_or_add("notes", [])     # for the overlay: what became of each lamp
 	for f: Dictionary in MothSwarm._seeded_order((j["lights"] as Dictionary)["flames"], rng):
-		if rng.randf() >= d.flame_share or sites.size() * d.group_size.y >= d.room_cap:
+		var roll: float = rng.randf()
+		if sites.size() * d.group_size.y >= d.room_cap:
+			notes.append({"at": f["at"], "ok": false, "text": "Geckos: none, the room has its most (%d)" % d.room_cap})
 			continue
-		var site: Variant = GeckoWall.find_site(space, f)
+		if roll >= d.flame_share:
+			notes.append({"at": f["at"], "ok": false, "text": "Geckos: none by chance (%d lamps in 10 have them)" % roundi(d.flame_share * 10.0)})
+			continue
+		var site: Variant = GeckoWall.find_site(space, f, d.wall_reach, d.climb)
 		if site != null:
 			(site as Dictionary)["meshes"] = GeckoWall.near(_boxes(j), (site as Dictionary)["at"], 2.0)
 			sites.append(site)
+			notes.append({"at": (site as Dictionary)["at"], "ok": true, "text": "Gecko wall: 1 to %d here; they can climb %.1f m" % [d.group_size.y, float((site as Dictionary)["up"])]})
+		else:
+			notes.append({"at": f["at"], "ok": false, "text": "Geckos: none, " + GeckoWall.why})
 	if sites.is_empty() or int(stats["thinking"]) + _count(out, false) >= MAX_LIVE_THINKING:
 		return
 	var wall := GeckoWall.new()
@@ -693,3 +756,82 @@ static func _flow_of(b: WaterBody) -> Vector2:
 		return Vector2(0.0, 0.22)     # a scene's own water at the shader's defaults (the camp's stream)
 	var f: Variant = m.get_shader_parameter("flow")
 	return f as Vector2 if f != null else Vector2(0.0, 0.22)
+
+
+## Turns the overlay on or off (FaunaOverlay: spawn places, reasons, what
+## each animal is doing).
+func show_overlay(on: bool) -> void:
+	if on and overlay == null:
+		overlay = FaunaOverlay.new()
+		overlay.name = "Overlay"
+		overlay.fauna = self
+		add_child(overlay)
+	if overlay != null:
+		overlay.set_on(on)
+
+
+func _unhandled_key_input(event: InputEvent) -> void:
+	var key := event as InputEventKey
+	if key != null and key.pressed and not key.echo and key.keycode == KEY_F4:
+		show_overlay(overlay == null or not overlay.visible)
+
+
+# --- the zoo's panel: tuning and triggers -------------------------------------------
+
+## Kind -> times the usual number (the panel's Amount; not saved).
+var amounts: Dictionary = {}
+## Added to the world seed for placing (the panel's New seed).
+var seed_bump: int = 0
+## The animals take no notice of you (stand as close as you like).
+var ignore_player: bool = false
+
+
+## Takes every animal away and places them all again, from the animals'
+## files as they are now (the panel changes them in memory).
+func respawn() -> void:
+	_jobs.clear()
+	for slot: String in groups:
+		for g: Node in groups[slot]:
+			if is_instance_valid(g):
+				g.queue_free()
+	groups.clear()
+	found.clear()
+	found_version += 1
+	_load_defs()
+	_queue_all()
+
+
+## Every thinking animal and roost is startled now, as if you had run at it.
+func startle_all() -> void:
+	for slot: String in groups:
+		for g: Node in groups[slot]:
+			if not is_instance_valid(g):
+				continue
+			if g is CatBand:
+				for cat: Dictionary in (g as CatBand).cats:
+					(g as CatBand).tick(0.0, (cat["body"] as Node3D).global_position, 10.0)
+			elif g is RatPack:
+				var pack := g as RatPack
+				for rat: Dictionary in pack.rats:
+					pack.tick(0.0, pack.where(rat), 10.0)
+			elif g is GeckoWall:
+				for gecko: Dictionary in (g as GeckoWall).geckos:
+					(g as GeckoWall).tick(0.0, (gecko["at"] as Vector3) - Vector3(0, 1.4, 0), 10.0)
+			elif g is BatRoost:
+				(g as BatRoost).tick(0.0, (g as BatRoost).centre - Vector3(0, 1.6, 0), 10.0)
+			elif g is FishPool:
+				var b: WaterBody = (g as FishPool).body
+				(g as FishPool).tick(0.0, Vector3(b.bounds.get_center().x, b.surface, b.bounds.get_center().z), 10.0)
+
+
+## The area's scenery as a room of its own, for the kinds that live in still
+## water (every other kind is kept out: scenery has no cells, lanes or runs).
+func _queue_scenery() -> void:
+	var scenery := area.get_node_or_null("Scenery") as Node3D
+	if scenery == null:
+		return
+	var out: PackedStringArray = []
+	for d: CreatureDef in defs:
+		if d.habitat != "water":
+			out.append(str(d.id))
+	_queue(SCENERY, scenery, SCENERY, "", [], out)

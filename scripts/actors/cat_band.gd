@@ -8,21 +8,19 @@ extends Node3D
 ## collision: you never bump into it (phase 19 Q7). Ticked by Fauna.
 
 enum { REST, WALK, STARTLE, FLEE }
-## Walking and trotting (m/s), and how fast the walk animation plays for each.
+## The walking and trotting speeds (m/s) the walk animation's rates below
+## were set for; a cat's own speeds are its kind's (CreatureDef.speed).
 const WALK_SPEED: float = 0.65
 const WALK_RATE: float = 1.6
 const TROT_SPEED: float = 2.8
 const TROT_RATE: float = 4.2
 const TURN_RATE: float = 7.0
 ## It looks at you within this far (m); you this close makes it move off.
-const LOOK_RADIUS: float = 6.0
-const CROWD_RADIUS: float = 0.75
 ## Faster than this (m/s) is running at it.
 const RUN_SPEED: float = 4.5
 const STARTLE_S: float = 0.55
-## Drawn this much bigger than the model (50 cm): a real cat read small from
-## standing height.
-const SIZE: float = 1.3
+## The model's own length (m); a cat is drawn at its kind's length_m over this.
+const MODEL_LENGTH: float = 0.5
 ## A stroll goes at most this many points on (a point is 0.5 to 1 m).
 const STROLL_HOPS: int = 45
 
@@ -52,11 +50,11 @@ func setup(d: CreatureDef, g: LaneGraph, count: int, seed_value: int, coats: Arr
 		add_child(body)
 		var coat: int = _rng.randi()
 		body.set_coat(coats[i] if i < coats.size() else coat)
-		body.scale = Vector3.ONE * SIZE * _rng.randf_range(d.length_spread.x, d.length_spread.y)
+		body.scale = Vector3.ONE * (d.length_m / MODEL_LENGTH) * _rng.randf_range(d.length_spread.x, d.length_spread.y)
 		body.global_position = g.points[node]
 		body.rotation.y = _rng.randf() * TAU
 		var cat: Dictionary = {"body": body, "node": node, "path": PackedInt32Array(), "leg": 0, "t": 0.0, "state": REST, "timer": 0.0,
-			"speed": WALK_SPEED, "face": null, "chain": false}
+			"speed": d.speed.x, "face": null, "chain": false}
 		cats.append(cat)
 		_rest(cat, true)
 
@@ -79,10 +77,10 @@ func tick(delta: float, player: Vector3, moving: float) -> void:
 				cat["face"] = null
 				body.play("startle", 0.08)
 				state = STARTLE
-			elif dist < CROWD_RADIUS and state == REST:
+			elif dist < def.crowd_radius and state == REST:
 				_leave(cat, player, false)
 				state = cat["state"]
-		var near: bool = dist < LOOK_RADIUS
+		var near: bool = dist < def.look_radius
 		# It looks at you only while it rests: a cat walking with its head
 		# turned aside reads wrong (it would only look if it were coming to you).
 		if near and state == REST:
@@ -222,7 +220,7 @@ func _next(cat: Dictionary) -> void:
 		to = soft[_rng.randi() % soft.size()]
 	elif roll < 0.65 and not water.is_empty():
 		to = water[_rng.randi() % water.size()]
-	_set_off(cat, graph.path(node, to, back), WALK, WALK_SPEED, WALK_RATE)
+	_set_off(cat, graph.path(node, to, back), WALK, def.speed.x, WALK_RATE * def.speed.x / WALK_SPEED)
 
 
 ## Away from the player: at a trot when startled, else a stroll.
@@ -252,9 +250,9 @@ func _leave(cat: Dictionary, player: Vector3, startled: bool) -> void:
 	var path: PackedInt32Array = graph.path(node, best, back)
 	if node != int(cat["node"]):
 		path.insert(0, int(cat["node"]))
-		_set_off(cat, path, FLEE if startled else WALK, TROT_SPEED if startled else WALK_SPEED, TROT_RATE if startled else WALK_RATE, float(cat["t"]))
+		_set_off(cat, path, FLEE if startled else WALK, def.speed.y if startled else def.speed.x, (TROT_RATE * def.speed.y / TROT_SPEED) if startled else (WALK_RATE * def.speed.x / WALK_SPEED), float(cat["t"]))
 	else:
-		_set_off(cat, path, FLEE if startled else WALK, TROT_SPEED if startled else WALK_SPEED, TROT_RATE if startled else WALK_RATE)
+		_set_off(cat, path, FLEE if startled else WALK, def.speed.y if startled else def.speed.x, (TROT_RATE * def.speed.y / TROT_SPEED) if startled else (WALK_RATE * def.speed.x / WALK_SPEED))
 
 
 func _set_off(cat: Dictionary, path: PackedInt32Array, state: int, speed: float, rate: float, t: float = 0.0) -> void:

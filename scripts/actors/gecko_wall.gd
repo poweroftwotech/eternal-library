@@ -34,19 +34,25 @@ var geckos: Array[Dictionary] = []
 ## Tests: they take no notice of you.
 var tame: bool = false
 var _rng := RandomNumberGenerator.new()
+var shadows: MultiMeshInstance3D
 var _lamp_wait: float = 0.0
 
 
 ## The wall beside a flame: {at, normal, up, lamp} or null. `up`: how far the
 ## wall goes on above the place (m, at most CLIMB).
-static func find_site(space: PhysicsDirectSpaceState3D, flame: Dictionary) -> Variant:
+## Why the last find_site found nothing (for the overlay).
+static var why: String = ""
+
+
+static func find_site(space: PhysicsDirectSpaceState3D, flame: Dictionary, reach: float = WALL_REACH, climb: float = CLIMB) -> Variant:
+	why = "no wall within %.1f m of the lamp" % reach
 	var q := PhysicsRayQueryParameters3D.new()
 	q.collision_mask = LaneGraph.WORLD
 	var from: Vector3 = flame["at"]
 	var hits: Array = []
 	for k: int in 8:
 		q.from = from
-		q.to = from + Vector3(cos(k * TAU / 8.0), 0, sin(k * TAU / 8.0)) * WALL_REACH
+		q.to = from + Vector3(cos(k * TAU / 8.0), 0, sin(k * TAU / 8.0)) * reach
 		var hit: Dictionary = space.intersect_ray(q)
 		if hit.is_empty() or absf((hit["normal"] as Vector3).y) > 0.25:
 			continue
@@ -62,6 +68,7 @@ static func find_site(space: PhysicsDirectSpaceState3D, flame: Dictionary) -> Va
 		var side: Vector3 = n.cross(Vector3.UP).normalized()
 		# A real wall: flat for half a metre each way and above (not a jar, a post).
 		if not (on_wall(space, q, at + side * 0.5, n) and on_wall(space, q, at - side * 0.5, n) and on_wall(space, q, at + Vector3(0, 0.4, 0), n)):
+			why = "the wall by it is not flat and wide enough"
 			continue
 		# And open to the room in front of it (not the back of a shelf behind
 		# jars, not a niche): clear for 1.5 m at the middle and to each side.
@@ -73,8 +80,9 @@ static func find_site(space: PhysicsDirectSpaceState3D, flame: Dictionary) -> Va
 				open = false
 				break
 		if not open:
+			why = "the wall by it is not open to the room (something stands within 1.5 m)"
 			continue
-		return {"at": at, "normal": n, "up": _wall_above(space, q, at, n), "lamp": flame.get("node")}
+		return {"at": at, "normal": n, "up": _wall_above(space, q, at, n, climb), "lamp": flame.get("node")}
 	return null
 
 
@@ -141,9 +149,9 @@ static func on_wall(space: PhysicsDirectSpaceState3D, q: PhysicsRayQueryParamete
 	return not hit.is_empty() and (hit["normal"] as Vector3).dot(n) > 0.85 and absf((hit["position"] as Vector3 - p).dot(n)) < 0.04
 
 
-static func _wall_above(space: PhysicsDirectSpaceState3D, q: PhysicsRayQueryParameters3D, at: Vector3, n: Vector3) -> float:
+static func _wall_above(space: PhysicsDirectSpaceState3D, q: PhysicsRayQueryParameters3D, at: Vector3, n: Vector3, climb: float = CLIMB) -> float:
 	var up: float = 0.0
-	while up < CLIMB and on_wall(space, q, at + Vector3(0, up + 0.3, 0), n):
+	while up < climb and on_wall(space, q, at + Vector3(0, up + 0.3, 0), n):
 		up += 0.3
 	return up
 
@@ -189,6 +197,10 @@ func setup(d: CreatureDef, sites: Array[Dictionary], space: PhysicsDirectSpaceSt
 	multimesh = mm
 	material_override = GroundBody.material(d)
 	custom_aabb = AABB(bounds.position - position, bounds.size)
+	# Their shadows: one soft blob each, under it on its floor or wall.
+	shadows = BlobShadow.many(geckos.size())
+	shadows.custom_aabb = custom_aabb
+	add_child(shadows)
 	for i: int in geckos.size():
 		_place(i, 0.0)
 
@@ -239,7 +251,7 @@ func tick(delta: float, player: Vector3, _moving: float) -> void:
 					g["safe"] = 0.0
 					_place(i, 0.0)
 			HIGH:
-				g["safe"] = float(g["safe"]) + delta if near > SAFE else 0.0
+				g["safe"] = float(g["safe"]) + delta if near > def.safe_radius else 0.0
 				if float(g["safe"]) > SAFE_S:
 					_go(g, at, g["home"], DOWN)
 
@@ -258,10 +270,15 @@ func _go(g: Dictionary, from: Vector3, to: Vector3, state: int) -> void:
 func _place(i: int, gait: float) -> void:
 	var g: Dictionary = geckos[i]
 	if bool(g["gone"]):
+		if shadows != null:
+			BlobShadow.place(shadows, i, Vector3.ZERO, Vector3.UP, Vector3.FORWARD, Vector2.ZERO)
 		multimesh.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ZERO), Vector3.ZERO))
 		return
 	var n: Vector3 = g["normal"]
 	var ahead: Vector3 = (g["side"] as Vector3) * cos(float(g["turn"])) + Vector3.UP * sin(float(g["turn"]))
 	var basis := Basis(n.cross(-ahead).normalized(), n, -ahead).scaled(Vector3.ONE * float(g["size"]))
 	multimesh.set_instance_transform(i, Transform3D(basis, (g["at"] as Vector3) + n * float(g["proud"]) - position))
+	if shadows != null:
+		# On the wall just behind it, a little below (the lamps are above).
+		BlobShadow.place(shadows, i, (g["at"] as Vector3) + n * (float(g["proud"]) - 0.002) - Vector3(0, 0.012, 0) - position, n, ahead, Vector2(1.0, 1.6) * float(g["size"]))
 	multimesh.set_instance_custom_data(i, Color(gait, float(g["phase"]), float(g["shade"]), 0.0))

@@ -19,6 +19,12 @@ var samples: PackedVector3Array = PackedVector3Array()
 ## Sounding: the grid still to test, and how far through it.
 var _grid: PackedVector2Array = PackedVector2Array()
 var _next: int = 0
+## The collision and the meshes of the kit piece the water is part of (a
+## fountain's basin and column), and whether it was sounded by them
+## (HabitatScan.sound: its collision is one block over the water).
+var own_bodies: Array[RID] = []
+var own_meshes: Array = []
+var by_sight: bool = false
 
 
 ## Surface area in m2 (of the triangles).

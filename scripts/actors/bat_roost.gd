@@ -44,8 +44,7 @@ func setup(d: CreatureDef, at: Vector3, spots: Array[Vector3], open_ways: Array,
 		var size: float = d.length_m * rng.randf_range(d.length_spread.x, d.length_spread.y)
 		var hang: Vector3 = spots[i] - Vector3(0, 0.55 * size, 0)
 		mm.set_instance_transform(i, Transform3D(Basis().scaled(Vector3.ONE * size), hang - position))
-		var circler: float = 1.0 if rng.randf() < 0.1 else 0.0
-		mm.set_instance_custom_data(i, Color(rng.randf(), 0.0, circler, rng.randf_range(0.0, 1.4)))
+		mm.set_instance_custom_data(i, Color(rng.randf(), 0.0, 0.0, rng.randf_range(0.0, 1.4)))
 	multimesh = mm
 	material_override = AirBody.material(d)
 	# Room for the swirl and the stream (the shader moves them up to ~20 m).

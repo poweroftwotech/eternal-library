@@ -28,7 +28,7 @@ const WALL_CLEARANCE: float = 0.3
 const FLOOR_REACH: float = 6.0
 ## Depth taken for open water with no floor in reach.
 const OPEN_DEPTH: float = 3.0
-const WORLD_MASK: int = 1
+const WORLD_MASK: int = 1 | (1 << 8)     # layer 1, or 9 in the places joined without a loading screen (the camp, the Gorge)
 ## A water mesh with more corners than this is taken as its box (see step()).
 const SHAPE_CORNERS: int = 256
 
@@ -113,7 +113,9 @@ static func step(scan: WaterScan, deadline_usec: int) -> bool:
 			var local_box: AABB
 			# A PlaneMesh (the camp, the lake) is its box anyway, and building
 			# its subdivided triangles costs the same.
-			if mesh is PrimitiveMesh or (mesh is ArrayMesh and (mesh as ArrayMesh).surface_get_array_len(s) > SHAPE_CORNERS):
+			# (Only when the whole mesh is flat: water that is one surface of a
+			# taller thing, the bazaar fountain's, must be read for its own box.)
+			if mesh is PrimitiveMesh or (mesh is ArrayMesh and (mesh as ArrayMesh).surface_get_array_len(s) > SHAPE_CORNERS and mesh.get_aabb().size.y < FLAT):
 				local_box = mesh.get_aabb()
 				var b: AABB = local_box
 				var y: float = b.get_center().y
@@ -134,6 +136,31 @@ static func step(scan: WaterScan, deadline_usec: int) -> bool:
 				local_box = AABB(verts[0], Vector3.ZERO) if not verts.is_empty() else AABB()
 				for v: Vector3 in verts:
 					local_box = local_box.expand(v)
+				# Water with more than its surface in it (a fountain's basin and
+				# its falling jet): keep the level triangles at the height that
+				# has most of them.
+				if local_box.size.y >= FLAT and corners.size() >= 3:
+					var by_height: Dictionary = {}     # height in cm -> area
+					for k: int in range(0, corners.size() - 2, 3):
+						var lo: float = minf(corners[k].y, minf(corners[k + 1].y, corners[k + 2].y))
+						var hi: float = maxf(corners[k].y, maxf(corners[k + 1].y, corners[k + 2].y))
+						if hi - lo < 0.02:
+							var key: int = roundi(lo * 100.0)
+							by_height[key] = float(by_height.get(key, 0.0)) + (corners[k + 1] - corners[k]).cross(corners[k + 2] - corners[k]).length()
+					var best: int = 0
+					var most: float = 0.0
+					for key: int in by_height:
+						if float(by_height[key]) > most:
+							most = by_height[key]
+							best = key
+					var level := PackedVector3Array()
+					for k: int in range(0, corners.size() - 2, 3):
+						if most > 0.0 and absf(corners[k].y * 100.0 - best) < 1.5 and absf(corners[k + 1].y * 100.0 - best) < 1.5 and absf(corners[k + 2].y * 100.0 - best) < 1.5:
+							level.append_array([corners[k], corners[k + 1], corners[k + 2]])
+					corners = level
+					local_box = AABB(level[0], Vector3.ZERO) if not level.is_empty() else AABB()
+					for v: Vector3 in level:
+						local_box = local_box.expand(v)
 			if corners.is_empty():
 				continue
 			for xf: Transform3D in xforms:
@@ -145,7 +172,7 @@ static func step(scan: WaterScan, deadline_usec: int) -> bool:
 				tris.resize(placed.size())
 				for k: int in placed.size():
 					tris[k] = Vector2(placed[k].x, placed[k].z)
-				planes.append({"box": box, "surface": box.get_center().y, "tris": tris, "material": mat.resource_path})
+				planes.append({"box": box, "surface": box.get_center().y, "tris": tris, "material": mat.resource_path, "piece": _piece_of(g)})
 	return true
 
 
@@ -178,6 +205,14 @@ static func finish(scan: WaterScan) -> Array[WaterBody]:
 		else:
 			body.bounds = body.bounds.merge(p["box"])
 		body.tris.append_array(p["tris"])
+		var piece: Node = p.get("piece")
+		if piece != null:
+			for c: Node in piece.find_children("*", "CollisionObject3D", true, false):
+				body.own_bodies.append((c as CollisionObject3D).get_rid())
+			for m: Node in piece.find_children("*", "MeshInstance3D", true, false):
+				var mi := m as MeshInstance3D
+				if mi.mesh != null:
+					body.own_meshes.append(mi)
 		body.surface += float(p["surface"]) * (p["tris"] as PackedVector2Array).size()
 	var out: Array[WaterBody] = []
 	for b: WaterBody in by_root.values():
@@ -188,21 +223,63 @@ static func finish(scan: WaterScan) -> Array[WaterBody]:
 
 
 ## Sounds `body` until `deadline_usec` (Time.get_ticks_usec()). True once done.
+## A pool whose own piece has one coarse block of collision over it (the
+## bazaar's fountain) sounds as all covered: it is then sounded again by what
+## you see of that piece (`_seen_point`), its own collision left out.
 static func sound(body: WaterBody, space: PhysicsDirectSpaceState3D, deadline_usec: int) -> bool:
 	var q := PhysicsRayQueryParameters3D.new()
 	q.collision_mask = WORLD_MASK
 	q.hit_back_faces = true
+	if body.by_sight:
+		q.exclude = body.own_bodies
 	while body._next < body._grid.size():
 		var p: Vector2 = body._grid[body._next]
 		body._next += 1
 		if not body.contains_xz(p):
 			continue
-		var floor_y: Variant = _sound_point(space, q, Vector3(p.x, body.surface, p.y))
+		var at := Vector3(p.x, body.surface, p.y)
+		var floor_y: Variant = _seen_point(body, space, q, at) if body.by_sight else _sound_point(space, q, at)
 		if floor_y != null:
 			body.samples.append(Vector3(p.x, float(floor_y), p.y))
 		if Time.get_ticks_usec() >= deadline_usec:
 			break
+	if body._next >= body._grid.size() and body.samples.size() < 4 and not body.by_sight and not body.own_bodies.is_empty():
+		body.by_sight = true
+		body.samples.clear()
+		body._next = 0
+		return false
 	return body._next >= body._grid.size()
+
+
+## As _sound_point, for a pool sounded by sight: the floor under `at` with
+## the pool's own collision left out, or null where what you see of its piece
+## stands in or just under the water there (its rim, its middle column).
+static func _seen_point(body: WaterBody, space: PhysicsDirectSpaceState3D, q: PhysicsRayQueryParameters3D, at: Vector3) -> Variant:
+	q.from = at + Vector3(0, 0.05, 0)
+	q.to = at - Vector3(0, FLOOR_REACH, 0)
+	var hit: Dictionary = space.intersect_ray(q)
+	var floor_y: float = (hit["position"] as Vector3).y if not hit.is_empty() else at.y - OPEN_DEPTH
+	for m: MeshInstance3D in body.own_meshes:
+		if not is_instance_valid(m) or m.mesh == null:
+			continue
+		var tm: TriangleMesh = _dry_triangles(m)
+		if tm == null:
+			continue
+		var inv: Transform3D = m.global_transform.affine_inverse()
+		# Its basin's floor, if it has one above the room's.
+		var down: Dictionary = tm.intersect_segment(inv * (at - Vector3(0, 0.01, 0)), inv * Vector3(at.x, floor_y, at.z))
+		if not down.is_empty():
+			floor_y = maxf(floor_y, (m.global_transform * (down["position"] as Vector3)).y)
+		# Something standing in the water here or close by.
+		var swim: Vector3 = at - Vector3(0, 0.05, 0)
+		if not tm.intersect_segment(inv * (at + Vector3(0, 0.6, 0)), inv * swim).is_empty():
+			return null
+		for d: Vector3 in [Vector3.RIGHT, Vector3.LEFT, Vector3.FORWARD, Vector3.BACK]:
+			if not tm.intersect_segment(inv * swim, inv * (swim + d * WALL_CLEARANCE)).is_empty():
+				return null
+	if at.y - floor_y < 0.05:
+		return null
+	return floor_y
 
 
 ## The floor's height under open water at `at` (on the surface), or null:
@@ -400,3 +477,51 @@ static func _find(parent: PackedInt32Array, i: int) -> int:
 		parent[i] = parent[parent[i]]
 		i = parent[i]
 	return i
+
+
+## The kit piece a water mesh is part of: the nearest node above it (at most
+## four up) that also holds collision; null for water that stands alone.
+static func _piece_of(g: Node) -> Node:
+	var n: Node = g.get_parent()
+	for up: int in 4:
+		if n == null:
+			return null
+		if not n.find_children("*", "CollisionObject3D", true, false).is_empty():
+			return n if n.find_children("*", "MeshInstance3D", true, false).size() <= 12 else null
+		n = n.get_parent()
+	return null
+
+
+## Mesh id -> the triangles of everything in it but its water (TriangleMesh),
+## made once: a fountain's basin, column and water are often one mesh.
+static var _dry: Dictionary = {}
+
+
+static func _dry_triangles(m: MeshInstance3D) -> TriangleMesh:
+	var key: int = m.mesh.get_instance_id()
+	if _dry.has(key):
+		return _dry[key]
+	var faces := PackedVector3Array()
+	var big: bool = false
+	for s: int in m.mesh.get_surface_count():
+		big = big or (m.mesh is ArrayMesh and (m.mesh as ArrayMesh).surface_get_array_len(s) > 6000)
+	if big:
+		_dry[key] = null     # a whole bank of scenery: reading it would hitch a frame
+		return null
+	for s: int in m.mesh.get_surface_count():
+		if _still_water(m.get_active_material(s)) or m.mesh.surface_get_primitive_type(s) != Mesh.PRIMITIVE_TRIANGLES:
+			continue
+		var arrays: Array = m.mesh.surface_get_arrays(s)
+		var verts: PackedVector3Array = arrays[Mesh.ARRAY_VERTEX]
+		var idx: Variant = arrays[Mesh.ARRAY_INDEX]
+		if idx == null:
+			faces.append_array(verts)
+		else:
+			for k: int in idx:
+				faces.append(verts[k])
+	var tm: TriangleMesh = null
+	if faces.size() >= 3:
+		tm = TriangleMesh.new()
+		tm.create_from_faces(faces)
+	_dry[key] = tm
+	return tm

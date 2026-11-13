@@ -338,6 +338,9 @@ func _build() -> void:
 	_walk_button.tooltip_text = "Run the game in this area with this world seed (a scratch save, never your own)."
 	_style_primary(_walk_button)
 	header.add_child(_walk_button)
+	var zoo_button := _button("Walk the zoo", func() -> void: walk_requested.emit("zoo", world_seed, ""))
+	zoo_button.tooltip_text = "Run the game in the animals' test place: a corridor of pens, each ideal for some animals (a scratch save, never your own)."
+	header.add_child(zoo_button)
 	var reload_button := _button("Reload", reload)
 	reload_button.tooltip_text = "Read the recipe files again (after a hand edit)."
 	header.add_child(reload_button)

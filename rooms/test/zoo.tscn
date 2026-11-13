@@ -1,0 +1,8 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/zoo_room.gd" id="1_zoo"]
+
+[node name="Zoo" type="Node3D"]
+script = ExtResource("1_zoo")
+room_id = "zoo"
+display_name = "The Zoo"

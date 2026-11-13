@@ -50,6 +50,7 @@ const KIT_WATERS: Array[ShaderMaterial] = [
 	preload("res://kit/materials/channel_water.tres"),
 	preload("res://kit/materials/fall_water.tres"),
 	preload("res://kit/materials/well_water.tres"),
+	preload("res://kit/materials/hauz_water.tres"),     # (the zoo, 2026-11-13: the tended pools stood still too)
 ]
 var _water_time: float = 0.0
 

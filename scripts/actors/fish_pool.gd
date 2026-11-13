@@ -48,6 +48,8 @@ func setup(d: CreatureDef, b: WaterBody, count: int, seed_value: int, survivor: 
 	mm.instance_count = count
 	multimesh = mm
 	material_override = FishBody.material(d)
+	set_instance_shader_parameter("surface_y", b.surface)
+	set_instance_shader_parameter("water_tint", FishBody.water_tint(b))
 	for i: int in count:
 		var at: Vector3 = _swim_point(_places[_rng.randi() % _places.size()])
 		var size: float = d.length_m * _rng.randf_range(d.length_spread.x, d.length_spread.y)

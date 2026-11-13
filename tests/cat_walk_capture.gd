@@ -28,6 +28,8 @@ func run() -> void:
 			max_cats = a.trim_prefix("--max=").to_int()
 		elif a == "--count":
 			count_only = true
+		elif a.begins_with("--"):
+			pass     # (for the game: --fauna-overlay)
 		elif out_dir == "":
 			out_dir = a
 		else:

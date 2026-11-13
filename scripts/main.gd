@@ -175,11 +175,15 @@ func _ready() -> void:
 func requested_room() -> String:
 	if room_override != "":
 		return room_override if room_override != "camp" and _exists(room_override) else ""
+	if ws().walk_area == "zoo":
+		return ZooRoom.SCENE     # the Strata Board's Walk the zoo
 	if ws().walk_area != "" and _exists(AREA_PREFIX + ws().walk_area):
 		return AREA_PREFIX + ws().walk_area     # the Strata Board's Walk this seed
 	for arg: String in OS.get_cmdline_user_args():
 		if arg.begins_with("--room=") or arg.begins_with("--area="):
 			var path: String = arg.trim_prefix("--room=") if arg.begins_with("--room=") else AREA_PREFIX + arg.trim_prefix("--area=")
+			if path == "zoo":
+				return ZooRoom.SCENE     # --room=zoo: the animals' test place
 			if path == "camp":
 				return ""
 			if _exists(path):

@@ -58,6 +58,20 @@ extends ActorDef
 @export var startle_radius: float = 2.2
 ## Startled only by steps in the water (blind fish feel them, can't see you).
 @export var feels_water_only: bool = false
+## Behaviour (the zoo's panel tunes these). Cats: within look_radius (m) a
+## resting cat turns its head to you; within crowd_radius it gets up and
+## moves off.
+@export var look_radius: float = 6.0
+@export var crowd_radius: float = 0.75
+## Rats and geckos: they come out, or come down, only once you are this far (m).
+@export var safe_radius: float = 7.0
+## Rats: how often one leaves the wall to nose about out in the room (the
+## chance each time it stops to sniff).
+@export_range(0.0, 1.0, 0.05) var roam: float = 0.5
+## Geckos: how far up the wall they run (m), and how near a flame the wall
+## must be (m).
+@export var climb: float = 1.5
+@export var wall_reach: float = 1.5
 ## A forgotten pool: the chance of one large pale survivor (and its size, x
 ## length_m).
 @export var survivor_chance: float = 0.0

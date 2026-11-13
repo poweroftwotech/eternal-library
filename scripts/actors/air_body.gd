@@ -70,8 +70,22 @@ static func worm_mesh() -> ArrayMesh:
 	return _meshes["worm"]
 
 
+## The colour of the water a body is filled with (its material's deep tint,
+## lifted; a plain sea-green when the material can't be read).
+static func water_tint(b: WaterBody) -> Vector3:
+	var c := Color(0.2, 0.36, 0.34)
+	if b.material != "" and not b.material.contains("::") and ResourceLoader.exists(b.material):
+		var m := load(b.material) as ShaderMaterial
+		var deep: Variant = m.get_shader_parameter("deep_tint") if m != null else null
+		if deep is Color:
+			c = (deep as Color).lerp(Color(0.3, 0.5, 0.48), 0.35)
+	return Vector3(c.r, c.g, c.b)
+
+
 static func material(def: CreatureDef) -> ShaderMaterial:
 	if _materials.has(def.id):
+		(_materials[def.id] as ShaderMaterial).set_shader_parameter("self_glow", def.self_glow)     # (the zoo's panel may have changed it)
+		(_materials[def.id] as ShaderMaterial).set_shader_parameter("wing_share", def.roam)
 		return _materials[def.id]
 	var m := ShaderMaterial.new()
 	match def.habitat:
@@ -84,6 +98,7 @@ static func material(def: CreatureDef) -> ShaderMaterial:
 				m.shader = BAT_SHADER
 				m.set_shader_parameter("colour", def.palette[0] if def.palette.size() > 0 else Color(0.16, 0.12, 0.1))
 				m.set_shader_parameter("self_glow", def.self_glow)
+				m.set_shader_parameter("wing_share", def.roam)
 			else:
 				m.shader = WORM_SHADER
 	_materials[def.id] = m

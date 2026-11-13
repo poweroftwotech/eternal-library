@@ -8,6 +8,8 @@ extends MultiMeshInstance3D
 var def: CreatureDef
 ## Global box round all of them (Fauna's sleep test).
 var bounds: AABB
+## The flames that have moths (the overlay).
+var used: PackedVector3Array = PackedVector3Array()
 ## Where to look at them (tests).
 var focus: Vector3
 
@@ -23,6 +25,7 @@ func setup(d: CreatureDef, flames: Array, loose: PackedVector3Array, rng: Random
 	for f: Dictionary in order:
 		if rng.randf() >= d.flame_share:
 			continue
+		used.append(f["at"])
 		var n: int = rng.randi_range(d.group_size.x, d.group_size.y)
 		if abandoned:
 			n = maxi(1, n >> 1)
