@@ -163,6 +163,8 @@ static func step(scan: WaterScan, deadline_usec: int) -> bool:
 						local_box = local_box.expand(v)
 			if corners.is_empty():
 				continue
+			# Once per node, not per placement: it searches the node's parents.
+			var piece: Node = _piece_of(g)
 			for xf: Transform3D in xforms:
 				var box: AABB = xf * local_box
 				if box.size.y >= FLAT:
@@ -172,7 +174,7 @@ static func step(scan: WaterScan, deadline_usec: int) -> bool:
 				tris.resize(placed.size())
 				for k: int in placed.size():
 					tris[k] = Vector2(placed[k].x, placed[k].z)
-				planes.append({"box": box, "surface": box.get_center().y, "tris": tris, "material": mat.resource_path, "piece": _piece_of(g)})
+				planes.append({"box": box, "surface": box.get_center().y, "tris": tris, "material": mat.resource_path, "piece": piece})
 	return true
 
 
@@ -480,8 +482,12 @@ static func _find(parent: PackedInt32Array, i: int) -> int:
 
 
 ## The kit piece a water mesh is part of: the nearest node above it (at most
-## four up) that also holds collision; null for water that stands alone.
+## four up) that also holds collision; null for water that stands alone, and
+## for a batch of many pieces' water (a MultiMesh: its parent is the whole kit,
+## and searching that took 20+ ms entering the Gorge).
 static func _piece_of(g: Node) -> Node:
+	if g is MultiMeshInstance3D:
+		return null
 	var n: Node = g.get_parent()
 	for up: int in 4:
 		if n == null:

@@ -194,8 +194,14 @@ on the panel and saved them (their values in `actors/defs/` are kept).
 Cave barbs are kept out of scenery pools. `tests/fish_count.gd` lists the
 fish place by place.
 
-**Not fixed:** entering the Gorge, finding the scenery's water takes one
-long frame (25 to 38 ms, once): the scenery's nodes are listed in a single
-go. The camp, Grand Study, Gardens and zoo are unchanged.
+**Fixed 2026-11-13:** entering the Gorge, finding the scenery's water took
+one long frame (25 to 38 ms, once). Listing the nodes was not the cause
+(0.7 ms). It was one merged batch of 32 water quads (`Kit/Batch_21`): for
+each copy, the scan looked for "the kit piece this water belongs to" by
+searching the whole Gorge kit. Now that search runs once per node and is
+skipped for merged batches, which are never one piece
+(`HabitatScan._piece_of`). The worst placing frame in the Gorge is now
+1.7 ms (was 23.7), with the same 19 goldfish; the bazaar fountains and the
+camp are unchanged (`tests/fish_count.gd`).
 
 **Decided 2026-11-13:** the dark over the Domicile Quarter stays empty (no glowworms there).
