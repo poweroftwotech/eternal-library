@@ -45,6 +45,10 @@ const MAX_ROOF_STARTS: int = 600
 const ROOST_APART: float = 8.0
 const COLONY_APART: float = 6.0
 
+## The place this is the animals of: the area's id, or place_id ("camp",
+## "lake"); and how plentiful each kind is here (kind -> FaunaTable level).
+var place: String = ""
+var levels: Dictionary = {}
 ## The place id when the whole scene is one room ("camp", "lake").
 var place_id: String = ""
 var area: Area
@@ -70,14 +74,23 @@ static func attach(world: Node3D, id: String = "") -> Fauna:
 
 func _ready() -> void:
 	add_to_group(GROUP)
-	for p: String in DEFS:
+	place = str(area.recipe.id) if area != null and area.recipe != null else place_id
+	var found: Array[CreatureDef] = []
+	var kinds: PackedStringArray = []
+	for p: String in ([] if OS.get_cmdline_user_args().has("--no-animals") else DEFS):     # --no-animals: a gate's baseline
 		var d: CreatureDef = load(p) as CreatureDef
-		if d == null:
-			continue
-		# The area's Animals setting: how many of this kind here.
+		if d != null:
+			found.append(d)
+			kinds.append(str(d.id))
+	# How plentiful each kind is here in this world (FaunaTable: the save's,
+	# drawn from the world seed on the first visit).
+	levels = FaunaTable.levels(get_node_or_null("/root/WorldState"), place, kinds)
+	for d: CreatureDef in found:
+		# The area's Animals setting: how many of this kind here at most.
 		var amount: float = 1.0
 		if area != null and area.recipe != null:
 			amount = float(area.recipe.fauna.get(str(d.id), 1.0))
+		amount *= FaunaTable.amount(str(levels[str(d.id)]))
 		if amount <= 0.0:
 			continue
 		d = d.scaled(amount)
@@ -296,8 +309,33 @@ func _work() -> void:
 		var roofs: HabitatScan.RoofScan = j["roofs"]
 		if not HabitatScan.roof_step(roofs, space, deadline):
 			break
+		# 4. The room's meshes and their boxes, for the kinds that sit on what
+		# you see of a wall (geckos, rat holes): read a few hundred nodes a go.
+		if not j.has("boxes") and (_needs(j, "wall_lamp") or _needs(j, "wall_foot")):
+			if not j.has("box_stack"):
+				j["box_stack"] = [node]
+				j["box_found"] = []
+			var stack: Array = j["box_stack"]
+			var n: int = 0
+			while not stack.is_empty() and n < 300:
+				n += 1
+				var at: Node = stack.pop_back()
+				if not is_instance_valid(at):
+					continue
+				var m := at as MeshInstance3D
+				if m != null and m.mesh != null and m.is_visible_in_tree():
+					(j["box_found"] as Array).append([m, m.global_transform * m.get_aabb()])
+				stack.append_array(at.get_children())
+			if stack.is_empty():
+				j["boxes"] = j["box_found"]
+			continue
+		# 5. Fill it, a kind a go.
+		var fill: int = int(j.get("fill", 0))
+		if fill < defs.size():
+			j["fill"] = fill + 1
+			_populate(j, defs[fill])
+			continue
 		_jobs.pop_front()
-		_populate(j)
 	var ms: float = (Time.get_ticks_usec() - t0) / 1000.0
 	stats["scan_ms"] = ms
 	stats["worst_scan_ms"] = maxf(float(stats.get("worst_scan_ms", 0.0)), ms)
@@ -340,7 +378,7 @@ static func _thin(points: PackedVector3Array, most: int) -> PackedVector3Array:
 	return out
 
 
-func _populate(j: Dictionary) -> void:
+func _populate(j: Dictionary, d: CreatureDef) -> void:
 	var slot: String = j["slot"]
 	var node: Node3D = j["node"]
 	var key: String = (node as RoomTemplate).room_key() if node is RoomTemplate else str(j["type"])
@@ -351,9 +389,9 @@ func _populate(j: Dictionary) -> void:
 	var abandoned: bool = str(j["state"]) == RoomGrammar.ABANDONED
 	var bodies: Array = j["bodies"]
 	var space: PhysicsDirectSpaceState3D = node.get_world_3d().direct_space_state
-	for d: CreatureDef in defs:
+	if true:
 		if not lives_in(d, type, str(j["state"]), j["out"]):
-			continue
+			return
 		match d.habitat:
 			"water":
 				for bi: int in bodies.size():
@@ -527,13 +565,24 @@ func _fill_cats(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, out: 
 		return
 	var band := CatBand.new()
 	add_child(band)
-	band.setup(d, g, n, rng.randi())
+	var coats: Array[int] = []
+	if area == null:
+		# A one-off animal: the same cat on every visit, kept in the save.
+		var ws: Node = get_node_or_null("/root/WorldState")
+		var one: Dictionary = ws.call("fauna_one", place, "cat") if ws != null else {}
+		if one.is_empty():
+			one = {"coat": rng.randi() % CatBody.COATS.size()}
+			if ws != null:
+				ws.call("set_fauna_one", place, "cat", one)
+		coats.append(int(one["coat"]))
+	band.setup(d, g, n, rng.randi(), coats)
 	out.append(band)
 
 
 ## The room's meshes and their boxes, read once (geckos and rat holes sit on
 ## what you see of a wall, not on its collision).
 func _boxes(j: Dictionary) -> Array:
+	# (read in slices by _work before the room is filled; this is the fallback)
 	if not j.has("boxes"):
 		j["boxes"] = GeckoWall.boxes_of(j["node"])
 	return j["boxes"]

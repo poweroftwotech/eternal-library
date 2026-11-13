@@ -564,3 +564,37 @@ func stale_ids() -> PackedStringArray:
 			out.append(id)
 	return out
 
+
+
+# --- the animals (phase 19 step 5, FaunaTable) ----------------------------------
+# data.fauna[place] = {"levels": {kind: level}, "ones": {id: {...}}}. A place
+# is an area's id, or "camp" / "lake". Levels: how plentiful each kind is here
+# in this world. Ones: the one-off animals (the camp's cat), by id.
+
+func _fauna_place(place: String) -> Dictionary:
+	if not data.has("fauna"):
+		data["fauna"] = {}
+	var all: Dictionary = data["fauna"]
+	if not all.has(place):
+		all[place] = {"levels": {}, "ones": {}}
+	return all[place]
+
+
+## How plentiful each kind is in `place` (kind -> level), as far as saved.
+func fauna_levels(place: String) -> Dictionary:
+	return ((data.get("fauna", {}) as Dictionary).get(place, {}) as Dictionary).get("levels", {})
+
+
+func set_fauna_level(place: String, kind: String, level: String) -> void:
+	(_fauna_place(place)["levels"] as Dictionary)[kind] = level
+	mark_dirty()
+
+
+## A one-off animal of `place` (empty when it isn't saved yet).
+func fauna_one(place: String, id: String) -> Dictionary:
+	return (((data.get("fauna", {}) as Dictionary).get(place, {}) as Dictionary).get("ones", {}) as Dictionary).get(id, {})
+
+
+func set_fauna_one(place: String, id: String, what: Dictionary) -> void:
+	(_fauna_place(place)["ones"] as Dictionary)[id] = what
+	mark_dirty()

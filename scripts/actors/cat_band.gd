@@ -33,7 +33,7 @@ var cats: Array[Dictionary] = []
 var _rng := RandomNumberGenerator.new()
 
 
-func setup(d: CreatureDef, g: LaneGraph, count: int, seed_value: int) -> void:
+func setup(d: CreatureDef, g: LaneGraph, count: int, seed_value: int, coats: Array[int] = []) -> void:
 	def = d
 	graph = g
 	bounds = g.bounds.grow(1.0)
@@ -50,7 +50,8 @@ func setup(d: CreatureDef, g: LaneGraph, count: int, seed_value: int) -> void:
 		taken.append(node)
 		var body := CatBody.new()
 		add_child(body)
-		body.set_coat(_rng.randi())
+		var coat: int = _rng.randi()
+		body.set_coat(coats[i] if i < coats.size() else coat)
 		body.scale = Vector3.ONE * SIZE * _rng.randf_range(d.length_spread.x, d.length_spread.y)
 		body.global_position = g.points[node]
 		body.rotation.y = _rng.randf() * TAU

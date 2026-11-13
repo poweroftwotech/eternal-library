@@ -467,3 +467,67 @@ Cost: reading a room's meshes for this raised the worst scan frame to 4 to
 8 ms headless (was 2.5); to be sliced at step 5.
 
 **Step 4 look approved ("Looks good", 2026-11-09).** Not committed yet.
+
+**Step 4 committed 7989460 (2026-11-09).**
+
+## Step 5: tables, the save, tests (2026-11-09)
+
+**The animal table of a place** (`scripts/world/fauna_table.gd`) has three
+parts:
+
+1. *Which animals can live there and how many at most:* the animals' own
+   rules and the area's Animals % on the Strata Board. The same in every
+   world.
+2. *How plentiful each is in this world:* abundant (1.5 times the usual
+   number), common (1), scarce (0.5) or very scarce (0.2), drawn from the
+   world seed the first time you enter the place. So two worlds differ: on
+   world seed 1 the Mahaleh's cats are abundant (10 of them), its moths and
+   bats scarce. The animals a place is known by (the atlas's "Who lives
+   where") are never below common there.
+3. *The save:* the levels are written under a new `fauna` section, per
+   place, and read from there ever after. Nothing changes them yet; the
+   behaviour phase (hunting, a food web) will. The camp's cat is saved as a
+   one-off animal (its coat), so it is the same cat on every visit. No
+   animal's position is saved (Q8).
+
+Not built: a table file per area under `gen/fauna/` (the design's first
+idea). The area's part is already on the board as Animals %, so a second
+file would only repeat it. The levels are not shown or edited on the board.
+
+**Placing animals is spread over more frames.** A room is now filled one
+kind a frame, and its meshes (for geckos and rat holes) are read a few
+hundred nodes a frame. Worst placing frame, headless: Grand Study 2.1 ms,
+Mahaleh 2.7 ms, camp 2.2 ms, Forgotten City 6.5 ms (was 4 to 8 everywhere
+after step 4's fix). The Forgotten City's worst frame is one room's rats
+or geckos in a single go; not split further.
+
+**Tests.**
+
+- `tests/fauna_test.gd`, two OS processes each for the camp and the Mahaleh:
+  **PASS** (22 and 21 checks, save and load). A new world gives every kind
+  the level its seed draws; known-by animals are at least common; at most
+  64 thinking animals awake. Then one level is changed and the game saved;
+  a fresh process reads every level back, every room holds the same animals
+  as before for the kinds left alone, the changed kind has fewer or more
+  (camp goldfish 12 to 2; Mahaleh geckos 21 to 34), and the camp's cat is
+  the same cat.
+- **Frame gate, Mahaleh (world seed 1, Medium, 1080p), with animals and
+  without** (`--no-animals`, a new switch on the animals' director):
+
+  | | With animals | Without |
+  |---|---|---|
+  | Frame, mean / 99th / worst | 1.60 / 2.30 / 22.6 ms | 1.58 / 2.20 / 20.3 ms |
+  | GPU, mean / worst | 0.96 / 8.33 ms | 0.97 / 8.31 ms |
+  | Frames over 8.3 ms / over 16.7 ms | 90 / 10 of 436,000 | 82 / 10 of 444,000 |
+  | Draw calls, peak | 1,493 | 1,492 |
+  | Lights in reach, peak | 59 | 59 |
+  | Gate | FAIL | FAIL |
+
+  The gate fails the same way with no animals (worst frames while rooms
+  stream; 59 lights in the square and a quarter against 50), so the
+  failure is the Mahaleh's own, not the animals'. This layout (v9+) was
+  never gated before. The animals cost 0.02 ms a frame on average and eight
+  more frames over 8.3 ms in 436,000. Other areas not gated.
+- Route audits not rerun: animals add no collision bodies.
+
+**Step 5 committed 2026-11-13. Phase 19 is complete.**

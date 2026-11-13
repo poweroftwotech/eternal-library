@@ -181,7 +181,7 @@ func _show_creatures() -> void:
 		_show("creatures", "creatures: none here")
 		return
 	var s: Dictionary = f.stats
-	_show("creatures", "creatures %d · awake %d · thinking %d · swarms %d · tick %.2f ms (%.2f worst) · finding water %.1f ms worst" % [s["animals"],
+	_show("creatures", "creatures %d · awake %d · thinking %d · swarms %d · tick %.2f ms (%.2f worst) · placing %.1f ms worst" % [s["animals"],
 		s["awake"], s["thinking"], s["swarms"], s["tick_ms"], s["worst_tick_ms"], s["worst_scan_ms"]],
 		float(s["worst_tick_ms"]) > Fauna.BUDGET_MS or float(s["worst_scan_ms"]) > Fauna.BUDGET_MS * 2.0)
 

@@ -2,7 +2,7 @@
 
 [Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **APPROVED
 as recommended 2026-11-09 (Q1-Q12, the twenty animals, and the order of phases
-20 and 21). Step 1 (fish in the water) committed 8b9d4d1; step 2 (moths, glowworms, bats) committed 54bf2ea; step 3 (the cat) committed efb770a (Q5: smooth motion); step 4 (rats, geckos) look approved 2026-11-09, uncommitted.** ·
+20 and 21). Step 1 (fish in the water) committed 8b9d4d1; step 2 (moths, glowworms, bats) committed 54bf2ea; step 3 (the cat) committed efb770a (Q5: smooth motion); step 4 (rats, geckos) committed 7989460; step 5 (tables, save, tests) committed 2026-11-13: PHASE 19 COMPLETE.** ·
 The animals: [creature atlas](../../design/creature-atlas.html) ·
 The technical side, and what in today's code has to change:
 [phase 19 design](phase-19-design.md)
