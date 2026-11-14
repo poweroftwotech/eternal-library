@@ -112,7 +112,7 @@ func scaled(amount: float) -> CreatureDef:
 			return d
 	elif habitat == "water" and build == "simple":
 		d.area_each = area_each / maxf(amount, 0.01)
-	elif habitat == "lane":
+	elif habitat == "lane" or habitat == "ledge":     # (pigeons: a flock of 2 isn't one)
 		# Cats: fewer soft places to lie for each one, and more at most.
 		d.area_each = area_each / maxf(amount, 0.01)
 		d.group_size = Vector2i(group_size.x, maxi(1, roundi(group_size.y * amount)))

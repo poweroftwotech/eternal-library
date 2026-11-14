@@ -140,7 +140,7 @@ func count() -> Dictionary:
 			if not is_instance_valid(g):
 				continue
 			var kind: String = str(g.get("def").id)
-			var n: int = (g as CatBand).count() if g is CatBand else (g as MultiMeshInstance3D).multimesh.instance_count
+			var n: int = int(g.call("count")) if g.has_method("count") else (g as MultiMeshInstance3D).multimesh.instance_count
 			kinds[kind] = int(kinds.get(kind, 0)) + n
 		out[slot if slot != "" else "place"] = kinds
 	return out
@@ -151,7 +151,7 @@ func _awake_thinking() -> int:
 	for slot: String in fauna.groups:
 		for g: Node in fauna.groups[slot]:
 			if is_instance_valid(g) and not Fauna._is_swarm(g) and (g as Node3D).visible:
-				n += (g as CatBand).count() if g is CatBand else (g as MultiMeshInstance3D).multimesh.instance_count
+				n += int(g.call("count")) if g.has_method("count") else (g as MultiMeshInstance3D).multimesh.instance_count
 	return n
 
 

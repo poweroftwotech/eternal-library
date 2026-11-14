@@ -35,6 +35,7 @@ const PENS: Array[Dictionary] = [
 	{"id": "home", "name": "Lived-in room", "for": "Cats (and what lamps and a pool bring)", "type": "R06", "state": "", "side": -1, "z": 8, "height": 4.0, "wall": "quarter_plaster_clay", "roof": "vault_plaster"},
 	{"id": "ruin", "name": "Forgotten room", "for": "Rats", "type": "R02", "state": "abandoned", "side": 1, "z": 8, "height": 4.0, "wall": "limestone", "roof": "limestone"},
 	{"id": "garden", "name": "Kept garden", "for": "Nightingales", "type": "garden", "state": "", "side": -1, "z": 12, "height": 7.0, "wall": "persian_plaster", "roof": "vault_plaster"},
+	{"id": "roost", "name": "Pigeon tower", "for": "Pigeons", "type": "roost", "state": "", "side": 1, "z": 12, "height": 22.0, "wall": "quarter_plaster_clay", "roof": "vault_plaster"},
 ]
 ## How many cells the corridor runs.
 const LENGTH: int = 16
@@ -358,6 +359,22 @@ func _pen_garden(node: Node3D, p: Dictionary) -> void:
 	_prop(node, "garden_bench", Vector3(c.x + 3.0, 0, c.y - 0.2), PI * 0.5)
 	for k: int in 2:
 		_light(node, Vector3(c.x - 2.5 + k * 5.0, 6.2, c.y), Color(1.0, 0.96, 0.86), 2.0, 12.0, "daylight")
+
+
+## Pigeons (phase 20 step 2): the quarter's pigeon tower in a tall court,
+## a cornice round the walls to sit along, open floor to strut on, daylight.
+func _pen_roost(node: Node3D, p: Dictionary) -> void:
+	var r: Rect2 = _span(p)
+	var c: Vector2 = r.get_center()
+	_prop(node, "res://kit/modules/walls/qt_pigeon.tscn", Vector3(c.x + 1.2, 0, c.y - 1.2))
+	# A cornice 4.5 m up on the three closed walls: a 0.35 m ledge.
+	var h: float = 4.5
+	_box(node, Vector3(0.35, 0.18, r.size.y), Vector3(r.end.x - 0.175 - WALL * 0.5, h, c.y), "limestone")
+	_box(node, Vector3(r.size.x, 0.18, 0.35), Vector3(c.x, h, r.position.y + 0.175 + WALL * 0.5), "limestone")
+	_box(node, Vector3(r.size.x, 0.18, 0.35), Vector3(c.x, h, r.end.y - 0.175 - WALL * 0.5), "limestone")
+	for k: int in 2:
+		_light(node, Vector3(c.x - 3.0 + k * 6.0, 18.0, c.y), Color(1.0, 0.96, 0.88), 3.0, 26.0, "daylight")
+	_light(node, Vector3(c.x - 3.5, 3.0, c.y + 3.5), Color(1.0, 0.96, 0.88), 1.4, 10.0, "daylight")
 
 
 ## The pens' water moves as the game's does: its shader's clock is run here

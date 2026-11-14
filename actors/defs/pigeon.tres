@@ -1,0 +1,22 @@
+[gd_resource type="Resource" script_class="CreatureDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/creature_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+habitat = "ledge"
+rooms = PackedStringArray("R04", "R05", "R06", "scenery", "roost")
+not_rooms = PackedStringArray()
+loose_rooms = PackedStringArray()
+area_each = 8.0
+group_size = Vector2i(6, 12)
+max_groups = 3
+startle_radius = 2.4
+id = &"pigeon"
+display_name = "Pigeon"
+local_name = "Kabutar"
+atlas_id = "C16"
+length_m = 0.33
+length_spread = Vector2(0.9, 1.1)
+speed = Vector2(0.32, 7)
+palette = PackedColorArray(0.557, 0.596, 0.651, 1, 0.361, 0.4, 0.459, 1, 0.31, 0.639, 0.541, 1)

@@ -466,6 +466,20 @@ func _animals() -> void:
 						doing += ", wary %.0f s" % float(bird["wary"])
 					_label(at + Vector3(0, 0.3, 0), "Nightingale: " + doing)
 					_ring(at, band.def.startle_radius, STARTLE)
+			elif g is PigeonFlock:
+				var flock := g as PigeonFlock
+				for p: Dictionary in flock.perches:
+					_ring(p["at"], 0.06, STARTLE if p["ground"] else LOOK)
+				if flock.wheel_radius > 0.0:
+					_ring(Vector3(flock.centre.x, flock.wheel_height, flock.centre.z), flock.wheel_radius, LOOK)
+				var doing: Dictionary = {}
+				for b: Dictionary in flock.birds:
+					var what: String = ["perched", "on the ground", "flying", "wheeling"][int(b["state"])]
+					doing[what] = int(doing.get(what, 0)) + 1
+				var parts: PackedStringArray = []
+				for what: String in doing:
+					parts.append("%d %s" % [doing[what], what])
+				_label(flock.centre + Vector3(0, 1.0, 0), "Pigeons (%d): %s%s" % [flock.count(), ", ".join(parts), "" if flock.wheel_radius > 0.0 else "; no room to wheel"])
 			elif g is RatPack:
 				var pack := g as RatPack
 				for rat: Dictionary in pack.rats:

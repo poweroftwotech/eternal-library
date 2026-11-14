@@ -3,7 +3,7 @@
 Brief: [phase-20-approval.md](../phase-20-approval.md), approved as recommended
 2026-11-13 (Q1-Q8).
 
-## Step 1: sound, and the nightingale (built 2026-11-14, not committed)
+## Step 1: sound, and the nightingale (committed 0c97287, 2026-11-14)
 
 ### Sound
 
@@ -130,3 +130,64 @@ You: "sounds ok".
 2. A Garden Court: Grand Study → Gardens.
 3. The camp's tree.
 4. Esc → Controls: the Music and Animals sliders.
+
+## Step 2: pigeons (built 2026-11-14, not committed)
+
+Pigeons (C16, the rock dove) live in flocks of 6 to 12. They sit in rows on
+ledges you can see from the floor, and some strut and peck on open ground.
+- **Ledges** (`PigeonFlock.LedgeScan`, run a few at a time inside the
+  animals' 1 ms budget) are flat tops with a drop of at least 2.2 m past the
+  edge, room to stand, nothing in front, and seen from where you stand.
+- **Wheeling:** now and then the flock takes off and circles, then settles
+  again: once every 60 to 150 s. How it circles depends on the room:
+  - in a quarter it circles round the pigeon tower just over its rim, or over
+    the top of the tower when the court is too tight (the zoo pen);
+  - in a bazaar, inside the dome's drum;
+  - with no room to circle, they flutter from ledge to ledge.
+- **You and the flock:** walk close and they step out of your way. Run within
+  7 m, or come within 0.9 m, and they burst up together with a clap of
+  wings.
+- **Sound:** they coo (three notes, a flutter on the middle one).
+  `tools/make_sounds.gd` makes the coos and two wing sounds: a loud clap for
+  an alarm and a softer one for a wheel.
+- **The model** (`PigeonBody`) is made in code from the nightingale's parts.
+  It has three poses (wings folded, up, down), so a whole flock draws in three
+  calls. It is blue-grey with dark wing bars and tail band, a green and purple
+  neck, orange eyes and pink feet.
+- **Where:** bazaars (R04), squares (R05) and quarters (R06), one flock a
+  room. In the Gorge (Q5), up to 3 flocks on the ledges you can see from the
+  walks, where they crowd most. The Gorge's animal level no longer shrinks a
+  flock below 6.
+- **The zoo:** a new "Pigeon tower" pen, with the quarter's tower in a tall
+  court, a cornice and daylight. F4 shows each flock's perches, its circle,
+  and what the birds are doing.
+
+Probe (`tests/pigeon_probe.gd`):
+- Mahaleh: 12 birds in every bazaar, square and quarter. Two of the nine
+  rooms have no room to circle (bazaar_3, quarter_4).
+- The Gorge: 3 flocks of 6 from 116 ledges.
+- The zoo: 6 birds.
+- Finding ledges costs at most 3.5 ms in one frame (the same as before
+  pigeons).
+
+The headless gate passes. `tests/fauna_test.gd` passes across two processes
+(it now counts any band, not only cats).
+
+**Caveat:** in `previews/phase20_step2/` the camera often ends up inside
+things that have no collision (the tower, the bazaar dome, Gorge walls), so
+most close-ups are useless. Walking it is the real check.
+
+### You try
+
+1. The zoo → the "Pigeon tower" pen. Walk up to the birds on the ground,
+   then run at them. Wait a minute or two to see them circle.
+2. A Mahaleh quarter with the pigeon tower (quarter_1 in v10).
+3. A bazaar crossing: birds round the dome.
+4. The Gorge's walks: flocks on nearby roofs and terraces.
+
+**Walk 1 (2026-11-14):** "mostly looks good". One report: the circling
+birds kept bobbing up and down. The flight height was tied to the wingbeat
+clock, so each bird bobbed 0.6 m at about 8 m/s. Now:
+- each bird rises and falls 0.5 m once round the circle, at 1.2 m/s at most;
+- it joins the circle level with where it came in (within 3 cm);
+- it banks into the turn, the inside wing down, about 30 to 35°.

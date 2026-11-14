@@ -24,7 +24,7 @@ extends Node3D
 
 const DEFS: Array[String] = ["res://actors/defs/goldfish.tres", "res://actors/defs/cave_barb.tres",
 	"res://actors/defs/candle_moth.tres", "res://actors/defs/glowworm.tres", "res://actors/defs/bat.tres", "res://actors/defs/cat.tres",
-	"res://actors/defs/rat.tres", "res://actors/defs/gecko.tres", "res://actors/defs/nightingale.tres"]
+	"res://actors/defs/rat.tres", "res://actors/defs/gecko.tres", "res://actors/defs/nightingale.tres", "res://actors/defs/pigeon.tres"]
 const BUDGET_MS: float = 1.0
 const SLEEP_DISTANCE: float = 30.0
 ## Per view: at most this many simple animals and swarms awake (the nearest;
@@ -137,6 +137,8 @@ func _load_defs() -> void:
 		elif d.habitat == "garden":
 			BirdBody.parts()
 			BirdBody.material()
+		elif d.habitat == "ledge":
+			PigeonBody.meshes()
 		else:
 			AirBody.material(d)
 
@@ -254,9 +256,12 @@ func _process(delta: float) -> void:
 				var band := g as Node3D
 				var box: AABB = band.get("bounds")
 				animals += size_of(band)
-				thinking += size_of(band)
+				if band is PigeonFlock:
+					swarms += 1     # (a flock is one tick and three draws: a swarm)
+				else:
+					thinking += size_of(band)
 				if box.grow(SLEEP_DISTANCE).has_point(eye):
-					near.append([_distance(box, eye), band, false])
+					near.append([_distance(box, eye), band, _is_swarm(band)])
 				else:
 					_show(band, false)
 				continue
@@ -301,12 +306,12 @@ func _process(delta: float) -> void:
 
 
 static func _is_swarm(g: Node) -> bool:
-	return not (g is FishPool or is_band(g) or g is RatPack or g is GeckoWall)
+	return g is PigeonFlock or not (g is FishPool or is_band(g) or g is RatPack or g is GeckoWall)
 
 
 ## A group made of one node per animal (cats, birds), not a MultiMesh.
 static func is_band(g: Node) -> bool:
-	return g is CatBand or g is BirdBand
+	return g is CatBand or g is BirdBand or g is PigeonFlock
 
 
 ## How many animals a group holds.
@@ -381,7 +386,7 @@ func _work() -> void:
 			break
 		# 4. The room's meshes and their boxes, for the kinds that sit on what
 		# you see of a wall (geckos, rat holes): read a few hundred nodes a go.
-		if not j.has("boxes") and (_needs(j, "wall_lamp") or _needs(j, "wall_foot") or _needs(j, "garden")):
+		if not j.has("boxes") and (_needs(j, "wall_lamp") or _needs(j, "wall_foot") or _needs(j, "garden") or _needs(j, "ledge")):
 			if not j.has("box_stack"):
 				j["box_stack"] = [node]
 				j["box_found"] = []
@@ -399,6 +404,26 @@ func _work() -> void:
 			if stack.is_empty():
 				j["boxes"] = j["box_found"]
 			continue
+		# 4b. Ledges for pigeons: tried a few at a time (PigeonFlock.LedgeScan).
+		if _needs(j, "ledge") and str(j["state"]) != RoomGrammar.ABANDONED:
+			if not j.has("ledges"):
+				var scenery: bool = str(j["slot"]) == SCENERY
+				var ground: PackedVector3Array = _ground_spots(j, space)
+				var eyes := PackedVector3Array()
+				if scenery:
+					# (the scenery has no floor: it is seen from the rooms' floors,
+					# the walks through it, so the birds sit near them)
+					eyes = _walk_eyes(space)
+				for g: Vector3 in ground:
+					eyes.append(g + Vector3(0, 1.6, 0))
+				j["ledges"] = PigeonFlock.begin(j["boxes"], ground, eyes, hash([str(j["slot"]), str(j["type"]), "ledges"]),
+					2500 if scenery else PigeonFlock.MOST_TRIES)
+				j["ledge_us"] = 0
+			var t1: int = Time.get_ticks_usec()
+			var done: bool = PigeonFlock.step(j["ledges"], space, deadline)
+			j["ledge_us"] = int(j["ledge_us"]) + Time.get_ticks_usec() - t1
+			if not done:
+				break
 		# 5. Fill it, a kind a go.
 		var fill: int = int(j.get("fill", 0))
 		if fill < defs.size():
@@ -497,6 +522,10 @@ func _populate(j: Dictionary, d: CreatureDef) -> void:
 				var rng := RandomNumberGenerator.new()
 				rng.seed = hash([world_seed, key, str(d.id)])
 				_fill_birds(d, j, rng, space, abandoned, out)
+			"ledge":
+				var rng := RandomNumberGenerator.new()
+				rng.seed = hash([world_seed, key, str(d.id)])
+				_fill_pigeons(d, j, rng, space, abandoned, out)
 	groups[slot] = out
 
 
@@ -740,6 +769,113 @@ func _fill_birds(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, spac
 	notes.append({"at": found[0]["at"], "ok": true, "text": "Nightingales: %d, %d high perches, %d flowers" % [n, highs, found.filter(func(p: Dictionary) -> bool: return bool(p["flower"])).size()]})
 
 
+## Pigeons (phase 20 step 2): flocks on a place's ledges (PigeonFlock.
+## find_ledges), a few on its open floor. One flock to a room; the Gorge's
+## scenery, spread over hundreds of metres, gets up to max_groups flocks, each
+## on the ledges within FLOCK_SPAN of its middle. A forgotten place has none
+## (the atlas: a forgotten tower stands empty).
+const FLOCK_SPAN: float = 12.0
+
+
+func _fill_pigeons(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, space: PhysicsDirectSpaceState3D, abandoned: bool, out: Array) -> void:
+	if abandoned or not j.has("ledges"):
+		return
+	var all: Array[Dictionary] = (j["ledges"] as PigeonFlock.LedgeScan).out
+	j["perch_ms"] = int(j["ledge_us"]) / 1000.0
+	var notes: Array = j.get_or_add("notes", [])
+	var ledges: Array[Dictionary] = all.filter(func(p: Dictionary) -> bool: return not p["ground"])
+	if ledges.size() < 8:
+		if not all.is_empty():
+			notes.append({"at": all[0]["at"], "ok": false, "text": "Pigeons: none, only %d ledges (8 needed)" % ledges.size()})
+		return
+	# Flocks: one in a room; in the scenery, up to max_groups, apart.
+	var seeds: Array[Vector3] = []
+	if str(j["slot"]) == SCENERY:
+		# (where the ledges crowd most first)
+		var crowd: Array = []
+		for p: Dictionary in ledges:
+			var n: int = 0
+			for o: Dictionary in ledges:
+				if (o["at"] as Vector3).distance_squared_to(p["at"]) < FLOCK_SPAN * FLOCK_SPAN:
+					n += 1
+			crowd.append([n, p["at"]])
+		crowd.sort_custom(func(a: Array, b: Array) -> bool: return a[0] > b[0])
+		for c: Array in crowd:
+			if seeds.size() >= d.max_groups:
+				break
+			if seeds.all(func(s: Vector3) -> bool: return s.distance_to(c[1]) > FLOCK_SPAN * 2.5):
+				seeds.append(c[1])
+	else:
+		seeds.append(ledges[0]["at"])
+	for s: Vector3 in seeds:
+		var mine: Array[Dictionary] = all if seeds.size() == 1 and str(j["slot"]) != SCENERY else \
+			all.filter(func(p: Dictionary) -> bool: return (p["at"] as Vector3).distance_to(s) < FLOCK_SPAN)
+		var n_ledge: int = PigeonFlock.ledges_of(mine)
+		if n_ledge < 8:
+			continue
+		var n: int = clampi(roundi(n_ledge / maxf(d.area_each, 1.0)), d.group_size.x, d.group_size.y)
+		if int(stats["swarms"]) + _count(out, true) >= MAX_LIVE_SWARMS:
+			break
+		var flock := PigeonFlock.new()
+		add_child(flock)
+		flock.setup(d, mine, n, rng.randi(), space)
+		out.append(flock)
+		notes.append({"at": s, "ok": true, "text": "Pigeons: %d, %d ledges, %d ground spots%s" % [n, n_ledge, mine.size() - n_ledge,
+			"" if flock.wheel_radius > 0.0 else "; no room to wheel"]})
+
+
+## Open spots on a room's floor (up to 40, a fixed draw): pigeons strut there,
+## and a ledge must be seen from one.
+func _ground_spots(j: Dictionary, space: PhysicsDirectSpaceState3D, most: int = 40) -> PackedVector3Array:
+	var ground := PackedVector3Array()
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash([str(j["slot"]), str(j["type"]), "ground"])
+	var q := PhysicsRayQueryParameters3D.new()
+	q.collision_mask = HabitatScan.WORLD_MASK
+	for c: Vector3i in j["floor"]:
+		if ground.size() >= most:
+			break
+		var centre: Vector3 = _frame() * CellGrid.cell_centre(c)
+		var p: Vector3 = centre + Vector3(rng.randf_range(-1.5, 1.5), 1.5, rng.randf_range(-1.5, 1.5))
+		q.from = p
+		q.to = p - Vector3(0, 3.5, 0)
+		var hit: Dictionary = space.intersect_ray(q)
+		if hit.is_empty() or (hit["normal"] as Vector3).y < 0.9:
+			continue
+		var at: Vector3 = hit["position"]
+		var open: bool = true
+		for k: int in 4:
+			q.from = at + Vector3(0, 0.15, 0)
+			q.to = q.from + Vector3(cos(k * PI * 0.5), 0, sin(k * PI * 0.5)) * 0.6
+			if not space.intersect_ray(q).is_empty():
+				open = false
+				break
+		if open:
+			ground.append(at)
+	return ground
+
+
+## Standing eyes over the area's rooms' floors (up to 150, a fixed draw): where
+## the scenery is seen from.
+func _walk_eyes(space: PhysicsDirectSpaceState3D) -> PackedVector3Array:
+	var cells: Array = []
+	if area != null and area.plan != null:
+		for r: AreaPlan.Room in area.plan.rooms:
+			cells.append_array(r.floor_cells.keys())
+	var rng := RandomNumberGenerator.new()
+	rng.seed = hash(["walk eyes", cells.size()])
+	for i: int in range(cells.size() - 1, 0, -1):
+		var k: int = rng.randi() % (i + 1)
+		var t: Variant = cells[i]
+		cells[i] = cells[k]
+		cells[k] = t
+	var spots: PackedVector3Array = _ground_spots({"slot": "walks", "type": "", "floor": cells.slice(0, 600)}, space, 150)
+	var eyes := PackedVector3Array()
+	for g: Vector3 in spots:
+		eyes.append(g + Vector3(0, 1.6, 0))
+	return eyes
+
+
 ## Shown and awake, or hidden and still (a band's cats stop animating too).
 static func _show(g: Node3D, on: bool) -> void:
 	g.visible = on
@@ -865,6 +1001,8 @@ func startle_all() -> void:
 			elif g is BirdBand:
 				for bird: Dictionary in (g as BirdBand).birds:
 					(g as BirdBand).tick(0.0, (bird["body"] as Node3D).global_position - Vector3(0, 1.0, 0), 10.0)
+			elif g is PigeonFlock:
+				(g as PigeonFlock).tick(0.0, (g as PigeonFlock).centre, 10.0)
 			elif g is RatPack:
 				var pack := g as RatPack
 				for rat: Dictionary in pack.rats:
@@ -887,6 +1025,6 @@ func _queue_scenery() -> void:
 		return
 	var out: PackedStringArray = []
 	for d: CreatureDef in defs:
-		if d.habitat != "water":
+		if d.habitat != "water" and d.habitat != "ledge":
 			out.append(str(d.id))
 	_queue(SCENERY, scenery, SCENERY, "", [], out)

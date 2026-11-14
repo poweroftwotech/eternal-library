@@ -44,6 +44,13 @@ func _initialize() -> void:
 	made += _make("fish_splash_0", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _splash(r, 0.7), 9700)
 	made += _make("fish_splash_1", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _splash(r, 1.0), 9701)
 	made += _make("fish_splash_2", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _splash(r, 0.45), 9702)
+	made += _make("pigeon_coo_0", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _coo(r, 380.0), 9800)
+	made += _make("pigeon_coo_1", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _coo(r, 340.0), 9801)
+	made += _make("pigeon_coo_2", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _coo(r, 420.0), 9802)
+	made += _make("wings_clap_0", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _flock_wings(r, 12, 1.0), 9850)
+	made += _make("wings_clap_1", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _flock_wings(r, 9, 1.0), 9851)
+	made += _make("wings_flock_0", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _flock_wings(r, 6, 0.35), 9860)
+	made += _make("wings_flock_1", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _flock_wings(r, 4, 0.35), 9861)
 	print("make_sounds: %d files in %s" % [made, OUT])
 	quit()
 
@@ -182,6 +189,55 @@ func _wings(r: RandomNumberGenerator, dur: float, rate: float, loud: float) -> P
 		var fade: float = 1.0 - t / dur
 		_noise(buf, t, beat * 0.6, loud * (0.4 + 0.6 * fade), 900.0 + r.randf_range(-150.0, 150.0))
 		t += beat * (1.0 + t * 0.8)
+	return buf
+
+
+# --- the pigeon (phase 20 step 2) ---------------------------------------------------
+
+## A rock dove's coo: low and round, three parts, "coo, roo-oo, coo". Soft
+## short first note; the middle one rises and falls with a flutter in the
+## throat; a long low last one. Almost a pure tone (a closed bill, the sound
+## made in the inflated throat), so few and weak harmonics, a little breath.
+func _coo(r: RandomNumberGenerator, pitch: float) -> PackedFloat32Array:
+	var buf := _silence(1.5)
+	# [start s, length s, pitch from, peak, to (times `pitch`), loudness, flutter Hz]
+	var notes: Array = [[0.02, 0.14, 0.95, 1.0, 0.9, 0.55, 0.0],
+		[0.24, 0.42, 0.9, 1.12, 0.92, 1.0, r.randf_range(22.0, 30.0)],
+		[0.74, 0.5, 1.0, 1.02, 0.82, 0.8, 0.0]]
+	for nt: Array in notes:
+		var start: int = int(float(nt[0]) * SR)
+		var n: int = int(float(nt[1]) * SR)
+		var phase: float = 0.0
+		var breath: float = 0.0
+		for i: int in n:
+			var u: float = float(i) / n
+			var f: float = pitch * (lerpf(float(nt[2]), float(nt[3]), smoothstep(0.0, 0.4, u)) if u < 0.4 else lerpf(float(nt[3]), float(nt[4]), smoothstep(0.4, 1.0, u)))
+			phase += TAU * f / SR
+			var flutter: float = 1.0 - 0.45 * (0.5 + 0.5 * sin(TAU * float(nt[6]) * u * float(nt[1]))) if float(nt[6]) > 0.0 else 1.0
+			var env: float = smoothstep(0.0, 0.12, u) * pow(1.0 - u, 0.8) * float(nt[5]) * flutter
+			breath += (r.randf_range(-1.0, 1.0) - breath) * 0.05
+			var s: float = sin(phase) + 0.18 * sin(phase * 2.0) + 0.05 * sin(phase * 3.0) + breath * 0.15
+			buf[start + i] += s * env * 0.6
+	return _lowpass(buf, 0.3)
+
+
+## Pigeons going up together: `birds` each beating hard a few times, the
+## first strokes clapping (the wingtips meeting over the back), then the
+## whirr of beats fading as they climb away. `clap` 1: alarmed; less: calm.
+func _flock_wings(r: RandomNumberGenerator, birds: int, clap: float) -> PackedFloat32Array:
+	var buf := _silence(1.6)
+	for b: int in birds:
+		var t: float = r.randf_range(0.0, 0.25 if clap > 0.5 else 0.6)
+		var rate: float = r.randf_range(8.0, 10.5)
+		var beats: int = r.randi_range(6, 11)
+		for k: int in beats:
+			var fade: float = 1.0 - float(k) / beats
+			if k < 3:
+				# The clap: a short sharp crack of feathers.
+				_noise(buf, t, 0.012, (0.5 + 0.5 * r.randf()) * clap * (1.0 - k * 0.3), r.randf_range(1800.0, 3200.0))
+			# The stroke: a soft whump of air.
+			_noise(buf, t + 0.01, 1.0 / rate * 0.6, 0.35 * fade * (0.6 + 0.4 * r.randf()), r.randf_range(500.0, 900.0), true)
+			t += 1.0 / rate * r.randf_range(0.92, 1.08)
 	return buf
 
 
