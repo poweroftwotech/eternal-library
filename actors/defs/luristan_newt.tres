@@ -1,0 +1,23 @@
+[gd_resource type="Resource" script_class="CreatureDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/creature_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+build = "newt"
+rooms = PackedStringArray("*")
+not_rooms = PackedStringArray()
+state = "any"
+loose_rooms = PackedStringArray()
+min_depth = 0.02
+area_each = 4.0
+group_size = Vector2i(2, 5)
+startle_radius = 2.0
+id = &"luristan_newt"
+display_name = "Luristan newt"
+local_name = "Samandar-e Lorestani"
+atlas_id = "C04"
+length_m = 0.35499998724082793
+length_spread = Vector2(0.8450705, 1.1549295)
+speed = Vector2(0.06, 0.32)
+palette = PackedColorArray(0.035, 0.045, 0.11, 1, 1, 0.42, 0.04, 1, 1, 0.95, 0.72, 1)

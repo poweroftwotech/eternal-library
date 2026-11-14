@@ -1,0 +1,26 @@
+[gd_resource type="Resource" script_class="CreatureDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/creature_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+build = "eel"
+rooms = PackedStringArray("*")
+not_rooms = PackedStringArray("camp")
+state = "any"
+loose_rooms = PackedStringArray()
+min_depth = 0.3
+min_area = 10.0
+area_each = 3.0
+group_size = Vector2i(3, 8)
+max_groups = 2
+startle_radius = 1.8
+id = &"spiny_eel"
+display_name = "Spiny eel"
+local_name = "Mar-mahi"
+atlas_id = "C03"
+length_m = 1.2499999596976914
+length_spread = Vector2(0.79999995, 1.2)
+speed = Vector2(0.5, 1.05)
+palette = PackedColorArray(0.231, 0.227, 0.18, 1, 0.478, 0.435, 0.271, 1, 0.788, 0.722, 0.467, 1)
+glow_colour = Color(0.3, 0.95, 0.85, 1)

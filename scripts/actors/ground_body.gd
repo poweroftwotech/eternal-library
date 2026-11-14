@@ -105,6 +105,66 @@ static func gecko_mesh() -> ArrayMesh:
 	return _meshes["gecko"]
 
 
+## A Luristan newt (phase 20 step 3): a rounder body than the gecko's, a
+## blunt head, short legs, a tail flattened upright like a blade. Black
+## (body), white spots down the flanks (pale), an orange stripe along the back
+## and orange legs (dark: the def puts the orange in that slot).
+static func newt_mesh() -> ArrayMesh:
+	if _meshes.has("newt"):
+		return _meshes["newt"]
+	var b := _Builder.new()
+	# Nose to the tail's root: z, half width, back height; spotted or not.
+	b.mid_y = 0.03
+	var line: Array = [[-0.5, 0.0, 0.025, 0], [-0.45, 0.045, 0.045, 0], [-0.38, 0.06, 0.055, 1], [-0.31, 0.05, 0.05, 0], [-0.22, 0.066, 0.07, 1],
+		[-0.12, 0.072, 0.075, 0], [-0.02, 0.07, 0.072, 1], [0.06, 0.055, 0.06, 0]]
+	for i: int in line.size() - 1:
+		var p: Array = line[i]
+		var q: Array = line[i + 1]
+		var v0: float = float(p[0]) + 0.5
+		var v1: float = float(q[0]) + 0.5
+		var side := Color(0.5 if int(p[3]) == 1 else 0.0, 0.0, 0.0)
+		for s: float in [1.0, -1.0]:
+			# The orange stripe along the spine, then the flank down to the belly.
+			var p_top := Vector3(0, p[2], p[0])
+			var q_top := Vector3(0, q[2], q[0])
+			var p_mid := Vector3(float(p[1]) * 0.2 * s, float(p[2]) * 0.95, p[0])
+			var q_mid := Vector3(float(q[1]) * 0.2 * s, float(q[2]) * 0.95, q[0])
+			var p_low := Vector3(float(p[1]) * s, float(p[2]) * 0.45, p[0])
+			var q_low := Vector3(float(q[1]) * s, float(q[2]) * 0.45, q[0])
+			var p_belly := Vector3(float(p[1]) * 0.75 * s, 0.01, p[0])
+			var q_belly := Vector3(float(q[1]) * 0.75 * s, 0.01, q[0])
+			b.quad(p_top, p_mid, q_mid, q_top, Color(1.0, 0.0, 0.0), v0, v1)
+			b.quad(p_mid, p_low, q_low, q_mid, side, v0, v1)
+			b.quad(p_low, p_belly, q_belly, q_low, Color(1.0, 0.0, 0.0), v0, v1)     # (an orange belly showing at the sides)
+	# The tail: a blade, tall at its root, to a point, black with an orange edge.
+	var tail: Array = [[0.06, 0.06, 0.03], [0.2, 0.065, 0.022], [0.34, 0.05, 0.014], [0.5, 0.012, 0.002]]
+	for i: int in tail.size() - 1:
+		var p: Array = tail[i]
+		var q: Array = tail[i + 1]
+		var v0: float = float(p[0]) + 0.5
+		var v1: float = float(q[0]) + 0.5
+		var col := Color(0.0, 1.0, 0.0)
+		for s: float in [1.0, -1.0]:
+			b.quad(Vector3(0, p[1], p[0]), Vector3(float(p[2]) * s, float(p[1]) * 0.5, p[0]), Vector3(float(q[2]) * s, float(q[1]) * 0.5, q[0]), Vector3(0, q[1], q[0]), Color(0.0, 1.0, 0.0), v0, v1)
+			b.quad(Vector3(float(p[2]) * s, float(p[1]) * 0.5, p[0]), Vector3(0, 0.012, p[0]), Vector3(0, 0.012, q[0]), Vector3(float(q[2]) * s, float(q[1]) * 0.5, q[0]), col, v0, v1)
+	for s: float in [1.0, -1.0]:
+		# Eyes, high on the head.
+		b.tri(Vector3(0.03 * s, 0.05, -0.43), Vector3(0.05 * s, 0.045, -0.4), Vector3(0.032 * s, 0.052, -0.38), Color(1.0, 0.0, 0.0, 0.0), 0.08)
+		# Short legs, out to the side, orange.
+		for leg: Array in [[-0.27, -0.04, 0.0 if s > 0.0 else 1.0], [0.0, 0.05, 1.0 if s > 0.0 else 0.0]]:
+			var z: float = leg[0]
+			var sweep: float = leg[1]
+			var col := Color(1.0, 0.5, float(leg[2]))
+			var hip := Vector3(0.055 * s, 0.03, z)
+			var knee := Vector3(0.11 * s, 0.028, z + sweep * 0.4)
+			var foot := Vector3(0.14 * s, 0.004, z + sweep)
+			var v: float = z + 0.5
+			b.quad(hip + Vector3(0, 0, -0.02), knee + Vector3(0, 0, -0.016), knee + Vector3(0, 0, 0.016), hip + Vector3(0, 0, 0.02), col, v, v)
+			b.quad(knee + Vector3(0, 0, -0.014), foot + Vector3(0, 0, -0.014), foot + Vector3(0, 0, 0.014), knee + Vector3(0, 0, 0.014), col, v, v)
+	_meshes["newt"] = b.commit()
+	return _meshes["newt"]
+
+
 ## A rat's hole at the foot of a wall: a small dark arch with a broken rim.
 ## It faces +Z (out of the wall), its base on y = 0, a unit wide.
 static func hole_mesh() -> ArrayMesh:
@@ -140,7 +200,10 @@ static func material(def: CreatureDef) -> ShaderMaterial:
 	m.set_shader_parameter("dark_colour", def.palette[1] if def.palette.size() > 1 else Color(0.08, 0.07, 0.06))
 	m.set_shader_parameter("pale_colour", def.palette[2] if def.palette.size() > 2 else Color(0.75, 0.65, 0.6))
 	m.set_shader_parameter("self_glow", def.self_glow)
-	m.set_shader_parameter("flat_body", 1.0 if def.habitat == "wall_lamp" else 0.0)
+	m.set_shader_parameter("flat_body", 1.0 if def.habitat == "wall_lamp" or def.build == "newt" else 0.0)     # (a newt wriggles as it walks, like the gecko)
+	if def.build == "newt":
+		m.set_shader_parameter("gloss", 1.0)
+		m.set_shader_parameter("colour_glow", 0.35)
 	_materials[def.id] = m
 	return m
 
@@ -166,6 +229,8 @@ class _Builder:
 	var normals := PackedVector3Array()
 	var colours := PackedColorArray()
 	var uvs := PackedVector2Array()
+	## The body's middle line's height (quads face away from it).
+	var mid_y: float = 0.12
 
 	func tri(a: Vector3, b: Vector3, c: Vector3, col: Color, v: float, v_last: float = -1.0) -> void:
 		var n: Vector3 = (b - a).cross(c - a).normalized()
@@ -182,7 +247,7 @@ class _Builder:
 		var n: Vector3 = (b - a).cross(c - a).normalized()
 		var out: Vector3 = (a + b + c + d) * 0.25
 		# Outward: away from the body's middle line (x = 0, y about 0.15).
-		if n.dot(Vector3(out.x, out.y - 0.12, 0.0)) < 0.0:
+		if n.dot(Vector3(out.x, out.y - mid_y, 0.0)) < 0.0:
 			n = -n
 		var pts: Array[Vector3] = [a, b, c, a, c, d]
 		var vs: Array[float] = [v0, v0, v1, v0, v1, v1]

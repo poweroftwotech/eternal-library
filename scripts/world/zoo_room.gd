@@ -36,9 +36,11 @@ const PENS: Array[Dictionary] = [
 	{"id": "ruin", "name": "Forgotten room", "for": "Rats", "type": "R02", "state": "abandoned", "side": 1, "z": 8, "height": 4.0, "wall": "limestone", "roof": "limestone"},
 	{"id": "garden", "name": "Kept garden", "for": "Nightingales", "type": "garden", "state": "", "side": -1, "z": 12, "height": 7.0, "wall": "persian_plaster", "roof": "vault_plaster"},
 	{"id": "roost", "name": "Pigeon tower", "for": "Pigeons", "type": "roost", "state": "", "side": 1, "z": 12, "height": 22.0, "wall": "quarter_plaster_clay", "roof": "vault_plaster"},
+	{"id": "stream", "name": "Running stream", "for": "Luristan newts", "type": "R15", "state": "", "side": -1, "z": 16, "height": 4.0, "wall": "cave_rock", "roof": "cave_rock"},
+	{"id": "pier", "name": "Flooded piers", "for": "Spiny eels", "type": "R11", "state": "", "side": 1, "z": 16, "height": 4.0, "wall": "limestone", "roof": "limestone"},
 ]
 ## How many cells the corridor runs.
-const LENGTH: int = 16
+const LENGTH: int = 20
 
 ## What Fauna is given: [{slot, node, type, state, cells}].
 var pens: Array[Dictionary] = []
@@ -164,7 +166,7 @@ func _shell(node: Node3D, p: Dictionary) -> void:
 	var r: Rect2 = _span(p)
 	var h: float = p["height"]
 	var wall: String = p["wall"]
-	if str(p["id"]) != "cistern":     # (the cistern lays its own floor round its basin)
+	if not str(p["id"]) in ["cistern", "stream", "pier"]:     # (these lay their own floor round their water)
 		_box(node, Vector3(r.size.x, 0.4, r.size.y), Vector3(r.get_center().x, -0.2, r.get_center().y), "floor_stone")
 	_box(node, Vector3(r.size.x, 0.3, r.size.y), Vector3(r.get_center().x, h + 0.15, r.get_center().y), str(p["roof"]))
 	var left: bool = int(p["side"]) < 0
@@ -289,6 +291,68 @@ func _pen_cistern(node: Node3D, p: Dictionary) -> void:
 		_box(node, Vector3(a.distance_to(b) if along else 0.1, 2.0, 0.1 if along else a.distance_to(b)), Vector3((a.x + b.x) * 0.5, 1.0, (a.y + b.y) * 0.5), "", true, BLOCKERS)
 	# A faint fungus glow, so the water can be seen; no flame, no daylight.
 	_light(node, Vector3(r.get_center().x, 2.2, r.get_center().y), Color(0.45, 0.85, 0.8), 0.9, 9.0, "fungus")
+
+
+## Newts (phase 20 step 3): a channel of running water across a cave room,
+## with a shallow shelf down one side, stone banks level with the water to
+## sit on, and a dim fungus glow.
+func _pen_stream(node: Node3D, p: Dictionary) -> void:
+	var r: Rect2 = _span(p)
+	var c: Vector2 = r.get_center()
+	var half: float = 1.3
+	var top: float = -0.06
+	# The banks, either side.
+	for s: float in [-1.0, 1.0]:
+		var w: float = r.size.x * 0.5 - half
+		_box(node, Vector3(w, 0.4, r.size.y), Vector3(c.x + s * (half + w * 0.5), -0.2, c.y), "cave_rock")
+	# The channel's bed: deep down one side, a shelf of shallows down the other.
+	_box(node, Vector3(1.2, 0.4, r.size.y), Vector3(c.x + half - 0.6, -0.52, c.y), "cave_rock")
+	_box(node, Vector3(1.4, 0.4, r.size.y), Vector3(c.x - half + 0.7, -0.4, c.y), "cave_rock")
+	_pool(node, Rect2(Vector2(c.x - half, r.position.y), Vector2(half * 2.0, r.size.y)), top, 0.26, "channel_water", false)
+	# Stones by the water.
+	for k: int in 5:
+		var s: float = -1.0 if k % 2 == 0 else 1.0
+		_box(node, Vector3(0.5, 0.18, 0.4), Vector3(c.x + s * (half + 0.35), 0.09, r.position.y + 1.5 + k * 2.2), "cave_rock")
+	for k: int in 2:
+		_light(node, Vector3(c.x + (k * 2 - 1) * 2.5, 1.2, c.y + (k * 2 - 1) * 2.0), Color(0.45, 0.85, 0.8), 1.0, 8.0, "fungus")
+	_light(node, Vector3(c.x, 3.4, c.y), Color(0.9, 0.95, 1.0), 0.6, 9.0, "daylight")
+
+
+## Eels: deep water with a causeway across it to walk on and two stone piers
+## standing in it; holes in their sides and the basin's. Unseen walls keep you
+## out of the deep water, as in the cistern.
+func _pen_pier(node: Node3D, p: Dictionary) -> void:
+	var r: Rect2 = _span(p)
+	var c: Vector2 = r.get_center()
+	var basin := Rect2(r.position + Vector2(2.5, 2.5), r.size - Vector2(5.0, 5.0))
+	var floor_y: float = -1.0
+	_box(node, Vector3(r.size.x, 0.4, r.size.y), Vector3(c.x, floor_y - 0.2, c.y), "limestone")
+	for e: Rect2 in [Rect2(r.position, Vector2(r.size.x, 2.5)), Rect2(Vector2(r.position.x, r.end.y - 2.5), Vector2(r.size.x, 2.5)),
+			Rect2(Vector2(r.position.x, r.position.y + 2.5), Vector2(2.5, r.size.y - 5.0)), Rect2(Vector2(r.end.x - 2.5, r.position.y + 2.5), Vector2(2.5, r.size.y - 5.0))]:
+		_box(node, Vector3(e.size.x, -floor_y, e.size.y), Vector3(e.get_center().x, floor_y * 0.5, e.get_center().y), "floor_stone")
+	# The causeway, across from the door.
+	var cw: float = 1.6
+	_box(node, Vector3(basin.size.x, -floor_y, cw), Vector3(c.x, floor_y * 0.5, c.y), "limestone")
+	# Two piers in the water, floor to roof.
+	for s: float in [-1.0, 1.0]:
+		_box(node, Vector3(0.9, 4.0 - floor_y, 0.9), Vector3(c.x + s * 1.6, (4.0 + floor_y) * 0.5, c.y + s * 2.0), "limestone")
+	_pool(node, basin, -0.2, 0.8, "cistern_water", false)
+	# The deep water's unseen walls: round the basin but where the causeway
+	# joins it, and down both sides of the causeway.
+	var bh: float = 2.0
+	var lines: Array = [[Vector2(basin.position.x, basin.position.y), Vector2(basin.end.x, basin.position.y)], [Vector2(basin.position.x, basin.end.y), Vector2(basin.end.x, basin.end.y)]]
+	for x: float in [basin.position.x, basin.end.x]:
+		lines.append([Vector2(x, basin.position.y), Vector2(x, c.y - cw * 0.5)])
+		lines.append([Vector2(x, c.y + cw * 0.5), Vector2(x, basin.end.y)])
+	for s: float in [-1.0, 1.0]:
+		lines.append([Vector2(basin.position.x, c.y + s * cw * 0.5), Vector2(basin.end.x, c.y + s * cw * 0.5)])
+	for e: Array in lines:
+		var a: Vector2 = e[0]
+		var b: Vector2 = e[1]
+		var along: bool = absf(b.x - a.x) > absf(b.y - a.y)
+		_box(node, Vector3(a.distance_to(b) if along else 0.1, bh, 0.1 if along else a.distance_to(b)), Vector3((a.x + b.x) * 0.5, bh * 0.5, (a.y + b.y) * 0.5), "", true, BLOCKERS)
+	_light(node, Vector3(c.x, 2.6, c.y - 3.0), Color(0.45, 0.85, 0.8), 1.0, 9.0, "fungus")
+	_light(node, Vector3(c.x, 3.4, c.y + 3.0), Color(0.9, 0.95, 1.0), 0.8, 10.0, "daylight")
 
 
 ## Moths and geckos: burning lamps on open flat walls.

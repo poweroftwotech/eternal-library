@@ -24,7 +24,8 @@ extends Node3D
 
 const DEFS: Array[String] = ["res://actors/defs/goldfish.tres", "res://actors/defs/cave_barb.tres",
 	"res://actors/defs/candle_moth.tres", "res://actors/defs/glowworm.tres", "res://actors/defs/bat.tres", "res://actors/defs/cat.tres",
-	"res://actors/defs/rat.tres", "res://actors/defs/gecko.tres", "res://actors/defs/nightingale.tres", "res://actors/defs/pigeon.tres"]
+	"res://actors/defs/rat.tres", "res://actors/defs/gecko.tres", "res://actors/defs/nightingale.tres", "res://actors/defs/pigeon.tres",
+	"res://actors/defs/spiny_eel.tres", "res://actors/defs/luristan_newt.tres"]
 const BUDGET_MS: float = 1.0
 const SLEEP_DISTANCE: float = 30.0
 ## Per view: at most this many simple animals and swarms awake (the nearest;
@@ -306,7 +307,7 @@ func _process(delta: float) -> void:
 
 
 static func _is_swarm(g: Node) -> bool:
-	return g is PigeonFlock or not (g is FishPool or is_band(g) or g is RatPack or g is GeckoWall)
+	return g is PigeonFlock or not (g is FishPool or is_band(g) or g is RatPack or g is GeckoWall or g is EelHoles or g is NewtBank)
 
 
 ## A group made of one node per animal (cats, birds), not a MultiMesh.
@@ -494,7 +495,7 @@ func _populate(j: Dictionary, d: CreatureDef) -> void:
 				for bi: int in bodies.size():
 					var rng := RandomNumberGenerator.new()
 					rng.seed = hash([world_seed, key, bi, str(d.id)])
-					_fill_water(d, bodies[bi], rng, abandoned, out)
+					_fill_water(d, bodies[bi], rng, abandoned, out, j, space)
 			"flame":
 				var rng := RandomNumberGenerator.new()
 				rng.seed = hash([world_seed, key, str(d.id)])
@@ -529,7 +530,10 @@ func _populate(j: Dictionary, d: CreatureDef) -> void:
 	groups[slot] = out
 
 
-func _fill_water(d: CreatureDef, b: WaterBody, rng: RandomNumberGenerator, abandoned: bool, out: Array) -> void:
+func _fill_water(d: CreatureDef, b: WaterBody, rng: RandomNumberGenerator, abandoned: bool, out: Array, j: Dictionary = {}, space: PhysicsDirectSpaceState3D = null) -> void:
+	if d.build == "eel" or d.build == "newt":
+		_fill_shore(d, b, rng, out, j, space)
+		return
 	var places: int = b.deep_samples(d.min_depth).size()
 	if places < 4 or b.area() < d.min_area:
 		return
@@ -562,6 +566,58 @@ func _fill_water(d: CreatureDef, b: WaterBody, rng: RandomNumberGenerator, aband
 	pool.setup(d, b, n, rng.randi(), survivor)
 	pool.flow = _flow_of(b)
 	out.append(pool)
+
+
+## Phase 20 step 3: the eel (holes in thick stone under deep enough water) and
+## the newt (the edge of running water). A note for the overlay either way.
+const RUNNING: float = 0.08
+## At most this many newt groups in a room.
+const NEWT_BANKS: int = 2
+
+
+func _fill_shore(d: CreatureDef, b: WaterBody, rng: RandomNumberGenerator, out: Array, j: Dictionary, space: PhysicsDirectSpaceState3D) -> void:
+	if space == null:
+		return
+	var notes: Array = j.get_or_add("notes", []) if not j.is_empty() else []
+	var mid := Vector3(b.bounds.get_center().x, b.surface, b.bounds.get_center().z)
+	var room_left: int = MAX_LIVE_THINKING - int(stats["thinking"]) - _count(out, false)
+	if d.build == "eel":
+		if b.area() < d.min_area or b.deep_samples(d.min_depth).size() < 4:
+			if b.area() >= 6.0:     # (not every basin, bowl and channel piece)
+				notes.append({"at": mid, "ok": false, "text": "Spiny eel: no, the water is too small or shallow (%.0f m2, %.0f cm deep needed)" % [b.area(), d.min_depth * 100.0]})
+			return
+		var holes: Array[Dictionary] = EelHoles.find_holes(b, space, rng.randi(), d.min_depth)
+		if holes.size() < 2:
+			notes.append({"at": mid, "ok": false, "text": "Spiny eel: no, %d holes in thick enough stone (2 needed)" % holes.size()})
+			return
+		var n: int = mini(clampi(roundi(holes.size() / maxf(d.area_each, 1.0)), d.group_size.x, d.group_size.y), holes.size() - 1)
+		n = mini(n, room_left)
+		if n <= 0:
+			return
+		var eels := EelHoles.new()
+		add_child(eels)
+		eels.setup(d, b, holes, n, rng.randi())
+		out.append(eels)
+		notes.append({"at": holes[0]["at"], "ok": true, "text": "Spiny eel: %d, in %d holes" % [n, holes.size()]})
+	else:
+		var flow: float = _flow_of(b).length()
+		if flow < RUNNING:
+			return     # (still water: nothing to say, most water is)
+		if out.filter(func(g: Node) -> bool: return g is NewtBank).size() >= NEWT_BANKS:
+			return     # (a room of many channel pieces: the Fungus Terraces)
+		var spots: Array[Dictionary] = NewtBank.find_spots(b, space, rng.randi())
+		if spots.size() < 4:
+			notes.append({"at": mid, "ok": false, "text": "Luristan newt: no, only %d wet spots by this running water" % spots.size()})
+			return
+		var n: int = mini(clampi(roundi(spots.size() / maxf(d.area_each, 1.0)), d.group_size.x, d.group_size.y), spots.size() - 1)
+		n = mini(n, room_left)
+		if n <= 0:
+			return
+		var newts := NewtBank.new()
+		add_child(newts)
+		newts.setup(d, b, spots, n, rng.randi())
+		out.append(newts)
+		notes.append({"at": spots[0]["at"], "ok": true, "text": "Luristan newt: %d, %d wet spots, water running %.2f m/s" % [n, spots.size(), flow]})
 
 
 ## Moths: a few at each burning flame; loose over the floor in its loose rooms.

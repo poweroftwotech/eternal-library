@@ -459,7 +459,7 @@ static func _still_water(mat: Material) -> bool:
 	if sm == null or sm.shader == null or sm.shader.resource_path != WATER_SHADER:
 		return false
 	var plane: Variant = sm.get_shader_parameter("plane")
-	return plane == null or int(plane) == 0
+	return plane == null or int(plane) != 2     # (2: a fall, upright; 1 is a level channel whose ripples run in its own frame)
 
 
 static func _lay_grid(b: WaterBody) -> void:

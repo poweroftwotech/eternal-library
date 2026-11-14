@@ -191,3 +191,114 @@ clock, so each bird bobbed 0.6 m at about 8 m/s. Now:
 - each bird rises and falls 0.5 m once round the circle, at 1.2 m/s at most;
 - it joins the circle level with where it came in (within 3 cm);
 - it banks into the turn, the inside wing down, about 30 to 35°.
+
+Step 2 committed (b3fe4c6, 2026-11-14).
+
+## Step 3: the eel and the newt (built 2026-11-14, not committed)
+
+**The spiny eel** (C03, 60 cm, `EelHoles`, `EelBody`,
+`shaders/creature_eel.gdshader`):
+- It lives in holes in stone under still water at least 30 cm deep, in water
+  of at least 10 m2.
+- Holes are found from where the fish can swim: level rays near the floor
+  meet a wall. A hole is kept only where the stone is at least 0.62 m thick
+  (the eel's body goes into it) and the water in front is open. Up to 10
+  holes, 0.9 m apart; each is drawn as a ragged dark disc.
+- At rest it lies in the hole with only its head out, swaying a little.
+- Every 25 to 70 s it slides out along the bottom to another hole, turns
+  round in front of it, and backs in tail first until only its head shows.
+- When you come within 1.8 m (3 m if you're moving) it draws in, and looks
+  out again 4 to 9 s after you leave.
+- The model is a mottled brown tube with a pale belly, a dark line through
+  the eye, a long snout and a fin along its back that runs into the tail. A
+  wave runs down its whole body as it swims.
+- 1 to 3 eels per body of water, one per 3 holes.
+
+**The Luristan newt** (C04, 13 cm, `NewtBank`, `GroundBody.newt_mesh`):
+- It lives only by running water, flowing at 0.08 m/s or faster: the Fungus
+  Terraces' channels and well, and the camp stream. The cistern and the lake
+  count as still.
+- Its spots are the stone just past the water's edge, about level with the
+  surface, and the floor of shallows 10 to 25 cm deep.
+- It sits 5 to 18 s, then walks slowly to a spot within 1.3 m.
+- When you come within 4 m it freezes. Within 2 m it slips into the water,
+  down to the bottom, and is gone. It comes back somewhere along the bank 25
+  to 50 s later, away from you.
+- It is black with white spots on its flanks, a narrow orange stripe down
+  its back, orange legs, and a tall flattened tail. It wriggles as it walks,
+  like the gecko.
+- 2 to 5 newts per stream.
+
+**A fix underneath:** the water scan skipped level channels (water material
+`plane = 1`, as in the Fungus Terraces' channels). Now only falls
+(`plane = 2`) are left out. So fish can now live in those channels too, if
+they are deep enough.
+
+**The zoo** has two new pens at the end of the corridor (now 20 cells long):
+- "Running stream": a cave room with a channel, a shelf of shallows, stone
+  banks and a dim fungus glow. 5 newts, 40 spots, 19 of them in the
+  shallows.
+- "Flooded piers": water 0.8 m deep with a causeway across it to walk on and
+  two stone piers. 3 eels, 10 holes.
+
+The old "Dark cistern" pen gets 3 eels too.
+
+**Probe** (`tests/shore_probe.gd`):
+- the Gardens' two cisterns: eels in all four bodies of water that are big
+  enough (1 or 2 eels each, 2 to 8 holes);
+- the camp stream: 3 newts, all on the bank.
+
+The Fungus Terraces aren't in the current world's live areas, so they
+haven't been probed (they grow in 17 of 40 worlds).
+
+**Checks:** the headless gate passes, and `tests/fauna_test.gd` passes
+across two processes (29 checks, the new kinds included).
+
+**Caveat:** eels are dark in dark water. Through 1.4 m of the cistern water
+they were nearly invisible, so the zoo's pier pen is 0.8 m deep. The holes
+themselves hardly show. The F4 overlay shows the notes but has no labels yet
+for what each eel or newt is doing.
+
+**Look 1 (2026-11-14):** you asked for bioluminescence on the eels. Each eel
+now has a row of glowing teal dots down each side and a few along its back,
+with a slow pulse running down the body that brightens and quickens when it
+swims. It lights nothing round it (emission only, no light, no cost). The
+colour is the def's `glow_colour`, so it can follow the area's fungus later.
+
+**Look 2 (2026-11-14):** you wanted the newt "brighter, colourful, sort of
+poison dart frogs". It is now:
+- glossy blue-black (a wet clearcoat sheen);
+- vivid orange along its back, down its sides, on its belly and legs;
+- three cream-yellow bands (head, shoulder, middle);
+- its orange and cream parts glow a little of themselves (`colour_glow`
+  0.35), so it stands out in a dim cave without lighting anything.
+
+`creature_crawler.gdshader` gained `gloss` and `colour_glow` for this; both
+are 0 for the rat and the gecko, so they are unchanged.
+
+**Walk 1 (2026-11-14):** one report: no newts at the Gardens' Fungus
+Terrace. Its channels were turned down with "0 wet spots" for three reasons:
+- The water sounding keeps clear of walls, so a narrow channel has no
+  sounded places to start from. Newts now start from random points on the
+  water's surface itself.
+- The terrace rows' collision is a flat slab 0.1 to 0.9 m over their
+  channels, so rays never reach the bed you see. Newts now ask the visible
+  meshes of the piece the ray hit (`NewtBank._seen_down`), leaving out the
+  water, the falls and the fungus.
+- A bank may now stand up to 0.5 m over the water (a kerb).
+
+At most 2 newt groups go in one room (the terraces have about ten channel
+pieces). The probe now finds 2 groups of 8 in each of the Gardens' two
+terraces, about 40 spots each, half in the shallows. Captured: they sit on
+the channel edges and beside the cascade.
+
+You: "looks good". Step 3's look is approved.
+
+### You try
+
+1. The zoo → "Running stream". Walk up to a newt slowly, stop at about 3 m,
+   then go closer.
+2. The zoo → "Flooded piers". Stand on the causeway and wait for an eel to
+   change holes, then step toward one in its hole.
+3. The camp stream (newts on the bank).
+4. A Gardens cistern: wade in.

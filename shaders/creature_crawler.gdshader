@@ -13,6 +13,11 @@ uniform vec3 body_colour : source_color = vec3(0.4, 0.35, 0.3);
 uniform vec3 dark_colour : source_color = vec3(0.08, 0.07, 0.06);
 uniform vec3 pale_colour : source_color = vec3(0.75, 0.65, 0.6);
 uniform float self_glow = 0.0;
+// A wet, glossy skin (0 matte, 1 like a frog's), and its bright colours (the
+// pale and dark parts, not the body) glowing a little of themselves, so a
+// poison-bright newt stands out in a dim cave (phase 20 step 3, look 2).
+uniform float gloss = 0.0;
+uniform float colour_glow = 0.0;
 // 1: a flat animal that wriggles side to side as it runs (the gecko).
 uniform float flat_body = 0.0;
 varying float v_shade;
@@ -47,7 +52,9 @@ void fragment() {
 		c = vec3(0.015);     // an eye
 	}
 	ALBEDO = c;
-	ROUGHNESS = 0.9;
-	SPECULAR = 0.15;
-	EMISSION = c * self_glow;
+	ROUGHNESS = mix(0.9, 0.22, gloss);
+	SPECULAR = mix(0.15, 0.65, gloss);
+	CLEARCOAT = gloss;
+	CLEARCOAT_ROUGHNESS = 0.15;
+	EMISSION = c * self_glow + (COLOR.r > 0.25 && COLOR.a > 0.5 ? c * colour_glow : vec3(0.0));
 }
