@@ -60,6 +60,10 @@ func tick(delta: float, player: Vector3, _moving: float) -> void:
 		if dist < def.startle_radius:
 			clock = 0.0
 			set_instance_shader_parameter("exit_dir", _way_out(player))
+			# Phase 20 (Q2): the colony's chatter as it lifts off, and its wings.
+			SoundSystem.cue("bat_chitter", centre, 20.0, -2.0)
+			SoundSystem.cue("bat_chitter", centre + Vector3(0.6, 0, 0.4), 20.0, -5.0, 0.7)
+			SoundSystem.cue("wings_small", centre, 14.0, -8.0, 1.0, 0.25)
 		else:
 			return
 	elif clock < AWAY_S:

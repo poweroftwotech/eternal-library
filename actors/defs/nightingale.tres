@@ -1,0 +1,21 @@
+[gd_resource type="Resource" script_class="CreatureDef" format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/creature_def.gd" id="1_def"]
+
+[resource]
+script = ExtResource("1_def")
+habitat = "garden"
+rooms = PackedStringArray("R07", "R09", "camp", "garden")
+not_rooms = PackedStringArray()
+loose_rooms = PackedStringArray()
+area_each = 14.0
+group_size = Vector2i(1, 5)
+startle_radius = 3.0
+id = &"nightingale"
+display_name = "Nightingale"
+local_name = "Bolbol"
+atlas_id = "C19"
+length_m = 0.1999999942025817
+length_spread = Vector2(0.74999994, 1.25)
+speed = Vector2(3, 6)
+palette = PackedColorArray(0.54, 0.43, 0.31, 1, 0.79, 0.65, 0.48, 1, 0.94, 0.89, 0.8, 1)

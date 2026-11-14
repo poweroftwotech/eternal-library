@@ -89,6 +89,7 @@ func tick(delta: float, player: Vector3, moving: float) -> void:
 		_flee = 3.0
 		_hang = 0.0
 		target = _away_from(Vector2(player.x, player.z))
+		SoundSystem.cue("fish_splash", Vector3(position.x, body.surface, position.z), 14.0, -7.0, 0.6)     # the school turning (phase 20 Q2)
 	_flee = maxf(0.0, _flee - delta)
 	# The school's middle: toward its next place, then a rest.
 	var want := Vector3.ZERO

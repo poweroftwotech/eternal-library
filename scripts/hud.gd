@@ -1,5 +1,8 @@
 extends CanvasLayer
 signal choice_selected(action: String)
+## A choice given as {"text", "slider": 0..1, "action"} is a row with a slider
+## (the menu's volumes); moving it sends this, not choice_selected.
+signal slider_changed(action: String, value: float)
 var zone_label: Label
 var prompt_label: Label
 var prompt_panel: PanelContainer
@@ -292,6 +295,9 @@ func open(title: String, text: String, choices: Array, input_placeholder: String
 		modal_buttons.remove_child(child)
 		child.queue_free()
 	for i in range(choices.size()):
+		if choices[i].has("slider"):
+			modal_buttons.add_child(_slider_row(i, choices[i]))
+			continue
 		var button = Button.new()
 		button.text = "%d  %s" % [i+1,choices[i].text]
 		button.alignment = HORIZONTAL_ALIGNMENT_LEFT
@@ -309,9 +315,37 @@ func open(title: String, text: String, choices: Array, input_placeholder: String
 		modal_input.grab_focus()
 		return
 	for button in modal_buttons.get_children():
-		if not button.disabled:
+		if button is Button and not button.disabled:
 			button.grab_focus()
 			break
+
+## A choice that is a slider: its name, the slider (0 to 100%), and the value
+## as a percentage, in a row. Arrow keys move it once it has focus.
+func _slider_row(index: int, choice: Dictionary) -> HBoxContainer:
+	var row := HBoxContainer.new()
+	row.add_theme_constant_override("separation", 12)
+	var name_label := Label.new()
+	name_label.text = "%d  %s" % [index + 1, choice.text]
+	name_label.custom_minimum_size = Vector2(150, 0)
+	row.add_child(name_label)
+	var slider := HSlider.new()
+	slider.min_value = 0.0
+	slider.max_value = 1.0
+	slider.step = 0.05
+	slider.value = float(choice.slider)
+	slider.size_flags_horizontal = Control.SIZE_EXPAND_FILL
+	slider.size_flags_vertical = Control.SIZE_SHRINK_CENTER
+	row.add_child(slider)
+	var value_label := Label.new()
+	value_label.text = "%d%%" % roundi(slider.value * 100.0)
+	value_label.custom_minimum_size = Vector2(56, 0)
+	value_label.horizontal_alignment = HORIZONTAL_ALIGNMENT_RIGHT
+	row.add_child(value_label)
+	var action: String = choice.action
+	slider.value_changed.connect(func(v: float) -> void:
+		value_label.text = "%d%%" % roundi(v * 100.0)
+		slider_changed.emit(action, v))
+	return row
 
 func close() -> void:
 	modal_open = false
@@ -321,7 +355,7 @@ func close() -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_CAPTURED
 
 func select(index: int) -> void:
-	if index >= 0 and index < options.size() and not options[index].get("disabled",false):
+	if index >= 0 and index < options.size() and not options[index].get("disabled",false) and not options[index].has("slider"):
 		choice_selected.emit(options[index].action)
 
 func _process(delta: float) -> void:

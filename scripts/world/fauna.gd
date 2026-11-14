@@ -24,7 +24,7 @@ extends Node3D
 
 const DEFS: Array[String] = ["res://actors/defs/goldfish.tres", "res://actors/defs/cave_barb.tres",
 	"res://actors/defs/candle_moth.tres", "res://actors/defs/glowworm.tres", "res://actors/defs/bat.tres", "res://actors/defs/cat.tres",
-	"res://actors/defs/rat.tres", "res://actors/defs/gecko.tres"]
+	"res://actors/defs/rat.tres", "res://actors/defs/gecko.tres", "res://actors/defs/nightingale.tres"]
 const BUDGET_MS: float = 1.0
 const SLEEP_DISTANCE: float = 30.0
 ## Per view: at most this many simple animals and swarms awake (the nearest;
@@ -134,6 +134,9 @@ func _load_defs() -> void:
 			GroundBody.material(d)
 		elif d.habitat == "lane":
 			CatBody.material()
+		elif d.habitat == "garden":
+			BirdBody.parts()
+			BirdBody.material()
 		else:
 			AirBody.material(d)
 
@@ -245,12 +248,15 @@ func _process(delta: float) -> void:
 	var near: Array = []     # [distance, group, swarm]
 	for slot: String in groups:
 		for g: Node in groups[slot]:
-			var band := g as CatBand
-			if band != null and is_instance_valid(band):
-				animals += band.count()
-				thinking += band.count()
-				if band.bounds.grow(SLEEP_DISTANCE).has_point(eye):
-					near.append([_distance(band.bounds, eye), band, false])
+			if not is_instance_valid(g):
+				continue
+			if is_band(g):
+				var band := g as Node3D
+				var box: AABB = band.get("bounds")
+				animals += size_of(band)
+				thinking += size_of(band)
+				if box.grow(SLEEP_DISTANCE).has_point(eye):
+					near.append([_distance(box, eye), band, false])
 				else:
 					_show(band, false)
 				continue
@@ -274,7 +280,7 @@ func _process(delta: float) -> void:
 	var n_swarm: int = 0
 	for e: Array in near:
 		var g: Node3D = e[1]
-		var n: int = (g as CatBand).count() if g is CatBand else (g as MultiMeshInstance3D).multimesh.instance_count
+		var n: int = size_of(g)
 		var ok: bool = (n_swarm < MAX_SWARMS) if e[2] else (n_think + n <= MAX_THINKING)
 		_show(g, ok)
 		if not ok:
@@ -295,7 +301,20 @@ func _process(delta: float) -> void:
 
 
 static func _is_swarm(g: Node) -> bool:
-	return not (g is FishPool or g is CatBand or g is RatPack or g is GeckoWall)
+	return not (g is FishPool or is_band(g) or g is RatPack or g is GeckoWall)
+
+
+## A group made of one node per animal (cats, birds), not a MultiMesh.
+static func is_band(g: Node) -> bool:
+	return g is CatBand or g is BirdBand
+
+
+## How many animals a group holds.
+static func size_of(g: Node) -> int:
+	if is_band(g):
+		return int(g.call("count"))
+	var mmi := g as MultiMeshInstance3D
+	return mmi.multimesh.instance_count if mmi != null and mmi.multimesh != null else 0
 
 
 ## A group's box (global): its water's, or its own.
@@ -362,7 +381,7 @@ func _work() -> void:
 			break
 		# 4. The room's meshes and their boxes, for the kinds that sit on what
 		# you see of a wall (geckos, rat holes): read a few hundred nodes a go.
-		if not j.has("boxes") and (_needs(j, "wall_lamp") or _needs(j, "wall_foot")):
+		if not j.has("boxes") and (_needs(j, "wall_lamp") or _needs(j, "wall_foot") or _needs(j, "garden")):
 			if not j.has("box_stack"):
 				j["box_stack"] = [node]
 				j["box_found"] = []
@@ -474,6 +493,10 @@ func _populate(j: Dictionary, d: CreatureDef) -> void:
 				var rng := RandomNumberGenerator.new()
 				rng.seed = hash([world_seed, key, str(d.id)])
 				_fill_geckos(d, j, rng, space, out)
+			"garden":
+				var rng := RandomNumberGenerator.new()
+				rng.seed = hash([world_seed, key, str(d.id)])
+				_fill_birds(d, j, rng, space, abandoned, out)
 	groups[slot] = out
 
 
@@ -688,10 +711,39 @@ func _fill_geckos(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, spa
 	out.append(wall)
 
 
+## Nightingales: one or two in a kept garden, on perches found on its plants
+## (BirdBand.find_perches). A forgotten garden is silent (the atlas: a garden
+## gone quiet is a warning).
+func _fill_birds(d: CreatureDef, j: Dictionary, rng: RandomNumberGenerator, space: PhysicsDirectSpaceState3D, abandoned: bool, out: Array) -> void:
+	if abandoned:
+		return
+	var t0: int = Time.get_ticks_usec()
+	var found: Array[Dictionary] = BirdBand.find_perches(_boxes(j), space)
+	j["perch_ms"] = (Time.get_ticks_usec() - t0) / 1000.0
+	var notes: Array = j.get_or_add("notes", [])
+	var highs: int = found.filter(func(p: Dictionary) -> bool: return bool(p["high"])).size()
+	if not BirdBand.is_garden(found):
+		if not found.is_empty():
+			notes.append({"at": found[0]["at"], "ok": false, "text": "Nightingales: none, only %d high perches (4 needed)" % highs})
+		return
+	var n: int = clampi(roundi(highs / maxf(d.area_each, 1.0)), d.group_size.x, d.group_size.y)
+	n = mini(n, 2)     # a pair at most, however plentiful (they hold a garden between them)
+	if area == null and str(j["slot"]) == "":
+		n = 1     # a place that is all one room (the camp): its one bird
+	n = mini(n, MAX_LIVE_THINKING - int(stats["thinking"]) - _count(out, false))
+	if n <= 0:
+		return
+	var band := BirdBand.new()
+	add_child(band)
+	band.setup(d, found, n, rng.randi(), space)
+	out.append(band)
+	notes.append({"at": found[0]["at"], "ok": true, "text": "Nightingales: %d, %d high perches, %d flowers" % [n, highs, found.filter(func(p: Dictionary) -> bool: return bool(p["flower"])).size()]})
+
+
 ## Shown and awake, or hidden and still (a band's cats stop animating too).
 static func _show(g: Node3D, on: bool) -> void:
 	g.visible = on
-	if g is CatBand:
+	if is_band(g):
 		g.process_mode = Node.PROCESS_MODE_INHERIT if on else Node.PROCESS_MODE_DISABLED
 
 
@@ -743,7 +795,7 @@ static func _count(gs: Array, swarm: bool) -> int:
 	var n: int = 0
 	for g: Node in gs:
 		if is_instance_valid(g) and _is_swarm(g) == swarm:
-			n += 1 if swarm else ((g as CatBand).count() if g is CatBand else (g as MultiMeshInstance3D).multimesh.instance_count)
+			n += 1 if swarm else size_of(g)
 	return n
 
 
@@ -810,6 +862,9 @@ func startle_all() -> void:
 			if g is CatBand:
 				for cat: Dictionary in (g as CatBand).cats:
 					(g as CatBand).tick(0.0, (cat["body"] as Node3D).global_position, 10.0)
+			elif g is BirdBand:
+				for bird: Dictionary in (g as BirdBand).birds:
+					(g as BirdBand).tick(0.0, (bird["body"] as Node3D).global_position - Vector3(0, 1.0, 0), 10.0)
 			elif g is RatPack:
 				var pack := g as RatPack
 				for rat: Dictionary in pack.rats:

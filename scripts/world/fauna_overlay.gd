@@ -383,7 +383,7 @@ func _summary(room: Variant) -> String:
 	for g: Node in fauna.groups.get(slot, []):
 		if is_instance_valid(g):
 			var kind: String = str(g.get("def").id)
-			here[kind] = int(here.get(kind, 0)) + ((g as CatBand).count() if g is CatBand else (g as MultiMeshInstance3D).multimesh.instance_count)
+			here[kind] = int(here.get(kind, 0)) + Fauna.size_of(g)
 	var have: PackedStringArray = []
 	var lack: PackedStringArray = []
 	for d: CreatureDef in fauna.defs:
@@ -450,6 +450,22 @@ func _animals() -> void:
 					_label(at + Vector3(0, 0.55, 0), "Cat: " + doing)
 					_ring(at + Vector3(0, 0.03, 0), (g as CatBand).def.startle_radius, STARTLE)
 					_ring(at + Vector3(0, 0.03, 0), (g as CatBand).def.look_radius, LOOK)
+			elif g is BirdBand:
+				var band := g as BirdBand
+				for p: Dictionary in band.perches:
+					_ring(p["at"], 0.08, LOOK if p["high"] else STARTLE)
+				for i: int in band.birds.size():
+					var bird: Dictionary = band.birds[i]
+					var at: Vector3 = (bird["body"] as Node3D).global_position
+					var doing: String = ["perched", "flying", "at the flowers"][int(bird["state"])]
+					if band.singer == i:
+						doing = "singing (%d phrases left)" % int(bird["bout"])
+					elif int(bird["bout"]) > 0:
+						doing += ", in a bout (%d left)" % int(bird["bout"])
+					elif float(bird["wary"]) > 0.0:
+						doing += ", wary %.0f s" % float(bird["wary"])
+					_label(at + Vector3(0, 0.3, 0), "Nightingale: " + doing)
+					_ring(at, band.def.startle_radius, STARTLE)
 			elif g is RatPack:
 				var pack := g as RatPack
 				for rat: Dictionary in pack.rats:

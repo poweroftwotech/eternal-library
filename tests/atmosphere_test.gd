@@ -33,9 +33,10 @@ func run() -> void:
 	check(atmosphere.lanterns.size()>=3,"Lantern flames participate in the light variation")
 	check(game.audio.stream is AudioStreamOggVorbis and absf(game.audio.stream.get_length()-96)<.1 and game.audio.stream.loop,"Original 96-second music stream is loaded and loops")
 	game.on_choice("mute")
-	check(game.mute and game.audio.volume_db<=-70,"Music can be muted")
+	var music_bus: int = AudioServer.get_bus_index("Music")
+	check(game.audio.bus == "Music" and game.mute and AudioServer.is_bus_mute(music_bus),"Music can be muted")
 	game.on_choice("mute")
-	check(not game.mute and game.audio.volume_db>-30,"Music can be restored")
+	check(not game.mute and not AudioServer.is_bus_mute(music_bus) and AudioServer.get_bus_volume_db(music_bus)>-30,"Music can be restored")
 	game.queue_free()
 	for i in range(4):
 		await process_frame

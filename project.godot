@@ -21,6 +21,7 @@ config/icon="res://assets/icon.svg"
 [autoload]
 
 WorldState="*res://scripts/world/world_state.gd"
+Sound="*res://scripts/audio/sound.gd"
 
 [display]
 

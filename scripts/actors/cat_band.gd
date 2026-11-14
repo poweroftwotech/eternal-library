@@ -77,10 +77,12 @@ func tick(delta: float, player: Vector3, moving: float) -> void:
 				cat["face"] = null
 				body.play("startle", 0.08)
 				state = STARTLE
+				SoundSystem.cue("cat_mew", body.global_position + Vector3(0, 0.25, 0), 14.0, -4.0, 0.4, 0.12)
 			elif dist < def.crowd_radius and state == REST:
 				_leave(cat, player, false)
 				state = cat["state"]
 		var near: bool = dist < def.look_radius
+		_voice(cat, body, dist, near and state == REST, delta)
 		# It looks at you only while it rests: a cat walking with its head
 		# turned aside reads wrong (it would only look if it were coming to you).
 		if near and state == REST:
@@ -105,6 +107,21 @@ func tick(delta: float, player: Vector3, moving: float) -> void:
 					_leave(cat, player, true)
 			WALK, FLEE:
 				_walk(cat, delta)
+
+
+## Phase 20 (Q2): a cat that notices you now and then mews; one lying or
+## sitting with you right beside it purrs.
+func _voice(cat: Dictionary, body: CatBody, dist: float, noticing: bool, delta: float) -> void:
+	if noticing and not bool(cat.get("noticed", false)):
+		SoundSystem.cue("cat_mew", body.global_position + Vector3(0, 0.25, 0), 14.0, -6.0, 0.3, 0.1)
+	cat["noticed"] = noticing
+	cat["purr_t"] = float(cat.get("purr_t", 0.0)) - delta
+	if int(cat["state"]) == REST and dist < 1.8 and float(cat["purr_t"]) <= 0.0 and body.anim.current_animation in ["sleep", "sit", "idle", "wash"]:
+		var s: SoundSystem = SoundSystem.it()
+		var purr: AudioStream = s.clip("cat_purr") if s != null else null
+		if purr != null:
+			s.play_at(purr, body.global_position + Vector3(0, 0.15, 0), 4.0, -6.0)
+			cat["purr_t"] = purr.get_length() - 0.05
 
 
 ## Along its path; at the end, rests.

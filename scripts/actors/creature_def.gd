@@ -6,7 +6,8 @@ extends ActorDef
 ## "water" (step 1), "flame" (round a burning flame), "dark_roof" (step 2) or
 ## "lane" (step 3: the walked lanes and rest spots of a room), "wall_foot" (step
 ## 4: along the foot of walls, rats) or "wall_lamp" (the wall by a burning lamp,
-## geckos).
+## geckos), "garden" (phase 20: the branches and flowers of a kept garden,
+## the nightingale).
 @export var habitat: String = "water"
 ## "swarm", "simple" or "rigged" (the atlas's build tiers).
 @export var build: String = "simple"
@@ -48,6 +49,7 @@ extends ActorDef
 ## How far under the surface it swims (m): nearest and furthest.
 @export var swim_depth: Vector2 = Vector2(0.06, 0.4)
 ## Simple: one animal per this many m2, between group_size x and y.
+## Garden (nightingales): one per this many high perches, between x and y.
 ## Lane (cats): one per this many soft places to lie, between group_size x and y.
 ## Swarm: one school per this many m2 (at least one), up to max_groups, each
 ## of group_size x to y.

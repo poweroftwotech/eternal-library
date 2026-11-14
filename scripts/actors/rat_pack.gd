@@ -246,6 +246,8 @@ func tick(delta: float, player: Vector3, _moving: float) -> void:
 			rat["state"] = BOLT
 			rat["to"] = -1.0 if float(rat["s"]) < length * 0.5 else 1.0
 			state = BOLT
+			SoundSystem.cue("rat_squeak", where(rat), 15.0, -4.0, 0.55, 0.1)
+			SoundSystem.cue("rat_scurry", where(rat), 10.0, -8.0)
 		match state:
 			RUN:
 				rat["timer"] = float(rat["timer"]) - delta

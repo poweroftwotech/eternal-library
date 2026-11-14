@@ -64,6 +64,9 @@ func setup(d: CreatureDef, b: WaterBody, count: int, seed_value: int, survivor: 
 	_draw_all()
 
 
+var _splash_at: int = 0
+
+
 ## One step. `player` is the player's feet; `moving` its speed (m/s).
 func tick(delta: float, player: Vector3, moving: float) -> void:
 	if _space == null:
@@ -77,6 +80,10 @@ func tick(delta: float, player: Vector3, moving: float) -> void:
 			f["flee"] = FLEE_S
 			f["hang"] = 0.0
 			f["target"] = _away_from(pos, Vector2(player.x, player.z))
+			# Phase 20 (Q2): a splash as they turn, one for the pool at a time.
+			if Time.get_ticks_msec() > _splash_at:
+				_splash_at = Time.get_ticks_msec() + 1600
+				SoundSystem.cue("fish_splash", Vector3(pos.x, body.surface, pos.z), 16.0, -3.0)
 		f["flee"] = maxf(0.0, float(f["flee"]) - delta)
 		var speed: float = def.speed.y if float(f["flee"]) > 0.0 else def.speed.x
 		var want := Vector3.ZERO

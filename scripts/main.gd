@@ -132,6 +132,7 @@ func _ready() -> void:
 	hud = Hud.new()
 	add_child(hud)
 	hud.choice_selected.connect(on_choice)
+	hud.slider_changed.connect(_on_slider)
 	stats = StatsOverlay.new()
 	stats.ui_theme = hud.theme
 	stats.area = world as Area
@@ -149,7 +150,7 @@ func _ready() -> void:
 	audio.stream = load("res://assets/reading_garden_tar.ogg")
 	if audio.stream is AudioStreamOggVorbis:
 		audio.stream.loop = true
-	audio.volume_db = -14
+	audio.bus = "Music"     # its level is the Music bus's (SoundSystem: the menu's slider)
 	add_child(audio)
 	# Headless runs (CI gate, tests) have no listener; a playing Ogg there was
 	# intermittently still held by the audio thread at quit ("2 resources still
@@ -468,7 +469,8 @@ func show_controls() -> void:
 	open_panel("Controls & settings","WASD / arrows — walk\nMouse — look\nE — gather, cook, push\nShift — run     Space — jump\nJ — field notes     M — map     Esc — menu\nF11 — fullscreen     F3 — performance stats\n` — report what you see (a screenshot, where you stand, a note)\nV — fly (no-clip): Space up, C or Ctrl down, Shift 4x, mouse wheel for speed\n\nMovement pauses while a panel is open.",[
 		{"text":"Mouse sensitivity: %.4f — cycle" % player.sensitivity,"action":"sensitivity"},
 		{"text":"Invert look: %s" % ("On" if player.invert_y else "Off"),"action":"invert"},
-		{"text":"Music: %s" % ("Off" if mute else "On"),"action":"mute"},
+		{"text":"Music","slider":_volume("Music"),"action":"volume:Music"},
+		{"text":"Animals","slider":_volume("Animals"),"action":"volume:Animals"},
 		{"text":"Performance stats: %s  (F3)" % ("On" if stats.visible else "Off"),"action":"stats"},
 		{"text":"Back","action":"menu"}],"controls")
 
@@ -496,7 +498,8 @@ func on_choice(action: String) -> void:
 			show_controls()
 		"mute":
 			mute = not mute
-			audio.volume_db = -80 if mute else -14
+			if SoundSystem.it() != null:
+				SoundSystem.it().set_volume("Music", 0.0 if mute else 1.0)
 			show_controls()
 		"stats":
 			toggle_stats()
@@ -616,6 +619,18 @@ func _notification(what: int) -> void:
 func _exit_tree() -> void:
 	if is_instance_valid(audio):
 		audio.stop()
+	if SoundSystem.it() != null:
+		SoundSystem.it().stop_all()
+
+## A volume slider's value (0..1): the Sound autoload's.
+func _volume(bus: String) -> float:
+	return SoundSystem.it().volume(bus) if SoundSystem.it() != null else 1.0
+
+## A volume slider moved (the menu's Music and Animals rows).
+func _on_slider(action: String, value: float) -> void:
+	if action.begins_with("volume:") and SoundSystem.it() != null:
+		SoundSystem.it().set_volume(action.trim_prefix("volume:"), value)
+		mute = action == "volume:Music" and value <= 0.001
 
 ## The WorldState autoload (the save). Looked up at run time: test scripts
 ## compile main.gd before autoload names exist.

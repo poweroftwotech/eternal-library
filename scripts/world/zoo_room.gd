@@ -34,9 +34,10 @@ const PENS: Array[Dictionary] = [
 	{"id": "vault", "name": "Rock vault", "for": "Bats, glowworms", "type": "R02", "state": "", "side": 1, "z": 4, "height": 9.0, "wall": "cave_rock", "roof": "cave_rock"},
 	{"id": "home", "name": "Lived-in room", "for": "Cats (and what lamps and a pool bring)", "type": "R06", "state": "", "side": -1, "z": 8, "height": 4.0, "wall": "quarter_plaster_clay", "roof": "vault_plaster"},
 	{"id": "ruin", "name": "Forgotten room", "for": "Rats", "type": "R02", "state": "abandoned", "side": 1, "z": 8, "height": 4.0, "wall": "limestone", "roof": "limestone"},
+	{"id": "garden", "name": "Kept garden", "for": "Nightingales", "type": "garden", "state": "", "side": -1, "z": 12, "height": 7.0, "wall": "persian_plaster", "roof": "vault_plaster"},
 ]
 ## How many cells the corridor runs.
-const LENGTH: int = 12
+const LENGTH: int = 16
 
 ## What Fauna is given: [{slot, node, type, state, cells}].
 var pens: Array[Dictionary] = []
@@ -220,8 +221,8 @@ func _wall_lamp(parent: Node3D, at: Vector3, out: Vector3) -> void:
 ## A kit prop set down with its middle over `at` and its base on it, turned
 ## `yaw` (its own origin may be anywhere).
 func _prop(parent: Node3D, scene: String, at: Vector3, yaw: float = 0.0) -> Node3D:
-	var n: Node3D = (load(KIT % scene) as PackedScene).instantiate() as Node3D
-	n.name = scene
+	var n: Node3D = (load(scene if scene.begins_with("res://") else KIT % scene) as PackedScene).instantiate() as Node3D
+	n.name = scene.get_file().get_basename()
 	parent.add_child(n)
 	n.rotation.y = yaw
 	var box := AABB()
@@ -341,6 +342,22 @@ func _pen_home(node: Node3D, p: Dictionary) -> void:
 func _pen_ruin(node: Node3D, p: Dictionary) -> void:
 	var r: Rect2 = _span(p)
 	_light(node, Vector3(r.get_center().x, 3.2, r.get_center().y), Color(0.6, 0.7, 0.95), 1.0, 10.0, "daylight")
+
+
+## Nightingales (phase 20): a kept garden. Pomegranates to sing from, shrubs
+## and potted flowers to feed at, daylight, a bench to sit on and listen.
+func _pen_garden(node: Node3D, p: Dictionary) -> void:
+	var r: Rect2 = _span(p)
+	var c: Vector2 = r.get_center()
+	for at: Vector2 in [Vector2(c.x - 3.0, c.y - 3.0), Vector2(c.x + 2.5, c.y - 2.5), Vector2(c.x - 2.0, c.y + 3.0)]:
+		_prop(node, "res://kit/modules/persian/persian_pomegranate.tscn", Vector3(at.x, 0, at.y), at.x * 1.7)
+	for at: Vector2 in [Vector2(c.x + 3.5, c.y + 3.0), Vector2(c.x - 4.5, c.y), Vector2(c.x + 1.0, c.y + 4.3)]:
+		_prop(node, "garden_shrub", Vector3(at.x, 0, at.y), at.y)
+	for at: Vector2 in [Vector2(r.position.x + 1.0, r.position.y + 1.0), Vector2(r.position.x + 1.0, r.end.y - 1.0)]:
+		_prop(node, "garden_planter", Vector3(at.x, 0, at.y))
+	_prop(node, "garden_bench", Vector3(c.x + 3.0, 0, c.y - 0.2), PI * 0.5)
+	for k: int in 2:
+		_light(node, Vector3(c.x - 2.5 + k * 5.0, 6.2, c.y), Color(1.0, 0.96, 0.86), 2.0, 12.0, "daylight")
 
 
 ## The pens' water moves as the game's does: its shader's clock is run here
