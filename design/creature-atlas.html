@@ -87,6 +87,16 @@ dd{margin:2px 0 0;font-size:.98rem;max-width:62ch}
 .next b{font-family:var(--display);font-weight:400;font-size:1.15rem}
 .next span{color:var(--muted);font-size:.95rem}
 .note{max-width:70ch;color:var(--muted);font-size:.98rem}
+.status{font-family:var(--mono);font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;padding:0 8px;border-radius:2px;white-space:nowrap;border:1px solid var(--line);color:var(--muted)}
+.status.in{color:var(--bg);background:var(--turq);border-color:var(--turq)}
+.status.soon{color:var(--amber);border-color:var(--amber)}
+td .status{font-size:1rem}
+.news{background:var(--panel);border-radius:3px;padding:12px 14px;display:grid;gap:6px;font-size:.98rem}
+.news .mono{font-size:1.05rem}
+.counts{display:flex;flex-wrap:wrap;gap:10px 26px;margin-top:18px}
+.counts b{font-family:var(--display);font-weight:400;font-size:1.6rem;color:var(--ink);margin-right:6px}
+.counts span{font-family:var(--mono);font-size:1.15rem;letter-spacing:.05em;text-transform:uppercase;color:var(--muted)}
+.toc a.in::after{content:' ✓';color:var(--turq)}
 @media (max-width:860px){
   .creature{grid-template-columns:minmax(0,1fr)}
   .next{grid-template-columns:minmax(0,1fr)}
@@ -95,10 +105,11 @@ dd{margin:2px 0 0;font-size:.98rem;max-width:62ch}
 
 <div class="wrap">
 <header>
-  <p class="eyebrow">The Eternal Library · creature design · draft 0.1 · 2026-11-09 · the twenty approved 2026-11-09, nothing built yet</p>
+  <p class="eyebrow">The Eternal Library · creature design · draft 0.2 · updated 2026-11-14 · the twenty approved 2026-11-09 · twelve in the game</p>
   <h1>Library Creature Atlas</h1>
   <p class="lede">Twenty animals for the first stratum: six of the water, eight of the ground and six of the air. Seventeen are real animals of Iran or of every old town; three are from Persian legend and are rare. All of them only live here for now. Each plate also says what the animal is for later (defending itself, attacking, being fished, hunted or possessed), so nothing has to be redesigned when those arrive.</p>
-  <p class="lede">An animal is not tied to an area, but each area has a few it is known by. The plan for building them is in <code>docs/npc/phase-19-approval.md</code>.</p>
+  <p class="lede">An animal is not tied to an area, but each area has a few it is known by. The plan for building them is in <code>docs/npc/phase-19-approval.md</code> and <code>docs/npc/phase-20-approval.md</code>; what was built and changed is logged in <code>docs/npc/progress/</code>.</p>
+  <div class="counts" id="counts"></div>
   <div class="legend">
     <span class="chip c-aquatic"><i class="dot"></i>Water</span>
     <span class="chip c-ground"><i class="dot"></i>Ground and walls</span>
@@ -106,6 +117,19 @@ dd{margin:2px 0 0;font-size:.98rem;max-width:62ch}
   </div>
   <nav class="toc" id="toc" aria-label="Creatures"></nav>
 </header>
+
+<section>
+  <h2>In the game so far</h2>
+  <p class="section-intro">Twelve of the twenty are in the game (phase 19 and phase 20 steps 1 to 3). What holds for all of them, beyond the plan:</p>
+  <ul class="principles">
+    <li><b>Numbers by world seed</b>Each place rolls a level for each animal from the world seed: abundant, common, scarce or very scarce (1.5×, 1×, ½ and ⅕ of the usual numbers). An animal an area is known by is never below common. The levels are kept in the save.</li>
+    <li><b>Placed by what a room has</b>Animals go where their conditions are met (water of the right depth, flames, dark high roofs, ledges, worn lanes, wall feet), not by room type. The Strata Board has an Animals % per area and an Animals box per room.</li>
+    <li><b>Sound</b>Animals make their own sounds: splashes, the bats' chitter, the cat's meow and purr, the rats' squeak, the nightingale's song, the pigeons' coo and wing clap.</li>
+    <li><b>Still no lights, no collision</b>Glowing animals glow by themselves and light nothing. Animals don't block you, so the route tests are unchanged by them.</li>
+    <li><b>The zoo</b>A test place with a pen for each habitat (<code>--room=zoo</code>, or Walk the zoo on the board). F4 shows each animal and what it is doing; F5 opens a tuning panel.</li>
+    <li><b>Turn them off</b><code>--no-animals</code> starts the game without any, for comparing frame times.</li>
+  </ul>
+</section>
 
 <section>
   <h2>How animals fit a world with no sky</h2>
@@ -138,7 +162,7 @@ dd{margin:2px 0 0;font-size:.98rem;max-width:62ch}
   <p class="section-intro">"Build" is how the animal is made, which decides its cost: a <b>swarm</b> is many tiny animals drawn as one object; a <b>simple</b> animal is a small model that moves by bending or swapping a few poses; a <b>rigged</b> animal has a skeleton and animations made in Blender, the same way people will be made later.</p>
   <div class="table-wrap">
   <table>
-    <thead><tr><th>ID</th><th>Animal</th><th>Class</th><th>Kind</th><th>Size</th><th>Build</th><th>Known in</th><th>Built in</th></tr></thead>
+    <thead><tr><th>ID</th><th>Animal</th><th>Class</th><th>Kind</th><th>Size</th><th>Build</th><th>Known in</th><th>Step</th><th>In game</th></tr></thead>
     <tbody id="overview"></tbody>
   </table>
   </div>
@@ -162,7 +186,7 @@ dd{margin:2px 0 0;font-size:.98rem;max-width:62ch}
 
 <section style="border-bottom:0">
   <h2>About this atlas</h2>
-  <p class="note">There are no pictures yet: this session has no image generator, and a small animal can't be mocked honestly with the room atlas's flat-polygon painter. Each plate gives the size against you (1.75 m), the three main colours and what the animal does, which is enough to agree the list. The first model of each animal is shown to you in the game before anything else is built on it.</p>
+  <p class="note">There are no pictures here: a small animal can't be mocked honestly with the room atlas's flat-polygon painter. Each plate gives the size against you (1.75 m), the three main colours and what the animal does. The plate text is the plan as approved; the "In the game" box under it says what was built and how it differs. The animals in the game were each shown to you in the game first; the zoo is the quickest place to see them.</p>
 </section>
 </div>
 
@@ -172,7 +196,7 @@ const KIND={real:'Real animal',domestic:'Kept animal',mythic:'Legend'};
 const BUILD={swarm:'Swarm',simple:'Simple',rigged:'Rigged'};
 
 const AREAS=[
-  ['The camp','C01 C07','C17 C19',''],
+  ['The camp','C01 C07','C17 C19 C04',''],
   ['The Gorge','C11 C16 C15','C13 C18','C20 C14'],
   ['The Grand Study','C09 C17 C07','C19 C01 C08',''],
   ['The Gardens','C04 C02 C18','C03 C15','C14'],
@@ -384,13 +408,37 @@ const CREATURES=[
  pal:['#e9d9a8','#c98f3a','#7a3e2a']},
 ];
 
+/* What is in the game (updated 2026-11-14). step = phase.step, commit = where it landed, news = what was built and how it differs from the plate. */
+const BUILT={
+ C01:{step:'19.1',commit:'8b9d4d1',date:'2026-11-09',news:'In hauz pools and kept water. Drawn over the water so they still read in bright pools. They scatter with a splash when you come close.'},
+ C02:{step:'19.1',commit:'8b9d4d1',date:'2026-11-09',news:'Schools of 20 to 60 in dark water at least 0.2 m deep and 6 m² across: cisterns and the lake. Blind: they feel only your steps in the water, then scatter with a splash.'},
+ C15:{step:'19.2',commit:'54bf2ea',date:'2026-11-09',news:'Colonies of 10 to 30 (the plan said up to 40) under dark roofs at least 5 m high. They chitter, and leave when a light comes near.'},
+ C17:{step:'19.2',commit:'54bf2ea',date:'2026-11-09',news:'3 to 8 (the plan said up to 12) at about a quarter of the open flames. They replaced the Garden Court\'s old particle moths.'},
+ C18:{step:'19.2',commit:'54bf2ea',date:'2026-11-09',news:'Colonies of 80 to 200 on natural rock only, under roofs at least 2.2 m high, as small star discs in the area\'s fungus colour.'},
+ C07:{step:'19.3',commit:'efb770a',date:'2026-11-09',news:'The first rigged model, approved after six looks. Smooth motion (Q5). Walks the worn lanes and rests on rugs, cushions, benches and takhts; looks at you only while resting. Drawn 1.3× so it reads. Up to 3 in a room (one for every five soft things); the camp has one, and its coat is kept in the save. Meows and purrs.'},
+ C08:{step:'19.4',commit:'7989460',date:'2026-11-09',news:'Abandoned rooms only. About 30 cm, fat. They run along the foot of the walls between their holes, bolt when you are 5 m away, and squeak.'},
+ C09:{step:'19.4',commit:'7989460',date:'2026-11-09',news:'On the visible wall within 1.5 m of about a third of the flames. They flee up the wall, and leave when the lamp is dark.'},
+ C19:{step:'20.1',commit:'0c97287',date:'2026-11-14',news:'1 to 5 to a kept garden, and in the camp tree. Sings, and flies off when you come close. Still to come in step 6: a caged nightingale at a bazaar stall (Q8).'},
+ C16:{step:'20.2',commit:'b3fe4c6',date:'2026-11-14',news:'Flocks of 6 to 12 (the plan said up to 20) sitting in rows on ledges you can see from the walks. They burst up with a wing clap, wheel round a tower or inside a dome with one smooth rise and fall a lap, banking into the turn, and coo. Also in the Gorge, seeded where the ledges crowd (Q5).'},
+ C03:{step:'20.3',commit:'ed97ee9',date:'2026-11-14',news:'Lives in holes in thick stone under water at least 0.3 m deep, in pools of 10 m² or more: cisterns, flooded piers and the lake. Puts its head out, swims to another hole, and draws in when you are within about 2 m. New since the plan, at your ask: teal glowing spots down its sides and back, pulsing as it swims (they light nothing).'},
+ C04:{step:'20.3',commit:'ed97ee9',date:'2026-11-14',news:'By running water only: the Fungus Terraces\' channels and the camp stream. New since the plan, at your ask: poison-dart colours, glossy blue-black with vivid orange and cream bands and a faint glow. Freezes when you are 4 m away and slips into the water at 2 m. Groups of 2 to 5, up to 8 where its level is abundant.'},
+};
+const COMING={
+ C05:'Next: phase 20 step 4. Rigged, and shown to you standing still against reference pictures you pick before it moves.',
+ C10:'Phase 20 step 5. Rigged. The first time, it walks you to the shrine, and the save remembers it (Q6). The forgotten ossuary has only its collar (Q7).',
+};
+const statusOf=c=>BUILT[c.id]?`<span class="status in">In game · ${BUILT[c.id].step}</span>`:COMING[c.id]?`<span class="status soon">Phase 20</span>`:`<span class="status">Phase 21</span>`;
+
 const byId=Object.fromEntries(CREATURES.map(c=>[c.id,c]));
 const esc=s=>String(s).replace(/&/g,'&amp;').replace(/</g,'&lt;');
 const names=ids=>ids.trim()?ids.trim().split(/\s+/).map(i=>`<a href="#${i}">${esc(byId[i].name)}</a>`).join(', '):'';
 
 document.getElementById('areas').innerHTML=AREAS.map(a=>`<tr><td>${a[0]}</td><td>${names(a[1])}</td><td>${names(a[2])}</td><td>${names(a[3])}</td></tr>`).join('');
-document.getElementById('toc').innerHTML=CREATURES.map(c=>`<a class="c-${c.cls}" href="#${c.id}">${c.id} ${esc(c.name)}</a>`).join('');
-document.getElementById('overview').innerHTML=CREATURES.map(c=>`<tr><td class="id">${c.id}</td><td><a href="#${c.id}">${esc(c.name)}</a></td><td>${CLS[c.cls]}</td><td>${KIND[c.kind]}</td><td>${esc(c.sizeText)}</td><td>${BUILD[c.build]}</td><td>${esc(c.home)}</td><td class="id">${c.step}</td></tr>`).join('');
+document.getElementById('toc').innerHTML=CREATURES.map(c=>`<a class="c-${c.cls}${BUILT[c.id]?' in':''}" href="#${c.id}">${c.id} ${esc(c.name)}</a>`).join('');
+const stepOf=c=>BUILT[c.id]?BUILT[c.id].step:c.id==='C05'?'20.4':c.id==='C10'?'20.5':c.step;
+document.getElementById('overview').innerHTML=CREATURES.map(c=>`<tr><td class="id">${c.id}</td><td><a href="#${c.id}">${esc(c.name)}</a></td><td>${CLS[c.cls]}</td><td>${KIND[c.kind]}</td><td>${esc(c.sizeText)}</td><td>${BUILD[c.build]}</td><td>${esc(c.home)}</td><td class="id">${stepOf(c)}</td><td>${statusOf(c)}</td></tr>`).join('');
+const nIn=CREATURES.filter(c=>BUILT[c.id]).length, nSoon=Object.keys(COMING).length;
+document.getElementById('counts').innerHTML=`<span><b>${nIn}</b>in the game</span><span><b>${nSoon}</b>still in phase 20</span><span><b>${CREATURES.length-nIn-nSoon}</b>in phase 21</span>`;
 
 /* The scale strip: you (1.75 m) as a standing bar, the animal as a lying bar, at one scale. */
 function scale(c){
@@ -405,11 +453,12 @@ function scale(c){
 
 document.getElementById('plates').innerHTML=CREATURES.map(c=>`
 <article class="creature c-${c.cls}" id="${c.id}">
-  <div class="c-title"><span class="cid">${c.id}</span><h3>${esc(c.name)}</h3><span class="tr">${esc(c.tr)}</span><span class="fa" lang="fa" dir="rtl">${c.fa}</span><span class="badge">${CLS[c.cls]}</span><span class="kind ${c.kind}">${KIND[c.kind]}</span></div>
+  <div class="c-title"><span class="cid">${c.id}</span><h3>${esc(c.name)}</h3><span class="tr">${esc(c.tr)}</span><span class="fa" lang="fa" dir="rtl">${c.fa}</span><span class="badge">${CLS[c.cls]}</span><span class="kind ${c.kind}">${KIND[c.kind]}</span>${statusOf(c)}</div>
   <div class="card">
     <div class="scale">${scale(c)}<span class="cap">Grey: you, 1.75 m · colour: ${esc(c.name.toLowerCase())}, ${esc(c.sizeText)}</span>
       <div class="swatches">${c.pal.map(p=>`<i class="swatch" style="background:${p}"></i>`).join('')}</div></div>
-    <div class="facts"><span>Numbers <b>${esc(c.group)}</b></span><span>Build <b>${BUILD[c.build]}</b></span><span>Known in <b>${esc(c.home)}</b></span><span>Built in step <b>${c.step}</b></span></div>
+    <div class="facts"><span>Numbers <b>${esc(c.group)}</b></span><span>Build <b>${BUILD[c.build]}</b></span><span>Known in <b>${esc(c.home)}</b></span><span>Built in step <b>${stepOf(c)}</b></span></div>
+    ${BUILT[c.id]?`<div class="news"><span class="mono">In the game · step ${BUILT[c.id].step} · ${BUILT[c.id].commit} · ${BUILT[c.id].date}</span><span>${esc(BUILT[c.id].news)}</span></div>`:`<div class="news"><span class="mono">Not built yet</span><span>${esc(COMING[c.id]||'Phase 21, after the rest of phase 20.')}</span></div>`}
     <p class="link">${esc(c.link)}</p>
   </div>
   <div class="sheet"><dl>
