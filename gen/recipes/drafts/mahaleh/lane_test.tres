@@ -1,0 +1,35 @@
+[gd_resource type="Resource" script_class="AreaRecipe" format=3]
+
+[ext_resource type="Resource" path="res://kit/atmosphere/reading_room.tres" id="1_drnm0"]
+[ext_resource type="Script" path="res://scripts/world/area_grow.gd" id="2_shqke"]
+[ext_resource type="Script" path="res://scripts/world/area_placement.gd" id="3_dpu5e"]
+[ext_resource type="Script" path="res://scripts/world/area_recipe.gd" id="4_eokpk"]
+[ext_resource type="Script" path="res://scripts/world/area_slot.gd" id="5_nqgl7"]
+[ext_resource type="Resource" path="res://gen/grammars/r06_quarter.tres" id="6_ikx5b"]
+
+[sub_resource type="Resource" id="Resource_xn853"]
+script = ExtResource("3_dpu5e")
+envelope = AABB(-200, -8, -144, 400, 48, 256)
+
+[sub_resource type="Resource" id="Resource_05qke"]
+script = ExtResource("5_nqgl7")
+slot_id = "entrance"
+display_name = "The test lane"
+scene_weights = PackedFloat32Array()
+grammar = ExtResource("6_ikx5b")
+tweaks = {
+"layout": "hauz"
+}
+pinned = true
+
+[resource]
+script = ExtResource("4_eokpk")
+id = "mahaleh"
+display_name = "The Mahaleh"
+version = 10
+slots = Array[ExtResource("5_nqgl7")]([SubResource("Resource_05qke")])
+room_count = Vector2i(1, 1)
+max_dead_ends = 0
+max_sight_depth = 10
+placement = SubResource("Resource_xn853")
+atmosphere = ExtResource("1_drnm0")

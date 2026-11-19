@@ -1,7 +1,8 @@
 class_name SoundSystem
 extends Node
 ## Sound in the game (phase 20 step 1, docs/npc/phase-20-approval.md): the
-## autoload "Sound". Two volumes you set in the menu (Music, Animals), each a
+## autoload "Sound". Three volumes you set in the menu (Music, Animals, and
+## People: the bells, phase 21), each a
 ## bus of its own; sounds that come from a place in the world, louder near and
 ## quieter far; and a limit on how many play at once (Q4: the nearest
 ## MAX_VOICES, none further than its reach, 25 m unless the sound says more).
@@ -16,9 +17,9 @@ extends Node
 
 const SETTINGS_PATH: String = "user://settings.cfg"
 const DIR: String = "res://assets/sounds/%s.wav"
-const BUSES: PackedStringArray = ["Music", "Animals"]
+const BUSES: PackedStringArray = ["Music", "Animals", "People"]
 ## Each bus's level at 100% on its slider (dB): the music sits under the world.
-const BASE_DB: Dictionary = {"Music": -14.0, "Animals": -4.0}
+const BASE_DB: Dictionary = {"Music": -14.0, "Animals": -4.0, "People": -4.0}
 const MAX_VOICES: int = 12
 ## Nothing is started further than this (m), unless the call says more.
 const REACH: float = 25.0
@@ -33,7 +34,7 @@ const CLEAR_HZ: float = 9000.0
 const OCCLUSION_S: float = 0.1
 
 ## Bus -> slider value (0..1).
-var volumes: Dictionary = {"Music": 1.0, "Animals": 1.0}
+var volumes: Dictionary = {"Music": 1.0, "Animals": 1.0, "People": 1.0}
 ## Sounds started and refused (out of reach, or nearer ones playing), for F3.
 var stats: Dictionary = {"started": 0, "refused": 0, "stolen": 0}
 

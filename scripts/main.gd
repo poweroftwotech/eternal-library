@@ -471,6 +471,7 @@ func show_controls() -> void:
 		{"text":"Invert look: %s" % ("On" if player.invert_y else "Off"),"action":"invert"},
 		{"text":"Music","slider":_volume("Music"),"action":"volume:Music"},
 		{"text":"Animals","slider":_volume("Animals"),"action":"volume:Animals"},
+		{"text":"People and bells","slider":_volume("People"),"action":"volume:People"},
 		{"text":"Performance stats: %s  (F3)" % ("On" if stats.visible else "Off"),"action":"stats"},
 		{"text":"Back","action":"menu"}],"controls")
 

@@ -72,6 +72,10 @@ func _ready() -> void:
 		elif arg == "--fresh":
 			fresh = true
 	var walk: Dictionary = _take_walk_request()
+	if walk.is_empty() and args.has("--lane"):
+		# The residents' test lane (phase 21): the Mahaleh on its one-quarter
+		# copy, on the scratch save as a walk from the Strata Board is.
+		walk = {"area": "mahaleh", "recipe": "res://gen/recipes/drafts/mahaleh/lane_test.tres"}
 	if not walk.is_empty():
 		path = WALK_SAVE
 		fresh = true

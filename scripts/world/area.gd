@@ -257,6 +257,7 @@ func _ready() -> void:
 		for r: AreaPlan.Room in plan.rooms:
 			build_room(r)
 	fauna = Fauna.attach(self)     # the animals follow the rooms in and out (phase 19)
+	Residents.attach(self)         # and the people, where a place has them (phase 21)
 	if active:
 		var tw: int = Time.get_ticks_usec()
 		FloorWear.rebuild_now()

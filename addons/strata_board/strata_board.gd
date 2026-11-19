@@ -341,6 +341,9 @@ func _build() -> void:
 	var zoo_button := _button("Walk the zoo", func() -> void: walk_requested.emit("zoo", world_seed, ""))
 	zoo_button.tooltip_text = "Run the game in the animals' test place: a corridor of pens, each ideal for some animals (a scratch save, never your own)."
 	header.add_child(zoo_button)
+	var lane_button := _button("Walk the test lane", func() -> void: walk_requested.emit("mahaleh", world_seed, "res://gen/recipes/drafts/mahaleh/lane_test.tres"))
+	lane_button.tooltip_text = "Run the game in the residents' test lane: one quarter of the Mahaleh, where a family lives its day (a scratch save, never your own). F6 opens the People panel."
+	header.add_child(lane_button)
 	var reload_button := _button("Reload", reload)
 	reload_button.tooltip_text = "Read the recipe files again (after a hand edit)."
 	header.add_child(reload_button)

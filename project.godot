@@ -22,6 +22,7 @@ config/icon="res://assets/icon.svg"
 
 WorldState="*res://scripts/world/world_state.gd"
 Sound="*res://scripts/audio/sound.gd"
+Day="*res://scripts/world/day_clock.gd"
 
 [display]
 

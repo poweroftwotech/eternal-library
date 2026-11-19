@@ -51,8 +51,27 @@ func _initialize() -> void:
 	made += _make("wings_clap_1", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _flock_wings(r, 9, 1.0), 9851)
 	made += _make("wings_flock_0", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _flock_wings(r, 6, 0.35), 9860)
 	made += _make("wings_flock_1", func(r: RandomNumberGenerator) -> PackedFloat32Array: return _flock_wings(r, 4, 0.35), 9861)
+	made += _make("bell", _bell, 9900)
 	print("make_sounds: %d files in %s" % [made, OUT])
 	quit()
+
+
+## The day's bell (phase 21): one stroke of a bronze bell, struck and left to
+## ring. A hum an octave under the strike note, and the uneven overtones a
+## cast bell has, each dying at its own rate, the high ones first.
+func _bell(_r: RandomNumberGenerator) -> PackedFloat32Array:
+	var buf: PackedFloat32Array = _silence(4.5)
+	var note: float = 392.0
+	# [times the strike note, loudness, seconds to fall to a third]
+	var parts: Array = [[0.5, 0.45, 2.2], [1.0, 1.0, 1.6], [1.183, 0.6, 1.1], [1.506, 0.5, 0.9], [2.0, 0.45, 0.7], [2.514, 0.28, 0.45],
+			[2.662, 0.22, 0.4], [3.011, 0.18, 0.3], [4.166, 0.1, 0.18]]
+	for i: int in buf.size():
+		var t: float = float(i) / SR
+		var s: float = 0.0
+		for p: Array in parts:
+			s += float(p[1]) * sin(TAU * note * float(p[0]) * t) * exp(-t / float(p[2]))
+		buf[i] = s * minf(1.0, t * 500.0)
+	return buf
 
 
 ## Makes one sound unless `only` leaves it out; returns 1 if written.

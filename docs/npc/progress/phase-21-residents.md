@@ -204,3 +204,92 @@ errors; the pen has its 16 people. The zoo's older animal check
 (`tests/zoo_capture.gd --expect`) stops with a script error at its line 53,
 and does the same on the committed code: it was written before phase 20's
 birds and has not been run since. Not fixed here.
+
+**Step 1 committed 2026-11-18 (59cdc95)** after your "commit and go on".
+
+## Step 2: the bells and one household
+
+### First look (2026-11-18, walked: the bell rings and people keep their hours; committed)
+
+**Try it:** the Strata Board's new **Walk the test lane**, or run the game
+with `-- --lane`. You arrive in a one-quarter copy of the Mahaleh (four
+homes and a hauz) on a scratch save. The family's home is the deep one on
+your right as the lane opens; its door opens with E like any home's.
+
+- **F6** opens the **People** panel (F4 and F5 are the animals'): the time
+  as a bell and minutes, Pause, 1x, 10x, 30x, 60x, "Go to bell" 1 to 6, a
+  tick for labels over people, and a line for each person saying what they
+  are doing and what comes next.
+- A good first try: go into the home, press F6, tick the labels, and press
+  10x. Then go to bell 6 and watch them go to bed and the lamps go out.
+
+**What you should see.** Two people, a cook and a householder, with names
+from the seed (Tahmineh and Kaveh on seed 1):
+
+| Bell | The cook | The householder |
+|---|---|---|
+| First | Gets up, kneels at the hearth and cooks; they eat at the low table | Gets up a little later, stands at the door, comes in to eat |
+| Second | Free time: the door, a seat, or about the room | The same |
+| Third | Cooks, then they eat | Free, then eats |
+| Fourth | Free time | Free time |
+| Fifth | Cooks, they eat, she stands at the door | Eats, free time |
+| Sixth | To bed | To bed a little after |
+
+- The hearth burns bright while someone cooks or eats and is banked to a
+  low glow otherwise. The home's lamps are lit while anyone is up and go
+  out, flames and all, when both are asleep.
+- The door opens for whoever walks through it and shuts behind them.
+- A bell rings its own number of strokes at each bell, and its name shows
+  for a moment. There is a **People and bells** volume in Esc, Controls.
+- Each person keeps their own time, a few minutes early or late.
+
+Pictures at five times of day in `previews/phase21_step2/` (inside, the
+back room, and the door from the lane).
+
+**What was built.**
+
+| Part | What it is |
+|---|---|
+| The day | `DayClock`, the autoload "Day": 48 minutes, six bells eight minutes apart, kept in the save. A new world starts just after the first bell |
+| The bell | A made sound (`tools/make_sounds.gd`), one stroke; the clock rings as many as the bell's number |
+| Spots | `SpotTable`: one table from a prop's file to the spots it gives. A bedroll is a bed, a pouf or cushion a seat (an eating place if a low table is within reach), the home's door and floor are spots, and each old posed figure marks a spot where it stood (the stirring figure is the cook's place at the hearth) |
+| A resident | `Resident`: a body, a timetable of bells, and a small mind that finds a spot for what the hour asks, walks there and takes its pose |
+| The household | `Residents`, beside the animals' director in an area: gives a family home its two people, hides the old figure, lights and banks the hearth, lights the lamps, opens the door |
+| The lane | `gen/recipes/drafts/mahaleh/lane_test.tres` (made by `tools/make_lane_draft.gd`): the Mahaleh as one quarter |
+| The panel | `ResidentsPanel`, F6 |
+
+**Checks.**
+
+- **A whole day, run fast with no display** (`tests/resident_day_test.gd`,
+  the day report): both slept, both ate three times, the cook cooked three
+  times, the longest walk to any spot was 8 seconds of the day, the hearth
+  was bright 46% of the day, and the lamps were never lit with both asleep.
+  Passes.
+- **The clock across two processes** (`tests/day_clock_test.gd`): bells ring
+  on time, jumping lands on a bell, pausing holds, days passing leave the
+  years alone (so nothing ages or rebuilds), and a freshly started game
+  resumes the day where it was saved. 15 checks pass.
+- The camp, the lane and the live Mahaleh start and run headless with no
+  errors. The live Mahaleh has no people yet (step 5).
+
+**What I see wrong, or have not done.**
+
+- **I cannot hear the bell.** It is made from the overtones of a cast bell,
+  but whether it sounds like one, and how loud it sits, is yours to judge.
+- **Only the family's home has people.** The scholar's and the hunter's
+  keep their figures until step 4, and I have not yet given the scholar a
+  bed or the homes their missing things (Q9): that belongs with their
+  households.
+- **Walks are straight lines** along the way in from the lane to the back
+  room, then to the spot: no way-finding, so a path may cut a corner of a
+  rug or a table. They are not solid; you can walk through them. Step 3.
+- **Getting into bed is a pop:** they walk to the bed and are then lying
+  on it. The same for sitting down. No in-between movement yet.
+- **Cooking is kneeling at the hearth.** No stirring, eating or reading
+  movements yet (step 4).
+- The bell is heard the same everywhere, not from a tower.
+- Above 20x people skip their walks and are simply at the next place, so
+  10x is the fastest speed that still shows them walking.
+- Timetables are in code (`Residents.ROUTINES`); the panel edits them in
+  step 4.
+- With labels on, a label shows through walls: it is a tool, not a look.
