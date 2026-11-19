@@ -293,3 +293,106 @@ back room, and the door from the lane).
 - Timetables are in code (`Residents.ROUTINES`); the panel edits them in
   step 4.
 - With labels on, a label shows through walls: it is a tool, not a look.
+
+**Step 2 committed 2026-11-18 (61b2a79)** after your walk ("the bell rings
+and people do take action based on the schedule").
+
+## Step 3: out of the door
+
+### First look (2026-11-18, awaiting your walk)
+
+**Try it:** the Strata Board's **Walk the test lane**, or run the game with
+`-- --lane`, as before. The square with the hauz is straight ahead of where
+you arrive; the stall is on its far left wall.
+
+- **F6** is the People panel as before. It has a new tick, **Spots and
+  ways**, which is also on **F4** (F4 shows the animals' overlay too).
+- A good first try: press F6, tick both ticks, press 10x, and stand in the
+  square. Then follow one person: the cook (Tahmineh on seed 1) has the
+  fullest day.
+- Stand in someone's way in the open, and then in a doorway.
+
+**What you should see.** Four people in three homes:
+
+| Who | Their day |
+|---|---|
+| The cook (family home) | Fetches water from the hauz before each of the three meals, cooks, eats; goes to the stall in the morning; free time at the door, a seat or the hauz |
+| The householder (family home) | Keeps the stall between meals; sits at the hauz before bed |
+| The scholar | Fetches water, reads at his table most of the day, goes to the stall, stands at his door, sits at the hauz in the evening, sleeps on new bedding by the wall |
+| The hunter | Mends at his table, goes to the stall, sits at the hauz twice, fetches water, sleeps on new bedding |
+
+- **They find their way:** round the furniture, through their own doorway
+  (the door opens for them and shuts behind), down the lane, round the hauz.
+- **The hauz:** someone fetching water kneels at the middle of a straight
+  side. People with time to spare sit on the rim at its slanted sides,
+  looking out; in the evening three or four sit there together.
+- **The stall** (new, on the lane only): its keeper stands at the end of the
+  counter; a buyer stands in front of it.
+- **You:** they are solid. In the open they step round you. In a doorway
+  they stop and wait until you move; the label says "waiting for you" and
+  the overlay rings them in red.
+- **Each other:** they step round each other. Two who can't pass wait a
+  moment, then one goes on.
+- **The overlay:** every spot as a coloured ring with its kind and who has
+  it now, a yellow line along each walker's way, and in grey the edge of
+  where people can walk.
+
+Pictures in `previews/phase21_step3/` (each plain and with the overlay).
+
+**What was built.**
+
+| Part | What it is |
+|---|---|
+| The walking surface | `WalkMap` (`scripts/actors/walk_map.gd`): made for a room when it is built, from the room's own floors, walls and furniture, with doors left out so a doorway is a way through. For the lane: 3.2 ms on the main thread to read the room, 44 ms on another thread to make it |
+| Finding the way | A resident asks the surface for the way to the floor beside its spot, walks it, and takes the last step onto the seat or bed. The floor beside a spot is chosen by walking distance, so a bed in a wall niche is never approached from outside the wall |
+| Stepping round | Each step looks for you or another person ahead; a side step is taken if the floor is there, otherwise they wait |
+| Solid bodies | Each person has a body on its own collision layer, which yours collides with. Lying down, they have none |
+| Shared spots | `SpotTable.scan_commons`: the hauz gives four places for water and four seats on its rim; a stall gives a keeper's place and two buyers' places |
+| Beds for small homes | A one-room scholar's or hunter's home now has laid-out bedding by the wall (the quarter's grammar, so the live Mahaleh's small homes have it too) |
+| The overlay | `ResidentsOverlay`, F4 or the panel's tick |
+| Households | The scholar and the hunter each live alone. The family's two as before |
+
+**Checks.**
+
+- **A whole day, run fast with no display** (`tests/resident_day_test.gd`):
+  all four slept; the family ate three times; the cook fetched water three
+  times and went to the stall; the householder kept the stall twice; the
+  scholar and hunter worked, shopped and sat at the hauz. Nobody took a step
+  off the walking surface, everyone ended on their spot, and the longest
+  walk was 33 seconds. Passes.
+- **You in the way** (`tests/resident_meet_test.gd`, 13 checks): all 49
+  spots can be walked to; with you standing on her way in the square the
+  cook reaches the hauz and never comes nearer than 0.69 m; with you in his
+  doorway the scholar waits 40 seconds and goes when you move; your body is
+  stopped by someone standing. Passes.
+- **Your own walking** (`tests/area_route_test.gd` on the lane, three
+  seeds): you can still walk every lane and into every home with the new
+  bedding there. Passes.
+- The camp, the lane and the live Mahaleh start and run headless with no
+  errors.
+
+**What I see wrong, or have not done.**
+
+- **The stall stands in front of a house front:** there is a door and
+  windows on the wall behind it. I placed it by hand on this lane; a quarter
+  has no stall of its own. In the Mahaleh the stalls are the bazaar's.
+- **The keeper stands at the end of his counter,** not behind it: the kit's
+  stall has no way in behind the counter.
+- **Nothing is carried.** Fetching water is kneeling at the rim; buying is
+  standing at the counter. Jars and baskets come with the work poses in
+  step 4.
+- **Sitting down and lying down still pop.**
+- **The hooded figures standing at doors in the lane are still there,**
+  beside the living people. They go in step 5.
+- **The scholar and hunter don't eat** (their homes have no seat at a
+  table), and a two-room scholar's home still has no bed. Both wait for the
+  missing furniture in step 4.
+- **Two people who can't pass:** after 2.5 seconds one walks through the
+  other. It happened 19 times in the test day, mostly at the family's door.
+- **One room only.** The lane is one room, so the surface isn't yet joined
+  from room to room. That is needed for the Mahaleh in step 5.
+- **Floors are taken as level** within a quarter. A lane with steps would
+  need more.
+- **At 30x and 60x they skip walks,** as before.
+- I have not measured the cost of the surface on a full Mahaleh quarter, or
+  the frame cost of four solid, way-finding people (step 5).

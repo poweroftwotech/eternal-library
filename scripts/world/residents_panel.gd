@@ -1,11 +1,11 @@
 class_name ResidentsPanel
 extends CanvasLayer
-## The People panel (phase 21 step 2, its first form): F6 opens and closes it;
-## the mouse is freed while it is open. The day's clock (pause, speed, jump to
-## a bell), labels over people, and a line for each person. Speed and pause
-## are not saved; the time of day is.
+## The People panel (phase 21 steps 2-3): F6 opens and closes it; the mouse is
+## freed while it is open. The day's clock (pause, speed, jump to a bell),
+## labels over people, the overlay (spots and ways, also on F4), and a line
+## for each person. Speed and pause are not saved; the time of day is.
 ##
-## Later steps add: everyone off-stage, following one person, and the
+## Later steps add: everyone off-stage, a person's whole day, and the
 ## timetables as sliders.
 
 const SPEEDS: Array[float] = [1.0, 10.0, 30.0, 60.0]
@@ -17,6 +17,7 @@ var _roll: Label
 var _pause: Button
 var _speeds: Array[Button] = []
 var _labels: CheckBox
+var _overlay: CheckBox
 var _tick: float = 0.0
 
 
@@ -85,6 +86,11 @@ func _ready() -> void:
 	_labels.text = "Labels over people"
 	_labels.toggled.connect(_on_labels)
 	rows.add_child(_labels)
+	_overlay = CheckBox.new()
+	_overlay.text = "Spots and ways  (F4)"
+	_overlay.tooltip_text = "Every spot as a ring, named with who has it; the way each walker is taking; where people can walk."
+	_overlay.toggled.connect(_on_overlay)
+	rows.add_child(_overlay)
 	rows.add_child(HSeparator.new())
 	_roll = Label.new()
 	_roll.autowrap_mode = TextServer.AUTOWRAP_WORD_SMART
@@ -98,6 +104,7 @@ func set_open(on: bool) -> void:
 	Input.mouse_mode = Input.MOUSE_MODE_VISIBLE if on else Input.MOUSE_MODE_CAPTURED
 	if on:
 		_labels.set_pressed_no_signal(residents.labels)
+		_overlay.set_pressed_no_signal(residents.overlay != null and residents.overlay.visible)
 		_refresh()
 
 
@@ -140,3 +147,7 @@ func _on_bell(i: int) -> void:
 
 func _on_labels(on: bool) -> void:
 	residents.labels = on
+
+
+func _on_overlay(on: bool) -> void:
+	residents.show_overlay(on)

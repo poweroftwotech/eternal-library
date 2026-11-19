@@ -1,6 +1,6 @@
 extends SceneTree
 ## A whole day on the residents' test lane, run fast with no display (phase 21
-## step 2): the day report. Steps the clock by hand, STEP_S of the day at a
+## steps 2-3): the day report. Steps the clock by hand, STEP_S of the day at a
 ## time, so people walk every step of their day as they would at speed 1.
 ##   godot --headless --audio-driver Dummy --path . --script res://tests/resident_day_test.gd [-- --quiet]
 ## Prints each person's day, change by change, and fails (exit 1) if anyone
@@ -10,7 +10,7 @@ extends SceneTree
 
 const DRAFT: String = "res://gen/recipes/drafts/mahaleh/lane_test.tres"
 const STEP_S: float = 0.5
-const STUCK_S: float = 40.0
+const STUCK_S: float = 70.0
 
 
 func _initialize() -> void:
@@ -34,14 +34,18 @@ func run() -> void:
 	var area: Area = game.world
 	while area.streamer.busy():
 		await process_frame
-	for _i: int in 10:
-		await process_frame
 	var residents: Residents = get_first_node_in_group(Residents.GROUP) as Residents
+	# (The people come when the room's walking surface is made.)
+	for _i: int in 900:
+		await process_frame
+		if residents != null and residents.settled():
+			break
 	var fails: PackedStringArray = []
 	if residents == null or residents.people.is_empty():
 		print("resident_day_test: FAIL, nobody lives on the lane")
 		quit(1)
 		return
+	residents.heed_player = false     # (you aren't in this day: resident_meet_test is where you stand in the way)
 	var clock: DayClock = DayClock.it()
 	clock.paused = true          # the test moves the day itself
 	clock.speed = 1.0
@@ -52,13 +56,16 @@ func run() -> void:
 	var hearth_lit: int = 0
 	var hearth_out: int = 0
 	var lamp_wrong: int = 0
+	var far_off: float = 0.0
+	var waits: int = 0
+	var off_floor: int = 0
 	var steps: int = int(DayClock.DAY_S / STEP_S)
 	print("resident_day_test: %d people in %d homes; a day in %d steps" % [residents.people.size(), residents.households.size(), steps])
 	for h: Dictionary in residents.households:
 		print("  home %d (%s): %d spots (%s), %d hearth lights, %d lamp lights, door %s" % [h["index"], h["kind"], (h["spots"] as Array).size(),
 				", ".join((h["spots"] as Array).map(func(s: Dictionary) -> String: return str(s["kind"]))), (h["hearth_lights"] as Array).size(),
 				(h["lamp_lights"] as Array).size(), "found" if h["door"] != null else "MISSING"])
-		if (h["hearth_lights"] as Array).is_empty():
+		if h["kind"] == "family" and (h["hearth_lights"] as Array).is_empty():
 			fails.append("home %d has no hearth light" % h["index"])
 		if h["door"] == null:
 			fails.append("home %d has no door" % h["index"])
@@ -75,6 +82,17 @@ func run() -> void:
 					var d: Dictionary = did.get_or_add(p, {})
 					d[p.doing] = int(d.get(p.doing, 0)) + 1
 			worst[p] = maxf(float(worst.get(p, 0.0)), p.walked_s if p.walking else 0.0)
+			if not p.walking and not p.spot.is_empty():
+				# Arrived means there: at the spot, not held up short of it.
+				var off: float = Vector2(p.global_position.x - (p.spot["at"] as Vector3).x, p.global_position.z - (p.spot["at"] as Vector3).z).length()
+				far_off = maxf(far_off, off)
+			if p.waiting_for != "":
+				waits += 1
+			# Walking is over the floor: never through a wall or a table.
+			if p.walking and p.route.size() > 1 and not residents.ways.on(p.global_position + Vector3(0, 0.25, 0), 0.2):
+				off_floor += 1
+				if off_floor < 6:
+					print("    (off the floor: %s at %s, going to %s)" % [p.given_name, p.global_position.snapped(Vector3.ONE * 0.01), p.doing])
 		for h: Dictionary in residents.households:
 			hearth_lit += 1 if h["hearth_on"] else 0
 			hearth_out += 0 if h["hearth_on"] else 1
@@ -88,12 +106,24 @@ func run() -> void:
 		print("  %s, %s: %s; longest walk %.0f s" % [p.given_name, p.trade, d, float(worst.get(p, 0.0))])
 		if int(d.get("sleep", 0)) < 1:
 			fails.append("%s never slept" % p.given_name)
-		if int(d.get("eat", 0)) < 3:
+		if p.trade in ["cook", "householder"] and int(d.get("eat", 0)) < 3:
 			fails.append("%s ate %d times" % [p.given_name, int(d.get("eat", 0))])
 		if p.trade == "cook" and int(d.get("cook", 0)) < 3:
 			fails.append("%s cooked %d times" % [p.given_name, int(d.get("cook", 0))])
+		# Step 3: out of the door.
+		for need: Array in [["cook", "water", 3], ["cook", "shop", 1], ["householder", "keep", 2], ["householder", "hauz", 1], ["scholar", "work", 2],
+				["scholar", "water", 1], ["scholar", "shop", 1], ["scholar", "hauz", 1], ["hunter", "work", 2], ["hunter", "shop", 1], ["hunter", "hauz", 2]]:
+			if p.trade == need[0] and int(d.get(need[1], 0)) < int(need[2]):
+				fails.append("%s (%s) did '%s' %d times, not %d" % [p.given_name, p.trade, need[1], int(d.get(need[1], 0)), need[2]])
+		print("    walked %.0f m in the day" % p.walked_m)
 		if float(worst.get(p, 0.0)) > STUCK_S:
 			fails.append("%s walked %.0f s toward one spot" % [p.given_name, float(worst[p])])
+	print("  furthest anyone stood from their spot: %.2f m; steps spent waiting for each other: %d" % [far_off, waits])
+	print("  steps walked off the walking surface: %d" % off_floor)
+	if off_floor > 0:
+		fails.append("%d steps were walked off the walking surface" % off_floor)
+	if far_off > 0.9:
+		fails.append("someone stood %.1f m from their spot" % far_off)
 	if hearth_lit == 0:
 		fails.append("the hearth was never lit")
 	if hearth_out == 0:

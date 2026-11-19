@@ -92,6 +92,7 @@ const FURNISH: Dictionary = {
 		"back": [["qt:x_books_untidy", 2.0, -0.3, 0.0]],
 		"front": [["qt:x_rug_kilim", 2.05, 2.2, 0.0], ["qt:x_reading_table", 2.75, 2.5, 1.5708], ["qt:x_cushion", 2.05, 2.5, 0.0], ["qt:fig_read", 2.05, 2.5, 1.5708, 0.1],
 			["qt:x_book_stack", 3.2, 1.0, 0.4], ["qt:x_book_stack", 3.25, 1.45, 1.1]],
+		"small": [["qt:x_bedding", 0.85, 2.55, 0.0]],
 		"deep": [["qt:x_books", 0.74, 5.6, -1.5708], ["qt:x_seat", 3.2, 5.3, 1.5708], ["qt:x_book_open", 2.0, 5.2, 0.5],
 			["qt:x_scroll", 2.2, 5.6, 1.2], ["qt:x_inkwell", 1.8, 5.5, 0.0]],
 	},
@@ -107,6 +108,7 @@ const FURNISH: Dictionary = {
 		"lamp": Vector3(2.3, 1.3, 2.4), "note": Vector3(2.55, 0.7, 2.55),
 		"back": [["qt:x_traps", 2.0, -0.32, 0.0]],
 		"front": [["qt:home_hides", 3.3, 2.1, 1.5708], ["qt:x_low_table", 2.3, 2.4, 0.0], ["qt:x_lamp", 2.3, 2.4, 0.0, 0.7], ["qt:x_pack", 3.05, 0.85, 1.5708], ["qt:fig_mend", 2.3, 1.7, 0.0]],
+		"small": [["qt:x_bedding", 0.85, 2.55, 0.0]],
 		"deep": [["qt:x_nets", 0.74, 5.4, -1.5708], ["qt:x_bedroll", 3.0, 5.0, 1.5708], ["qt:x_cushion", 2.2, 5.3, 0.0], ["qt:x_pot", 3.2, 6.4, 0.0]],
 	},
 	"abandoned": {
@@ -736,6 +738,9 @@ func _furnish(grid: CellGrid, rng: RandomNumberGenerator) -> Array:
 		items.append_array(set["front"])
 		if deep:
 			items.append_array(set["deep"])
+		else:
+			# (One room only: what the back room would have held that the home can't do without.)
+			items.append_array(set.get("small", []))
 		var j: int = 0
 		for t: Array in items:
 			var at := Vector3(float(t[1]), 0.0, float(t[2]))

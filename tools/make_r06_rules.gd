@@ -29,6 +29,7 @@ var SCENES: Dictionary = {
 	"qt:note_scholar": "res://gen/modules/quarter_note_scholar.tscn", "qt:note_family": "res://gen/modules/quarter_note_family.tscn",
 	"qt:note_hunter": "res://gen/modules/quarter_note_hunter.tscn", "qt:note_abandoned": "res://gen/modules/quarter_note_abandoned.tscn",
 	"qt:x_bedroll": "res://kit/modules/camp/camp_bedroll.tscn", "qt:x_pack": "res://kit/modules/camp/camp_pack.tscn",
+	"qt:x_bedding": "res://kit/modules/dressing/court_contents_bedroll.tscn",
 }
 
 

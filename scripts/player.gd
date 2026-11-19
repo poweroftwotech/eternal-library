@@ -29,7 +29,7 @@ func _ready() -> void:
 	# Layer 4 = player; collides with the world (1), props (3) and the walls only
 	# the player meets (8, deep water): ENVIRONMENT_PLAN.md 6.4, phase-5-design.md 5.6.4.
 	collision_layer = 1 << 3
-	collision_mask = 1 | WorldProp.LAYER_PROPS | (1 << 7)
+	collision_mask = 1 | WorldProp.LAYER_PROPS | (1 << 7) | Resident.LAYER
 	floor_snap_length = 0.3
 	collider = CollisionShape3D.new()
 	var capsule = CapsuleShape3D.new()

@@ -37,6 +37,9 @@ const TABLE_REACH: float = 1.4
 const SEAT_BENCH: float = 0.38
 ## How high over a bedroll's own floor a sleeper's origin lies.
 const LIE_LIFT: float = 0.1
+## How far from a hauz's edge someone kneels for water, and sits beside it.
+const HAUZ_KNEEL: float = 0.42
+const HAUZ_SIT: float = 0.5
 
 
 ## The spots of home `index` of a built quarter `room` (its plan's
@@ -123,3 +126,58 @@ static func _nearest(nodes: Array[Node3D], at: Vector3, reach: float) -> Node3D:
 			best_d = d
 			best = n
 	return best
+
+
+## The shared spots of a quarter's room: its hauz and its stalls (step 3).
+static func scan_commons(room: Node3D) -> Array[Dictionary]:
+	var spots: Array[Dictionary] = []
+	for n: Node in room.find_children("*", "Node3D", true, false):
+		if n.scene_file_path.get_extension() != "tscn":
+			continue
+		var file: String = n.scene_file_path.get_file().get_basename()
+		if file == "qt_hauz":
+			_hauz(n as Node3D, spots)
+		elif file == "court_contents_stall":
+			_stall(n as Node3D, spots)
+	return spots
+
+
+static func _spot(kind: String, at: Vector3, yaw: float, pose: String, node: Node3D) -> Dictionary:
+	return {"kind": kind, "at": at, "yaw": yaw, "pose": pose, "top": 0.0, "node": node, "by": null, "trade": ""}
+
+
+# A hauz (eight-sided): a place to kneel for water at the middle of each
+# straight side, and a seat on the rim at each slanted one, looking out.
+static func _hauz(n: Node3D, spots: Array[Dictionary]) -> void:
+	var box: AABB = box_of(n)
+	var c: Vector3 = box.get_center()
+	var floor_y: float = n.global_position.y
+	var half: float = box.size.x * 0.5
+	for k: int in 8:
+		var a: float = k * PI * 0.25
+		var out := Vector3(sin(a), 0.0, cos(a))
+		var edge: Vector3 = Vector3(c.x, floor_y, c.z) + out * half
+		var facing_in: float = atan2(out.x, out.z)
+		if k % 2 == 0:
+			spots.append(_spot("water", edge + out * HAUZ_KNEEL, facing_in, "sit_knees", n))
+		elif box.end.y - floor_y >= SEAT_BENCH:
+			spots.append(_spot("bench", Vector3(edge.x, box.end.y - 0.02, edge.z) - out * 0.14, facing_in + PI, "sit_bench", n))
+		else:
+			# The rim is too low to sit on: on the ground beside it, facing the water.
+			spots.append(_spot("bench", edge + out * HAUZ_SIT, facing_in, "", n))
+
+
+# A stall: its keeper at the end of its counter, two buyers in front. Its front
+# is its own +Z. (The kit's stall has no way in behind its counter.)
+static func _stall(n: Node3D, spots: Array[Dictionary]) -> void:
+	var box: AABB = box_of(n)
+	var front: Vector3 = n.global_transform.basis.z.normalized()
+	var across: Vector3 = n.global_transform.basis.x.normalized()
+	var c := Vector3(box.get_center().x, n.global_position.y, box.get_center().z)
+	var depth: float = absf(front.x) * box.size.x + absf(front.z) * box.size.z
+	var back_yaw: float = atan2(-front.x, -front.z)
+	var width: float = absf(across.x) * box.size.x + absf(across.z) * box.size.z
+	var look: Vector3 = (front * 0.7 - across).normalized()
+	spots.append(_spot("keep", c + across * (width * 0.5 + 0.4) + front * (depth * 0.5 - 0.5), atan2(-look.x, -look.z), "idle", n))
+	for side: float in [-0.45, 0.45]:
+		spots.append(_spot("buy", c + front * (depth * 0.5 + 0.55) + across * side, back_yaw, "idle", n))
