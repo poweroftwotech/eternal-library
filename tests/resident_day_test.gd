@@ -1,6 +1,6 @@
 extends SceneTree
 ## A whole day on the residents' test lane, run fast with no display (phase 21
-## steps 2-3): the day report. Steps the clock by hand, STEP_S of the day at a
+## steps 2-4): the day report. Steps the clock by hand, STEP_S of the day at a
 ## time, so people walk every step of their day as they would at speed 1.
 ##   godot --headless --audio-driver Dummy --path . --script res://tests/resident_day_test.gd [-- --quiet]
 ## Prints each person's day, change by change, and fails (exit 1) if anyone
@@ -58,6 +58,8 @@ func run() -> void:
 	var lamp_wrong: int = 0
 	var far_off: float = 0.0
 	var waits: int = 0
+	var moves: Dictionary = {}     # every movement anyone settled into
+	var carried: Dictionary = {}   # every thing seen in a hand
 	var off_floor: int = 0
 	var steps: int = int(DayClock.DAY_S / STEP_S)
 	print("resident_day_test: %d people in %d homes; a day in %d steps" % [residents.people.size(), residents.households.size(), steps])
@@ -81,13 +83,18 @@ func run() -> void:
 				if not p.walking:
 					var d: Dictionary = did.get_or_add(p, {})
 					d[p.doing] = int(d.get(p.doing, 0)) + 1
+					moves[p.body.anim.current_animation] = true
+					if p.doing == "away" and (p.visible or not p.away):
+						fails.append("%s is away but still seen" % p.given_name)
 			worst[p] = maxf(float(worst.get(p, 0.0)), p.walked_s if p.walking else 0.0)
 			if not p.walking and not p.spot.is_empty():
 				# Arrived means there: at the spot, not held up short of it.
-				var off: float = Vector2(p.global_position.x - (p.spot["at"] as Vector3).x, p.global_position.z - (p.spot["at"] as Vector3).z).length()
+				var off: float = Vector2(p.global_position.x - p.stands_at().x, p.global_position.z - p.stands_at().z).length()
 				far_off = maxf(far_off, off)
 			if p.waiting_for != "":
 				waits += 1
+			if p.body.holding != "":
+				carried[p.body.holding] = true
 			# Walking is over the floor: never through a wall or a table.
 			if p.walking and p.route.size() > 1 and not residents.ways.on(p.global_position + Vector3(0, 0.25, 0), 0.2):
 				off_floor += 1
@@ -106,13 +113,12 @@ func run() -> void:
 		print("  %s, %s: %s; longest walk %.0f s" % [p.given_name, p.trade, d, float(worst.get(p, 0.0))])
 		if int(d.get("sleep", 0)) < 1:
 			fails.append("%s never slept" % p.given_name)
-		if p.trade in ["cook", "householder"] and int(d.get("eat", 0)) < 3:
-			fails.append("%s ate %d times" % [p.given_name, int(d.get("eat", 0))])
-		if p.trade == "cook" and int(d.get("cook", 0)) < 3:
-			fails.append("%s cooked %d times" % [p.given_name, int(d.get("cook", 0))])
-		# Step 3: out of the door.
-		for need: Array in [["cook", "water", 3], ["cook", "shop", 1], ["householder", "keep", 2], ["householder", "hauz", 1], ["scholar", "work", 2],
-				["scholar", "water", 1], ["scholar", "shop", 1], ["scholar", "hauz", 1], ["hunter", "work", 2], ["hunter", "shop", 1], ["hunter", "hauz", 2]]:
+		# Step 4: every trade's day. [trade, activity, at least this many arrivals]
+		for need: Array in [["cook", "eat", 3], ["cook", "cook", 3], ["cook", "water", 3], ["cook", "shop", 1],
+				["stall keeper", "eat", 3], ["stall keeper", "keep", 2], ["stall keeper", "hauz", 1],
+				["lamp tender", "eat", 3], ["lamp tender", "tend", 4], ["lamp tender", "hauz", 1],
+				["scholar", "eat", 3], ["scholar", "work", 3], ["scholar", "water", 1], ["scholar", "shop", 1], ["scholar", "hauz", 1],
+				["hunter", "eat", 2], ["hunter", "away", 1], ["hunter", "work", 1], ["hunter", "shop", 1], ["hunter", "water", 1], ["hunter", "hauz", 1]]:
 			if p.trade == need[0] and int(d.get(need[1], 0)) < int(need[2]):
 				fails.append("%s (%s) did '%s' %d times, not %d" % [p.given_name, p.trade, need[1], int(d.get(need[1], 0)), need[2]])
 		print("    walked %.0f m in the day" % p.walked_m)
@@ -122,6 +128,13 @@ func run() -> void:
 	print("  steps walked off the walking surface: %d" % off_floor)
 	if off_floor > 0:
 		fails.append("%d steps were walked off the walking surface" % off_floor)
+	print("  movements seen: %s; carried: %s" % [", ".join(moves.keys()), ", ".join(carried.keys())])
+	for want: String in ["stir", "dip", "weigh", "reach", "eat_floor", "eat_knees", "read_knees", "mend_floor", "sleep"]:
+		if not moves.has(want):
+			fails.append("nobody was ever seen to '%s'" % want)
+	for want: String in ["jar", "basket"]:
+		if not carried.has(want):
+			fails.append("nobody carried a %s" % want)
 	if far_off > 0.9:
 		fails.append("someone stood %.1f m from their spot" % far_off)
 	if hearth_lit == 0:

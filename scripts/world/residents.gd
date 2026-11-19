@@ -9,32 +9,22 @@ extends Node
 ## way, lights and puts out each home's hearth and lamp, and opens a door for
 ## whoever walks through it.
 ##
-## Step 3: the family's, the scholar's and the hunter's homes have people,
+## Steps 3-4: the family's, the scholar's and the hunter's homes have people,
 ## only on the test lane (or with `-- --residents`). The lane also gets a
-## stall, which a quarter doesn't have of its own.
+## stall, which a quarter doesn't have of its own. Each trade's timetable is
+## the RoutineBook's (gen/people/routines.tres), which the panel edits.
 ##
 ## F6 opens the People panel (ResidentsPanel); F4 the overlay
 ## (ResidentsOverlay: spots, who has them, the ways people are walking).
 
 const GROUP: StringName = &"residents"
 const LANE_RECIPE: String = "res://gen/recipes/drafts/mahaleh/lane_test.tres"
-## Who lives in a home of each kind: trade, outfit, timetable.
+## Who lives in a home of each kind, in order: trade (its timetable is the
+## RoutineBook's) and outfit. A home has as many of them as it has beds.
 const HOUSEHOLDS: Dictionary = {
-	"family": [{"trade": "cook", "outfit": "house_dress", "routine": "cook"}, {"trade": "householder", "outfit": "lane_coat", "routine": "householder"}],
-	"scholar": [{"trade": "scholar", "outfit": "scholar", "routine": "scholar"}],
-	"hunter": [{"trade": "hunter", "outfit": "hunter", "routine": "hunter"}],
-}
-## The timetables (Q4): [bell, activity], the bell counted from the first (0)
-## to just before the first again (6). "free" picks among the door, a seat,
-## the hauz and standing about. Placeholders in code until step 4 puts them in
-## files the panel edits.
-const ROUTINES: Dictionary = {
-	"cook": [[0.0, "wake"], [0.08, "water"], [0.2, "cook"], [0.7, "eat"], [1.1, "free"], [1.45, "shop"], [1.6, "free"], [1.86, "water"], [2.0, "cook"],
-			[2.5, "eat"], [3.0, "free"], [3.86, "water"], [4.0, "cook"], [4.4, "eat"], [4.8, "door"], [5.0, "sleep"]],
-	"householder": [[0.15, "wake"], [0.3, "door"], [0.7, "eat"], [1.1, "keep"], [2.5, "eat"], [3.0, "keep"], [4.4, "eat"], [4.8, "hauz"], [5.05, "sleep"]],
-	"scholar": [[0.2, "wake"], [0.3, "water"], [0.42, "work"], [1.7, "shop"], [1.85, "work"], [2.6, "door"], [2.9, "work"], [4.5, "hauz"], [5.1, "sleep"]],
-	"hunter": [[0.05, "wake"], [0.15, "work"], [1.25, "shop"], [1.4, "work"], [2.4, "hauz"], [2.8, "work"], [4.0, "water"], [4.12, "free"], [4.6, "hauz"],
-			[4.95, "sleep"]],
+	"family": [{"trade": "cook", "outfit": "house_dress"}, {"trade": "stall keeper", "outfit": "merchant"}, {"trade": "lamp tender", "outfit": "lamp_tender"}],
+	"scholar": [{"trade": "scholar", "outfit": "scholar"}],
+	"hunter": [{"trade": "hunter", "outfit": "hunter"}],
 }
 const NAMES: Dictionary = {
 	"man": ["Dariush", "Kaveh", "Bahram", "Farhad", "Rostam", "Siavash", "Mehrdad", "Arash"],
@@ -84,7 +74,7 @@ static func attach(world: Node3D) -> Residents:
 	return r
 
 
-## Steps 2-3: on the test lane, or when asked for.
+## Steps 2-4: on the test lane, or when asked for.
 static func wanted() -> bool:
 	if OS.get_cmdline_user_args().has("--residents"):
 		return true
@@ -159,7 +149,7 @@ func advance(delta: float, clock: DayClock) -> void:
 	if heed_player and player != null and not bool(player.get("flying")):
 		others.append({"at": player.global_position, "r": YOUR_HALF, "who": null})
 	for p: Resident in people:
-		if p.doing != "sleep" or p.walking:
+		if (p.doing != "sleep" or p.walking) and not p.away:
 			others.append({"at": p.global_position, "r": Resident.HALF, "who": p})
 	for p: Resident in people:
 		p.tick(delta, clock, others)
@@ -212,6 +202,10 @@ func _start(slot: String, room: Node3D) -> void:
 		scans[i] = SpotTable.scan_home(room, i, homes[i])
 		for s: Node3D in scans[i]["statues"]:
 			_put_away(s)
+	# The posed figures of the lanes go too: there are people now.
+	for n: Node in room.find_children("prop_qt_fig_*", "Node3D", true, false):
+		if n.scene_file_path != "":
+			_put_away(n as Node3D)
 	if on_lane() and room.get_node_or_null("LaneStall") == null:
 		var stall: Node3D = (load(STALL) as PackedScene).instantiate()
 		stall.name = "LaneStall"
@@ -226,7 +220,10 @@ func _start(slot: String, room: Node3D) -> void:
 func _fill(slot: String, room: Node3D, scans: Dictionary, clock: DayClock) -> void:
 	var plan: AreaPlan.Room = _plan_of(slot)
 	var homes: Array = plan.grid.meta["homes"]
-	for s: Dictionary in SpotTable.scan_commons(room):
+	var floor_y: float = room.to_global(homes[0]["inside"] as Vector3).y
+	var shared: Array[Dictionary] = SpotTable.scan_commons(room)
+	shared.append_array(_lane_spots(room, plan, floor_y))
+	for s: Dictionary in shared:
 		s["slot"] = slot
 		commons.append(s)
 	for i: int in scans:
@@ -241,16 +238,24 @@ func _fill(slot: String, room: Node3D, scans: Dictionary, clock: DayClock) -> vo
 		_find_lights(h, room, i, home)
 		var beds: Array = (scan["spots"] as Array).filter(func(s: Dictionary) -> bool: return s["kind"] == "sleep")
 		var who: Array = HOUSEHOLDS[home["kind"]]
-		for k: int in who.size():
+		var book: RoutineBook = RoutineBook.open()
+		# (As many people as beds: a home's first trade always, the rest if they can sleep.)
+		for k: int in mini(who.size(), maxi(beds.size(), 1)):
 			var seed_value: int = hash([area.plan.area_seed, slot, i, k])
 			var r := Resident.new()
 			r.body = ResidentBody.dressed(str(who[k]["outfit"]), posmod(seed_value, ResidentBody.FACES.size()))
 			r.add_child(r.body)
 			r.trade = str(who[k]["trade"])
 			var names: Array = NAMES[r.body.kind]
-			r.given_name = str(names[posmod(seed_value >> 8, names.size())])
+			# (No two of a name in one lane.)
+			var pick: int = posmod(seed_value >> 8, names.size())
+			for _n: int in names.size():
+				if not people.any(func(p: Resident) -> bool: return p.given_name == str(names[pick])):
+					break
+				pick = (pick + 1) % names.size()
+			r.given_name = str(names[pick])
 			r.name = "Resident_%s" % r.given_name
-			r.blocks = ROUTINES[str(who[k]["routine"])]
+			r.blocks = book.of(r.trade)
 			r.shift = (float(posmod(seed_value >> 4, 1000)) / 1000.0 - 0.5) * 2.0 * SHIFT
 			r.seed_value = seed_value
 			r.home = scan
@@ -267,6 +272,38 @@ func _fill(slot: String, room: Node3D, scans: Dictionary, clock: DayClock) -> vo
 			people.append(r)
 		households.append(h)
 		_keep_house(h, true)
+
+
+# The lane's own spots: under each of its lamps (a lamp tender's round), and
+# the way out of the lane (where someone who works away goes).
+func _lane_spots(room: Node3D, plan: AreaPlan.Room, floor_y: float) -> Array[Dictionary]:
+	var out: Array[Dictionary] = []
+	var lamps: Array[Vector3] = []
+	for n: Node in room.find_children("*", "Node3D", true, false):
+		if n.scene_file_path.get_extension() == "tscn" and n.scene_file_path.get_file().get_basename() == "qt_door_lamp":
+			lamps.append((n as Node3D).global_position)
+	for n: Node in room.find_children("prop_exit_*", "Node3D", true, false):
+		lamps.append((n as Node3D).global_position)
+	var threshold: Node3D = room.find_child("Threshold_*", false, false) as Node3D
+	if threshold != null and threshold.get_node_or_null("Light") != null:
+		lamps.append((threshold.get_node("Light") as Node3D).global_position)
+	for at: Vector3 in lamps:
+		var under := Vector3(at.x, floor_y, at.z)
+		var foot: Vector3 = ways.nearest(under)
+		var off := Vector2(foot.x - under.x, foot.z - under.z)
+		# (Not the lamps up a stair or beyond a wall.)
+		if off.length() > 1.6 or absf(foot.y - floor_y) > 0.6 or ways.walk_length(ways.nearest(room.to_global(plan.grid.meta["homes"][0]["door"])), foot) > 200.0:
+			continue
+		var yaw: float = atan2(off.x, off.y) if off.length() > 0.05 else 0.0
+		var spot: Dictionary = SpotTable._spot("lamp", Vector3(foot.x, floor_y, foot.z), yaw, "idle", null)
+		out.append(spot)
+	var route: Array = plan.grid.meta.get("route", [])
+	if not route.is_empty():
+		var gate: Vector3 = ways.nearest(room.to_global(route[0] as Vector3) + Vector3(0, 0, 0))
+		if absf(gate.y - floor_y) < 0.6:
+			var into: Vector3 = room.to_global(route[mini(1, route.size() - 1)] as Vector3) - room.to_global(route[0] as Vector3)
+			out.append(SpotTable._spot("away", Vector3(gate.x, floor_y, gate.z), atan2(into.x, into.z), "idle", null))
+	return out
 
 
 # An old posed figure: out of sight and out of the way.

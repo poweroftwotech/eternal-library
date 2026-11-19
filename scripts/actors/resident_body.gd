@@ -88,6 +88,21 @@ const BLINK_EVERY: Vector2 = Vector2(2.0, 6.5)
 const BLINK_S: float = 0.13
 var _asleep: bool = false
 var _blink_in: float = 3.0
+## What is in the right hand ("" or a key of THINGS), and its node.
+var holding: String = ""
+var _hand: BoneAttachment3D
+var _things: Dictionary = {}
+var _lamp: OmniLight3D
+## Things carried in the right hand: built from plain shapes. Each part:
+## [shape, size (radius or half-width, height), offset below the hand, colour].
+const THINGS: Dictionary = {
+	"jar": [["ball", Vector2(0.11, 0.2), 0.2, Color(0.5, 0.27, 0.16)], ["tube", Vector2(0.05, 0.07), 0.07, Color(0.45, 0.24, 0.14)],
+			["tube", Vector2(0.065, 0.015), 0.03, Color(0.55, 0.3, 0.18)]],
+	"basket": [["tube", Vector2(0.15, 0.14), 0.3, Color(0.5, 0.38, 0.2)], ["tube", Vector2(0.165, 0.02), 0.22, Color(0.4, 0.29, 0.15)],
+			["ball", Vector2(0.12, 0.1), 0.22, Color(0.55, 0.16, 0.1)]],
+}
+## The lamp tender's globe is a real light (the only clothing that is).
+const GLOBE_LIGHT: Dictionary = {"at": Vector3(0.0, 2.12, 0.16), "colour": Color(1.0, 0.8, 0.5), "energy": 0.55, "range": 4.5}
 var _blinking: float = 0.0
 
 
@@ -144,6 +159,18 @@ func wear(id: String, face_index: int = 0) -> void:
 			var c: Color = k[1]
 			m.set_instance_shader_parameter(k[0], Vector3(c.r, c.g, c.b))
 		m.set_instance_shader_parameter("beard", 1.0 if o["beard"] else 0.0)
+	# The globe on its pole lights the lane round its wearer.
+	if shown.has("globe") and _lamp == null:
+		_lamp = OmniLight3D.new()
+		_lamp.name = "GlobeLight"
+		_lamp.position = (GLOBE_LIGHT["at"] as Vector3) * float(SIZES[kind])
+		_lamp.light_color = GLOBE_LIGHT["colour"]
+		_lamp.light_energy = GLOBE_LIGHT["energy"]
+		_lamp.omni_range = GLOBE_LIGHT["range"]
+		_lamp.shadow_enabled = false
+		add_child(_lamp)
+	if _lamp != null:
+		_lamp.visible = shown.has("globe")
 
 
 ## The floor pose this outfit sits in: kneeling in a floor-length garment,
@@ -181,12 +208,61 @@ func hold(what: String, t: float) -> void:
 	set_process(false)          # a held pose is for pictures: no blinking
 
 
+## Puts `what` (a key of THINGS, or "" for nothing) in the right hand. It hangs
+## upright from the hand whatever the arm does.
+func hold_thing(what: String) -> void:
+	if what == holding:
+		return
+	holding = what
+	if _hand == null:
+		_hand = BoneAttachment3D.new()
+		_hand.name = "RightHand"
+		skeleton.add_child(_hand)
+		_hand.bone_name = "hand_r"
+	for key: String in _things:
+		(_things[key] as Node3D).visible = key == what
+	if what == "" or _things.has(what):
+		return
+	var thing := Node3D.new()
+	thing.name = what
+	for part: Array in THINGS[what]:
+		var mi := MeshInstance3D.new()
+		var size: Vector2 = part[1]
+		if part[0] == "ball":
+			var ball := SphereMesh.new()
+			ball.radius = size.x
+			ball.height = size.y
+			ball.radial_segments = 8
+			ball.rings = 4
+			mi.mesh = ball
+		else:
+			var tube := CylinderMesh.new()
+			tube.top_radius = size.x
+			tube.bottom_radius = size.x * 0.8
+			tube.height = size.y
+			tube.radial_segments = 8
+			tube.rings = 1
+			mi.mesh = tube
+		var mat := StandardMaterial3D.new()
+		mat.albedo_color = part[3]
+		mat.roughness = 0.9
+		mi.material_override = mat
+		mi.position = Vector3(0.0, -float(part[2]), 0.0)
+		thing.add_child(mi)
+	_hand.add_child(thing)
+	_things[what] = thing
+
+
 ## The eyes are on the base piece.
 func set_eyes_shut(shut: bool) -> void:
 	(pieces["base"] as MeshInstance3D).set_instance_shader_parameter("eyes_shut", 1.0 if shut else 0.0)
 
 
 func _process(delta: float) -> void:
+	if holding != "":
+		# Whatever is carried hangs straight down from the hand.
+		var thing: Node3D = _things[holding]
+		thing.global_basis = Basis(Vector3.UP, global_rotation.y)
 	if _asleep:
 		return
 	if _blinking > 0.0:

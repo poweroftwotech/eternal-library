@@ -129,7 +129,7 @@ func run() -> void:
 	check(not scholar.walking, "you move, and he goes to the hauz (%.0f s)" % took)
 
 	# 4. Solid.
-	var keeper: Resident = who["householder"]
+	var keeper: Resident = who["stall keeper"]
 	_set_off(residents, clock, keeper, "keep")
 	keeper.arrive_now()
 	check((player.collision_mask & Resident.LAYER) != 0, "your body collides with the people's layer")

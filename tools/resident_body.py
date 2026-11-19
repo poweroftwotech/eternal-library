@@ -921,6 +921,121 @@ def sleep(t, k):
     return p, 0.15, 0.86 * k
 
 
+# --- work: what the arms, head and back do, laid over a way of sitting --------
+def with_upper(base, upper):
+    """A base result (pose[, root offsets]) with `upper`'s bones laid over it."""
+    if isinstance(base, tuple):
+        pose = dict(base[0])
+        pose.update(upper)
+        return (pose,) + tuple(base[1:])
+    pose = dict(base)
+    pose.update(upper)
+    return pose
+
+
+def pulse(t, at, width):
+    """0..1..0 round `at` (0..1 of the cycle), `width` wide."""
+    d = abs(((t - at + 0.5) % 1.0) - 0.5)
+    return max(0.0, 1.0 - d / (width * 0.5)) if width > 0 else 0.0
+
+
+def up_read(t):
+    """A book held open before the chest, the head bent to it; now and then a
+    page is turned with the right hand."""
+    b = math.sin(t * math.tau)
+    turn = pulse(t, 0.55, 0.16)
+    return {
+        "chest": [("X", -7 + 0.6 * b)], "neck": [("X", -8)], "head": [("X", -16 - 1.5 * b)],
+        "upper_arm_l": [("X", 34), ("Y", -4)], "upper_arm_r": [("X", 34 + 6 * turn), ("Y", 4)],
+        "forearm_l": [("X", 78), ("Z", -22)], "forearm_r": [("X", 78 - 10 * turn), ("Z", 22 + 20 * turn)],
+        "hand_l": [("X", 10)], "hand_r": [("X", 10 + 20 * turn)],
+    }
+
+
+def up_mend(t):
+    """Work in the lap: the left hand holds it, the right draws a thread out
+    and back, the head bent over it."""
+    pull = 0.5 - 0.5 * math.cos(2 * t * math.tau)
+    return {
+        "chest": [("X", -9)], "neck": [("X", -8)], "head": [("X", -18), ("Z", -4)],
+        "upper_arm_l": [("X", 24), ("Y", -3)], "upper_arm_r": [("X", 24 + 10 * pull), ("Y", 6 + 14 * pull)],
+        "forearm_l": [("X", 62), ("Z", -26)], "forearm_r": [("X", 66 - 14 * pull), ("Z", 24 - 16 * pull)],
+        "hand_l": [("X", 14)], "hand_r": [("X", 14 + 10 * pull)],
+    }
+
+
+def up_eat(t):
+    """Eating with the right hand: down to the dish, up to the mouth, twice a
+    cycle; the left hand rests."""
+    lift = 0.5 - 0.5 * math.cos(2 * t * math.tau)
+    lift = lift * lift * (3 - 2 * lift)
+    return {
+        "chest": [("X", -6 + 2 * lift)], "neck": [("X", -3)], "head": [("X", -9 + 5 * lift)],
+        "upper_arm_r": [("X", 30 + 6 * lift), ("Y", 4), ("Z", 30 * lift)],
+        "forearm_r": [("X", 46 + 94 * lift), ("Z", 12 + 10 * lift)],
+        "hand_r": [("X", 16 + 14 * lift)],
+    }
+
+
+def stir(t, k):
+    """Kneeling at the hearth, stirring the pot with the right hand."""
+    a = 2 * t * math.tau
+    upper = {
+        "spine": [("X", -8)], "chest": [("X", -8)], "neck": [("X", -5)], "head": [("X", -12)],
+        "upper_arm_r": [("X", 52 + 7 * math.cos(a)), ("Z", 7 * math.sin(a))],
+        "forearm_r": [("X", 36 + 6 * math.sin(a)), ("Z", 6 + 6 * math.cos(a))],
+        "hand_r": [("X", 30)],
+    }
+    return with_upper(sit_knees(t, k), upper)
+
+
+def dip(t, k):
+    """Kneeling at the water's edge, leaning over to fill a jar held in both
+    hands: down, held under, up."""
+    down = pulse(t, 0.5, 0.9)
+    down = down * down * (3 - 2 * down)
+    upper = {
+        "spine": [("X", -6 - 16 * down)], "chest": [("X", -5 - 12 * down)], "neck": [("X", -2 + 6 * down)], "head": [("X", -8)],
+        "upper_arm_l": [("X", 38 + 26 * down), ("Y", -3)], "upper_arm_r": [("X", 38 + 26 * down), ("Y", 3)],
+        "forearm_l": [("X", 44 - 24 * down), ("Z", -14)], "forearm_r": [("X", 44 - 24 * down), ("Z", 14)],
+        "hand_l": [("X", 10)], "hand_r": [("X", 10)],
+    }
+    return with_upper(sit_knees(t, k), upper)
+
+
+def weigh(t):
+    """Standing at a counter, the hands at its height: one lifts as the other
+    lowers, like the pans of a scale, then a rest."""
+    busy = pulse(t, 0.35, 0.6)
+    tip = math.sin(3 * t * math.tau) * busy
+    upper = {
+        "chest": [("X", -4)], "neck": [("X", -2)], "head": [("X", -11), ("Z", 3 * tip)],
+        "upper_arm_l": [("X", 18), ("Y", -5)], "upper_arm_r": [("X", 18), ("Y", 5)],
+        "forearm_l": [("X", 66 + 9 * tip), ("Z", -8)], "forearm_r": [("X", 66 - 9 * tip), ("Z", 8)],
+        "hand_l": [("X", 6)], "hand_r": [("X", 6)],
+    }
+    return with_upper(stand(t), upper)
+
+
+def reach(t):
+    """Standing under a lamp, the right arm up to it, the head back to see:
+    trimming the wick."""
+    b = math.sin(2 * t * math.tau)
+    upper = {
+        "chest": [("X", 4)], "neck": [("X", 8)], "head": [("X", 14), ("Z", -4)],
+        "upper_arm_r": [("X", 152 + 4 * b), ("Y", 6)], "forearm_r": [("X", 18 + 8 * b)], "hand_r": [("X", 8 * b)],
+    }
+    return with_upper(stand(t), upper)
+
+
+def walk_carry(t):
+    """The walk with something held in the right hand at the hip: that arm
+    doesn't swing."""
+    r = walk(t)
+    upper = {"upper_arm_r": [("Y", 7), ("X", 6)], "forearm_r": [("X", 74), ("Z", 10)], "hand_r": [("X", 4)]}
+    return with_upper(r, upper)
+
+
 def animate(rig, K):
     k = K["k"]
     rig.animation_data_create()
@@ -942,6 +1057,17 @@ def animate(rig, K):
     action("sit_floor-loop", 96, lambda t: sit_floor(t, k))
     action("sit_knees-loop", 96, lambda t: sit_knees(t, k))
     action("sleep-loop", 120, lambda t: sleep(t, k))
+    # Work (phase 21 step 4). Reading, mending and eating go over each way of
+    # sitting: <what>_<floor|knees|bench>.
+    for way, base in (("floor", sit_floor), ("knees", sit_knees), ("bench", sit_bench)):
+        action("read_%s-loop" % way, 144, lambda t, base=base: with_upper(base(t, k), up_read(t)))
+        action("mend_%s-loop" % way, 96, lambda t, base=base: with_upper(base(t, k), up_mend(t)))
+        action("eat_%s-loop" % way, 120, lambda t, base=base: with_upper(base(t, k), up_eat(t)))
+    action("stir-loop", 96, lambda t: stir(t, k))
+    action("dip-loop", 144, lambda t: dip(t, k))
+    action("weigh-loop", 168, weigh)
+    action("reach-loop", 96, reach)
+    action("walk_carry-loop", WALK_FRAMES, walk_carry)
     rig.animation_data.action = made[0]
     return made
 

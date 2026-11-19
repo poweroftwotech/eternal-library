@@ -13,15 +13,27 @@ extends Node3D
 ## The collision layer of people's bodies (the player's mask has it).
 const LAYER: int = 1 << 9
 ## What a block's activity shows as on the label.
+## The kit pieces that are bedding rolled up: while someone sleeps where one
+## lay it is gone and the bedding is laid out under them (LAID, whose head is
+## toward its +X; a sleeper's is toward their +Z).
+const ROLLS: PackedStringArray = ["qt_bed_roll", "camp_bedroll"]
+const LAID: String = "res://kit/modules/dressing/qt_bed_laid.tscn"
 const SAYS: Dictionary = {"wake": "getting up", "cook": "cooking", "eat": "eating", "door": "at the door", "sleep": "asleep",
 		"sit": "sitting", "stand": "standing about", "work": "working", "water": "fetching water", "shop": "at the stall",
-		"keep": "keeping the stall", "hauz": "sitting at the hauz"}
+		"keep": "keeping the stall", "hauz": "sitting at the hauz", "tend": "tending the lamps", "away": "away"}
 const GOING: Dictionary = {"sleep": "bed", "cook": "the hearth", "eat": "eat", "door": "the door", "wake": "get up", "water": "the hauz for water",
-		"shop": "the stall", "keep": "the stall", "hauz": "the hauz", "work": "work", "sit": "sit down"}
+		"shop": "the stall", "keep": "the stall", "hauz": "the hauz", "work": "work", "sit": "sit down", "tend": "a lamp",
+		"away": "work, out of the lane"}
 ## What an activity needs: the kinds of spot that will do, best first.
-const WANTS: Dictionary = {"sleep": ["sleep"], "cook": ["cook", "stand"], "eat": ["eat", "sit", "stand"], "door": ["door"], "wake": ["stand"],
+const WANTS: Dictionary = {"sleep": ["sleep"], "cook": ["cook", "stand"], "eat": ["eat", "sit", "work", "stand"], "door": ["door"], "wake": ["stand"],
 		"sit": ["sit", "eat", "stand"], "stand": ["stand"], "work": ["work", "sit", "stand"], "water": ["water", "door"], "shop": ["buy", "door"],
-		"keep": ["keep", "door"], "hauz": ["bench", "door"]}
+		"keep": ["keep", "door"], "hauz": ["bench", "door"], "tend": ["lamp", "door"], "away": ["away", "door"]}
+## What a trade's work at home looks like (the animation's first word).
+const WORK_MOVES: Dictionary = {"scholar": "read", "hunter": "mend", "ossuary keeper": "read", "copyist": "read"}
+## What is carried for an errand: to it, at it, and on the walk after.
+const CARRIES: Dictionary = {"water": "jar", "shop": "basket"}
+## At each lamp a tender stays this long (s of the day), then goes to the next.
+const TEND_S: float = 14.0
 ## Kinds of spot that take any number of people, side by side.
 const SHARED: PackedStringArray = ["door", "stand"]
 ## What free time picks among.
@@ -85,6 +97,14 @@ var _stalled_s: float = 0.0
 var _through_s: float = 0.0
 var _repath_s: float = 0.0
 var _strayed: bool = false
+## Out of the lane (the hunter by day): not seen, not in anyone's way.
+var _laid: Node3D
+var away: bool = false
+var _carry: String = ""
+## What the present spot was taken for.
+var _errand: String = ""
+var _tend_s: float = 0.0
+var _lamp_at: int = -1
 
 
 func _ready() -> void:
@@ -111,6 +131,11 @@ func _ready() -> void:
 	_solid.position = Vector3(0, SOLID_HEIGHT * 0.5, 0)
 	solid.add_child(_solid)
 	add_child(solid)
+
+
+## Where they stand or sit when they have arrived (beside a spot they share).
+func stands_at() -> Vector3:
+	return _end
 
 
 ## Puts them on the floor at `at` with nothing in hand (a new household).
@@ -157,6 +182,11 @@ func tick(delta: float, clock: DayClock, others: Array = []) -> void:
 	block = now
 	if walking:
 		_walk(delta * clock.speed, clock.speed, others)
+	elif doing == "tend":
+		# A round of the lamps: a while at each, then the next.
+		_tend_s += delta * clock.speed
+		if _tend_s >= TEND_S:
+			_go("tend")
 	_label.text = "%s, %s\n%s" % [given_name, trade, describe(bells)]
 
 
@@ -192,17 +222,37 @@ func _go(activity: String) -> void:
 			found = _free_spot(kind)
 			if not found.is_empty():
 				break
+	if activity == "tend":
+		found = _next_lamp()
 	if found.is_empty() or found == spot:
 		return
+	if away:
+		away = false
+		visible = true
+	# An errand's thing is carried there and on the walk after it.
+	var carried: String = str(CARRIES.get(activity, ""))
+	if carried == "" and CARRIES.has(_errand):
+		carried = str(CARRIES[_errand])
+	_carry = carried
+	body.hold_thing(_carry)
+	_errand = activity
+	_tend_s = 0.0
 	if not spot.is_empty() and spot["by"] == self:
 		spot["by"] = null
+	_roll(true)
 	var shared: bool = found["by"] != null and found["by"] != self
 	spot = found
 	if not shared:
 		spot["by"] = self
 	_end = spot["at"]
 	if shared:
-		_end += Basis(Vector3.UP, float(spot["yaw"])).x * BESIDE
+		# Beside whoever is there: to one side or the other, where there is floor.
+		var side: Vector3 = Basis(Vector3.UP, float(spot["yaw"])).x
+		for along: float in [BESIDE, -BESIDE, 2.0 * BESIDE, -2.0 * BESIDE]:
+			var beside: Vector3 = (spot["at"] as Vector3) + side * along
+			if ways == null or ways.on(beside + Vector3(0, 0.25, 0), 0.05):
+				_end = beside
+				break
 	_find_way()
 	walking = true
 	walked_s = 0.0
@@ -211,7 +261,20 @@ func _go(activity: String) -> void:
 	_through_s = 0.0
 	_strayed = false
 	_solid.disabled = false
-	body.play("walk", 0.3, 0.0, WALK_SPEED / body.walk_speed())
+	body.play(_walk_move(), 0.3, 0.0, WALK_SPEED / body.walk_speed())
+
+
+func _walk_move() -> String:
+	return "walk_carry" if _carry != "" else "walk"
+
+
+# The next lamp of the round (the lane's "lamp" spots, in order).
+func _next_lamp() -> Dictionary:
+	var lamps: Array = commons.filter(func(s: Dictionary) -> bool: return s["kind"] == "lamp")
+	if lamps.is_empty():
+		return {}
+	_lamp_at = posmod(_lamp_at + 1, lamps.size())
+	return lamps[_lamp_at]
 
 
 # A spot of `kind` nobody else has: the home's first, then the lane's (the
@@ -324,6 +387,14 @@ func _walk(delta: float, speed: float, others: Array) -> void:
 			next = round_it
 			dir = (next - global_position).normalized()
 			_strayed = true
+		elif _strayed and not last and ways != null and not ways.on(next + Vector3(0, 0.25, 0), 0.1):
+			# Off the line, and the straight way back to it leaves the floor:
+			# the way is found again from here before another step is taken.
+			_foot = global_position
+			_find_way()
+			_strayed = false
+			_repath_s = REPATH_EVERY
+			return
 		_unstall()
 		if not last:
 			# Down off a bed or a seat to the floor (the lane's floors are level).
@@ -406,7 +477,7 @@ func _unstall() -> void:
 	if waiting_for != "":
 		waiting_for = ""
 		_stalled_s = 0.0
-		body.play("walk", 0.3, 0.0, WALK_SPEED / body.walk_speed())
+		body.play(_walk_move(), 0.3, 0.0, WALK_SPEED / body.walk_speed())
 
 
 func _arrive() -> void:
@@ -420,6 +491,62 @@ func _arrive() -> void:
 		global_position.y = (spot["at"] as Vector3).y - 0.42 * float(ResidentBody.SIZES[body.kind])
 	if doing == "wake":
 		pose = "idle"
+	pose = _move_for(pose)
+	if spot["kind"] == "away":
+		# Gone out of the lane until the timetable brings them back.
+		away = true
+		visible = false
+	# Home again, or sat down: the errand's thing is put down. (At the water
+	# and the stall it is still in hand.)
+	if not CARRIES.has(doing):
+		_carry = ""
+		body.hold_thing("")
+	# A bedroll is unrolled to be slept on: the roll is gone while they lie there.
+	if pose == "sleep":
+		_roll(false)
 	# Lying down, there is nothing upright to bump into.
-	_solid.disabled = pose == "sleep"
+	_solid.disabled = pose == "sleep" or away
 	body.play(pose, 0.35, randf() * 3.0)
+
+
+
+# What they do at the spot: the work of the hour laid over the way of
+# sitting or standing the spot gives.
+# Rolls up (`rolled`) or lays out the bedding of the spot they are at, if it
+# is bedding: the roll shown and the laid bed gone, or the other way about.
+func _roll(rolled: bool) -> void:
+	if _laid != null:
+		_laid.visible = false
+	if spot.is_empty() or spot["by"] != (null if rolled else self):
+		return
+	var n: Node3D = spot.get("node") as Node3D
+	if n == null or not is_instance_valid(n) or not ROLLS.has(n.scene_file_path.get_file().get_basename()):
+		return
+	n.visible = rolled
+	if rolled:
+		return
+	if _laid == null:
+		_laid = (load(LAID) as PackedScene).instantiate() as Node3D
+		_laid.rotation.y = -PI * 0.5
+		add_child(_laid)
+	# (On whatever the roll lay on: the floor, or a bed.)
+	_laid.position = Vector3(0.0, n.global_position.y - global_position.y, 0.0)
+	_laid.visible = true
+
+
+func _move_for(pose: String) -> String:
+	var way: String = str({"sit_floor": "floor", "sit_knees": "knees", "sit_bench": "bench"}.get(pose, ""))
+	match doing:
+		"eat":
+			return "eat_" + way if way != "" else pose
+		"work":
+			return "%s_%s" % [WORK_MOVES.get(trade, "mend"), way] if way != "" else pose
+		"cook":
+			return "stir" if pose == "sit_knees" else pose
+		"water":
+			return "dip" if pose == "sit_knees" else pose
+		"keep":
+			return "weigh" if pose == "idle" else pose
+		"tend":
+			return "reach" if pose == "idle" else pose
+	return pose

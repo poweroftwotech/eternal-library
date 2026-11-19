@@ -10,7 +10,13 @@ extends SceneTree
 
 const ROW: Array = [["lane_coat", "walk", 0.27], ["house_dress", "walk", 0.8], ["merchant", "sit_bench", 1.0], ["bazaar_gown", "sit_bench", 1.0],
 		["hunter", "sit_floor", 1.0], ["copyist", "sit_floor", 1.0], ["scholar", "sit_knees", 1.0], ["house_dress", "sit_knees", 1.0], ["lane_coat", "sleep", 1.0]]
+## The work poses (step 4), with `--row=work`.
+const WORK_ROW: Array = [["scholar", "read_knees", 3.3], ["copyist", "read_floor", 1.0], ["hunter", "mend_floor", 1.0], ["house_dress", "stir", 0.5],
+		["house_dress", "dip", 3.0], ["merchant", "weigh", 2.2], ["lamp_tender", "reach", 1.0], ["lane_coat", "eat_floor", 1.25], ["bazaar_gown", "eat_bench", 1.25],
+		["house_dress", "walk_carry", 0.27]]
 const SPACING: float = 1.15
+
+var row: Array = ROW
 
 
 func _initialize() -> void:
@@ -24,7 +30,9 @@ func run() -> void:
 	var turn: float = 0.0
 	var first: bool = true
 	for a: String in OS.get_cmdline_user_args():
-		if a.begins_with("--ahead="):
+		if a == "--row=work":
+			row = WORK_ROW
+		elif a.begins_with("--ahead="):
 			ahead = a.trim_prefix("--ahead=").to_float()
 		elif a.begins_with("--turn="):
 			turn = deg_to_rad(a.trim_prefix("--turn=").to_float())
@@ -52,16 +60,16 @@ func run() -> void:
 	var base: Vector3 = game.player.global_position + fwd * ahead
 	var space: PhysicsDirectSpaceState3D = cam.get_world_3d().direct_space_state
 	var people: Array[ResidentBody] = []
-	for i: int in ROW.size():
-		var p: Vector3 = _floor(space, base + right * (i - (ROW.size() - 1) * 0.5) * SPACING)
-		var r: ResidentBody = ResidentBody.dressed(ROW[i][0], i)
+	for i: int in row.size():
+		var p: Vector3 = _floor(space, base + right * (i - (row.size() - 1) * 0.5) * SPACING)
+		var r: ResidentBody = ResidentBody.dressed(row[i][0], i)
 		game.world.add_child(r)
 		r.global_position = p
-		var pose: String = ROW[i][1]
+		var pose: String = row[i][1]
 		# Walkers go along the row, sitters face the camera, sleepers lie across it.
 		var face: Vector3 = right if pose == "walk" else (-fwd if pose != "sleep" else right)
 		r.look_at(p + face, Vector3.UP)
-		r.hold(pose, float(ROW[i][2]))
+		r.hold(pose, float(row[i][2]))
 		people.append(r)
 	var lamp := OmniLight3D.new()
 	lamp.light_color = Color(1.0, 0.86, 0.66)
@@ -79,7 +87,7 @@ func run() -> void:
 		for o: ResidentBody in people:
 			o.visible = o == r
 		var at: Vector3 = r.global_position + Vector3(0, 0.6, 0)
-		var name: String = "%d_%s_%s" % [i, ROW[i][0], ROW[i][1]]
+		var name: String = "%d_%s_%s" % [i, row[i][0], row[i][1]]
 		await _shot(cam, at - fwd * 2.6 + right * 1.2 + Vector3(0, 0.7, 0), at, 45.0, "%s/%s.png" % [out_dir, name])
 		await _shot(cam, at + right * 2.8 + Vector3(0, 0.3, 0), at, 45.0, "%s/%s_side.png" % [out_dir, name])
 	print("resident_pose_capture: %d people at %s -> %s" % [people.size(), base.snapped(Vector3.ONE * 0.1), out_dir])

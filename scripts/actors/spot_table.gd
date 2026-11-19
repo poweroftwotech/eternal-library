@@ -23,6 +23,7 @@ extends RefCounted
 ##   trade   only for people of this trade
 const BY_FILE: Dictionary = {
 	"camp_bedroll": {"kind": "sleep", "lie": true},
+	"qt_bed_roll": {"kind": "sleep", "lie": true},
 	"court_contents_bedroll": {"kind": "sleep", "lie": true},
 	"qt_fig_stir": {"kind": "cook", "statue": true, "pose": "sit_knees"},
 	"qt_fig_read": {"kind": "work", "statue": true, "trade": "scholar"},

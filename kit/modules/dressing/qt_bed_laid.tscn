@@ -1,0 +1,12 @@
+[gd_scene format=3]
+
+[ext_resource type="Script" path="res://scripts/world/kit_module.gd" id="1_dakf4"]
+[ext_resource type="PackedScene" path="res://assets/kit/dressing/qt_bed_laid.glb" id="2_ebi8j"]
+
+[node name="qt_bed_laid" type="Node3D" unique_id=370332840]
+script = ExtResource("1_dakf4")
+family = "dressing"
+tags = PackedStringArray("cloth", "quarter")
+source_glb = "res://assets/kit/dressing/qt_bed_laid.glb"
+
+[node name="Mesh" parent="." unique_id=96564172 instance=ExtResource("2_ebi8j")]

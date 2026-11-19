@@ -1,0 +1,14 @@
+[gd_resource type="Resource" script_class="RoutineBook" format=3]
+
+[ext_resource type="Script" path="res://scripts/actors/routine_book.gd" id="1_n8ro6"]
+
+[resource]
+script = ExtResource("1_n8ro6")
+trades = {
+"cook": [[0.0, "wake"], [0.08, "water"], [0.2, "cook"], [0.7, "eat"], [1.1, "free"], [1.45, "shop"], [1.6, "free"], [1.86, "water"], [2.0, "cook"], [2.5, "eat"], [3.0, "free"], [3.86, "water"], [4.0, "cook"], [4.4, "eat"], [4.8, "door"], [5.0, "sleep"]],
+"hunter": [[0.0, "wake"], [0.1, "eat"], [0.35, "away"], [3.3, "shop"], [3.45, "work"], [4.0, "water"], [4.15, "eat"], [4.5, "hauz"], [4.95, "sleep"]],
+"lamp tender": [[0.1, "wake"], [0.22, "tend"], [0.7, "eat"], [1.1, "free"], [2.5, "eat"], [3.0, "hauz"], [3.6, "free"], [4.4, "eat"], [4.75, "tend"], [5.2, "sleep"]],
+"ossuary keeper": [[0.2, "wake"], [0.5, "eat"], [0.8, "work"], [2.5, "eat"], [2.9, "work"], [4.4, "eat"], [4.7, "free"], [5.1, "sleep"]],
+"scholar": [[0.2, "wake"], [0.3, "water"], [0.42, "work"], [1.0, "eat"], [1.25, "work"], [1.7, "shop"], [1.85, "work"], [2.6, "eat"], [2.85, "work"], [4.3, "eat"], [4.55, "hauz"], [5.1, "sleep"]],
+"stall keeper": [[0.15, "wake"], [0.3, "door"], [0.7, "eat"], [1.1, "keep"], [2.5, "eat"], [3.0, "keep"], [4.4, "eat"], [4.8, "hauz"], [5.05, "sleep"]]
+}

@@ -396,3 +396,182 @@ Pictures in `previews/phase21_step3/` (each plain and with the overlay).
 - **At 30x and 60x they skip walks,** as before.
 - I have not measured the cost of the surface on a full Mahaleh quarter, or
   the frame cost of four solid, way-finding people (step 5).
+
+**Step 3 committed 2026-11-18 (8aafa4a)** at your "commit and go on".
+
+## Step 4: trades and free time
+
+### First look (2026-11-18, awaiting your walk)
+
+**Try it:** the test lane as before (Strata Board, **Walk the test lane**,
+or `-- --lane`). **F6** now has three pages under the clock:
+
+| Page | What it shows |
+|---|---|
+| **Now** | Everyone and what they are doing |
+| **A day** | One person's whole day, a line a block, with the present one marked and what they are doing about it |
+| **Timetables** | A trade's timetable as rows: a bell, minutes after it, and what to do. Change a row and everyone of that trade follows at once. **Add a row**, **x** to take one out, **As first written** to undo, **Save** to keep (it writes `gen/people/routines.tres`) |
+
+A good try: open Timetables, choose the lamp tender, change his second
+"Tend the lamps" row to the bell you are in, and watch him set out.
+
+**What you should see.** Five people now (the family's home has three):
+
+| Trade | The day | The work looks like |
+|---|---|---|
+| Cook | Water before each meal, cooks, eats, goes to the stall | Kneels and stirs at the hearth; leans over the rim to fill a jar; carries the jar home; carries a basket back from the stall |
+| Stall keeper (was "the householder") | Keeps the stall between meals, the hauz before bed | Hands at the counter, lifting and lowering like scales |
+| Lamp tender (new) | A round of the lane's lamps after the first bell and before bed | Stands under each lamp and reaches up to it; the globe on his pole is a real light |
+| Scholar | Reads at his table, three meals, water, the stall, the hauz | Book held up, head bent, a page turned now and then |
+| Hunter | **Away by day:** leaves the lane after breakfast and comes back at the fourth bell; then the stall, mending, water, the hauz | Draws a thread out and back |
+| Ossuary keeper | A timetable only: nobody on the lane has this trade (no ossuary here) | |
+
+- **Everyone eats now:** the hand goes down to the dish and up to the
+  mouth. The scholar and the hunter eat where they work.
+- **A home has as many people as it has beds.** The deep family home has
+  three; a one-room family home has two (the cook and the stall keeper).
+- **The old hooded figures in the lane are gone** on the test lane.
+- **Beds:** every lived-in home has a place to sleep for everyone in it,
+  but the piece I used for the added ones is wrong (see "Stopped" below).
+
+Pictures in `previews/phase21_step4/`: each trade at work, the panel's
+three pages, the work poses in a row (`poses/`), and homes at night on
+seeds 1 and 2 (`homes/`).
+
+**What was built.**
+
+| Part | What it is |
+|---|---|
+| Work movements | Twelve new animations on both bodies (`tools/resident_body.py`): reading, mending and eating over each way of sitting; stirring; filling a jar; weighing; reaching to a lamp; walking with something held |
+| Things carried | A jar and a basket in the right hand (`ResidentBody.hold_thing`), hanging straight whatever the arm does. Plain shapes, not kit pieces |
+| Timetables in a file | `RoutineBook` (`scripts/actors/routine_book.gd`), saved to `gen/people/routines.tres`; `tools/make_routines.gd` writes it afresh |
+| The lamp round | The lane's lamps (door lamps, the lamps over the ways out) each give a spot; the tender goes from one to the next |
+| Away | The way out of the lane is a spot; whoever goes "away" walks there and is gone until the timetable brings them back |
+| The panel | Three pages, the editor |
+| Furniture (Q8, Q9) | The quarter's own lists: bedding in the family's front room and one-room home, in the two-room scholar's back room; a third seat at the family's table |
+
+**Checks.**
+
+- **A whole day, run fast** (`tests/resident_day_test.gd`): five people;
+  every trade did everything its day asks (the list is in the test), every
+  work movement was seen, a jar and a basket were carried, the hunter was
+  out of sight while away, nobody stepped off the walking surface. Passes.
+- **You in the way** (`tests/resident_meet_test.gd`): 13 checks pass.
+- **Your own walking** (`tests/area_route_test.gd` on the lane, five
+  seeds): **FAILS, 4 of 79 checks.** On seeds 1, 3, 4 and 5 you cannot walk
+  from the family's front room into its back room. See "Stopped" below.
+- The camp, the lane, the live Mahaleh and the zoo start headless with no
+  errors.
+
+**Stopped: the beds are the wrong piece (your choice needed).**
+
+The route test failed three times running with the same error, so by the
+project's rule I stopped fixing and looked for the cause:
+
+```
+FAIL mahaleh seed 1: entrance way 3 of 6: out and back (2 of 4, 0 of 5)
+FAIL mahaleh seed 3: entrance way 4 of 6: out and back (2 of 4, 0 of 5)
+FAIL mahaleh seed 4: entrance way 6 of 7: out and back (2 of 4, 0 of 5)
+FAIL mahaleh seed 5: entrance way 5 of 7: out and back (2 of 4, 0 of 5)
+```
+
+Asking the physics what your body touches on that leg gives
+`prop_qt_item_1_8 (court_contents_bedroll__block)`. The piece I used for
+"laid-out bedding" (`court_contents_bedroll`) is not one bed. It is the
+caravanserai's whole row of bedding: 3.5 m wide, 1.1 m deep, 0.6 m high,
+and solid. I had taken it for a single mattress and never measured it.
+
+- In the family's home it lies across the way to the back room.
+- **This is also in step 3, which is committed:** the one-room scholar's
+  and hunter's homes have the same 3.5 m row across the back of the room,
+  partly through a wall. The route test passed there only because your way
+  in stops short of it. The live Mahaleh's small homes have it too.
+
+Two ways to put it right:
+
+| | What | Cost |
+|---|---|---|
+| **A** (my pick) | A new small kit piece: one laid-out bed (mattress, blanket, bolster, about 0.8 by 1.9 m, not solid), made in Blender through the kit pipeline, used for every added bed | One new piece; the look is right |
+| **B** | No new art: use the rolled bedroll the family's bed already has (1.3 by 0.5 m, not solid) as the bed, and hide it while its owner sleeps there | Quick; a sleeper lies on the bare floor |
+
+**What I see wrong, or have not done.**
+
+- **The jar and basket are plain shapes** I made in code, not kit pieces,
+  and I could not see the jar clearly in my own pictures (the square is
+  dark). Judge them yourself.
+- **Nobody sets a jar down or picks one up:** it appears in the hand when
+  an errand begins and goes when they are home.
+- **The lamp tender only reaches up.** No lamp changes when he tends it,
+  and there are only three lamps on this lane he can get under.
+- **The one-room family home is tight:** its two beds lie either side of
+  the hearth. I have only seen it in one wide picture.
+- **The two-room scholar's bed** I have seen only at the edge of a picture.
+- **No takht.** Evenings are at the hauz: the lane has no takht.
+- **The stall keeper still stands at the end of his counter**, and the
+  stall still stands in front of a house front.
+- **Sitting down and lying down still pop.**
+- **Free time is still a draw** among the door, a seat, the hauz and
+  standing about; it has no page in the editor.
+- **The panel is on F6,** not F5 as the brief said: F5 is the animals'.
+- **Timetables are per trade,** not per person, as agreed; a person's own
+  lateness (a few minutes) is shown on the "A day" page but not edited.
+
+### The beds put right (2026-11-19, your choice: B, the rolled bedroll)
+
+- **Every added bed is now the rolled bedroll** (1.3 m long, not solid),
+  lying along a side wall. The 3.5 m row of bedding is out of every home,
+  the one-room homes of step 3 and the live Mahaleh's included.
+- **The roll is gone while its owner sleeps there** and back when they get
+  up, as if unrolled. The sleeper lies on the bare floor: there is no
+  mattress or blanket to see. The two rolls on the family's bed do the same.
+- **Where they lie:** beside the door-side wall of the front room; in a
+  one-room family home the cook and the stall keeper lie side by side there.
+  The two-room scholar and hunter sleep along a wall of the back room.
+
+**Checks after the change.**
+
+- **Your own walking** (lane, five seeds): 79 checks, 0 failures.
+- **A whole day run fast:** passes. **You in the way:** 13 checks pass.
+- The live Mahaleh starts headless with no errors. I did not run the route
+  test on the live Mahaleh (a roll is not solid, so it cannot stop you).
+
+**What I see in the new pictures** (`previews/phase21_step4/homes/`, taken
+at night, so every roll is hidden):
+
+- In the one-room family home the two sleepers touch at the shoulder, and
+  the nearer one's feet are close to the hearth.
+- The two-room scholar asleep in his back room is not in any picture.
+- I have no daytime picture of the rolls lying by the wall.
+
+### Smaller rolls, and a bed laid out under the sleeper (2026-11-19, your report)
+
+You said the bedrolls were huge for the rooms, and that a sleeper should
+have the unrolled bed under them.
+
+- **A small roll made for the homes** (`qt_bed_roll`): 0.7 m long and
+  0.26 across, where the camp's is 1.3 m and 0.46. Every home's roll is this
+  one now, the two on the family's bed too. The camp keeps its own.
+- **A laid-out bed** (`qt_bed_laid`): a thin mattress 1.85 by 0.72 m, a
+  bolster under the head, a blanket folded at the foot. When someone lies
+  down the roll goes and this is under them; when they get up it goes and
+  the roll is back.
+- Both are kit pieces in `art_src/kit/kit_quarter.blend`, seeded by
+  `tools/kit_add_beds.py`. Neither is solid.
+
+**Checks.** Your own walking on the lane, five seeds: 79 checks, 0
+failures. A whole day run fast: passes. You in the way: 13 checks pass.
+The kit test: 11819 checks, 0 failures. The camp and the live Mahaleh start
+headless with no errors.
+
+**What I see wrong, or have not done.**
+
+- **Nobody is under a blanket.** I tried a blanket raised over the sleeper;
+  the knee and the hands came through it, so it is folded at the foot.
+- **The change is a pop:** roll to bed and back in one frame, like lying
+  down itself.
+- **In a one-room family home the two beds overlap** by a few centimetres
+  along their long sides, and their foot ends are close to the hearth.
+- **On the family's raised bed** two mattresses lie on the bed's own; I
+  have seen that only at the edge of one picture.
+- Pictures (`previews/phase21_step4/homes/`): night for seeds 1 and 2,
+  day (`_day`) for the same.

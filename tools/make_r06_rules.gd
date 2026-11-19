@@ -28,8 +28,7 @@ var SCENES: Dictionary = {
 	"qt:x_fern": D % "plant_fern", "qt:x_moss": D % "plant_moss_cushion", "qt:x_ivy": D % "plant_ivy_hang",
 	"qt:note_scholar": "res://gen/modules/quarter_note_scholar.tscn", "qt:note_family": "res://gen/modules/quarter_note_family.tscn",
 	"qt:note_hunter": "res://gen/modules/quarter_note_hunter.tscn", "qt:note_abandoned": "res://gen/modules/quarter_note_abandoned.tscn",
-	"qt:x_bedroll": "res://kit/modules/camp/camp_bedroll.tscn", "qt:x_pack": "res://kit/modules/camp/camp_pack.tscn",
-	"qt:x_bedding": "res://kit/modules/dressing/court_contents_bedroll.tscn",
+	"qt:x_bedroll": D % "qt_bed_roll", "qt:x_pack": "res://kit/modules/camp/camp_pack.tscn",
 }
 
 
