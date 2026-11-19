@@ -37,10 +37,11 @@ const PENS: Array[Dictionary] = [
 	{"id": "garden", "name": "Kept garden", "for": "Nightingales", "type": "garden", "state": "", "side": -1, "z": 12, "height": 7.0, "wall": "persian_plaster", "roof": "vault_plaster"},
 	{"id": "roost", "name": "Pigeon tower", "for": "Pigeons", "type": "roost", "state": "", "side": 1, "z": 12, "height": 22.0, "wall": "quarter_plaster_clay", "roof": "vault_plaster"},
 	{"id": "stream", "name": "Running stream", "for": "Luristan newts", "type": "R15", "state": "", "side": -1, "z": 16, "height": 4.0, "wall": "cave_rock", "roof": "cave_rock"},
+	{"id": "people", "name": "People", "for": "Residents: standing, walking, sitting, asleep", "type": "people", "state": "", "side": -1, "z": 20, "height": 4.0, "wall": "quarter_plaster_clay", "roof": "vault_plaster"},
 	{"id": "pier", "name": "Flooded piers", "for": "Spiny eels", "type": "R11", "state": "", "side": 1, "z": 16, "height": 4.0, "wall": "limestone", "roof": "limestone"},
 ]
 ## How many cells the corridor runs.
-const LENGTH: int = 20
+const LENGTH: int = 24
 
 ## What Fauna is given: [{slot, node, type, state, cells}].
 var pens: Array[Dictionary] = []
@@ -443,6 +444,61 @@ func _pen_roost(node: Node3D, p: Dictionary) -> void:
 
 ## The pens' water moves as the game's does: its shader's clock is run here
 ## (an Area runs it for its rooms; nothing else would in the zoo).
+## People (phase 21 step 1): every outfit standing along the far wall, two who
+## walk the pen's length, and people sitting and asleep on its things.
+func _pen_people(node: Node3D, p: Dictionary) -> void:
+	var r: Rect2 = _span(p)
+	var c: Vector2 = r.get_center()
+	var left: bool = int(p["side"]) < 0
+	var s: float = 1.0 if left else -1.0          # toward the door
+	_light(node, Vector3(c.x, 3.3, c.y), Color(1.0, 0.93, 0.8), 1.6, 11.0, "daylight")
+	var ids: Array = ResidentBody.OUTFITS.keys()
+	for i: int in ids.size():
+		var at := Vector3(c.x - s * 4.8, 0.0, r.position.y + 1.2 + i * (r.size.y - 2.4) / (ids.size() - 1))
+		_person(node, str(ids[i]), i, at, Vector3(s, 0, 0)).play("idle", 0.0, i * 0.7)
+	for k: int in 2:
+		var x: float = c.x - s * (1.2 + k * 1.3)
+		var walker: ResidentBody = _person(node, ["lane_coat", "house_dress"][k], k + 2, Vector3(x, 0, r.position.y + 1.5), Vector3(0, 0, 1))
+		var pace := ResidentPace.new()
+		pace.body = walker
+		pace.a = Vector3(x, 0, r.position.y + 1.5)
+		pace.b = Vector3(x, 0, r.end.y - 1.5)
+		pace.speed = 1.25 - k * 0.3
+		node.add_child(pace)
+	# Sitting on a bench, on cushions, and asleep on a bedroll, on the door's side.
+	var x1: float = c.x + s * 3.0
+	_prop(node, "garden_bench", Vector3(x1, 0, r.position.y + 0.9))
+	for k: int in 2:
+		_person(node, ["merchant", "bazaar_gown"][k], k, Vector3(x1 - 0.45 + k * 0.9, 0.03, r.position.y + 0.95), Vector3(0, 0, 1)).play("sit_bench", 0.0, k * 1.3)
+	_prop(node, "rug_herati_small", Vector3(x1, 0.012, c.y))
+	for k: int in 2:
+		var at := Vector3(x1 - 0.6 + k * 1.2, 0, c.y)
+		_prop(node, "floor_cushion", at, k * 0.7)
+		var sitter: ResidentBody = _person(node, ["scholar", "copyist"][k], k + 1, at + Vector3(0, 0.1, 0), Vector3(-s, 0, 0.3 - k * 0.6))
+		sitter.play(sitter.floor_sit(), 0.0, k * 1.7)
+	var roll: Node3D = _prop(node, "court_contents_bedroll", Vector3(x1, 0, r.end.y - 1.6))
+	var along := Vector3(1, 0, 0)
+	var box := AABB()
+	var first: bool = true
+	for m: Node in roll.find_children("*", "MeshInstance3D", true, false):
+		var b: AABB = (m as MeshInstance3D).global_transform * (m as MeshInstance3D).get_aabb()
+		box = b if first else box.merge(b)
+		first = false
+	if box.size.z > box.size.x:
+		along = Vector3(0, 0, 1)
+	var sleeper: ResidentBody = _person(node, "hunter", 3, Vector3(box.get_center().x, 0.1, box.get_center().z), along)
+	sleeper.play("sleep")
+
+
+## Someone in outfit `outfit` at `at`, facing along `facing`.
+func _person(parent: Node3D, outfit: String, face: int, at: Vector3, facing: Vector3) -> ResidentBody:
+	var body: ResidentBody = ResidentBody.dressed(outfit, face)
+	parent.add_child(body)
+	body.position = at
+	body.rotation.y = atan2(-facing.x, -facing.z)
+	return body
+
+
 func _process(delta: float) -> void:
 	if Engine.is_editor_hint():
 		return

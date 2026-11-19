@@ -1,0 +1,402 @@
+<!doctype html>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Library Costume Atlas</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Marcellus&family=Alegreya:ital,wght@0,400;0,600;1,400&family=VT323&display=swap">
+<style>
+/* Layout: a costume atlas, sister page to creature-atlas.html. Sketch plates of what residents wear: twelve figures on lamplit tiles, each with where the dress comes from and what the dark changed. */
+:root{
+  --bg:#10161b; --panel:#17212a; --ink:#ece3cf; --muted:#a59a86; --line:#2a3641;
+  --amber:#e4a65a; --turq:#4fb3a8; --lapis:#7aa0dc; --brick:#c9825a; --rose:#d58aa0;
+  --display:'Marcellus',Georgia,'Times New Roman',serif;
+  --body:'Alegreya',Georgia,'Times New Roman',serif;
+  --mono:'VT323',ui-monospace,Consolas,monospace;
+  color-scheme:dark;
+}
+@media (prefers-color-scheme: light){:root:not([data-theme="dark"]){
+  --bg:#eee6d4; --panel:#e5dac4; --ink:#1f2328; --muted:#5c5445; --line:#cbbd9e;
+  --amber:#985814; --turq:#1d6f66; --lapis:#2c579b; --brick:#9a4e26; --rose:#99405a; color-scheme:light}}
+:root[data-theme="light"]{
+  --bg:#eee6d4; --panel:#e5dac4; --ink:#1f2328; --muted:#5c5445; --line:#cbbd9e;
+  --amber:#985814; --turq:#1d6f66; --lapis:#2c579b; --brick:#9a4e26; --rose:#99405a; color-scheme:light}
+:root[data-theme="dark"]{
+  --bg:#10161b; --panel:#17212a; --ink:#ece3cf; --muted:#a59a86; --line:#2a3641;
+  --amber:#e4a65a; --turq:#4fb3a8; --lapis:#7aa0dc; --brick:#c9825a; --rose:#d58aa0; color-scheme:dark}
+
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--body);font-size:17px;line-height:1.55;margin:0;
+  padding-left:max(16px,env(safe-area-inset-left,0px));padding-right:max(16px,env(safe-area-inset-right,0px))}
+.wrap{max-width:1180px;margin:0 auto;padding-block:48px 96px}
+h1,h2,h3{font-family:var(--display);font-weight:400;text-wrap:balance;margin:0}
+h1{font-size:clamp(2.3rem,5vw,3.6rem);line-height:1.05;letter-spacing:.01em}
+h2{font-size:clamp(1.6rem,3vw,2.1rem);line-height:1.15}
+h3{font-size:1.45rem;line-height:1.15}
+p{margin:0}
+a{color:var(--ink);text-decoration-color:var(--muted);text-underline-offset:3px}
+.eyebrow,.mono{font-family:var(--mono);font-size:1.15rem;letter-spacing:.06em;color:var(--muted);text-transform:uppercase}
+.lede{max-width:66ch;font-size:1.12rem;margin-top:18px}
+.lede + .lede{margin-top:12px}
+header{display:grid;gap:6px;padding-bottom:36px;border-bottom:1px solid var(--line)}
+section{padding-block:44px;border-bottom:1px solid var(--line)}
+section > h2{margin-bottom:10px}
+.section-intro{max-width:68ch;color:var(--muted);margin-bottom:26px}
+.table-wrap{overflow-x:auto;margin-top:8px}
+table{border-collapse:collapse;width:100%;min-width:640px;font-size:.98rem}
+th,td{text-align:left;vertical-align:top;padding:9px 14px 9px 0;border-bottom:1px solid var(--line)}
+th{font-family:var(--mono);font-weight:400;font-size:1.1rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+td.id{font-family:var(--mono);font-size:1.15rem;color:var(--muted);white-space:nowrap}
+.principles{display:grid;grid-template-columns:repeat(auto-fit,minmax(270px,1fr));gap:16px 28px;padding:0;margin:0;list-style:none}
+.principles li{border-left:3px solid var(--amber);padding:2px 0 2px 12px;font-size:.98rem}
+.principles li.g{border-left-color:var(--turq)}
+.principles b{display:block}
+.plates{display:grid;grid-template-columns:repeat(auto-fill,minmax(300px,1fr));gap:22px}
+.plate{background:var(--panel);border:1px solid var(--line);border-radius:6px;overflow:hidden;display:grid;grid-template-rows:auto 1fr}
+.tile{background:radial-gradient(120% 90% at 50% 30%,#2a2620 0%,#15171a 60%,#0c0e11 100%);display:flex;justify-content:center;padding:14px 8px 0}
+.tile svg{width:min(100%,290px);height:auto;display:block}
+.plate .txt{padding:14px 16px 18px;display:grid;gap:8px;align-content:start}
+.plate dl{margin:0;display:grid;gap:7px;font-size:.96rem}
+.plate dt{font-family:var(--mono);font-size:1.05rem;letter-spacing:.06em;text-transform:uppercase;color:var(--muted)}
+.plate dd{margin:0}
+.dark-strip{background:#050607;border:1px solid var(--line);border-radius:6px;display:grid;grid-template-columns:repeat(12,minmax(70px,1fr));padding:18px 10px 6px;overflow-x:auto}
+.dark-strip svg{width:100%;height:auto;min-width:70px}
+.dark-strip .m{fill:#0b0d10 !important;stroke:#0b0d10 !important}
+.cap{color:var(--muted);font-size:.95rem;margin-top:10px;max-width:70ch}
+.sw{display:inline-block;width:.8em;height:.8em;border-radius:2px;vertical-align:-.05em;margin-right:.35em;border:1px solid #0004}
+</style>
+
+<div class="wrap">
+<header>
+  <p class="eyebrow">The Eternal Library · residents · sketches for agreement</p>
+  <h1>Costume Atlas</h1>
+  <p class="lede">What the Library's people wear. The cut comes from four ages of ancient Iran: the Medes, the Achaemenids, the Parthians and the Sasanians. What it became is decided by where these people live: under stone, with no sun and no wind, in damp and cold, by lamplight.</p>
+  <p class="lede">These are sketches to agree a direction, not model sheets. Twelve figures, six men and six women, one for each kind of life the game has today. Nothing here is on the models yet.</p>
+</header>
+
+<section>
+  <h2>What the old dress gives us</h2>
+  <p class="section-intro">Each age left a clear silhouette. The sketches borrow whole pieces from them, and say which.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Age</th><th>What people wore</th><th>What the sketches take</th></tr>
+    <tr><td><b>Median</b></td><td>The riding dress: a belted, sleeved knee-length coat, long trousers, soft boots. A cloak with sleeves (the kandys) worn over the shoulders with the sleeves hanging empty. A round felt cap, or a soft hood with flaps for the neck and chin.</td><td>The everyday cut for men and working women. The sleeved cloak. The felt cap and the flapped hood.</td></tr>
+    <tr><td><b>Achaemenid</b></td><td>The court robe: a full pleated gown, belted, with wide sleeves that hang like wings. Curled hair and squared beards, fillets and fluted hats. Gold discs sewn to the cloth. Women in long pleated dresses, hair in one long braid, or a veil falling from a low crenellated crown.</td><td>The scholar's robe. The house dress and its braid. The crown and veil. Sewn-on metal discs.</td></tr>
+    <tr><td><b>Parthian</b></td><td>A short belted jacket or longer tunic, often with a V neck or wrapped across; very full trousers in deep folds, with loose leather leggings over them; bushy hair held by a band; neck rings. Women in layered gowns, a tall headdress and a veil over the back of the head.</td><td>The hunter's leathers. The wrapped jacket. The tall headdress with the veil thrown back.</td></tr>
+    <tr><td><b>Sasanian</b></td><td>A knee-length tunic with a rounded hem, or a heavy caftan crossed at the chest; rippling trousers; ribbons floating from the head and shoes; tall rounded caps; belts with hanging straps; silks woven with pearl roundels. Women in long gowns belted under the bust with a shawl over the arms. Servants and priests with a cloth over the mouth (the padam). Kings with a globe of hair bound in silk above the crown.</td><td>The merchant's caftan and its roundels. The belt that carries things. The bazaar gown and shawl. The mouth cloth. The globe, turned into a lantern.</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>What living underground changes</h2>
+  <p class="section-intro">Take away the sun, the wind and the dust, and add damp, cold stone and the dark. Ten rules follow. The ones marked in green are about light.</p>
+  <ul class="principles">
+    <li><b>The head is uncovered by default.</b>There is no sun to hide from. Hair is dressed and shown: curls, braids, fillets, topknots. A hat says what you do; a hood says you work where water drips.</li>
+    <li><b>Felt and wax, not linen.</b>The enemy is damp and cold. Thick felt, quilting and waxed cloth; layers that come off by a hearth. The shepherd's stiff felt cloak becomes the ferryman's.</li>
+    <li class="g"><b>Glow thread.</b>Thread steeped in an area's glowing fungus. It edges hems and cuffs and fills the pearls of a roundel. Each area has its own colour, so in the dark you can tell where a stranger is from. It fades, and is steeped again.</li>
+    <li class="g"><b>Discs that catch the lamp.</b>The Achaemenids' sewn-on gold becomes polished brass discs on the chest and along edges. They light nothing; they make you seen when a lamp passes.</li>
+    <li class="g"><b>The lantern globe.</b>The kings' silk-bound globe becomes a small lantern of oiled silk worn on the cap by those who tend the lamps. It means: this one carries fire.</li>
+    <li><b>The mouth cloth has two jobs.</b>Lamp tenders wear it to keep their breath off the flame, as priests did. Fungus workers wear it against spores.</li>
+    <li><b>Colour runs backwards.</b>Fungus and lichen give violets, rusts and greys cheaply, so purple is the common colour. Madder red and saffron need plants grown under a light shaft, so warm bright cloth is wealth.</li>
+    <li><b>Paper is a cloth.</b>A library has endless ruined pages. Copyists quilt them into jackets for the cold stacks; a scholar's head ribbons are bookmarks. Only pages past reading are used.</li>
+    <li><b>Feet know the floor.</b>Soft felt soles where people read. Wooden pattens and waxed leggings where the floor is wet.</li>
+    <li class="g"><b>The belt carries the day.</b>The Sasanian belt with its hanging straps holds a lamp, a striker, a cup and keys. Hunters hang a shuttered lamp and wear no glow at all.</li>
+  </ul>
+</section>
+
+<section>
+  <h2>The men</h2>
+  <p class="section-intro">Six cuts, from the commonest to the rarest.</p>
+  <div class="plates" id="men"></div>
+</section>
+
+<section>
+  <h2>The women</h2>
+  <p class="section-intro">Six cuts. Two of them wear trousers, as working dress.</p>
+  <div class="plates" id="women"></div>
+</section>
+
+<section>
+  <h2>The same twelve with the lamps out</h2>
+  <p class="section-intro">What glow thread, discs and the lantern globe would give a dark lane: people as lines and dots of light. The hunter and the ferryman vanish, by choice.</p>
+  <div class="dark-strip" id="dark"></div>
+  <p class="cap">On the models this is a glow painted into the cloth. It casts no light and costs no lamps from an area's limit.</p>
+</section>
+
+<section>
+  <h2>What goes on the models</h2>
+  <p class="section-intro">One skeleton for men and one for women, as built. The variety comes from pieces switched on and off and from colour.</p>
+  <div class="table-wrap"><table>
+    <tr><th>Part</th><th>Choices</th></tr>
+    <tr><td><b>Main garment</b></td><td>Knee coat over trousers · long pleated robe or dress · crossed caftan or close gown</td></tr>
+    <tr><td><b>Over it</b></td><td>Nothing · sleeved cloak on the shoulders · stiff felt cloak · shawl over the arms · waxed apron</td></tr>
+    <tr><td><b>Legs and feet</b></td><td>Narrow trousers · full folded trousers · leather leggings · soft shoes, felt boots or pattens</td></tr>
+    <tr><td><b>Hair</b></td><td>Curls bunched at the neck · bushy with a band · long braid · topknot · pinned braids; beard squared, full or none</td></tr>
+    <tr><td><b>On the head</b></td><td>Nothing · fillet with ribbons · felt cap · tall cap · flapped hood · crenellated band, with or without veil · tall headdress · lantern globe · mouth cloth</td></tr>
+    <tr><td><b>Light</b></td><td>Glow thread in the area's colour · brass discs · belt lamp · none</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>To agree</h2>
+  <div class="table-wrap"><table>
+    <tr><th></th><th>Question</th><th>Recommended</th></tr>
+    <tr><td class="id">C1</td><td>Is this the direction, and which of the twelve stay?</td><td>All twelve as a first set; say which to drop or change</td></tr>
+    <tr><td class="id">C2</td><td>Glow thread, a colour per area</td><td>Yes: blue for the Lower Stacks and violet for the terraces as your walks set their fungus; you pick the Mahaleh's (gold is drawn here)</td></tr>
+    <tr><td class="id">C3</td><td>Colour runs backwards (violet common, red and saffron rich)</td><td>Yes</td></tr>
+    <tr><td class="id">C4</td><td>Do carried lamps cast real light?</td><td>Only a lamp tender's pole lamp, counted in the area's limit. Belt lamps and the globe only glow</td></tr>
+    <tr><td class="id">C5</td><td>Clothes quilted from ruined pages</td><td>Yes, for copyists and stack keepers</td></tr>
+    <tr><td class="id">C6</td><td>How many go on the models first</td><td>Three garments, three hair and four head pieces a sex, enough for the Mahaleh's trades; the rest as their places get people</td></tr>
+  </table></div>
+</section>
+
+<section>
+  <h2>Sources</h2>
+  <p class="section-intro">Read for this page. The descriptions above are summaries; the underground changes are ours.</p>
+  <p><a href="https://iranicaonline.org/articles/candys-gk">Encyclopaedia Iranica: Candys</a> · <a href="https://www.iranicaonline.org/?p=9798">Iranica: clothing in the Parthian period</a> · <a href="https://iranicaonline.org/articles/clothing-viii">Iranica: Clothing viii</a> · <a href="https://www.iranicaonline.org/articles/achaemenid-visual-representations-of-women/">Iranica: Achaemenid visual representations of women</a> · <a href="https://encyclopedia.com/fashion/encyclopedias-almanacs-transcripts-and-maps/iran-history-pre-islamic-dress">Iran, history of pre-Islamic dress</a> · <a href="https://www.wikiwand.com/en/articles/Persian_clothing">Persian clothing (overview)</a></p>
+</section>
+</div>
+
+<svg width="0" height="0" style="position:absolute"><defs>
+  <filter id="gl" x="-80%" y="-80%" width="260%" height="260%"><feGaussianBlur stdDeviation="2.6"/></filter>
+</defs></svg>
+
+<script>
+// Sketch builder: each figure is a list of layers drawn back to front on a
+// 160 x 330 sheet (centre x 80, shoulders y 64, waist 132, ground 306).
+const OUT = 'stroke="#0b0d10" stroke-width="1" stroke-linejoin="round"';
+const P = (d, fill, extra = '') => `<path class="m" d="${d}" fill="${fill}" ${OUT} ${extra}/>`;
+const LN = (d, col, w = 1, extra = '') => `<path class="m" d="${d}" fill="none" stroke="${col}" stroke-width="${w}" stroke-linecap="round" ${extra}/>`;
+const mirror = s => s + `<g transform="translate(160,0) scale(-1,1)">${s}</g>`;
+// A glowing stroke or shape: a blurred copy under a sharp one.
+const GLOW = (inner, col) => `<g fill="none" stroke="${col}" style="color:${col}"><g filter="url(#gl)" opacity=".9">${inner}</g>${inner}</g>`;
+const SHADE = '#0b0d1055';
+
+function dims(c) { return c.w ? {sw: 23, ww: 15, hw: 21} : {sw: 27, ww: 19, hw: 21}; }
+
+const draw = {
+  veil(c, col) { return P('M66 22 L94 22 L110 252 L50 252 Z', col, 'opacity=".95"') + LN('M58 150 L62 250 M102 150 L98 250', SHADE); },
+  kandys(c, col, lining, len = 262) {
+    const {sw} = dims(c);
+    return P(`M${80 - sw - 6} 62 L${80 + sw + 6} 62 L${80 + sw + 17} ${len} L${80 - sw - 17} ${len} Z`, col) +
+      mirror(P(`M${80 - sw - 5} 64 L${80 - sw - 15} 70 L${80 - sw - 24} 205 L${80 - sw - 14} 207 Z`, col) +
+        LN(`M${80 - sw - 6} 66 L${80 - sw - 15} ${len - 2}`, lining, 4));
+  },
+  legs(c, kind, col, boot = 'soft', bootCol = '#3a2a1e') {
+    const {hw} = dims(c);
+    let s = '';
+    if (kind === 'baggy') {
+      s += P(`M${80 - hw - 1} 150 Q${80 - hw - 14} 232 ${80 - 19} 292 L${80 - 5} 292 Q${80 + 3} 220 80 150 Z`, col);
+      for (let y = 178; y < 285; y += 21) s += LN(`M${80 - hw - 5 + (y - 178) * 0.05} ${y} q9 7 ${hw + 2 - (y - 178) * 0.08} 0`, SHADE);
+    } else {
+      s += P(`M${80 - hw + 1} 150 L80 150 L${80 - 5} 296 L${80 - 18} 296 Z`, col);
+    }
+    if (kind === 'chaps') {
+      s += P(`M${80 - hw - 3} 176 L${80 - 1} 180 L${80 - 4} 296 L${80 - 21} 296 Z`, '#5b4330') + LN(`M${80 - hw + 3} 177 L${80 - hw + 6} 134`, '#3a2a1e', 1.6) +
+        LN(`M${80 - hw - 1} 210 l17 3 M${80 - hw + 1} 250 l15 2`, SHADE);
+    }
+    if (boot === 'tall') s += P(`M${80 - 20} 248 L${80 - 3} 250 L${80 - 4} 297 L${80 - 19} 297 Z`, bootCol);
+    s += P(`M${80 - 19} 294 L${80 - 4} 294 L${80 - 3} 304 L${80 - 27} 304 Q${80 - 30} 299 ${80 - 19} 294 Z`, bootCol);
+    if (boot === 'patten') s += P(`M${80 - 26} 304 h7 v5 h-7 Z M${80 - 13} 304 h8 v5 h-8 Z`, '#7a5a38');
+    return mirror(s);
+  },
+  // o: len, hemW, col, neck (round|v|wrap|open), hem (straight|round), pleats, flute, trim, glowHem, roundels, discs, quilt
+  tunic(c, o) {
+    const {sw, ww} = dims(c);
+    const L = o.len, H = o.hemW;
+    const hem = o.hem === 'round' ? `Q80 ${L + 16} ${80 - H} ${L}` : `L${80 - H} ${L}`;
+    const bust = c.w ? `Q${80 + ww + 7} 100 ${80 + ww} 132` : `L${80 + ww} 132`;
+    const bustL = c.w ? `Q${80 - ww - 7} 100 ${80 - sw} 64` : `L${80 - sw} 64`;
+    let s = P(`M${80 - sw} 64 Q80 57 ${80 + sw} 64 ${bust} L${80 + H} ${L} ${hem} L${80 - ww} 132 ${bustL} Z`, o.col);
+    if (o.pleats) for (let i = -3; i <= 3; i++) s += LN(`M${80 + i * ww / 3.6} 136 L${80 + i * H / 3.5} ${L - 2}`, SHADE);
+    if (o.flute) s += LN(`M80 134 Q62 190 ${80 - H + 4} ${L - 4} M80 134 Q98 190 ${80 + H - 4} ${L - 4} M80 134 Q70 200 ${80 - H / 2} ${L - 3} M80 134 Q90 200 ${80 + H / 2} ${L - 3}`, SHADE) +
+      P(`M74 ${L - 1} l3 7 l3 -6 l3 6 l3 -7 Z`, o.col);
+    if (o.quilt) { for (let y = 78; y < Math.min(L, 132); y += 13) s += LN(`M${80 - sw + 3} ${y} L${80 + sw - 3} ${y}`, SHADE); for (let x = -2; x <= 2; x++) s += LN(`M${80 + x * 9} 68 L${80 + x * 8} ${Math.min(L, 132)}`, SHADE); }
+    const trim = o.trim || '#d8c9a0';
+    if (o.neck === 'v') s += P('M71 62 L89 62 L80 86 Z', c.skin) + LN('M71 62 L80 86 L89 62', trim, 2);
+    else if (o.neck === 'wrap') s += LN(`M90 61 L${80 - ww + 3} 131`, trim, 3) + LN(`M70 61 L84 82`, trim, 3);
+    else if (o.neck === 'open') s += LN(`M80 66 L80 ${L - 2}`, trim, 2.4) + LN('M71 62 Q80 71 89 62', trim, 2);
+    else s += LN('M71 62 Q80 71 89 62', trim, 2.4);
+    const hemPath = o.hem === 'round' ? `M${80 + H} ${L} Q80 ${L + 16} ${80 - H} ${L}` : `M${80 - H} ${L - 1} L${80 + H} ${L - 1}`;
+    s += LN(hemPath, trim, 3);
+    if (o.glowHem) s += GLOW(`<path d="${hemPath}" stroke-width="1.6" stroke-dasharray="2 3"/>`, c.glow);
+    if (o.roundels) {
+      let r = '';
+      const pts = [[66, 92], [94, 92], [80, 112], [64, 160], [96, 160], [80, 182], [62, 206], [98, 206]].filter(p => p[1] < L - 8);
+      for (const [x, y] of pts) { s += `<circle class="m" cx="${x}" cy="${y}" r="6.5" fill="none" stroke="${o.roundels}" stroke-width="1.2"/>`; r += `<circle cx="${x}" cy="${y}" r="5" stroke-width="1.4" stroke-dasharray="1.2 2.2"/>`; }
+      s += GLOW(r, c.glow);
+    }
+    if (o.discs) { let d = ''; for (const [x, y] of [[70, 78], [80, 82], [90, 78], [75, 94], [85, 94]]) d += `<circle cx="${x}" cy="${y}" r="2.6" fill="#f3d58a" stroke="none"/>`; s += GLOW(d, '#f3d58a'); }
+    return s;
+  },
+  // kind: narrow | wing | bound | short
+  sleeves(c, kind, col, trim = '#d8c9a0', glowCuff = false) {
+    const {sw, ww} = dims(c);
+    const hx = 80 - sw - 7;
+    let s = '';
+    if (kind === 'wing') {
+      s += P(`M${80 - sw} 64 L${80 - sw - 13} 150 L${80 - sw - 1} 210 L${80 - ww - 1} 124 Z`, col) +
+        LN(`M${80 - sw + 1} 70 L${80 - sw - 6} 190 M${80 - sw + 3} 74 L${80 - sw + 1} 180`, SHADE) + LN(`M${80 - sw - 13} 150 L${80 - sw - 1} 210`, trim, 2);
+      s += `<circle class="m" cx="${hx - 5}" cy="157" r="5" fill="${c.skin}" ${OUT}/>`;
+      if (glowCuff) s += GLOW(`<path d="M${80 - sw - 13} 150 L${80 - sw - 1} 210" stroke-width="1.5" stroke-dasharray="2 3"/>`, c.glow);
+      return mirror(s);
+    }
+    const end = kind === 'short' ? 118 : 164;
+    s += P(`M${80 - sw - 1} 64 L${80 - sw + 9} 71 L${80 - sw + 2 - (end - 64) * 0.03} ${end + 2} L${80 - sw - 5 - (end - 64) * 0.07} ${end} Z`, col);
+    if (kind === 'short') s += P(`M${80 - sw - 9} 118 L${80 - sw + 1} 120 L${hx + 5} 164 L${hx - 5} 164 Z`, c.skin);
+    if (kind === 'bound') s += LN(`M${hx - 3} 140 l11 3 M${hx - 4} 148 l11 3 M${hx - 4} 156 l11 2`, trim, 1.5);
+    else if (kind !== 'short') s += LN(`M${hx - 5} ${end - 1} l11 3`, trim, 2.4);
+    s += `<circle class="m" cx="${hx}" cy="170" r="5" fill="${c.skin}" ${OUT}/>`;
+    if (glowCuff) s += GLOW(`<path d="M${hx - 5} ${end - 1} l11 3" stroke-width="1.6" stroke-dasharray="2 2.5"/>`, c.glow);
+    return mirror(s);
+  },
+  kapanak(c, col) {
+    const {sw} = dims(c);
+    return P(`M${80 - sw - 15} 64 L${80 + sw + 15} 64 L${80 + sw + 19} 73 L${80 + sw + 9} 238 L86 238 L83 72 L77 72 L74 238 L${80 - sw - 9} 238 L${80 - sw - 19} 73 Z`, col) +
+      LN(`M${80 - sw - 6} 80 L${80 - sw - 2} 232 M${80 + sw + 6} 80 L${80 + sw + 2} 232`, SHADE) + LN(`M${80 - sw - 15} 64 L${80 + sw + 15} 64`, '#0b0d1088', 2);
+  },
+  shawl(c, col, trim) {
+    const {sw} = dims(c);
+    return P(`M${80 - sw - 13} 138 Q80 186 ${80 + sw + 13} 138 L${80 + sw + 13} 152 Q80 202 ${80 - sw - 13} 152 Z`, col) +
+      mirror(P(`M${80 - sw - 14} 140 L${80 - sw - 4} 143 L${80 - sw - 6} 222 L${80 - sw - 16} 220 Z`, col) + LN(`M${80 - sw - 16} 220 l10 2`, trim, 2.4));
+  },
+  apron(c, col) { const {ww} = dims(c); return P(`M${80 - ww + 2} 134 L${80 + ww - 2} 134 L${80 + ww + 4} 232 L${80 - ww - 4} 232 Z`, col) + LN(`M${80 - ww} 150 h${2 * ww}`, SHADE); },
+  // items: lamp | purse | cup | keys | dark (a shuttered lamp)
+  belt(c, col, items = [], y = 132) {
+    const {ww} = dims(c);
+    let s = P(`M${80 - ww - 1} ${y - 3} h${2 * ww + 2} v6 h${-2 * ww - 2} Z`, col) + P(`M77 ${y - 4} h6 v8 h-6 Z`, '#caa24a');
+    items.forEach((it, i) => {
+      const x = 80 + [-ww + 4, ww - 4, -ww + 12, ww - 12][i % 4], top = y + 3, len = 16 + (i % 2) * 6;
+      s += LN(`M${x} ${top} v${len}`, col, 1.6);
+      if (it === 'lamp') s += GLOW(`<path d="M${x} ${top + len} l4 6 l-4 6 l-4 -6 Z" fill="currentColor" stroke-width="1"/>`, '#ffcf7a');
+      else if (it === 'dark') s += P(`M${x - 4} ${top + len} h8 v10 h-8 Z`, '#2a2622');
+      else if (it === 'purse') s += P(`M${x - 5} ${top + len} q5 -4 10 0 v8 q-5 4 -10 0 Z`, '#7a4a2a');
+      else if (it === 'cup') s += P(`M${x - 4} ${top + len} h8 l-2 8 h-4 Z`, '#b9884a');
+      else s += LN(`M${x} ${top + len} l-3 7 M${x} ${top + len} l2 8`, '#caa24a', 1.4);
+    });
+    return s;
+  },
+  sash(c, col, y = 132) { const {ww} = dims(c); return P(`M${80 - ww - 1} ${y - 5} h${2 * ww + 2} v10 h${-2 * ww - 2} Z`, col) + P(`M${80 - ww + 3} ${y + 5} l-3 30 l7 1 l2 -31 Z`, col); },
+  braid(c, ribbon) {
+    let s = '';
+    for (let i = 0; i < 12; i++) s += `<ellipse class="m" cx="${95 + i * 1.1 + (i % 2) * 2}" cy="${50 + i * 10}" rx="4.4" ry="6.2" fill="${c.hair}" ${OUT}/>`;
+    s += LN('M108 172 l-3 16 M110 172 l3 16', ribbon, 2);
+    if (ribbon === c.glow) s += GLOW('<path d="M108 172 l-3 16 M110 172 l3 16" stroke-width="1.6"/>', c.glow);
+    return s;
+  },
+  // o: hair (curls|bushy|smooth|topknot|pinned|short), beard (square|full|none), gear (felt|kolah|bashlyk|fillet|diadem|crenel|tall|globe), gearCol, padam
+  head(c, o) {
+    let s = P('M75 50 h10 v16 h-10 Z', c.skin);
+    if (o.hair === 'curls') s += mirror(`<circle class="m" cx="66" cy="47" r="6.5" fill="${c.hair}" ${OUT}/>`);
+    if (o.hair === 'bushy') s += mirror(`<circle class="m" cx="63" cy="38" r="9.5" fill="${c.hair}" ${OUT}/>`);
+    if (o.gear === 'tall') s += P('M66 26 L68 -2 Q80 -8 92 -2 L94 26 Z', o.gearCol) + LN('M67 14 h26 M67.5 5 h25', '#d9b65a', 1.6) + P('M92 2 L112 30 L108 96 L96 60 Z', '#e8e0cc', 'opacity=".9"');
+    s += `<ellipse class="m" cx="80" cy="38" rx="12.5" ry="15.5" fill="${c.skin}" ${OUT}/>`;
+    s += `<path class="m" d="M73 35.5 h3 v2.6 h-3 Z M84 35.5 h3 v2.6 h-3 Z" fill="#17110d"/>` + LN('M72 32 h5 M83 32 h5', c.hair, 1.3) + LN('M80 38 l-1.6 6 h2.6', '#0b0d1066') + LN('M77 48 h6', '#6b3a30', 1.2);
+    if (o.beard === 'square') s += P('M68 43 Q80 50 92 43 L91 70 L69 70 Z', c.hair) + LN('M70 54 h20 M70 60 h20 M70 66 h20', '#ffffff22');
+    if (o.beard === 'full') s += P('M68 42 Q70 64 80 66 Q90 64 92 42 Q80 52 68 42 Z', c.hair);
+    if (o.hair !== 'none') s += P('M67 38 Q65 19 80 20 Q95 19 93 38 Q88 28 80 27 Q72 28 67 38 Z', c.hair);
+    if (o.hair === 'smooth' || o.hair === 'pinned') s += LN('M80 21 v7', '#ffffff22');
+    if (o.hair === 'pinned') s += mirror(`<ellipse class="m" cx="67" cy="42" rx="4.5" ry="8" fill="${c.hair}" ${OUT}/>`);
+    if (o.hair === 'topknot') s += `<circle class="m" cx="80" cy="14" r="7.5" fill="${c.hair}" ${OUT}/>`;
+    if (o.padam) s += P('M70 40 h20 v14 q-10 4 -20 0 Z', '#ece5d2') + LN('M70 42 l-4 -3 M90 42 l4 -3', '#ece5d2', 1.2);
+    const g = o.gearCol || '#8a7a5c';
+    if (o.gear === 'felt' || o.gear === 'globe') s += P('M66 30 Q65 11 80 11 Q95 11 94 30 Q80 25 66 30 Z', g) + LN('M66.5 29 Q80 24 93.5 29', '#0b0d1066', 2);
+    if (o.gear === 'kolah') s += P('M66 30 L68 8 Q80 -6 92 8 L94 30 Q80 25 66 30 Z', g) + GLOW('<path d="M67 26 Q80 21 93 26" stroke-width="1.5" stroke-dasharray="1.5 2.5"/>', c.glow);
+    if (o.gear === 'bashlyk') s += P('M64 34 Q61 8 84 5 Q94 4 91 13 Q97 22 96 36 L100 72 L91 76 L92 44 Q80 22 68 44 L69 76 L60 72 Z', g) + LN('M69 76 l3 8 M91 76 l-3 8', g, 1.6);
+    if (o.gear === 'fillet') s += LN('M67 28 Q80 24 93 28', g, 3) + LN('M93 28 q10 6 14 20 M93 29 q6 10 6 26', g, 2.2);
+    if (o.gear === 'diadem') s += LN('M65 30 Q80 25 95 30', g, 3.2) + `<circle class="m" cx="80" cy="26" r="2.6" fill="#f3d58a"/>`;
+    if (o.gear === 'crenel') s += P('M66 29 L66 19 h4 v4 h4 v-4 h4 v4 h4 v-4 h4 v4 h4 v-4 h4 L94 29 Q80 25 66 29 Z', g);
+    if (o.gear === 'globe') s += LN('M80 11 v-4', '#caa24a', 2) + GLOW('<circle cx="80" cy="-3" r="8" fill="currentColor" stroke-width="1"/>', '#ffd98a');
+    return s;
+  },
+  pole(c, side = 1, glow = '#ffd98a') {
+    const {sw} = dims(c), x = 80 + side * (sw + 9);
+    return LN(`M${x} 304 L${x + side * 3} 18`, '#6b4c2e', 2.6) + (glow ? GLOW(`<path d="M${x + side * 3} 18 l5 -9 l-5 -9 l-5 9 Z" fill="currentColor" stroke-width="1"/>`, glow) : '');
+  },
+  basket(c, side = -1) { const {sw} = dims(c), x = 80 + side * (sw + 8); return P(`M${x - 11} 174 h22 l-3 20 h-16 Z`, '#8a6a3c') + LN(`M${x - 10} 180 h20 M${x - 9} 187 h18`, SHADE); },
+  candle(c, side = 1) { const {sw} = dims(c), x = 80 + side * (sw + 7); return P(`M${x - 2} 150 h4 v16 h-4 Z`, '#e9dfc4') + GLOW(`<path d="M${x} 149 q4 -6 0 -12 q-4 6 0 12 Z" fill="currentColor" stroke-width=".8"/>`, '#ffcf7a'); },
+  torque(c) { return LN('M72 64 Q80 74 88 64', '#d9b65a', 2.6); },
+  hides(c) { const {sw} = dims(c); return P(`M${80 - sw - 5} 62 L${80 + sw + 5} 62 L${80 + sw + 9} 106 L${80 + 9} 92 L80 102 L${80 - 9} 92 L${80 - sw - 9} 106 Z`, '#5a4634') + LN(`M${80 - sw - 2} 84 l7 5 M${80 + sw + 2} 84 l-7 5`, SHADE); },
+  ground() { return `<ellipse class="m" cx="80" cy="307" rx="46" ry="5" fill="#00000066"/>`; },
+};
+
+const GOLD = '#ffd68a', BLUE = '#86e3ee', VIOLET = '#cfa8ff';
+const UND = '#b9ab8c', VIO = '#5c4372', RUST = '#8a4a34', GREY = '#5d6168', MADDER = '#8f2f25', SAFF = '#c98a22', INDIGO = '#2a3a63', WAL = '#5a3e28', WHITE = '#e6dfcc', MOSS = '#55613f';
+
+const FIGS = [
+  {id: 'M1', name: 'The lane coat', sex: 'm', skin: '#c99673', hair: '#1d1512', glow: GOLD,
+    layers: [['ground'], ['legs', 'narrow', UND, 'tall', '#5b4a3a'], ['tunic', {len: 214, hemW: 30, col: VIO, neck: 'open', trim: UND, glowHem: true}], ['sleeves', 'narrow', VIO, UND, true], ['belt', '#3a2a1e', ['lamp', 'cup']], ['head', {hair: 'short', beard: 'full', gear: 'felt', gearCol: '#8a7a5c'}]],
+    from: 'Median riding dress: the belted knee coat, trousers, soft boots and round felt cap of the Persepolis processions.',
+    under: 'The cap is for drips, not sun. Hem and cuffs carry glow thread. The dye is fungus violet, the cheapest there is. A lamp and a cup hang from the belt.',
+    who: 'Most men of the lanes: householders, porters, craftsmen.'},
+  {id: 'M2', name: "The scholar's robe", sex: 'm', skin: '#b98562', hair: '#2a2420', glow: GOLD,
+    layers: [['ground'], ['legs', 'narrow', WAL, 'soft', '#8a7a5c'], ['tunic', {len: 286, hemW: 36, col: INDIGO, neck: 'round', trim: '#d9c48a', pleats: true, flute: true, discs: true}], ['sleeves', 'wing', INDIGO, '#d9c48a'], ['sash', '#d9c48a'], ['head', {hair: 'curls', beard: 'square', gear: 'fillet', gearCol: '#e6dfcc'}]],
+    from: 'The Achaemenid court robe: full and pleated, with wing sleeves, a fillet, curled hair bunched at the neck and a squared beard.',
+    under: 'The wing sleeves pin back at the desk. The fillet\'s ribbons are bookmarks, taken off and left in a book. Brass discs on the chest catch the desk lamp. Felt soles, for quiet.',
+    who: 'Scholars, librarians, senior copyists.'},
+  {id: 'M3', name: "The merchant's caftan", sex: 'm', skin: '#d0a07a', hair: '#1a1410', glow: GOLD,
+    layers: [['ground'], ['legs', 'baggy', '#d9c9a0', 'soft', '#6b2a22'], ['tunic', {len: 226, hemW: 32, col: SAFF, neck: 'wrap', hem: 'round', trim: MADDER, roundels: MADDER}], ['sleeves', 'narrow', SAFF, MADDER, true], ['belt', '#5a2a20', ['purse', 'keys', 'lamp', 'cup']], ['head', {hair: 'short', beard: 'full', gear: 'kolah', gearCol: MADDER}]],
+    from: 'Sasanian: a caftan crossed at the chest with a rounded hem, rippling full trousers, a tall rounded cap, a belt with hanging straps, silk with pearl roundels.',
+    under: 'Saffron and madder are grown under light shafts, so this cloth says money. The roundels\' pearls are glow thread. The belt is his shop: purse, keys, lamp, cup.',
+    who: 'Stall keepers, caravan masters, hosts of the caravanserai.'},
+  {id: 'M4', name: "The hunter's leathers", sex: 'm', skin: '#a9764f', hair: '#3a2a1c', glow: GOLD,
+    layers: [['ground'], ['legs', 'chaps', '#6c6a58', 'soft', '#3a2a1e'], ['tunic', {len: 190, hemW: 27, col: MOSS, neck: 'v', trim: '#3a2a1e'}], ['sleeves', 'narrow', MOSS, '#3a2a1e'], ['hides'], ['torque'], ['belt', '#3a2a1e', ['dark', 'keys']], ['head', {hair: 'bushy', beard: 'none', gear: 'diadem', gearCol: '#6b4c2e'}]],
+    from: 'Parthian: a short belted jacket with a V neck, full trousers under loose leather leggings held up by straps, bushy hair in a band, a neck ring.',
+    under: 'No glow thread and no discs: he does not want to be seen. The leggings are waxed for wading. Hides over the shoulders. His lamp has a shutter.',
+    who: 'Hunters, trappers, those who walk between areas.'},
+  {id: 'M5', name: 'The lamp tender', sex: 'm', skin: '#c2906c', hair: '#1d1512', glow: GOLD,
+    layers: [['kandys', '#7a2f28', '#d9c48a'], ['ground'], ['legs', 'narrow', WHITE, 'soft', '#8a7a5c'], ['tunic', {len: 232, hemW: 30, col: WHITE, neck: 'round', trim: '#d9c48a', glowHem: true}], ['sleeves', 'narrow', WHITE, '#d9c48a', true], ['sash', '#d9c48a'], ['pole'], ['head', {hair: 'short', beard: 'none', gear: 'globe', gearCol: WHITE, padam: true}]],
+    from: 'The Zoroastrian priest in white with the cloth over his mouth; the Median sleeved cloak worn on the shoulders with its sleeves hanging empty; the Sasanian kings\' silk globe.',
+    under: 'The mouth cloth keeps breath off the flame. The globe on the cap is a small lantern: it says he carries fire. White, so he is seen. A pole with a wick and a snuffer.',
+    who: 'Lamp tenders; the ossuary\'s candle keepers.'},
+  {id: 'M6', name: "The ferryman's felt", sex: 'm', skin: '#b58059', hair: '#2a2420', glow: GOLD,
+    layers: [['ground'], ['legs', 'chaps', GREY, 'patten', '#3a2a1e'], ['tunic', {len: 200, hemW: 26, col: RUST, neck: 'round', trim: '#3a2a1e'}], ['kapanak', '#77705f'], ['head', {hair: 'short', beard: 'full', gear: 'bashlyk', gearCol: '#77705f'}]],
+    from: 'The Median soft hood with flaps for neck and chin, and the stiff felt cloak that shepherds of the plateau wore into modern times.',
+    under: 'Waxed felt sheds drips and fog and stands off the body like a small roof. The flaps tie under the chin on the water. Eel-skin leggings, wooden pattens. No glow: his light is on the boat.',
+    who: 'Ferrymen, cistern keepers, water carriers.'},
+  {id: 'W1', name: 'The house dress', sex: 'w', skin: '#cf9d78', hair: '#1a1410', glow: GOLD,
+    layers: [['braid', GOLD], ['ground'], ['legs', 'narrow', UND, 'soft', '#6b4c2e'], ['tunic', {len: 288, hemW: 38, col: VIO, neck: 'round', trim: UND, pleats: true, glowHem: true}], ['sleeves', 'wing', VIO, UND, true], ['apron', '#a89a7a'], ['sash', RUST], ['head', {hair: 'smooth', beard: 'none', gear: 'crenel', gearCol: '#b9884a'}]],
+    from: 'Achaemenid women on seals and on the Pazyryk cloth: a long pleated dress with wide sleeves, the hair in one long braid, a low crenellated band.',
+    under: 'No veil: the braid is the ornament, and its ribbon ends are glow thread, so a child can follow her in a dark lane. A waxed apron. The sleeves tie up for cooking.',
+    who: 'Householders, cooks, most women of the lanes.'},
+  {id: 'W2', name: "The keeper's veil", sex: 'w', skin: '#c0906c', hair: '#3a3632', glow: GOLD,
+    layers: [['veil', '#d9d2c0'], ['ground'], ['legs', 'narrow', GREY, 'soft', '#3a3632'], ['tunic', {len: 292, hemW: 34, col: '#3d4250', neck: 'round', trim: '#d9d2c0', pleats: true, discs: true}], ['sleeves', 'narrow', '#3d4250', '#d9d2c0'], ['sash', '#d9d2c0'], ['candle'], ['head', {hair: 'smooth', beard: 'none', gear: 'crenel', gearCol: '#d9d2c0'}]],
+    from: 'The Achaemenid noblewoman of the Ergili gravestones and the Pazyryk cloth: a crenellated crown with a veil falling down the back over a long gown.',
+    under: 'The veil is kept as a sign of office and of mourning, not against sun or eyes. It is pale so she can be seen in the dark passages. She carries the candle. Discs at the breast.',
+    who: 'Ossuary keepers, elders, anyone at a burial.'},
+  {id: 'W3', name: 'The bazaar gown', sex: 'w', skin: '#d6a680', hair: '#1a1410', glow: GOLD,
+    layers: [['ground'], ['legs', 'narrow', '#d9c9a0', 'soft', MADDER], ['tunic', {len: 290, hemW: 30, col: MADDER, neck: 'round', hem: 'round', trim: SAFF, roundels: SAFF}], ['sleeves', 'narrow', MADDER, SAFF, true], ['belt', SAFF, ['purse', 'lamp'], 112], ['shawl', '#d9c9a0', SAFF], ['head', {hair: 'topknot', beard: 'none', gear: 'fillet', gearCol: SAFF}]],
+    from: 'Sasanian: a long close gown belted high under the bust, a shawl carried over the arms, the hair in a topknot with floating ribbons, pearls.',
+    under: 'Madder red: sun-grown, costly. Glow pearls in the roundels. The shawl goes round the shoulders in the cold halls. Purse and lamp at the high belt.',
+    who: 'Stall keepers, hosts, musicians.'},
+  {id: 'W4', name: "The copyist's jacket", sex: 'w', skin: '#b98562', hair: '#2a1c14', glow: BLUE,
+    layers: [['ground'], ['legs', 'baggy', GREY, 'soft', '#8a7a5c'], ['tunic', {len: 196, hemW: 27, col: '#cfc4a4', neck: 'wrap', trim: INDIGO, quilt: true, glowHem: true}], ['sleeves', 'bound', '#cfc4a4', INDIGO], ['belt', INDIGO, ['lamp', 'keys']], ['head', {hair: 'pinned', beard: 'none', gear: 'none'}]],
+    from: 'The Parthian wrapped jacket and full trousers. On the monuments it is men\'s dress; giving it to working women is our choice.',
+    under: 'The jacket is quilted with ruined pages, for the cold stacks: you can see lines of old writing in the seams. Sleeves bound at the wrist, off the ink. Braids pinned up. Bare-headed.',
+    who: 'Copyists, stack keepers, those who push the book carts.'},
+  {id: 'W5', name: 'The terrace worker', sex: 'w', skin: '#a9764f', hair: '#1d1512', glow: VIOLET,
+    layers: [['ground'], ['legs', 'baggy', '#6a5a78', 'patten', '#3a2a1e'], ['tunic', {len: 206, hemW: 28, col: '#8a8470', neck: 'round', trim: '#4a3f58', glowHem: true}], ['sleeves', 'short', '#8a8470', '#4a3f58'], ['apron', '#5d5648'], ['belt', '#3a2a1e', ['cup']], ['basket'], ['head', {hair: 'smooth', beard: 'none', gear: 'felt', gearCol: '#6a5a78', padam: true}]],
+    from: 'The Median working cut: a short belted tunic over trousers gathered at the ankle, and a felt cap. The mouth cloth is the Sasanian servant\'s.',
+    under: 'The mouth cloth is against spores. Nobody sews glow thread on her hem: years in the beds have stained it, and it glows violet by itself. A waxed apron, pattens, short sleeves.',
+    who: 'Fungus farmers, gardeners, anyone who works wet ground.'},
+  {id: 'W6', name: "The traveller's cloak", sex: 'w', skin: '#c99673', hair: '#1a1410', glow: BLUE,
+    layers: [['kandys', '#33506a', '#c9b79a', 270], ['ground'], ['legs', 'baggy', RUST, 'tall', '#3a2a1e'], ['tunic', {len: 230, hemW: 29, col: '#7d6a8c', neck: 'v', hem: 'round', trim: '#c9b79a', discs: true}], ['sleeves', 'narrow', '#7d6a8c', '#c9b79a', true], ['torque'], ['belt', '#3a2a1e', ['lamp', 'purse']], ['pole', -1], ['head', {hair: 'smooth', beard: 'none', gear: 'tall', gearCol: '#33506a'}]],
+    from: 'The sleeved cloak with a fur edge, worn on the shoulders; Parthian full trousers; the tall headdress of the women of Hatra with its veil thrown back; a neck ring.',
+    under: 'Fur against the cold of the Gorge. Her glow thread is another area\'s blue: she is not from here, and everyone can see it. Discs along the breast, a lantern staff.',
+    who: 'Guests of the caravanserai and, later, travellers between areas.'},
+];
+
+function svg(f) {
+  const c = {w: f.sex === 'w', skin: f.skin, hair: f.hair, glow: f.glow};
+  let s = '';
+  for (const [fn, ...args] of f.layers) s += draw[fn](c, ...args);
+  return `<svg viewBox="-6 -16 172 334" role="img" aria-label="${f.name}">${s}</svg>`;
+}
+for (const f of FIGS) {
+  const el = document.createElement('article');
+  el.className = 'plate';
+  el.innerHTML = `<div class="tile">${svg(f)}</div><div class="txt"><p class="mono">${f.id}</p><h3>${f.name}</h3><dl>
+    <dt>From</dt><dd>${f.from}</dd><dt>Underground</dt><dd>${f.under}</dd><dt>Worn by</dt><dd>${f.who}</dd></dl></div>`;
+  document.getElementById(f.sex === 'm' ? 'men' : 'women').appendChild(el);
+  document.getElementById('dark').insertAdjacentHTML('beforeend', svg(f));
+}
+</script>
