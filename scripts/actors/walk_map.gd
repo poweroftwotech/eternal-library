@@ -28,6 +28,11 @@ var last_bake_ms: float = 0.0
 var _bake_from: int = 0
 ## room (instance id) -> {region: RID, mesh: NavigationMesh, done: bool, room}
 var _rooms: Dictionary = {}
+## link -> the two pieces of surface it joins ("room:piece" each).
+var _links: Dictionary = {}
+## A piece -> the piece it is joined to (followed to the end: one part).
+## Empty when rooms or joins have changed.
+var _parts: Dictionary = {}
 
 
 func _init() -> void:
@@ -95,6 +100,8 @@ func _baked(id: int) -> void:
 	NavigationServer3D.region_set_map(region, map)
 	entry["region"] = region
 	entry["done"] = true
+	_islands(entry)
+	_parts.clear()
 
 
 ## Whether the room's surface is made and the server has taken it in (it does
@@ -107,6 +114,153 @@ func ready_for(room: Node3D) -> bool:
 	var probe: Vector3 = (entry as Dictionary)["probe"]
 	var found: Vector3 = nearest(probe)
 	return Vector2(found.x - probe.x, found.z - probe.z).length() < 1.5 and absf(found.y - probe.y) < 1.0
+
+
+## Whether a room has a surface that is in.
+func has_room(room: Node3D) -> bool:
+	var entry: Variant = _rooms.get(room.get_instance_id())
+	return entry != null and bool((entry as Dictionary)["done"])
+
+
+## Joins two rooms' surfaces through a doorway: `a` and `b` are places either
+## side of it (global). Returns the link (free it with `unjoin`), or an
+## invalid RID if either side has no floor there.
+func join(a: Vector3, b: Vector3) -> RID:
+	var pa: Vector3 = nearest(a)
+	var pb: Vector3 = nearest(b)
+	if Vector2(pa.x - a.x, pa.z - a.z).length() > 1.0 or Vector2(pb.x - b.x, pb.z - b.z).length() > 1.0 or absf(pa.y - a.y) > 1.0 or absf(pb.y - b.y) > 1.0:
+		return RID()
+	var ka: String = _part_at(pa)
+	var kb: String = _part_at(pb)
+	if ka == "" or kb == "":
+		return RID()
+	var link: RID = NavigationServer3D.link_create()
+	_links[link] = [ka, kb]
+	_parts.clear()
+	NavigationServer3D.link_set_map(link, map)
+	NavigationServer3D.link_set_bidirectional(link, true)
+	NavigationServer3D.link_set_start_position(link, pa)
+	NavigationServer3D.link_set_end_position(link, pb)
+	NavigationServer3D.link_set_enabled(link, true)
+	return link
+
+
+func unjoin(link: RID) -> void:
+	_links.erase(link)
+	_parts.clear()
+	if link.is_valid():
+		NavigationServer3D.free_rid(link)
+
+
+## Takes a room's surface away (the room is leaving).
+func drop(room: Node3D) -> void:
+	var id: int = room.get_instance_id()
+	if _rooms.has(id):
+		if (_rooms[id]["region"] as RID).is_valid():
+			NavigationServer3D.free_rid(_rooms[id]["region"])
+		_rooms.erase(id)
+		_parts.clear()
+
+
+# A room's surface is often in several pieces (a floor, the top of a bench, a
+# landing nobody can step up to). Which piece each polygon is in, by the
+# vertices polygons share: entry["piece"], with each polygon's corners
+# (global) in entry["polys"].
+func _islands(entry: Dictionary) -> void:
+	var nm: NavigationMesh = entry["mesh"]
+	var xf: Transform3D = (entry["room"] as Node3D).global_transform
+	var verts: PackedVector3Array = nm.get_vertices()
+	var root: PackedInt32Array = PackedInt32Array()
+	root.resize(verts.size())
+	for i: int in verts.size():
+		root[i] = i
+	var polys: Array[PackedVector3Array] = []
+	var first: PackedInt32Array = PackedInt32Array()
+	for k: int in nm.get_polygon_count():
+		var poly: PackedInt32Array = nm.get_polygon(k)
+		var corners := PackedVector3Array()
+		var r0: int = _root(root, poly[0])
+		for i: int in poly:
+			corners.append(xf * verts[i])
+			root[_root(root, i)] = r0
+		polys.append(corners)
+		first.append(poly[0])
+	var piece := PackedInt32Array()
+	for k: int in first.size():
+		piece.append(_root(root, first[k]))
+	entry["polys"] = polys
+	entry["piece"] = piece
+
+
+static func _root(root: PackedInt32Array, i: int) -> int:
+	while root[i] != i:
+		root[i] = root[root[i]]
+		i = root[i]
+	return i
+
+
+# The piece of surface at p (a point on or near a surface): "room:piece", or
+# "" if there is none.
+func _part_at(p: Vector3) -> String:
+	var owner: RID = NavigationServer3D.map_get_closest_point_owner(map, p)
+	for id: int in _rooms:
+		var entry: Dictionary = _rooms[id]
+		if entry["region"] != owner or not entry.has("polys"):
+			continue
+		var polys: Array[PackedVector3Array] = entry["polys"]
+		var best: int = -1
+		var best_d: float = INF
+		for k: int in polys.size():
+			var c: PackedVector3Array = polys[k]
+			if absf(c[0].y - p.y) > 1.2:
+				continue
+			# Inside it (seen from above), or else how far from its nearest corner.
+			var inside: bool = true
+			var sign: float = 0.0
+			var d: float = INF
+			for i: int in c.size():
+				var a: Vector3 = c[i]
+				var b: Vector3 = c[(i + 1) % c.size()]
+				var cross: float = (b.x - a.x) * (p.z - a.z) - (b.z - a.z) * (p.x - a.x)
+				if absf(cross) > 0.0001:
+					if sign == 0.0:
+						sign = signf(cross)
+					elif signf(cross) != sign:
+						inside = false
+				d = minf(d, Vector2(a.x - p.x, a.z - p.z).length())
+			if inside:
+				d = absf(c[0].y - p.y) * 0.01
+			if d < best_d:
+				best_d = d
+				best = k
+		return "" if best < 0 else "%d:%d" % [id, (entry["piece"] as PackedInt32Array)[best]]
+	return ""
+
+
+## Whether there is a way over the surfaces from a to b (both on or near a
+## surface): the same piece of a room's surface, or pieces joined through
+## doorways. Asked before any way is looked for: the engine complains aloud
+## when asked for a way that isn't there.
+func connected(a: Vector3, b: Vector3) -> bool:
+	var ka: String = _part_at(nearest(a))
+	var kb: String = _part_at(nearest(b))
+	if ka == "" or kb == "":
+		return false
+	if _parts.is_empty():
+		# Pieces joined by doorways are one part: found again when rooms change.
+		for link: RID in _links:
+			var x: String = _part_of(_links[link][0])
+			var y: String = _part_of(_links[link][1])
+			if x != y:
+				_parts[x] = y
+		_parts["."] = "."
+	return _part_of(ka) == _part_of(kb)
+
+
+func _part_of(key: String) -> String:
+	while _parts.has(key) and _parts[key] != key:
+		key = _parts[key]
+	return key
 
 
 ## Forgets rooms that have gone.
@@ -162,6 +316,8 @@ func outline(room: Node3D) -> PackedVector3Array:
 
 ## How far it is to walk from a to b; INF if b can't be walked to from a.
 func walk_length(a: Vector3, b: Vector3) -> float:
+	if not connected(a, b):
+		return INF
 	var p: PackedVector3Array = path(a, b)
 	if p.is_empty():
 		return INF

@@ -1,7 +1,7 @@
 # Approval brief: residents and their day, phase 21
 
 [Back to the front page](../../ENVIRONMENT_PLAN.md) · Status: **APPROVED as recommended
-2026-11-18 (Q1-Q10). Step 1 committed (59cdc95). Step 2 (the bells and one household) walked and committed 2026-11-18 (61b2a79). Step 3 (out of the door) committed (8aafa4a). Step 4 (trades and free time) built, awaiting your walk ([progress](progress/phase-21-residents.md)).** ·
+2026-11-18 (Q1-Q10). Step 1 committed (59cdc95). Step 2 (the bells and one household) walked and committed 2026-11-18 (61b2a79). Step 3 (out of the door) committed (8aafa4a). Step 4 (trades and free time) committed (e1069a7). Step 5 (the Mahaleh, live) walked and committed 2026-11-19 ([progress](progress/phase-21-residents.md)).** ·
 What it stands on: [phase 19 design](phase-19-design.md) (the actor layer
 and the cat's skeleton), [the zoo](progress/zoo.md) (the F4 overlay and F5
 panel this phase copies for people)

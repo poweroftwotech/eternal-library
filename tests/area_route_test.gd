@@ -97,6 +97,10 @@ func audit(id: String, s: int) -> void:
 	Area.seed_override = s
 	var area := Area.new()
 	area.recipe = load(recipe_path if recipe_path != "" else RECIPES[id])
+	if OS.get_cmdline_user_args().has("nopeople"):
+		# (The rooms alone, as before phase 21.)
+		area.recipe = area.recipe.duplicate()
+		area.recipe.people = 0.0
 	area.streaming = false     # step 1: every room at once
 	root.add_child(area)
 	await physics_frame
@@ -272,14 +276,26 @@ func audit(id: String, s: int) -> void:
 			var points: Array[Vector3] = []
 			for q: Vector3 in ways[w]:
 				points.append(r.xf * q)
+			# (Again for each way: whoever lives there shuts the door behind them.)
+			for d: Node in g.find_children("*", "", true, false):
+				if d is HomeDoor:
+					(d as HomeDoor).set_open(true, true)
 			body.global_position = points[0] + Vector3(0, 0.95, 0)
+			await physics_frame
 			await physics_frame
 			var there: Array[Vector3] = points.slice(1)
 			var out_n: int = await follow(body, there)
 			var home: Array[Vector3] = points.duplicate()
 			home.reverse()
 			var back_n: int = await follow(body, home)
-			check(out_n == there.size() and back_n == home.size(), "%s: %s way %d of %d: out and back (%d of %d, %d of %d)" % [tag, r.slot_id, w, ways.size(), out_n, there.size(), back_n, home.size()])
+			var who: String = ""
+			if out_n != there.size() or back_n != home.size():
+				# Somebody in the way (people are solid)?
+				for n: Node in get_nodes_in_group(Residents.GROUP):
+					for one: Resident in (n as Residents).people:
+						if is_instance_valid(one) and not one.away and one.global_position.distance_to(body.global_position) < 1.5:
+							who += "; %s the %s is %.1f m off, %s" % [one.given_name, one.trade, one.global_position.distance_to(body.global_position), one.doing]
+			check(out_n == there.size() and back_n == home.size(), "%s: %s way %d of %d: out and back (%d of %d, %d of %d)%s" % [tag, r.slot_id, w, ways.size(), out_n, there.size(), back_n, home.size(), who])
 	check(walked.size() == p.rooms.size() - 1, "%s: the walks pass through every room but the root (%d of %d)" % [tag, walked.size(), p.rooms.size() - 1])
 	body.queue_free()
 	area.queue_free()

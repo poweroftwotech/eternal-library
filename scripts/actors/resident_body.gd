@@ -79,6 +79,10 @@ var kind: String = "man"
 var model: Node3D
 var skeleton: Skeleton3D
 var anim: AnimationPlayer
+const FAR_EVERY: int = 4
+var _far: bool = false
+var _far_dt: float = 0.0
+var _far_n: int = 0
 ## Piece name -> its mesh ("base", "coat", ...).
 var pieces: Dictionary = {}
 var outfit: String = ""
@@ -258,7 +262,24 @@ func set_eyes_shut(shut: bool) -> void:
 	(pieces["base"] as MeshInstance3D).set_instance_shader_parameter("eyes_shut", 1.0 if shut else 0.0)
 
 
+## Far from the eye: the animation moves on only every FAR_EVERY frames.
+func set_far(far: bool) -> void:
+	if far == _far:
+		return
+	_far = far
+	_far_dt = 0.0
+	_far_n = randi() % FAR_EVERY
+	anim.callback_mode_process = AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_MANUAL if far else AnimationMixer.ANIMATION_CALLBACK_MODE_PROCESS_IDLE
+
+
 func _process(delta: float) -> void:
+	if _far:
+		_far_dt += delta
+		_far_n += 1
+		if _far_n >= FAR_EVERY:
+			anim.advance(_far_dt)
+			_far_dt = 0.0
+			_far_n = 0
 	if holding != "":
 		# Whatever is carried hangs straight down from the hand.
 		var thing: Node3D = _things[holding]

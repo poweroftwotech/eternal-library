@@ -575,3 +575,110 @@ headless with no errors.
   have seen that only at the edge of one picture.
 - Pictures (`previews/phase21_step4/homes/`): night for seeds 1 and 2,
   day (`_day`) for the same.
+
+**Step 4 committed 2026-11-19 (e1069a7)** at your word.
+
+## Step 5: the Mahaleh, live
+
+### First look (2026-11-19, awaiting your walk)
+
+**Try it:** the Mahaleh itself (Strata Board, walk the Mahaleh, or
+`-- --room=area:mahaleh`). **F6** is the People panel as before; **F4** the
+overlay. Come at three times of day (the panel jumps to a bell).
+
+**What you should see.**
+
+- **Every lived-in home in all four quarters has its people** (24 on world
+  seed 1): the family's cook and stall keeper, a scholar, a hunter, and one
+  lamp tender to a lane. The posed figures in the homes and lanes are gone.
+- **People leave their lane.** The surfaces people walk on are joined
+  through the doorways between rooms, the square and the alley included.
+  - A stall keeper walks to the square's stalls or to a shop in a bazaar and
+    keeps it. The posed keeper of that shop steps aside while they do.
+  - A cook whose lane has no hauz fetches water from the next lane's.
+  - In the evening people sit at a hauz in another lane if theirs has none.
+- **Off-stage:** people exist only while their home's room is built. When
+  it comes back they are put where the hour has them, with the same names.
+- **People %** on the Strata Board (the area's form, under Animals):
+  "Homes lived in". 100% is every furnished home; a home left out stands
+  dark with its door shut. Deserted quarters have nobody whatever it says.
+
+Pictures in `previews/phase21_step5/`: the people of two quarters in the
+morning, by day and at night.
+
+**What was built.**
+
+| Part | What it is |
+|---|---|
+| People in any area | `Residents` attaches wherever an area's plan has a furnished home and its People setting is over 0 (`AreaRecipe.people`) |
+| Ways between rooms | Every built room gets a walking surface; `WalkMap.join` links two rooms' surfaces through the doorway between them, and takes the link away when either room goes |
+| The bazaar's shops | Each open shop gives a place to buy and the keeper's place (`Residents._shop_spots`) |
+| Rooms going | A room being taken down loses its people, its surface and its joins at once; anyone standing in it from another lane is put back at home |
+| The limit on bodies | The 24 nearest are drawn; those past 26 m move their animation every fourth frame |
+| The test | `tests/resident_area_test.gd`: walks the quarters, takes their rooms down and brings them back, and checks everyone |
+
+**Checks.**
+
+- **The area test** (world seeds 1, 2 and 3): passes. Every lived-in home
+  has its people, nobody stands off the walking surface, and after a room is
+  taken down and built again everyone is doing the same thing in the same
+  place at the same hour.
+- **Cost of their day:** 0.15 ms a frame for 24 people (the limit I set is
+  2). A room's surface: 1 to 5 ms on the main thread, 17 to 92 ms off it.
+- **A whole day run fast** on the test lane, and **you in the way**: pass.
+- **Your own walking on the test lane**, five seeds: 79 checks, 0 failures.
+- **Starting up:** the camp, the Mahaleh, the Forgotten City, the Lower
+  Stacks, the test lane and the zoo start headless with no errors.
+- **Not run:** the frame gate in the Mahaleh (it fails there with or without
+  people, as before). **The cost of drawing the bodies is not measured.**
+
+**Three old faults in the animals' code fixed on the way.** The area test
+takes rooms down while the animals are still looking them over, which showed
+three places (the pigeons' ledges, the cats' soft spots, the water scan and
+the room search) that stopped with an error if a room went mid-look. They
+now skip what has gone.
+
+**What I see wrong, or have not done.**
+
+- **The bazaar's and the lanes' crowds are still posed figures.** The brief
+  says "the statues go". Only the homes' and quarters' figures have gone;
+  a bazaar's walkers, talkers and most of its keepers are as they were. They
+  have nowhere to sleep, which the brief did not settle.
+  **Your answer (2026-11-19): keep them as posed figures for now.**
+- **A stall keeper at the square stands in a cell beside the stall and
+  weighs at nothing** (one picture). I have not seen one at a bazaar shop.
+- **Which shop a keeper keeps depends on which rooms are built** when they
+  set out, so it can differ from one visit to the next.
+- **Someone in another room when that room is taken down appears at home.**
+  It should be out of your sight; I have not seen it happen in view.
+- **Everyone in a trade is dressed alike,** so two lanes' lamp tenders at
+  one hauz look like twins.
+- **A resident shuts their door behind them** even if you opened it.
+- **Long walks:** a keeper may walk well over 100 m to a shop. Nobody has
+  been watched doing the whole walk; the tests skip walks.
+- **The engine's own navigation warning** about overlapping edges where two
+  rooms meet is turned off in the project settings; the joins don't use it.
+- **The panel has no People amount, new seed or respawn** yet (the brief's
+  list for it); the amount is on the Strata Board.
+
+### After the first look: ways that aren't there, and the long walking test (2026-11-19)
+
+- **The engine complained aloud** ("not expect to not find the most
+  reachable polygons") whenever someone asked for a way to a place that
+  can't be walked to: a hauz on another level, a seat on an island of the
+  surface. With every room built at once that was 206 errors in one run.
+  `WalkMap.connected` now works out which pieces of each room's surface hang
+  together, and which are joined through doorways, and no way is asked for
+  unless there is one. The same run now has none.
+- **Your own walking through the whole live Mahaleh** (world seed 1, every
+  room built at once): **160 checks, 6 failures, and the same 6 with nobody
+  living there** (`nopeople`, a new switch on the test). So they are not the
+  people's doing. Five are the test's long walks from the entrance, which
+  end with the test body thousands of metres down: the entrance is now a
+  Bridge Hall and the walk starts over its pit. One is a warning in the
+  entrance's own room check. This test was last run on an older layout of
+  the Mahaleh; it needs its own fix.
+- After the change: the area test (seeds 1 and 3), the whole day, you in the
+  way, and the walking test on the test lane (79 checks, 0 failures) pass.
+
+**Step 5 walked 2026-11-19 ("looks good") and committed at your word.** The bazaar and lane crowds stay posed figures for now.

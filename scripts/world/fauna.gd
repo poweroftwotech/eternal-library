@@ -395,9 +395,11 @@ func _work() -> void:
 			var n: int = 0
 			while not stack.is_empty() and n < 300:
 				n += 1
-				var at: Node = stack.pop_back()
-				if not is_instance_valid(at):
+				# (Its room may have been taken down since the search began.)
+				var popped: Variant = stack.pop_back()
+				if not is_instance_valid(popped):
 					continue
+				var at: Node = popped
 				var m := at as MeshInstance3D
 				if m != null and m.mesh != null and m.is_visible_in_tree():
 					(j["box_found"] as Array).append([m, m.global_transform * m.get_aabb()])

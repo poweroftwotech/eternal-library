@@ -206,6 +206,7 @@ static func build(desc: Dictionary) -> AreaRecipe:
 	r.fall_limit = float(desc.get("fall_limit", base.fall_limit))
 	r.open_sight = bool(desc.get("open_sight", base.open_sight))
 	r.fauna = (desc.get("fauna", base.fauna) as Dictionary).duplicate()
+	r.people = float(desc.get("people", base.people))
 	if desc.has("atmosphere"):
 		var atmos: String = str(desc["atmosphere"])
 		r.atmosphere = load(atmos) as AtmosphereProfile if ResourceLoader.exists(atmos) else null
@@ -826,7 +827,7 @@ static func describe(recipe: AreaRecipe) -> Dictionary:
 		"mtime": _mtime(recipe.resource_path), "version": recipe.version, "room_count": [recipe.room_count.x, recipe.room_count.y], "max_dead_ends": recipe.max_dead_ends,
 		"max_sight_depth": recipe.max_sight_depth, "envelope": [env.position.x, env.position.y, env.position.z, env.size.x, env.size.y, env.size.z],
 		"open_sight": recipe.open_sight, "network": recipe.network != null, "slots": [], "grow": [],
-		"atmosphere": recipe.atmosphere.resource_path if recipe.atmosphere != null else "", "fall_limit": recipe.fall_limit, "fauna": recipe.fauna.duplicate()}
+		"atmosphere": recipe.atmosphere.resource_path if recipe.atmosphere != null else "", "fall_limit": recipe.fall_limit, "fauna": recipe.fauna.duplicate(), "people": recipe.people}
 	for s: AreaSlot in recipe.slots:
 		if s == null:
 			continue

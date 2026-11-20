@@ -41,6 +41,10 @@ extends Resource
 ## amount, 1 as the kind's own def says, 0 none, 2 twice as many. A kind
 ## not listed is 1. Edited on the Strata Board (Animals).
 @export var fauna: Dictionary = {}
+## How many of the area's homes have people living in them (phase 21 step 5):
+## 1 every home that is furnished to be lived in, 0 nobody. Edited on the
+## Strata Board (People).
+@export_range(0.0, 1.0, 0.05) var people: float = 1.0
 
 
 func slot(slot_id: String) -> AreaSlot:

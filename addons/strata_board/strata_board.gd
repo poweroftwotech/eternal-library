@@ -1783,6 +1783,19 @@ func _area_form() -> void:
 	_form.add_child(_row("", _toggle("Open cavern (every room sees every other)", bool(rc.get("open_sight", false)), func(on: bool) -> void: set_area_field("open_sight", on))))
 	_form.add_child(_note("Rooms: the area's minimum and maximum. A rule never grows past its own maximum (Q4), so a seed whose rules fall short of the minimum is invalid. Dead ends: plain-walled ends allowed. Sightline: how many rooms deep you may see through doorways. Space: where rooms may be built, in metres from the entrance. Fall limit: below this height a falling player is put back."))
 	_animals_form(rc)
+	_form.add_child(_label("PEOPLE", 11, MUTED))
+	var folk := SpinBox.new()
+	folk.min_value = 0
+	folk.max_value = 100
+	folk.step = 5
+	folk.suffix = "%"
+	folk.value = roundf(float(rc.get("people", 1.0)) * 100.0)
+	folk.custom_minimum_size.x = 90 * ui_scale
+	folk.value_changed.connect(func(x: float) -> void: set_area_field("people", x / 100.0))
+	var folk_row := _row("Homes lived in", folk)
+	folk_row.tooltip_text = "The share of this area's furnished homes that have people living in them: 100% every one, 0% nobody. A home left out stands dark with its door shut."
+	_form.add_child(folk_row)
+	_form.add_child(_note("People: who lives in a home comes from the kind of home (a family, a scholar, a hunter). Deserted quarters have nobody whatever this says."))
 
 
 ## How many of each animal live in the area (AreaRecipe.fauna), as a share of

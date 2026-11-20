@@ -34,6 +34,10 @@ const WORK_MOVES: Dictionary = {"scholar": "read", "hunter": "mend", "ossuary ke
 const CARRIES: Dictionary = {"water": "jar", "shop": "basket"}
 ## At each lamp a tender stays this long (s of the day), then goes to the next.
 const TEND_S: float = 14.0
+## A shared spot in another room is gone to if it is within this far (m, as
+## the crow flies), and only the nearest TRIES of them are tried for a way.
+const REACH: float = 120.0
+const TRIES: int = 3
 ## Kinds of spot that take any number of people, side by side.
 const SHARED: PackedStringArray = ["door", "stand"]
 ## What free time picks among.
@@ -99,6 +103,16 @@ var _repath_s: float = 0.0
 var _strayed: bool = false
 ## Out of the lane (the hunter by day): not seen, not in anyone's way.
 var _laid: Node3D
+## The room (its slot) their home is in: its lamps are theirs to tend, and a
+## shared spot in another room is theirs only if they can walk to it.
+var home_slot: String = ""
+## Whether two rooms (slots) are joined by doorways all the way (Residents.joined).
+var joined: Callable
+## [lane, place] -> whether there is a way from the one to the other (shared
+## by everyone; Residents empties it when rooms come or go).
+var known_ways: Dictionary = {}
+## How far over the floor the walking surface lies (it is made of cells).
+var _lift: float = 0.0
 var away: bool = false
 var _carry: String = ""
 ## What the present spot was taken for.
@@ -143,6 +157,8 @@ func stand_at(at: Vector3) -> void:
 	global_position = at
 	_foot = at
 	floor_y = at.y
+	if ways != null:
+		_lift = clampf(ways.nearest(at + Vector3(0, 0.25, 0)).y - at.y, 0.0, 0.4)
 
 
 ## The activity the timetable gives at `bells` (0..6).
@@ -270,7 +286,7 @@ func _walk_move() -> String:
 
 # The next lamp of the round (the lane's "lamp" spots, in order).
 func _next_lamp() -> Dictionary:
-	var lamps: Array = commons.filter(func(s: Dictionary) -> bool: return s["kind"] == "lamp")
+	var lamps: Array = commons.filter(func(s: Dictionary) -> bool: return s["kind"] == "lamp" and str(s.get("slot", "")) == home_slot)
 	if lamps.is_empty():
 		return {}
 	_lamp_at = posmod(_lamp_at + 1, lamps.size())
@@ -283,17 +299,43 @@ func _free_spot(kind: String) -> Dictionary:
 	for s: Dictionary in home["spots"]:
 		if _will_do(s, kind):
 			return s
-	var best: Dictionary = {}
-	var best_d: float = INF
+	# The lane's own, then other rooms' (the bazaar's shops) if there is a way.
+	var near: Array = []
 	for s: Dictionary in commons:
 		if not _will_do(s, kind):
 			continue
+		var far: bool = str(s.get("slot", "")) != home_slot
+		var d: float = _foot.distance_to(s["at"])
+		if far and d > REACH:
+			continue
 		# (Hashed in so that two people don't always make for the same one.)
-		var d: float = _foot.distance_to(s["at"]) + float(posmod(hash([seed_value, s["at"]]), 100)) * 0.01
-		if d < best_d:
-			best_d = d
-			best = s
-	return best
+		near.append([d + float(posmod(hash([seed_value, s["at"]]), 100)) * 0.01 * (8.0 if far else 1.0) + (1000.0 if far else 0.0), s, far])
+	near.sort_custom(func(a: Array, b: Array) -> bool: return float(a[0]) < float(b[0]))
+	var tried: int = 0
+	for c: Array in near:
+		if not bool(c[2]):
+			return c[1]
+		# Another room: only if the surfaces are joined all the way there.
+		if ways == null or tried >= TRIES:
+			break
+		var s: Dictionary = c[1]
+		if joined.is_valid() and not bool(joined.call(home_slot, str(s.get("slot", "")))):
+			continue
+		# (Asked once for each lane and place, until the rooms change.)
+		var key: Array = [home_slot, s["at"]]
+		if not known_ways.has(key):
+			tried += 1
+			# (To the floor beside it: a seat or a keeper's place is itself off the floor.)
+			var from: Vector3 = ways.nearest((home["anchor"] as Vector3) + Vector3(0, 0.25, 0))
+			var at: Vector3 = s["at"]
+			var foot: Vector3 = ways.approach(Vector3(at.x, ways.nearest(at + Vector3(0, 0.25, 0)).y, at.z), from)
+			var ok: bool = Vector2(foot.x - at.x, foot.z - at.z).length() < 2.2 and ways.walk_length(from, foot) < REACH * 2.5
+			known_ways[key] = ok
+			if ok and not s.has("foot"):
+				s["foot"] = Vector3(foot.x, _floor_of(foot.y), foot.z)
+		if bool(known_ways[key]):
+			return s
+	return {}
 
 
 func _will_do(s: Dictionary, kind: String) -> bool:
@@ -321,7 +363,7 @@ func _find_way() -> void:
 			over.remove_at(0)
 		# (The surface lies a little over the floor it was made from.)
 		for i: int in over.size():
-			over[i].y = floor_y
+			over[i].y = _floor_of(over[i].y)
 		route.append_array(over)
 	route.append(_end)
 	# Points one on top of another give nothing to walk.
@@ -330,6 +372,47 @@ func _find_way() -> void:
 		if route[k].distance_to(route[k + 1]) < 0.02:
 			route.remove_at(k)
 		k -= 1
+
+
+# The floor under a point of the walking surface: their home floor if it is
+# near that, else the surface less its lift (a stair, another room).
+func _floor_of(surface_y: float) -> float:
+	var y: float = surface_y - _lift
+	return floor_y if absf(y - floor_y) < 0.3 else y
+
+
+## Whatever they are doing, chosen again (a room with somewhere better to do
+## it has come, or the spot they had has gone with its room).
+func rethink() -> void:
+	if away or doing == "" or doing == "tend":
+		return
+	var first: String = str((WANTS.get(doing, ["stand"]) as Array)[0])
+	if spot.is_empty() or (spot["kind"] != first and not _free_spot(first).is_empty()):
+		_go(doing)
+
+
+## Their home's room is being taken down: out of sight and out of the way
+## until they go with it.
+func leave() -> void:
+	_roll(true)
+	if not spot.is_empty() and spot["by"] == self:
+		spot["by"] = null
+	visible = false
+	away = true
+	_solid.disabled = true
+	set_process(false)
+
+
+## The spot they have is gone (its room went): they have none.
+func drop_spot() -> void:
+	spot = {}
+	walking = false
+	route = PackedVector3Array()
+	# (The floor they stood on went with it: they are at home, off-stage.)
+	stand_at(home["anchor"])
+	_carry = ""
+	body.hold_thing("")
+	body.play("idle", 0.0)
 
 
 ## Ends a walk at once: they are at their spot (a room just built, the hour

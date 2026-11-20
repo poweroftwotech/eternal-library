@@ -148,10 +148,12 @@ static func step(scan: LedgeScan, s: PhysicsDirectSpaceState3D, deadline_usec: i
 	while scan.at < scan.boxes.size() and scan.out.size() < MOST and scan.tries < scan.most_tries:
 		if Time.get_ticks_usec() >= deadline_usec:
 			return false
-		var m: MeshInstance3D = scan.boxes[scan.at]
+		# (Its room may have been taken down since the scan began.)
+		var box: Variant = scan.boxes[scan.at]
 		scan.at += 1
-		if not is_instance_valid(m):
+		if not is_instance_valid(box):
 			continue
+		var m: MeshInstance3D = box
 		var tops: PackedVector3Array = _tops(m.mesh, PER_MESH if scan.per_mesh <= 4 else scan.per_mesh * 15)
 		if tops.is_empty():
 			continue

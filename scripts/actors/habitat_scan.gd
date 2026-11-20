@@ -75,7 +75,9 @@ static func begin(root: Node) -> WaterScan:
 static func step(scan: WaterScan, deadline_usec: int) -> bool:
 	var planes: Array[Dictionary] = scan.planes
 	while scan.at < scan.nodes.size():
-		var g := scan.nodes[scan.at] as GeometryInstance3D
+		# (Its room may have been taken down since the scan began.)
+		var found: Variant = scan.nodes[scan.at]
+		var g: GeometryInstance3D = (found as GeometryInstance3D) if is_instance_valid(found) else null
 		scan.at += 1
 		if deadline_usec >= 0 and Time.get_ticks_usec() >= deadline_usec:
 			scan.at -= 1

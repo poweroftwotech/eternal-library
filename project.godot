@@ -89,3 +89,7 @@ kit_wear_y={
 "type": "vec2",
 "value": Vector2(-1, 1)
 }
+
+[navigation]
+
+3d/warnings/navmesh_edge_merge_errors=false

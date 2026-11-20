@@ -148,9 +148,10 @@ func _one(space: PhysicsDirectSpaceState3D) -> void:
 			if _soft.is_empty() or spots.size() >= MAX_SPOTS:
 				_stage = 3
 				return
-			var thing: Node3D = _soft.pop_back()
-			if is_instance_valid(thing) and thing.is_inside_tree():
-				_spot(space, thing)
+			# (Its room may have been taken down since the scan began.)
+			var thing: Variant = _soft.pop_back()
+			if is_instance_valid(thing) and (thing as Node3D).is_inside_tree():
+				_spot(space, thing as Node3D)
 		3:
 			if lane_points == 0:
 				_rings(space)
